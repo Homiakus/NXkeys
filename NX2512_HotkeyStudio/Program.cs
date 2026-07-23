@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -28,546 +27,130 @@ namespace NX2512_HotkeyStudio
         private static NotifyIcon trayIcon;
         private static string activeConfigPath;
         private static Control uiInvoker;
-        private static SynchronizationContext mainSyncContext;
 
         [STAThread]
         public static void Main(string[] args)
         {
-            int cliCommandIndex = FindCliCommandIndex(args);
-            if (cliCommandIndex >= 0)
+            int cliIndex = FindCliCommandIndex(args);
+            if (cliIndex >= 0)
             {
-                RunCli(NormalizeCliArgs(args, cliCommandIndex));
+                RunCli(NormalizeCliArgs(args, cliIndex));
                 return;
             }
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
             uiInvoker = new Control();
             uiInvoker.CreateControl();
-            mainSyncContext = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
 
-            bool isToggleRequest = HasFlag(args, "--toggle");
-            bool isStartRequest = HasFlag(args, "--background") || HasFlag(args, "--tray") || HasFlag(args, "--daemon") || HasFlag(args, "--ensure-background") || HasFlag(args, "--start");
-            bool isBackground = isStartRequest || isToggleRequest;
-            bool isGui = args == null || args.Length == 0 || HasFlag(args, "--gui") || !isBackground;
+            bool toggle = HasFlag(args, "--toggle");
+            bool background = toggle || HasFlag(args, "--background") || HasFlag(args, "--tray") ||
+                              HasFlag(args, "--daemon") || HasFlag(args, "--ensure-background") || HasFlag(args, "--start");
+            bool gui = !background || HasFlag(args, "--gui");
 
             bool createdNew;
             singleMutex = new Mutex(true, SingleInstanceMutexName, out createdNew);
-
             if (!createdNew)
             {
-                // Another instance of HotkeyStudio is already running in background!
-                if (isGui)
-                {
-                    try
-                    {
-                        using (var ev = EventWaitHandle.OpenExisting(ShowUiEventName))
-                        {
-                            ev.Set(); // Signal running background instance to show GUI
-                        }
-                    }
-                    catch { }
-                }
-                else if (isToggleRequest)
-                {
-                    try
-                    {
-                        using (var ev = EventWaitHandle.OpenExisting(ToggleEventName))
-                        {
-                            ev.Set(); // Signal running background instance to toggle Leader Key
-                        }
-                    }
-                    catch { }
-                }
-                else
-                {
-                    try
-                    {
-                        using (var ev = EventWaitHandle.OpenExisting(StartEventName))
-                        {
-                            ev.Set(); // Signal running background instance to ensure Leader Key is enabled
-                        }
-                    }
-                    catch { }
-                }
-                return; // Exit secondary process quietly
+                SignalExisting(gui ? ShowUiEventName : toggle ? ToggleEventName : StartEventName);
+                return;
             }
 
-            // Primary instance setup
             showUiEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ShowUiEventName);
             toggleEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ToggleEventName);
             startEvent = new EventWaitHandle(false, EventResetMode.AutoReset, StartEventName);
 
-            activeConfigPath = GetArgValue(args, "--config");
-            if (string.IsNullOrWhiteSpace(activeConfigPath) || !File.Exists(activeConfigPath))
-            {
-                activeConfigPath = FindDefaultConfig();
-            }
-
-            Config config;
-            try { config = Config.Load(activeConfigPath); }
-            catch { config = new Config(); config.ApplyDefaults(); }
-
-            // Initialize background Leader Key engine
-            if (config.LeaderKey == null) config.LeaderKey = new LeaderKeyConfig();
-            config.LeaderKey.ApplyDefaults();
-
+            activeConfigPath = ResolveConfigPath(GetArgValue(args, "--config"));
+            Config config = LoadSafeConfig(activeConfigPath);
             globalEngine = new LeaderKeyEngine(config.LeaderKey);
-            globalEngine.StatusChanged += status => AppendRuntimeLog(status);
-            globalEngine.SequenceExecuted += (seq, item) => AppendRuntimeLog($"Queued direct Leader command -> {seq} | {item?.Command?.ID} | {item?.Command?.Name}");
+            globalEngine.StatusChanged += AppendRuntimeLog;
+            globalEngine.SequenceExecuted += (sequence, item) => AppendRuntimeLog($"Leader queued: {sequence} -> {item?.Command?.ID}");
+
             if (config.LeaderKey.Enabled)
             {
-                try
-                {
-                    globalEngine.Start();
-                    AppendRuntimeLog($"Leader engine started. Config={activeConfigPath}; Trigger={config.LeaderKey.TriggerKey}; Sequences={config.LeaderKey.Sequences.Count}");
-                }
-                catch (Exception ex)
-                {
-                    AppendRuntimeLog("Leader engine failed to start: " + ex);
-                    ShowNotification("Leader Key", "Не удалось запустить keyboard hook. См. logs\\leader-key.log");
-                }
+                try { globalEngine.Start(); }
+                catch (Exception ex) { AppendRuntimeLog("Leader start failed: " + ex); }
             }
 
             SetupTrayIcon();
+            StartSignalThread(showUiEvent, OpenGuiForm);
+            StartSignalThread(toggleEvent, ToggleLeaderEngine);
+            StartSignalThread(startEvent, EnsureLeaderEngineRunning);
 
-            // Background listener thread for ShowUI signals from NX Menu button or CLI
-            Thread listenerThread = new Thread(() =>
-            {
-                while (true)
-                {
-                    if (showUiEvent.WaitOne())
-                    {
-                        try
-                        {
-                            if (uiInvoker != null && uiInvoker.IsHandleCreated)
-                            {
-                                uiInvoker.Invoke(new Action(() => OpenGuiForm()));
-                            }
-                            else if (mainSyncContext != null)
-                            {
-                                mainSyncContext.Post(_ => OpenGuiForm(), null);
-                            }
-                            else
-                            {
-                                OpenGuiForm();
-                            }
-                        }
-                        catch { }
-                    }
-                }
-            })
-            { IsBackground = true };
-            listenerThread.Start();
-
-            // Background listener thread for Toggle signals from NX Ribbon button
-            Thread toggleThread = new Thread(() =>
-            {
-                while (true)
-                {
-                    if (toggleEvent.WaitOne())
-                    {
-                        try
-                        {
-                            if (uiInvoker != null && uiInvoker.IsHandleCreated)
-                            {
-                                uiInvoker.Invoke(new Action(() => ToggleLeaderEngine()));
-                            }
-                            else if (mainSyncContext != null)
-                            {
-                                mainSyncContext.Post(_ => ToggleLeaderEngine(), null);
-                            }
-                            else
-                            {
-                                ToggleLeaderEngine();
-                            }
-                        }
-                        catch { }
-                    }
-                }
-            })
-            { IsBackground = true };
-            toggleThread.Start();
-
-            // Background listener thread for idempotent Start/Ensure-on signals from NX Ribbon button
-            Thread startThread = new Thread(() =>
-            {
-                while (true)
-                {
-                    if (startEvent.WaitOne())
-                    {
-                        try
-                        {
-                            if (uiInvoker != null && uiInvoker.IsHandleCreated)
-                            {
-                                uiInvoker.Invoke(new Action(() => EnsureLeaderEngineRunning()));
-                            }
-                            else if (mainSyncContext != null)
-                            {
-                                mainSyncContext.Post(_ => EnsureLeaderEngineRunning(), null);
-                            }
-                            else
-                            {
-                                EnsureLeaderEngineRunning();
-                            }
-                        }
-                        catch { }
-                    }
-                }
-            })
-            { IsBackground = true };
-            startThread.Start();
-
-            if (isBackground)
-            {
-                // Run quietly in system tray
-                Application.Run(new TrayApplicationContext());
-            }
+            if (background) Application.Run(new TrayApplicationContext());
             else
             {
-                // Run with GUI open
                 mainForm = new HotkeyStudioForm(activeConfigPath, globalEngine);
                 Application.Run(mainForm);
             }
 
-            // Clean up resources on exit
-            if (globalEngine != null) { globalEngine.Stop(); globalEngine.Dispose(); }
-            if (trayIcon != null) { trayIcon.Visible = false; trayIcon.Dispose(); }
-            if (uiInvoker != null && !uiInvoker.IsDisposed) { uiInvoker.Dispose(); }
-            if (singleMutex != null) { singleMutex.ReleaseMutex(); singleMutex.Dispose(); }
-            if (startEvent != null) { startEvent.Dispose(); }
-        }
-
-        private static bool IsPureCliCommand(string cmd)
-        {
-            if (string.IsNullOrWhiteSpace(cmd)) return false;
-            string c = cmd.Trim().ToLowerInvariant();
-            return c == "validate" || c == "scan" || c == "catalog" || c == "plan" || c == "apply" || c == "backups" || c == "bridge-status" || c == "health" || c == "restore" || c == "leader";
-        }
-
-        private static int FindCliCommandIndex(string[] args)
-        {
-            if (args == null) return -1;
-            for (int i = 0; i < args.Length; i++)
-            {
-                string arg = args[i] ?? string.Empty;
-                if (string.Equals(arg, "--config", StringComparison.OrdinalIgnoreCase))
-                {
-                    i++;
-                    continue;
-                }
-                if (arg.StartsWith("--config=", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-                if (IsPureCliCommand(arg)) return i;
-            }
-            return -1;
-        }
-
-        private static string[] NormalizeCliArgs(string[] args, int commandIndex)
-        {
-            if (args == null || commandIndex < 0 || commandIndex >= args.Length) return args ?? Array.Empty<string>();
-            List<string> normalized = new List<string> { args[commandIndex] };
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (i == commandIndex) continue;
-                normalized.Add(args[i]);
-            }
-            return normalized.ToArray();
-        }
-
-        private static bool HasFlag(string[] args, string flag)
-        {
-            return args != null && args.Any(x => string.Equals(x, flag, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private static string FindDefaultConfig()
-        {
-            string candidate = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nx2512-pro-hybrid.json");
-            if (File.Exists(candidate)) return candidate;
-
-            candidate = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "nx2512-pro-hybrid.json");
-            if (File.Exists(candidate)) return Path.GetFullPath(candidate);
-
-            return "nx2512-pro-hybrid.json";
-        }
-
-        private static void ShowNotification(string title, string message)
-        {
-            if (trayIcon != null)
-            {
-                trayIcon.ShowBalloonTip(2500, title, message, ToolTipIcon.Info);
-            }
-        }
-
-        private static void AppendRuntimeLog(string message)
-        {
-            try
-            {
-                string logDir = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "NXKeys",
-                    "logs");
-                Directory.CreateDirectory(logDir);
-                string logPath = Path.Combine(logDir, "leader-key.log");
-                File.AppendAllText(logPath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [{Process.GetCurrentProcess().Id}] {message}{Environment.NewLine}");
-            }
-            catch { }
-        }
-
-        private static void SetupTrayIcon()
-        {
-            trayIcon = new NotifyIcon
-            {
-                Icon = SystemIcons.Application,
-                Text = "NXKeys Hotkey Studio (Leader Key Active)",
-                Visible = true
-            };
-
-            ContextMenuStrip ctx = new ContextMenuStrip();
-            ToolStripMenuItem openItem = new ToolStripMenuItem("Открыть NXKeys Studio UI", null, (s, e) => OpenGuiForm());
-            ToolStripMenuItem toggleItem = new ToolStripMenuItem("Переключить Leader Key (CapsLock)", null, (s, e) =>
-            {
-                if (globalEngine != null)
-                {
-                    if (globalEngine.IsRunning) globalEngine.Stop();
-                    else globalEngine.Start();
-                }
-            });
-            ToolStripMenuItem exitItem = new ToolStripMenuItem("Выход", null, (s, e) =>
-            {
-                trayIcon.Visible = false;
-                Application.Exit();
-            });
-
-            ctx.Items.Add(openItem);
-            ctx.Items.Add(toggleItem);
-            ctx.Items.Add(new ToolStripSeparator());
-            ctx.Items.Add(exitItem);
-
-            trayIcon.ContextMenuStrip = ctx;
-            trayIcon.DoubleClick += (s, e) => OpenGuiForm();
-        }
-
-        public static void OpenGuiForm()
-        {
-            try
-            {
-                if (mainForm != null && !mainForm.IsDisposed)
-                {
-                    mainForm.Show();
-                    mainForm.WindowState = FormWindowState.Normal;
-                    mainForm.BringToFront();
-                    mainForm.Activate();
-                }
-                else
-                {
-                    mainForm = new HotkeyStudioForm(activeConfigPath, globalEngine);
-                    mainForm.Show();
-                    mainForm.BringToFront();
-                    mainForm.Activate();
-                }
-            }
-            catch { }
-        }
-
-        private static void ToggleLeaderEngine()
-        {
-            if (globalEngine != null)
-            {
-                if (globalEngine.IsRunning)
-                {
-                    globalEngine.Stop();
-                    ShowNotification("Leader Key (CapsLock)", "Перехват клавиш временно ПРИОСТАНОВЛЕН");
-                }
-                else
-                {
-                    globalEngine.Start();
-                    ShowNotification("Leader Key (CapsLock)", "Перехват клавиш АКТИВИРОВАН");
-                }
-            }
-        }
-
-        private static void EnsureLeaderEngineRunning()
-        {
-            if (globalEngine == null) return;
-            if (!globalEngine.IsRunning)
-            {
-                globalEngine.Start();
-                ShowNotification("Leader Key (CapsLock)", "Перехват клавиш АКТИВИРОВАН");
-            }
-            else
-            {
-                ShowNotification("Leader Key (CapsLock)", "Перехват клавиш уже активен");
-            }
-        }
-
-        private class TrayApplicationContext : ApplicationContext { }
-
-        public static int MainUnloaded(string arg)
-        {
-            Main(new[] { "--gui" });
-            return 0;
+            Cleanup();
         }
 
         private static void RunCli(string[] args)
         {
-            string command = args[0].ToLowerInvariant();
-            string configPath = GetArgValue(args, "--config") ?? "nx2512-pro-hybrid.json";
             Environment.ExitCode = 0;
-
             try
             {
+                string command = args[0].ToLowerInvariant();
+                string configPath = ResolveConfigPath(GetArgValue(args, "--config"));
+                Config config = Config.Load(configPath);
+
                 switch (command)
                 {
                     case "validate":
-                        Config cfgVal = Config.Load(configPath);
-                        Console.WriteLine($"[OK] Configuration '{cfgVal.Profile.Name}' is valid. Leader sequences: {cfgVal.LeaderKey?.Sequences?.Count ?? 0}");
-                        break;
-
-                    case "leader":
-                        Config cfgL = Config.Load(configPath);
-                        if (cfgL.LeaderKey == null) cfgL.LeaderKey = new LeaderKeyConfig();
-                        cfgL.LeaderKey.ApplyDefaults();
-
-                        using (var engine = new LeaderKeyEngine(cfgL.LeaderKey))
-                        {
-                            engine.StatusChanged += status => Console.WriteLine($"[LEADER ENGINE] {status}");
-                            engine.SequenceExecuted += (seq, item) => Console.WriteLine($"[EXECUTED] Leader -> {seq} ({item.Command?.Name})");
-                            engine.Start();
-
-                            Console.WriteLine($"NX Leader Key Engine started. Active Trigger Key: {cfgL.LeaderKey.TriggerKey}");
-                            Console.WriteLine($"Sequences registered: {cfgL.LeaderKey.Sequences.Count}");
-                            Console.WriteLine("Press Ctrl+C to terminate background hook service.");
-
-                            var resetEvent = new ManualResetEvent(false);
-                            Console.CancelKeyPress += (s, e) => { e.Cancel = true; resetEvent.Set(); };
-                            resetEvent.WaitOne();
-
-                            engine.Stop();
-                            Console.WriteLine("NX Leader Key Engine stopped.");
-                        }
+                        Console.WriteLine($"[OK] Профиль '{config.Profile.Name}' корректен. Leader-команд: {config.LeaderKey?.Sequences?.Count ?? 0}");
                         break;
 
                     case "scan":
-                        Config cfgScan = Config.Load(configPath);
-                        ScanResult scanRes = NxScanner.Scan(cfgScan);
-                        bool jsonOut = HasFlag(args, "--json");
-
-                        if (jsonOut)
-                        {
-                            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new
-                            {
-                                roots = scanRes.DiscoveredRoots,
-                                menu_files_count = scanRes.MenuFiles.Count,
-                                catalog_commands_count = scanRes.Catalog.Commands.Count
-                            }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Roots discovered: {scanRes.DiscoveredRoots.Count}");
-                            Console.WriteLine($"Menu files found: {scanRes.MenuFiles.Count}");
-                            Console.WriteLine($"Catalog total commands: {scanRes.Catalog.Commands.Count}");
-                        }
+                        PrintScan(NxScanner.Scan(config, GetArgValue(args, "--catalog")), HasFlag(args, "--json"));
                         break;
 
                     case "catalog":
-                        string query = GetArgValue(args, "--query");
-                        if (string.IsNullOrWhiteSpace(query))
-                        {
-                            Console.WriteLine("Error: --query parameter is required for catalog search.");
-                            Environment.ExitCode = 1;
-                            return;
-                        }
-                        Config cfgCat = Config.Load(configPath);
-                        ScanResult scanCat = NxScanner.Scan(cfgCat);
-                        var resolver = new CommandResolver(scanCat.Catalog);
-
-                        List<CandidateMatch> matches = new List<CandidateMatch>();
-                        List<string> qList = new List<string> { query };
-
-                        foreach (var kvp in scanCat.Catalog.Commands)
-                        {
-                            CommandItem item = kvp.Value;
-                            double score = CommandResolver.ScoreCommand(qList, item);
-                            if (score > 0.4)
-                            {
-                                matches.Add(new CandidateMatch
-                                {
-                                    ID = item.ID,
-                                    Label = item.DisplayLabel,
-                                    Score = score,
-                                    ApiMatch = item.ApiCandidates.Count > 0 ? item.ApiCandidates[0].ApiTarget : string.Empty
-                                });
-                            }
-                        }
-
-                        matches.Sort((a, b) => b.Score.CompareTo(a.Score));
-                        Console.WriteLine($"Search results for '{query}' ({matches.Count} matches):");
-                        foreach (var m in matches.Take(15))
-                        {
-                            Console.WriteLine($" - {m.ID} | Label: '{m.Label}' | Score: {m.Score:F2} | API: {m.ApiMatch}");
-                        }
+                        SearchCatalog(config, GetArgValue(args, "--query"), GetArgValue(args, "--catalog"));
                         break;
 
                     case "plan":
-                        Config cfgPlan = Config.Load(configPath);
-                        ScanResult scanPlan = NxScanner.Scan(cfgPlan);
-                        DeploymentPlan plan = DeploymentEngine.BuildPlan(cfgPlan, scanPlan.Catalog);
-
-                        Console.WriteLine("=== DEPLOYMENT PLAN ===");
-                        foreach (string line in plan.ActionSummary) Console.WriteLine(line);
-                        Console.WriteLine();
-                        Console.WriteLine(plan.ResolutionReport);
+                        PrintPlan(DeploymentEngine.BuildPlan(config, NxScanner.Scan(config, GetArgValue(args, "--catalog")).Catalog));
                         break;
 
                     case "apply":
-                        Config cfgApply = Config.Load(configPath);
-                        if (HasFlag(args, "--yes") || HasFlag(args, "-y"))
-                        {
-                            cfgApply.Deployment.DryRun = false;
-                        }
-                        if (HasFlag(args, "--dry-run"))
-                        {
-                            cfgApply.Deployment.DryRun = true;
-                        }
-                        if (HasFlag(args, "--allow-running-nx"))
-                        {
-                            cfgApply.Deployment.RequireNXStopped = false;
-                        }
+                        if (HasFlag(args, "--yes") || HasFlag(args, "-y")) config.Deployment.DryRun = false;
+                        if (HasFlag(args, "--dry-run")) config.Deployment.DryRun = true;
+                        if (HasFlag(args, "--allow-running-nx")) config.Deployment.RequireNXStopped = false;
+                        ScanResult scan = NxScanner.Scan(config, GetArgValue(args, "--catalog"));
+                        DeploymentPlan plan = DeploymentEngine.BuildPlan(config, scan.Catalog);
+                        if (!DeploymentEngine.ApplyPlan(config, plan, out string backup, out string applyError))
+                            throw new InvalidOperationException(applyError);
+                        Console.WriteLine(config.Deployment.DryRun
+                            ? "[DRY-RUN] План проверен, файлы не изменялись."
+                            : "[OK] Пакет установлен. Резервная копия: " + backup);
+                        break;
 
-                        ScanResult scanApp = NxScanner.Scan(cfgApply);
-                        DeploymentPlan planApp = DeploymentEngine.BuildPlan(cfgApply, scanApp.Catalog);
+                    case "launch":
+                        string[] nxArgs = ArgumentsAfterSeparator(args);
+                        int processId = NxRuntimeService.Launch(config, configPath, nxArgs, out string launchError);
+                        if (processId < 0) throw new InvalidOperationException(launchError);
+                        Console.WriteLine("Siemens NX запущен. PID=" + processId);
+                        break;
 
-                        bool ok = DeploymentEngine.ApplyPlan(cfgApply, planApp, out string backupDir, out string err);
-                        if (ok)
-                        {
-                            if (cfgApply.Deployment.DryRun)
-                            {
-                                Console.WriteLine("[DRY-RUN] Plan built successfully. No files were written.");
-                            }
-                            else
-                            {
-                                Console.WriteLine($"[SUCCESS] Plan applied. Backup folder: {backupDir}");
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine($"[ERROR] Failed to apply plan: {err}");
-                            Environment.ExitCode = 1;
-                        }
+                    case "leader":
+                        RunLeader(config);
                         break;
 
                     case "backups":
-                        Config cfgB = Config.Load(configPath);
-                        var backups = BackupEngine.ListBackups(cfgB.Deployment.BackupRoot);
-                        Console.WriteLine($"Discovered {backups.Count} backups in {cfgB.Deployment.BackupRoot}:");
-                        foreach (var b in backups)
-                        {
-                            Console.WriteLine($" - {b.Timestamp} | Profile: {b.ProfileName} | Files: {b.Entries.Count}");
-                        }
+                        foreach (BackupManifest item in BackupEngine.ListBackups(config.Deployment.BackupRoot))
+                            Console.WriteLine($"{item.Timestamp} | {item.ProfileName} | {item.Entries.Count} файлов");
+                        break;
+
+                    case "restore":
+                        bool force = HasFlag(args, "--force");
+                        string manifest = GetArgValue(args, "--manifest");
+                        RestoreResult restore = string.IsNullOrWhiteSpace(manifest)
+                            ? BackupEngine.RestoreLatest(config.Deployment.BackupRoot, force)
+                            : BackupEngine.RestoreFromManifest(manifest, force);
+                        if (!restore.Success) throw new InvalidOperationException(restore.ErrorMessage);
+                        Console.WriteLine("[OK] Восстановление завершено: " + restore.ManifestPath);
                         break;
 
                     case "bridge-status":
@@ -575,146 +158,247 @@ namespace NX2512_HotkeyStudio
                         break;
 
                     case "health":
-                        Config cfgHealth = Config.Load(configPath);
-                        PrintHealth(NxKeysHealthService.Check(cfgHealth));
-                        break;
-
-                    case "restore":
-                        Config cfgR = Config.Load(configPath);
-                        bool force = HasFlag(args, "--force");
-                        string manifest = GetArgValue(args, "--manifest");
-                        var rest = string.IsNullOrWhiteSpace(manifest)
-                            ? BackupEngine.RestoreLatest(cfgR.Deployment.BackupRoot, force)
-                            : BackupEngine.RestoreFromManifest(manifest, force);
-
-                        if (rest.Success)
-                        {
-                            Console.WriteLine($"[SUCCESS] Restored from {rest.ManifestPath}");
-                            foreach (string rf in rest.RestoredFiles) Console.WriteLine($"  - {rf}");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"[ERROR] Restore failed: {rest.ErrorMessage}");
-                            Environment.ExitCode = 1;
-                        }
+                        PrintHealth(NxKeysHealthService.Check(config));
                         break;
 
                     default:
-                        Console.WriteLine($"Unknown command '{command}'. Available: validate, scan, catalog, plan, apply, backups, bridge-status, health, restore, leader");
-                        Environment.ExitCode = 1;
-                        break;
+                        throw new ArgumentException("Неизвестная команда: " + command);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Execution error: {ex.Message}");
+                Console.Error.WriteLine("[ERROR] " + ex.Message);
                 Environment.ExitCode = 1;
+            }
+        }
+
+        private static void PrintScan(ScanResult result, bool json)
+        {
+            if (json)
+            {
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    roots = result.DiscoveredRoots,
+                    menu_files = result.MenuFiles.Count,
+                    role_files = result.RoleFiles.Count,
+                    launcher_files = result.LauncherFiles.Count,
+                    commands = result.Catalog.Commands.Count,
+                    api_catalog = result.DocumentationCatalogDirectory,
+                    warnings = result.Warnings
+                }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+                return;
+            }
+            Console.WriteLine("Корней: " + result.DiscoveredRoots.Count);
+            Console.WriteLine("MenuScript-файлов: " + result.MenuFiles.Count);
+            Console.WriteLine("Команд: " + result.Catalog.Commands.Count);
+            Console.WriteLine("API-каталог: " + (string.IsNullOrWhiteSpace(result.DocumentationCatalogDirectory) ? "не найден" : result.DocumentationCatalogDirectory));
+            foreach (string warning in result.Warnings) Console.WriteLine("Предупреждение: " + warning);
+        }
+
+        private static void SearchCatalog(Config config, string query, string catalogDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(query)) throw new ArgumentException("Для catalog требуется --query.");
+            ScanResult scan = NxScanner.Scan(config, catalogDirectory);
+            var matches = scan.Catalog.Commands.Values
+                .Select(item => new { Item = item, Score = CommandResolver.ScoreCommand(new List<string> { query }, item) })
+                .Where(x => x.Score > 0.35)
+                .OrderByDescending(x => x.Score)
+                .Take(30);
+            foreach (var match in matches)
+                Console.WriteLine($"{match.Score:F2} | {match.Item.ID} | {match.Item.DisplayLabel} | {match.Item.ApiCandidates.FirstOrDefault()?.ApiTarget}");
+        }
+
+        private static void PrintPlan(DeploymentPlan plan)
+        {
+            foreach (string line in plan.ActionSummary) Console.WriteLine(line);
+            Console.WriteLine();
+            Console.WriteLine(plan.ResolutionReport);
+        }
+
+        private static void RunLeader(Config config)
+        {
+            using (var engine = new LeaderKeyEngine(config.LeaderKey))
+            {
+                engine.StatusChanged += value => Console.WriteLine("[LEADER] " + value);
+                engine.Start();
+                Console.WriteLine("Leader запущен. Для выхода нажмите Ctrl+C.");
+                var stop = new ManualResetEvent(false);
+                Console.CancelKeyPress += (_, eventArgs) => { eventArgs.Cancel = true; stop.Set(); };
+                stop.WaitOne();
+                engine.Stop();
             }
         }
 
         private static void PrintBridgeStatus()
         {
             string root = NxCommandBridgeClient.BridgeRoot;
-            string pending = Path.Combine(root, "pending");
-            string completed = Path.Combine(root, "completed");
-            string failed = Path.Combine(root, "failed");
-            string statusPath = Path.Combine(root, "status.json");
-            string logPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "NXKeys",
-                "logs",
-                "nx-command-bridge.log");
-
-            Console.WriteLine("NXKeys direct command bridge");
-            Console.WriteLine($"Root: {root}");
-            Console.WriteLine($"Loaded in NX: {(File.Exists(statusPath) ? "yes" : "no")}");
-
-            if (File.Exists(statusPath))
+            Console.WriteLine("Bridge root: " + root);
+            Console.WriteLine("Context: " + (File.Exists(NxCommandBridgeClient.ContextPath) ? NxCommandBridgeClient.ContextPath : "нет"));
+            foreach (string directory in new[] { "pending", "completed", "failed" })
             {
-                Console.WriteLine("Status:");
-                Console.WriteLine(File.ReadAllText(statusPath).Trim());
+                string path = Path.Combine(root, directory);
+                Console.WriteLine(directory + ": " + (Directory.Exists(path) ? Directory.GetFiles(path, "*.json").Length : 0));
             }
-
-            Console.WriteLine($"Pending: {CountJsonFiles(pending)}");
-            Console.WriteLine($"Completed: {CountJsonFiles(completed)}");
-            Console.WriteLine($"Failed: {CountJsonFiles(failed)}");
-            PrintRecentFiles("Recent failed", failed, "*.result.txt", 5);
-            PrintRecentFiles("Recent completed", completed, "*.result.txt", 5);
-            Console.WriteLine($"Log: {logPath}");
         }
 
         private static void PrintHealth(NxKeysHealthReport report)
         {
-            Console.WriteLine("NXKeys health");
-            Console.WriteLine($"Managed root: {report.ManagedRoot}");
-            Console.WriteLine($"NX running: {(report.NxRunning ? "yes" : "no")}");
-            foreach (string proc in report.NxProcesses) Console.WriteLine($" - {proc}");
-            Console.WriteLine($"MenuScript versions OK: {(report.MenuScriptVersionOk ? "yes" : "no")}");
-            Console.WriteLine($"Invalid NXKeys VERSION files: {report.StaleFiles.Count}");
-            foreach (NxKeysMenuFileStatus stale in report.StaleFiles.Take(20))
-            {
-                Console.WriteLine($" - VERSION {stale.Version}: {stale.Path}");
-            }
-            Console.WriteLine("Generated NXKeys menu file versions:");
-            foreach (NxKeysMenuFileStatus file in report.MenuFiles.Take(30))
-            {
-                Console.WriteLine($" - VERSION {file.Version}: {file.Path}");
-            }
-            Console.WriteLine($"Bridge loaded: {(report.BridgeLoaded ? "yes" : "no")}");
-            Console.WriteLine($"Pending: {report.PendingCount}");
-            Console.WriteLine($"Completed: {report.CompletedCount}");
-            Console.WriteLine($"Failed: {report.FailedCount}");
-            if (report.LastFailures.Count > 0)
-            {
-                Console.WriteLine("Recent failures:");
-                foreach (string failure in report.LastFailures) Console.WriteLine($" - {failure}");
-            }
-            Console.WriteLine($"Managed package OK: {(report.ManagedPackageOk ? "yes" : "no")}");
-            Console.WriteLine($"Bridge DLL locked: {(report.BridgeDllLocked ? "yes" : "no")}");
-            foreach (string missing in report.MissingManagedFiles) Console.WriteLine($"Missing: {missing}");
-            foreach (string mismatch in report.HashMismatches) Console.WriteLine($"Hash mismatch: {mismatch}");
+            Console.WriteLine("Managed root: " + report.ManagedRoot);
+            Console.WriteLine("NX запущен: " + (report.NxRunning ? "да" : "нет"));
+            foreach (string process in report.NxProcesses) Console.WriteLine("  " + process);
+            Console.WriteLine("MenuScript versions: " + (report.MenuScriptVersionOk ? "OK" : "ERROR"));
+            Console.WriteLine("Bridge loaded: " + (report.BridgeLoaded ? "да" : "нет"));
+            Console.WriteLine("Managed package: " + (report.ManagedPackageOk ? "OK" : "ERROR"));
+            foreach (string missing in report.MissingManagedFiles) Console.WriteLine("Отсутствует: " + missing);
+            foreach (string mismatch in report.HashMismatches) Console.WriteLine("SHA mismatch: " + mismatch);
         }
 
-        private static int CountJsonFiles(string directory)
+        private static Config LoadSafeConfig(string path)
         {
-            return Directory.Exists(directory) ? Directory.GetFiles(directory, "*.json").Length : 0;
-        }
-
-        private static void PrintRecentFiles(string title, string directory, string pattern, int count)
-        {
-            if (!Directory.Exists(directory)) return;
-            FileInfo[] files = new DirectoryInfo(directory)
-                .GetFiles(pattern)
-                .OrderByDescending(f => f.LastWriteTimeUtc)
-                .Take(count)
-                .ToArray();
-            if (files.Length == 0) return;
-
-            Console.WriteLine(title + ":");
-            foreach (FileInfo file in files)
+            try { return Config.Load(path); }
+            catch
             {
-                string firstLine = File.ReadLines(file.FullName).FirstOrDefault() ?? string.Empty;
-                Console.WriteLine($" - {file.Name}: {firstLine}");
+                var config = new Config();
+                config.ApplyDefaults();
+                return config;
             }
         }
 
-        private static string GetArgValue(string[] args, string flag)
+        private static string ResolveConfigPath(string requested)
+        {
+            var candidates = new List<string>();
+            if (!string.IsNullOrWhiteSpace(requested)) candidates.Add(requested);
+            candidates.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nx2512-pro-hybrid.json"));
+            candidates.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config", "nx2512-pro-hybrid.json"));
+            candidates.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config", "nx2512-ergo-80.json"));
+            candidates.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "config", "nx2512-pro-hybrid.json"));
+            candidates.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "internal", "defaults", "nx2512-pro-hybrid.json"));
+            foreach (string candidate in candidates)
+            {
+                string expanded = Config.ExpandPath(candidate);
+                if (File.Exists(expanded)) return Path.GetFullPath(expanded);
+            }
+            throw new FileNotFoundException("Профиль NXKeys не найден. Передайте --config с существующим JSON-файлом.");
+        }
+
+        private static void SetupTrayIcon()
+        {
+            trayIcon = new NotifyIcon { Icon = System.Drawing.SystemIcons.Application, Text = "NXKeys Leader", Visible = true };
+            var menu = new ContextMenuStrip();
+            menu.Items.Add("Открыть NXKeys Studio", null, (_, _) => OpenGuiForm());
+            menu.Items.Add("Переключить Leader", null, (_, _) => ToggleLeaderEngine());
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add("Выход", null, (_, _) => Application.Exit());
+            trayIcon.ContextMenuStrip = menu;
+            trayIcon.DoubleClick += (_, _) => OpenGuiForm();
+        }
+
+        private static void StartSignalThread(EventWaitHandle handle, Action action)
+        {
+            var thread = new Thread(() =>
+            {
+                while (true)
+                {
+                    handle.WaitOne();
+                    try
+                    {
+                        if (uiInvoker != null && uiInvoker.IsHandleCreated) uiInvoker.BeginInvoke(action);
+                    }
+                    catch { }
+                }
+            }) { IsBackground = true };
+            thread.Start();
+        }
+
+        private static void SignalExisting(string eventName)
+        {
+            try { using (var handle = EventWaitHandle.OpenExisting(eventName)) handle.Set(); }
+            catch { }
+        }
+
+        private static void OpenGuiForm()
+        {
+            if (mainForm == null || mainForm.IsDisposed) mainForm = new HotkeyStudioForm(activeConfigPath, globalEngine);
+            mainForm.Show();
+            mainForm.WindowState = FormWindowState.Normal;
+            mainForm.BringToFront();
+            mainForm.Activate();
+        }
+
+        private static void ToggleLeaderEngine()
+        {
+            if (globalEngine == null) return;
+            if (globalEngine.IsRunning) globalEngine.Stop(); else globalEngine.Start();
+        }
+
+        private static void EnsureLeaderEngineRunning()
+        {
+            if (globalEngine != null && !globalEngine.IsRunning) globalEngine.Start();
+        }
+
+        private static void Cleanup()
+        {
+            try { globalEngine?.Stop(); globalEngine?.Dispose(); } catch { }
+            try { if (trayIcon != null) { trayIcon.Visible = false; trayIcon.Dispose(); } } catch { }
+            try { uiInvoker?.Dispose(); } catch { }
+            try { singleMutex?.ReleaseMutex(); singleMutex?.Dispose(); } catch { }
+            try { showUiEvent?.Dispose(); toggleEvent?.Dispose(); startEvent?.Dispose(); } catch { }
+        }
+
+        private static bool IsCliCommand(string value)
+        {
+            string command = (value ?? string.Empty).Trim().ToLowerInvariant();
+            return new[] { "validate", "scan", "catalog", "plan", "apply", "launch", "backups", "restore", "bridge-status", "health", "leader" }.Contains(command);
+        }
+
+        private static int FindCliCommandIndex(string[] args)
+        {
+            if (args == null) return -1;
+            for (int index = 0; index < args.Length; index++)
+            {
+                if (args[index] == "--config" || args[index] == "--catalog") { index++; continue; }
+                if (IsCliCommand(args[index])) return index;
+            }
+            return -1;
+        }
+
+        private static string[] NormalizeCliArgs(string[] args, int commandIndex)
+        {
+            var result = new List<string> { args[commandIndex] };
+            for (int index = 0; index < args.Length; index++) if (index != commandIndex) result.Add(args[index]);
+            return result.ToArray();
+        }
+
+        private static string GetArgValue(string[] args, string name)
         {
             if (args == null) return null;
-            string prefix = flag + "=";
-            for (int i = 0; i < args.Length; i++)
+            for (int index = 0; index < args.Length; index++)
             {
-                if (args[i] != null && args[i].StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                {
-                    return args[i].Substring(prefix.Length).Trim('"');
-                }
-                if (string.Equals(args[i], flag, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (i + 1 < args.Length) return args[i + 1];
-                    return null;
-                }
+                if (string.Equals(args[index], name, StringComparison.OrdinalIgnoreCase) && index + 1 < args.Length) return args[index + 1];
+                if (args[index].StartsWith(name + "=", StringComparison.OrdinalIgnoreCase)) return args[index].Substring(name.Length + 1);
             }
             return null;
         }
+
+        private static bool HasFlag(string[] args, string flag) => args != null && args.Any(x => string.Equals(x, flag, StringComparison.OrdinalIgnoreCase));
+
+        private static string[] ArgumentsAfterSeparator(string[] args)
+        {
+            int separator = Array.IndexOf(args, "--");
+            return separator < 0 ? Array.Empty<string>() : args.Skip(separator + 1).ToArray();
+        }
+
+        private static void AppendRuntimeLog(string message)
+        {
+            try
+            {
+                string directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys", "logs");
+                Directory.CreateDirectory(directory);
+                File.AppendAllText(Path.Combine(directory, "leader-key.log"), $"{DateTime.Now:O} [{Process.GetCurrentProcess().Id}] {message}{Environment.NewLine}");
+            }
+            catch { }
+        }
+
+        private sealed class TrayApplicationContext : ApplicationContext { }
     }
 }
