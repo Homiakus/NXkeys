@@ -13,7 +13,6 @@ namespace NX2512_HotkeyStudio.Services
         public static string Normalize(string content, int version)
         {
             if (content == null) content = string.Empty;
-
             string normalized = Regex.Replace(content, @"(?m)^VERSION\s+\d+\s*$", "VERSION " + version);
             normalized = normalized.Replace("\r\n", "\n").Replace("\n\r", "\n").Replace("\r", "\n").Replace("\n", "\r\n");
             if (!normalized.EndsWith("\r\n", StringComparison.Ordinal)) normalized += "\r\n";
@@ -22,9 +21,11 @@ namespace NX2512_HotkeyStudio.Services
 
         public static void WriteAllText(string path, string content)
         {
-            string directory = Path.GetDirectoryName(path);
-            if (!string.IsNullOrWhiteSpace(directory)) Directory.CreateDirectory(directory);
-            File.WriteAllText(path, Normalize(content, MenuScriptDefaults.ExpectedVersionForPath(path)), Utf8NoBom);
+            AtomicFileWriter.WriteAllText(
+                path,
+                Normalize(content, MenuScriptDefaults.ExpectedVersionForPath(path)),
+                true,
+                Utf8NoBom);
         }
     }
 }
