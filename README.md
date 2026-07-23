@@ -1,58 +1,191 @@
 # NXKeys для Siemens NX 2512
 
-NXKeys — русскоязычный набор C#-инструментов для настройки горячих клавиш, адаптивного Leader-меню, радиальных меню и безопасного выполнения UI-команд в Siemens NX 2512 под Windows x64.
+NXKeys — C#-платформа для быстрого и безопасного управления Siemens NX 2512 через прямые горячие клавиши, контекстный Leader Key, радиальные меню и NXOpen Command Bridge.
 
-Проект больше не содержит Go CLI/TUI. Сканирование, конфигурация, развёртывание, запуск NX, диагностика, резервное копирование и восстановление выполняются единым C#-контуром на .NET 8.
+Проект рассчитан на Windows x64 и использует единый .NET 8-контур: настройка, сканирование, развёртывание, запуск NX, диагностика, резервное копирование и восстановление выполняются без Go CLI/TUI.
+
+> NXKeys не является продуктом Siemens. Доступность конкретной команды зависит от сборки NX, лицензии, роли, локализации, активного приложения, открытой детали и выбранных объектов.
+
+## Что даёт NXKeys
+
+- единый канонический профиль `config/nx2512-pro-hybrid.json`;
+- 14 модулей контекстного выбора и 112 позиций модульной карты;
+- 47 прямых горячих клавиш;
+- прикладные и объектные радиальные меню;
+- DFA для распознавания последовательностей;
+- HFSM для состояний Leader, подтверждений, поиска и переключения модулей;
+- декларативные guards и fallback-действия из `config/nx2512-state-machines.json`;
+- выполнение точного NX `BUTTON ID` через Command Bridge;
+- транзакционное развёртывание, SHA-256 manifest, backup и rollback;
+- Adaptive Control Center для обзора команд и текущего контекста NX;
+- интерактивная HTML-карта всех команд.
+
+## Интерактивное дерево команд
+
+Полная визуальная карта находится в:
+
+```text
+docs/command-tree.html
+```
+
+Она показывает:
+
+- дерево `CapsLock → модуль → команда`;
+- матрицу 14 модулей × 8 направлений;
+- прямые горячие клавиши;
+- все прикладные, модульные и объектные радиальные меню;
+- `BUTTON ID`;
+- требования выбора;
+- destructive/confirmation-флаги;
+- декларативные guards;
+- fallback `switch_module`;
+- путь команды через DFA, HFSM и Bridge.
+
+### Открытие локально
+
+Из корня репозитория:
+
+```powershell
+py -m http.server 8080
+```
+
+Откройте:
+
+```text
+http://localhost:8080/docs/command-tree.html
+```
+
+При запуске через HTTP страница автоматически читает актуальные файлы:
+
+```text
+config/nx2512-pro-hybrid.json
+config/nx2512-state-machines.json
+```
+
+При прямом открытии через `file://` браузер обычно блокирует чтение соседних JSON. В этом случае нажмите «Загрузить профиль» и «Загрузить policy» либо перетащите оба файла на страницу.
+
+[Открыть исходник интерактивной карты](docs/command-tree.html)
+
+## Модель управления
+
+### Прямые клавиши
+
+Прямые сочетания предназначены для глобальных и часто используемых действий:
+
+```text
+Ctrl+N       New
+Ctrl+O       Open
+Ctrl+S       Save
+Ctrl+Z       Undo
+Ctrl+Y       Redo
+Ctrl+F       Fit
+Ctrl+E       Expressions
+Ctrl+M       Modeling
+Ctrl+Shift+D Drafting
+```
+
+Полный список отображается во вкладке **«Прямые клавиши»** интерактивной карты и хранится в секции `keyboard` канонического профиля.
+
+### Leader Key
+
+Базовый сценарий:
+
+```text
+CapsLock → модуль → команда
+```
+
+Управление HUD:
+
+| Клавиша | Действие |
+|---|---|
+| `Space` | перейти в поиск |
+| `Tab` / `Shift+Tab` | выбрать следующий/предыдущий модуль |
+| `Backspace` | вернуться на уровень назад |
+| `Esc` | отменить и освободить перехват |
+| `Enter` | подтвердить опасную команду |
+| двойной `CapsLock` | sticky-режим |
+
+Модульная карта использует одинаковые смысловые позиции:
+
+| Слот | Смысл |
+|---|---|
+| `N` | запуск, создание или открытие основного объекта |
+| `NE` | следующий основной шаг процесса |
+| `E` | добавление объекта, материала или зависимости |
+| `SE` | преобразование или замена |
+| `S` | завершение, удаление или вторичная обработка |
+| `SW` | удаление, уменьшение или ослабление |
+| `W` | структура, связь или паттерн |
+| `NW` | инспекция, измерение или сервисная команда |
+
+### Радиальные меню
+
+Профиль содержит:
+
+- глобальные прикладные radial-наборы;
+- radial-набор каждого модуля;
+- объектные меню для `Face`, `Edge`, `Feature` и `Component`.
+
+Визуальная раскладка каждого меню доступна во вкладке **«Радиальные меню»** HTML-карты.
+
+## Архитектура
+
+```mermaid
+flowchart LR
+    Input[Keyboard hook] --> Queue[UI event queue]
+    Queue --> DFA[Sequence DFA]
+    DFA --> HFSM[Leader HFSM]
+    HFSM --> Guards[Context guards]
+    Guards -->|module mismatch| Switch[SwitchingModule]
+    Switch --> Context[NX context revision]
+    Context --> Guards
+    Guards -->|dangerous| Confirm[AwaitingConfirmation]
+    Guards -->|allowed| Dispatch[Dispatching]
+    Confirm --> Dispatch
+    Dispatch --> Pending[pending]
+    Pending --> Processing[processing]
+    Processing --> NX[NXOpen BUTTON ID]
+    NX --> Result[completed / failed]
+    Result --> HFSM
+```
+
+### Слои
+
+| Слой | Назначение |
+|---|---|
+| `SequenceAutomaton` | детерминированное распознавание последовательностей |
+| `LeaderStateMachine` | состояния `Idle`, `Root`, `Prefix`, `Search`, `AwaitingConfirmation`, `Dispatching`, `AwaitingResult`, `SwitchingModule`, `Failed` |
+| `ContextGuardEvaluator` | проверка модуля, Bridge, выбора, детали, диалога и достоверности контекста |
+| `LeaderBehaviorProfile` | декларативные таймауты, guards, confirmation и fallback |
+| `NX2512_CommandBridge` | повторная проверка контекста и выполнение команды внутри NX |
+
+Подробности: [архитектура конечных автоматов](docs/STATE_MACHINE_ARCHITECTURE.md).
 
 ## Компоненты
 
 | Компонент | Назначение |
 |---|---|
-| `NX2512_HotkeyStudio` | основной WinForms-интерфейс, CLI, Leader Engine, сканирование, deployment, запуск NX, health-check и восстановление |
-| `NX2512_ControlCenter` | адаптивный русскоязычный обзор команд, контекста NX Bridge, покрытия и API-каталога |
-| `NX2512_CommandBridge` | NXOpen-библиотека внутри процесса NX для выполнения точного `BUTTON ID` |
-| `NX2512_Catalog_Studio` | извлечение UI-команд, NXOpen members/entry points, UFUN и кандидатного crosswalk UI → API |
-
-Канонический профиль:
-
-```text
-config/nx2512-pro-hybrid.json
-```
-
-Целевая конфигурация профиля: **NX Pro Hybrid 2512.6000**.
-
-> NXKeys не является продуктом Siemens. Доступность команды зависит от сборки NX, лицензии, роли, локализации, активного приложения, открытой детали и выбранных объектов.
-
-## Текущий статус
-
-Реализованы:
-
-- JSON-профиль схемы v2;
-- модульные наборы команд;
-- горячие клавиши через MenuScript;
-- Leader Key и HUD;
-- Adaptive Control Center;
-- NXOpen Command Bridge;
-- поиск по NXOpen/UFUN-каталогу;
-- транзакционное C#-развёртывание;
-- SHA-256 package manifest;
-- резервное копирование и автоматический rollback;
-- единый C#-запуск Siemens NX;
-- CI для .NET 8 и Windows x64.
+| `NX2512_HotkeyStudio` | WinForms UI, CLI, Leader Engine, сканирование, deployment, запуск NX, health-check и restore |
+| `NX2512_ControlCenter` | обзор команд, покрытия, контекста Bridge и API-каталога |
+| `NX2512_CommandBridge` | NXOpen-библиотека для выполнения точного `BUTTON ID` |
+| `NX2512_Catalog_Studio` | извлечение UI-команд, NXOpen/UFUN и построение кандидатного crosswalk |
+| `NXKeys.Protocol` | общие snake_case DTO протокола без дополнительной runtime-DLL |
+| `NXKeys.StateMachines` | DFA, HFSM, guards и декларативная policy |
+| `NXKeys.StateMachines.Tests` | инвариантные, replay и randomized-тесты |
 
 ## Требования
 
-- Windows 10 или Windows 11 x64;
-- Siemens NX / Designcenter NX 2512;
+- Windows 10/11 x64;
+- Siemens NX или Designcenter NX 2512;
 - .NET 8 SDK x64 для сборки;
-- NXOpen DLL целевой установки для сборки `NX2512_CommandBridge`;
+- `NXOpen.dll` и `NXOpenUI.dll` целевой установки для production-сборки Bridge;
 - права записи в `%LOCALAPPDATA%\NXKeys`.
 
-Автоматическая загрузка и установка .NET SDK из build-скриптов отключена. Зависимости устанавливаются пользователем или администратором заранее.
+Build-скрипты не скачивают и не запускают удалённые установщики SDK. Зависимости устанавливаются пользователем или администратором заранее.
 
 ## Быстрая установка
 
-Закройте Siemens NX и выполните из корня репозитория:
+Закройте Siemens NX и выполните:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.ps1 `
@@ -71,42 +204,42 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.
 Установщик:
 
 1. проверяет .NET 8;
-2. проверяет, что NX закрыт;
+2. проверяет остановку NX;
 3. собирает HotkeyStudio;
-4. собирает CommandBridge против указанного NXOpen;
+4. собирает CommandBridge против DLL целевой установки;
 5. публикует Control Center;
-6. создаёт чистый staging-набор;
-7. запускает C# deployment;
+6. формирует чистый staging;
+7. строит deployment plan;
 8. создаёт резервную копию;
-9. устанавливает файлы атомарно;
-10. удаляет только устаревшие файлы, перечисленные в предыдущем манифесте;
+9. атомарно устанавливает файлы;
+10. удаляет только ранее управляемые устаревшие файлы;
 11. проверяет SHA-256;
-12. при ошибке выполняет автоматический rollback;
-13. запускает `health` для установленного пакета.
+12. выполняет rollback при ошибке;
+13. запускает health-check.
 
-## Запуск NX
+## Запуск Siemens NX
 
-После установки используйте только сгенерированную обёртку:
+После установки используйте сгенерированную обёртку:
 
 ```text
 %LOCALAPPDATA%\NXKeys\managed\NX2512.6000\launch-nx2512-with-nxkeys.cmd
 ```
 
-CMD-файл является тонкой оболочкой и передаёт управление C#-команде:
+Она передаёт управление C# launcher:
 
 ```powershell
 NX2512_HotkeyStudio.exe launch --config nx2512-pro-hybrid.json -- <аргументы NX>
 ```
 
-C# launcher:
+Launcher:
 
 - разрешает абсолютный путь к `ugraf.exe`;
-- проверяет существование `custom_dirs.dat`;
+- проверяет `custom_dirs.dat`;
 - запускает Leader Engine идемпотентно;
-- передаёт дочернему процессу только `UGII_CUSTOM_DIRECTORY_FILE`;
-- не подменяет `PATH`;
+- передаёт только `UGII_CUSTOM_DIRECTORY_FILE`;
+- не изменяет глобальный `PATH`;
 - не подменяет `UGII_USER_DIR`;
-- передаёт аргументы непосредственно через `ProcessStartInfo.ArgumentList`.
+- использует `ProcessStartInfo.ArgumentList`.
 
 ## Managed-пакет
 
@@ -116,9 +249,8 @@ C# launcher:
 %LOCALAPPDATA%\NXKeys\managed\NX2512.6000\
 ├─ NX2512_HotkeyStudio.exe
 ├─ NX2512_HotkeyStudio.dll
-├─ NX2512_HotkeyStudio.deps.json
-├─ NX2512_HotkeyStudio.runtimeconfig.json
 ├─ nx2512-pro-hybrid.json
+├─ nx2512-state-machines.json
 ├─ package-manifest.json
 ├─ custom_dirs.dat
 ├─ launch-nx2512-with-nxkeys.cmd
@@ -139,107 +271,79 @@ C# launcher:
       └─ launch-hotkeystudio-gui.cmd
 ```
 
-`NX2512_CommandBridge.dll` устанавливается только в `custom\application`. В `custom\startup` вторая копия DLL не создаётся.
+Bridge DLL устанавливается только в `custom\application`.
 
-## Транзакционная установка
+## Надёжность Command Bridge
 
-Основные гарантии C# deployment:
+Файловая очередь:
 
-- staging формируется отдельно от рабочего пакета;
-- каждый файл проверяется по SHA-256 до commit-фазы;
-- перед изменением создаётся резервная копия;
-- запись выполняется через временный файл в том же каталоге;
-- при ошибке исходный файл восстанавливается;
-- package manifest записывается последним;
-- после установки все хэши проверяются повторно;
-- при общей ошибке выполняется восстановление из backup manifest;
-- устаревшие файлы удаляются только если принадлежали предыдущему NXKeys package manifest.
+```text
+%LOCALAPPDATA%\NXKeys\bridge\
+├─ pending\
+├─ processing\
+├─ completed\
+├─ failed\
+├─ context.json
+└─ status.json
+```
+
+Перед исполнением Bridge повторно проверяет:
+
+- `expires_utc`;
+- `expected_context_revision`;
+- `expected_selection_count`;
+- `expected_application_id`;
+- отсутствие модального диалога;
+- требуемый модуль;
+- наличие и чувствительность `BUTTON ID`.
+
+Запрос атомарно перемещается `pending → processing`. Запрос, прерванный аварийным завершением NX, не воспроизводится автоматически и получает результат `interrupted_unknown`. Повторный `request_id` не исполняется второй раз.
+
+## Декларативные guards
 
 Файл:
 
 ```text
-package-manifest.json
+config/nx2512-state-machines.json
 ```
 
-содержит версию пакета, целевую версию NX, относительные пути, размер, обязательность и SHA-256 каждого управляемого файла.
+задаёт:
 
-## Режимы развёртывания
+- таймауты каждого состояния;
+- допустимые модули;
+- состояния Bridge и взаимодействия;
+- минимальную достоверность контекста;
+- наличие work/display part;
+- минимальное/максимальное число выбранных объектов;
+- `types_any` и `types_all`;
+- обязательное подтверждение;
+- `show_reason` и `switch_module`;
+- `retry_once`.
 
-### `managed-wrapper`
-
-Рекомендуемый режим. NXKeys не изменяет системную установку Siemens и активируется только через собственный launcher.
+Пример:
 
 ```json
 {
-  "deployment": {
-    "mode": "managed-wrapper",
-    "managed_root": "%LOCALAPPDATA%\\NXKeys\\managed\\NX2512.6000"
+  "commands": {
+    "MB": {
+      "guards": {
+        "modules": ["modeling"],
+        "require_work_part": true,
+        "selection": {
+          "minimum": 1,
+          "types_any": ["Edge"]
+        }
+      },
+      "on_unavailable": {
+        "action": "show_reason",
+        "message": "Выберите одно или несколько рёбер"
+      }
+    }
   }
 }
 ```
-
-### `existing-custom-dirs`
-
-Используется только при осознанном подключении к существующему `custom_dirs.dat`.
-
-```json
-{
-  "deployment": {
-    "mode": "existing-custom-dirs",
-    "existing_custom_dirs_file": "D:\\NX\\custom_dirs.dat",
-    "patch_existing_custom_dirs": true
-  }
-}
-```
-
-Путь должен быть указан явно. NXKeys больше не перебирает и не изменяет все найденные подпапки Siemens.
-
-При добавлении пути сохраняются:
-
-- исходная кодировка;
-- BOM;
-- тип окончания строк;
-- существующие строки и комментарии.
-
-## Сборка отдельных компонентов
-
-### HotkeyStudio
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_HotkeyStudio\build.ps1 -Clean
-```
-
-Скрипт выполняет чистый `dotnet publish` под `win-x64` и копирует канонический профиль.
-
-### CommandBridge
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_CommandBridge\build.ps1 `
-  -NxRoot "C:\Program Files\Siemens\NX2512" `
-  -Clean
-```
-
-Скрипт:
-
-- требует .NET 8;
-- ищет `NXOpen.dll` и `NXOpenUI.dll` в одной установке;
-- по умолчанию требует подтверждение версии `2512` в пути;
-- не копирует NXOpen DLL в distributable;
-- выводит SHA-256 Bridge DLL.
-
-### Catalog Studio
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_Catalog_Studio\build.ps1 `
-  -NxRoot "C:\Program Files\Siemens\NX2512" `
-  -Clean
-```
-
-Build-скрипт не скачивает и не запускает удалённые install-скрипты.
 
 ## C# CLI
-
-Все операционные команды предоставляет `NX2512_HotkeyStudio.exe`:
 
 ```powershell
 $exe = ".\NX2512_HotkeyStudio\dist\NX2512_HotkeyStudio.exe"
@@ -258,97 +362,91 @@ $config = ".\config\nx2512-pro-hybrid.json"
 & $exe launch --config $config -- -nx
 ```
 
-## Leader Key
+## Сборка компонентов
 
-По умолчанию последовательность выглядит так:
+### HotkeyStudio
 
-```text
-CapsLock → модуль → команда
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_HotkeyStudio\build.ps1 -Clean
 ```
 
-Управление HUD:
+### CommandBridge
 
-| Клавиша | Действие |
-|---|---|
-| `Space` | поиск |
-| `Tab` / `Shift+Tab` | смена модуля при недоступном контексте |
-| `Backspace` | уровень назад |
-| `Esc` | отмена |
-| `Enter` | подтверждение опасной команды |
-
-Adaptive Control Center ранжирует команды по:
-
-- активному модулю;
-- наличию выбора;
-- рабочей детали;
-- модальному диалогу;
-- частоте и давности использования;
-- разрушительности операции.
-
-## NX Command Bridge
-
-Bridge использует файловую очередь:
-
-```text
-%LOCALAPPDATA%\NXKeys\bridge\pending
-%LOCALAPPDATA%\NXKeys\bridge\completed
-%LOCALAPPDATA%\NXKeys\bridge\failed
-%LOCALAPPDATA%\NXKeys\bridge\context.json
-%LOCALAPPDATA%\NXKeys\bridge\status.json
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_CommandBridge\build.ps1 `
+  -NxRoot "C:\Program Files\Siemens\NX2512" `
+  -Clean
 ```
 
-Перед выполнением точного `BUTTON ID` Bridge проверяет:
+### Catalog Studio
 
-- наличие кнопки;
-- доступность в текущем приложении;
-- чувствительность в текущем контексте;
-- срок действия запроса;
-- ожидаемую ревизию контекста, если она доступна.
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_Catalog_Studio\build.ps1 `
+  -NxRoot "C:\Program Files\Siemens\NX2512" `
+  -Clean
+```
 
-## Покрытие 80%
+## Разработка и CI
 
-«80%» означает покрытие большинства высокочастотных операций типового механического CAD-потока, а не 80% всех тысяч команд Siemens NX.
+Workflow `.github/workflows/ci.yml` выполняется на `windows-latest` и проверяет:
 
-Команда считается подтверждённой только при сочетании нескольких признаков:
+- отсутствие Go-исходников и `go.mod`;
+- корректность JSON-профилей;
+- DFA/HFSM, protocol, policy, replay и randomized-инварианты;
+- сборку и publish HotkeyStudio;
+- наличие `nx2512-state-machines.json` в publish;
+- канонический профиль через C# CLI;
+- сборку и publish Control Center;
+- NXOpen contract stubs;
+- компиляцию фактического CommandBridge против contract stubs;
+- deployment-инварианты;
+- соответствие интерактивной карты каноническому профилю;
+- наличие ссылок на карту в README и docs index;
+- Windows x64 artifact.
 
-1. она присутствует в профиле;
-2. задан или разрешён точный `BUTTON ID`;
-3. команда существует в каталоге целевой версии NX;
-4. Bridge может выполнить её в нужном модуле;
-5. требования выбора и рабочей детали соблюдены;
-6. опасные операции требуют подтверждения.
+Локальная проверка документации:
+
+```powershell
+node .\scripts\validate-command-tree.mjs
+```
+
+## Структура репозитория
+
+```text
+NX2512_HotkeyStudio/         основной UI, CLI и runtime
+NX2512_ControlCenter/        адаптивный обзор команд
+NX2512_CommandBridge/        NXOpen Bridge
+NX2512_Catalog_Studio/       каталог UI/API
+NXKeys.Protocol/             общий протокол
+NXKeys.StateMachines/        DFA, HFSM и guards
+NXKeys.StateMachines.Tests/  инвариантные тесты
+config/                      канонические профили
+docs/                        документация и HTML-карта
+roles/                       экспортированные роли NX
+scripts/                     build/doc validation
+```
 
 ## Безопасность
 
 NXKeys не должен:
 
-- изменять файлы установки Siemens;
-- редактировать внутренний бинарный формат `.mtx`;
+- изменять файлы системной установки Siemens;
+- редактировать бинарный формат `.mtx`;
 - автоматически писать во все профили Siemens;
 - добавлять каталоги NXKeys в глобальный `PATH`;
 - подменять `UGII_USER_DIR`;
-- устанавливать SDK или выполнять скачанный install-скрипт без отдельного решения пользователя;
-- применять неоднозначную команду как подтверждённую.
+- устанавливать SDK или запускать загруженный install-скрипт;
+- исполнять неоднозначную команду;
+- обходить подтверждение destructive-команды;
+- повторно исполнять неизвестно завершившийся запрос.
 
-Роль `.mtx` копируется только целиком, если она предварительно экспортирована и проверена в целевой версии NX.
-
-## CI
-
-Workflow `.github/workflows/ci.yml` выполняется на `windows-latest`:
-
-- проверяет отсутствие Go-исходников и `go.mod`;
-- валидирует JSON-профили;
-- собирает и публикует HotkeyStudio;
-- проверяет профиль через C# CLI;
-- собирает и публикует Control Center;
-- проверяет архитектурные инварианты launcher/deployment;
-- сохраняет Windows x64 artifact.
-
-CommandBridge не собирается в публичном CI без NXOpen DLL. Он собирается локально против конкретной установки NX.
+Подробнее: [модель безопасности](docs/SAFETY_MODEL.md).
 
 ## Документация
 
-- [Оглавление документации](docs/README.md)
+- [Оглавление](docs/README.md)
+- [Интерактивное дерево всех команд](docs/command-tree.html)
+- [Архитектура конечных автоматов](docs/STATE_MACHINE_ARCHITECTURE.md)
 - [Установка](docs/INSTALLATION.md)
 - [Конфигурация](docs/CONFIGURATION.md)
 - [Архитектура](docs/ARCHITECTURE.md)
@@ -358,6 +456,10 @@ CommandBridge не собирается в публичном CI без NXOpen D
 - [Control Center](NX2512_ControlCenter/README.md)
 - [Роли NX](roles/README.md)
 - [Состояние сборки](BUILD_REPORT.md)
+
+## Ограничения
+
+Contract build подтверждает компилируемость используемой формы NXOpen API, но не заменяет интеграционный тест внутри реального Siemens NX 2512. Перед эксплуатацией destructive-команд необходимо проверить Bridge на целевой сборке NX, роли и лицензии.
 
 ## Лицензия
 
