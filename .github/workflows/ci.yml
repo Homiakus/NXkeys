@@ -5,33 +5,63 @@ on:
   pull_request:
 
 jobs:
-  test:
+  build-and-validate:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.25.x'
-
-      - name: Test Go packages
-        run: go test ./...
-
-      - name: Vet Go packages
-        run: go vet ./...
-
-      - name: Build Go CLI
-        run: go build -o dist/nxkeys.exe ./cmd/nxkeys
 
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
+      - name: Verify C#-only source tree
+        shell: pwsh
+        run: |
+          $goFiles = @(Get-ChildItem -Recurse -File -Filter *.go)
+          if ($goFiles.Count -gt 0) {
+            $goFiles | ForEach-Object { Write-Error "Unexpected Go source: $($_.FullName)" }
+            exit 1
+          }
+          if (Test-Path go.mod) { throw 'go.mod must not exist in the C#-only repository.' }
+
+      - name: Validate JSON profiles
+        shell: pwsh
+        run: |
+          Get-ChildItem .\config -File -Filter *.json | ForEach-Object {
+            Write-Host "Validating $($_.FullName)"
+            Get-Content $_.FullName -Raw -Encoding UTF8 | ConvertFrom-Json | Out-Null
+          }
+
       - name: Build Hotkey Studio
-        run: dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64
+        run: dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
+
+      - name: Publish Hotkey Studio
+        run: dotnet publish .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -r win-x64 --self-contained false -p:Platform=x64 -o .\artifacts\hotkey-studio --nologo
+
+      - name: Validate canonical profile through C# CLI
+        shell: pwsh
+        run: |
+          Copy-Item .\config\nx2512-pro-hybrid.json .\artifacts\hotkey-studio\nx2512-pro-hybrid.json -Force
+          & .\artifacts\hotkey-studio\NX2512_HotkeyStudio.exe validate --config .\artifacts\hotkey-studio\nx2512-pro-hybrid.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build Adaptive Control Center
-        run: dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64
+        run: dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64 --nologo
 
       - name: Publish Adaptive Control Center
-        run: dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -r win-x64 --self-contained false -o .\dist\control-center
+        run: dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -r win-x64 --self-contained false -p:Platform=x64 -o .\artifacts\control-center --nologo
+
+      - name: Validate deployment invariants
+        shell: pwsh
+        run: |
+          $engine = Get-Content .\NX2512_HotkeyStudio\Services\DeploymentEngine.cs -Raw
+          if ($engine -match 'DeployToSiemensUserProfiles') { throw 'Broad Siemens profile deployment must not return.' }
+          if ($engine -match 'custom.*startup.*NX2512_CommandBridge\.dll') { throw 'CommandBridge DLL must not be installed into custom/startup.' }
+          if ($engine -match 'set "PATH=' -or $engine -match 'UGII_USER_DIR') { throw 'NX launcher must not override PATH or UGII_USER_DIR.' }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nxkeys-csharp-win-x64
+          path: |
+            artifacts/hotkey-studio
+            artifacts/control-center
