@@ -22,6 +22,7 @@ namespace NXKeys.StateMachines.Tests
             Run("Устаревший контекст блокирует выполнение", StaleContextBlocks);
             Run("Смена модуля подтверждается новым контекстом", ModuleSwitchWaitsForContext);
             Run("Результат завершает AwaitingResult", RequestResultCompletes);
+            Run("Ошибка dispatch немедленно освобождает автомат", DispatchFailureCompletes);
 
             Console.WriteLine(failures == 0
                 ? "[OK] Все инварианты автоматов выполнены."
@@ -151,6 +152,18 @@ namespace NXKeys.StateMachines.Tests
             LeaderTransition completed = machine.CompleteRequest(true, "OK");
             Assert(completed.Action == LeaderActionKind.RequestCompleted, "Ожидается RequestCompleted.");
             Assert(machine.State == LeaderState.Idle, "После результата non-sticky должен быть Idle.");
+        }
+
+        private static void DispatchFailureCompletes()
+        {
+            LeaderStateMachine machine = CreateMachine(Command("ME", "modeling"));
+            machine.Activate(false, Context("modeling"));
+            machine.InputToken("M");
+            machine.InputToken("E");
+            Assert(machine.State == LeaderState.Dispatching, "Перед ошибкой ожидается Dispatching.");
+            LeaderTransition failed = machine.CompleteRequest(false, "queue write failed");
+            Assert(failed.Action == LeaderActionKind.RequestFailed, "Ошибка dispatch должна дать RequestFailed.");
+            Assert(machine.State == LeaderState.Idle, "Ошибка dispatch должна немедленно вернуть Idle.");
         }
 
         private static LeaderStateMachine CreateMachine(params SequenceDefinition[] commands)
