@@ -1,83 +1,366 @@
-# NXKeys
+# NXKeys для Siemens NX 2512
 
-NXKeys is a safety-first Siemens NX 2512 hotkey, Leader Key, radial-menu, and command-bridge toolkit.
+NXKeys — набор инструментов для безопасной настройки горячих клавиш, последовательного Leader-меню, радиальных меню и выполнения UI-команд в Siemens NX 2512 под Windows.
 
-It provides two operator surfaces:
+Проект объединяет несколько интерфейсов, использующих общий JSON-профиль:
 
-- `nxkeys` Go CLI/TUI for scanning NX, resolving commands, planning deployment, applying MenuScript overlays, and restoring backups.
-- `NX2512_HotkeyStudio` WinForms console for day-to-day control: hotkeys, Leader Key sequences, radial menus, command catalog search, deployment, health checks, bridge status, backups, and JSON profiles.
+| Компонент | Назначение |
+|---|---|
+| `NX2512_ControlCenter` | единый русскоязычный центр управления, просмотр адаптивного Leader-меню, метрик покрытия, состояния NX Bridge и поиск по NXOpen/UFUN-каталогу |
+| `NX2512_HotkeyStudio` | основной редактор профиля, горячих клавиш, Leader-последовательностей, радиальных меню, развёртывания и резервных копий |
+| `NX2512_CommandBridge` | библиотека NXOpen, загружаемая внутрь NX и выполняющая проверенные `BUTTON ID` в контексте текущего приложения |
+| `NX2512_Catalog_Studio` | формирование каталога UI-команд, типов и членов NXOpen, точек входа и функций UFUN |
+| `nxkeys` | Go CLI/TUI для сканирования NX, разрешения команд, планирования изменений, применения MenuScript и восстановления резервных копий |
 
-The default profile is `NX Pro Hybrid 2512.6000`.
+Основной профиль проекта: **NX Pro Hybrid 2512.6000**.
 
-## Safety Model
+> NXKeys не является продуктом Siemens и не заменяет штатную настройку NX. Доступность конкретной команды зависит от установленной лицензии, роли, локализации, приложения NX и активного контекста.
 
-NXKeys does not edit Siemens installation files and does not rewrite opaque `user.mtx` role internals.
+## Содержание
 
-It uses supported, reversible artifacts:
+- [Текущий статус](#текущий-статус)
+- [Возможности](#возможности)
+- [Быстрый запуск](#быстрый-запуск)
+- [Сборка](#сборка)
+- [Установка в NX](#установка-в-nx)
+- [Control Center](#control-center)
+- [HotkeyStudio](#hotkeystudio)
+- [Leader-меню](#leader-меню)
+- [NX Command Bridge](#nx-command-bridge)
+- [NX API Explorer](#nx-api-explorer)
+- [Профили и покрытие 80%](#профили-и-покрытие-80)
+- [Безопасность и резервные копии](#безопасность-и-резервные-копии)
+- [Структура каталогов](#структура-каталогов)
+- [Команды CLI](#команды-cli)
+- [Проверка и диагностика](#проверка-и-диагностика)
+- [Документация](#документация)
+- [Разработка](#разработка)
 
-- `.men` MenuScript overlays for keyboard accelerators and menu button actions.
-- `.tbr` / `.rtb` toolbar and ribbon placement files for NXKeys entry points.
-- JSON profiles as the source of truth.
-- SHA-256 backups before apply.
-- Optional copied `.mtx` role templates only when the operator explicitly provides an exported role.
+## Текущий статус
 
-Important MenuScript rule for NX 2512:
+На текущем этапе реализованы:
 
-| File type | Expected version |
-|---|---:|
-| `.men` | `VERSION 139` |
-| `.tbr` / `.rtb` | `VERSION 170` |
+- JSON-профили схемы v1 и v2;
+- модульные наборы команд для основных приложений NX;
+- генерация безопасных MenuScript-оверлеев;
+- редактор HotkeyStudio;
+- глобальный Leader Key с HUD;
+- файловый NX Command Bridge;
+- Adaptive Control Center;
+- поиск по экспортам NXOpen, UFUN и UI-каталога;
+- резервное копирование и контролируемое восстановление;
+- Go CLI/TUI;
+- CI-сборка Go, HotkeyStudio и Control Center на `windows-latest`.
 
-NXKeys now writes these versions by file type. This prevents the two common errors:
+Важные ограничения текущей реализации:
 
-- `.men` rejects `VERSION 170`.
-- toolbar/ribbon parser rejects `.tbr/.rtb` written as `VERSION 139`.
+1. **80% — целевой охват рабочего процесса, а не 80% всех команд NX.** NX содержит тысячи специализированных команд, поэтому покрытие оценивается по типовым операциям конструктора.
+2. Control Center контекстно ранжирует команды и объясняет ограничения. Само выполнение по Leader-последовательности остаётся задачей HotkeyStudio и Command Bridge.
+3. Текущий Bridge надёжно передаёт активное приложение и модуль. Расширенные поля выбора объектов и состояния рабочей детали поддерживаются клиентской моделью, но могут отображаться как неизвестные, пока соответствующие данные не записаны загруженной версией Bridge.
+4. Поиск UI-команды → NXOpen/UFUN является **кандидатным сопоставлением**. Он не доказывает, что конкретный API-вызов полностью эквивалентен нажатию кнопки NX.
+5. Радиальные меню автоматически развёртываются только через заранее экспортированную и проверенную роль `.mtx`. Внутренний бинарный формат роли не изменяется.
 
-## Requirements
+## Возможности
 
-- Windows 10/11.
-- Siemens NX / Designcenter NX 2512.
-- Go 1.25+ for the Go CLI/TUI.
-- .NET 8 SDK for HotkeyStudio and CommandBridge builds.
-- NX should be closed for full reinstall/update because NX can lock `NX2512_CommandBridge.dll`.
+### Управление горячими клавишами
 
-## Quick Start
+- привязка сочетания к точному `BUTTON ID`;
+- поиск команды по имени и псевдонимам;
+- обнаружение слабых и неоднозначных совпадений;
+- генерация `.men`-оверлея без изменения файлов установки Siemens;
+- отчёт разрешения команд до применения.
 
-Build the Go CLI:
+### Адаптивное Leader-меню
 
-```powershell
-.\scripts\build.ps1
-```
+- последовательности вида `CapsLock → M → E`;
+- группировка по модулям NX;
+- контекстное ранжирование в Control Center;
+- блокировка или понижение приоритета опасных действий;
+- подтверждение разрушительных команд клавишей `Enter`;
+- поиск по командам через `Space`;
+- возврат через `Backspace`, отмена через `Esc`;
+- локальная статистика использования в `%LOCALAPPDATA%\NXKeys\leader-usage.json`.
 
-Build HotkeyStudio:
+### Развёртывание и восстановление
+
+- предварительный план без записи;
+- режим `dry-run`;
+- атомарная запись через временный файл;
+- SHA-256-манифест резервной копии;
+- проверка хеша перед восстановлением;
+- отдельный управляемый каталог NXKeys;
+- возможность подключения через существующий `custom_dirs.dat`.
+
+### Каталог команд и API
+
+Catalog Studio формирует CSV-экспорты:
+
+- `04_nxopen_members.csv`;
+- `05_nxopen_entry_points.csv`;
+- `06_ui_commands_buttons.csv`;
+- `07_ufun_functions.csv`;
+- `08_ui_command_api_candidates.csv`.
+
+Control Center загружает эти файлы и позволяет искать команды по русским и английским словам.
+
+## Требования
+
+- Windows 10 или Windows 11 x64;
+- Siemens NX / Designcenter NX 2512;
+- .NET 8 SDK для сборки C#-компонентов;
+- Go 1.25+ для Go CLI/TUI;
+- доступ к `NXOpen.dll`, `NXOpen.UF.dll` и `NXOpenUI.dll` для сборки Command Bridge;
+- закрытый NX при полном обновлении установленного Bridge, потому что NX может удерживать DLL заблокированной.
+
+## Быстрый запуск
+
+### 1. Собрать HotkeyStudio
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_HotkeyStudio\build.ps1
 ```
 
-Build CommandBridge if needed:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_CommandBridge\build.ps1
-```
-
-Install the managed NXKeys package:
+### 2. Установить управляемый пакет NXKeys
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.ps1
 ```
 
-Launch NX through the generated wrapper:
+### 3. Запустить NX через созданную обёртку
 
 ```text
 %LOCALAPPDATA%\NXKeys\managed\NX2512.6000\launch-nx2512-with-nxkeys.cmd
 ```
 
-The wrapper starts the HotkeyStudio background Leader Key engine and launches NX with the managed custom directory.
+Обёртка запускает фоновый Leader Engine и затем NX с приватным `UGII_CUSTOM_DIRECTORY_FILE`.
 
-## Managed Package Layout
+### 4. При необходимости собрать Control Center
 
-Default install location:
+```powershell
+dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj `
+  -c Release `
+  -r win-x64 `
+  --self-contained false `
+  -o .\dist\control-center
+```
+
+Запуск:
+
+```powershell
+.\dist\control-center\NX2512_ControlCenter.exe `
+  --config .\config\nx2512-pro-hybrid.json
+```
+
+Control Center пока публикуется отдельно и автоматически не копируется установщиком управляемого NX-пакета.
+
+## Сборка
+
+### Go CLI/TUI
+
+```powershell
+.\scripts\build.ps1
+```
+
+Результат создаётся в `dist\`.
+
+### HotkeyStudio
+
+```powershell
+dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64
+```
+
+### Adaptive Control Center
+
+```powershell
+dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64
+```
+
+### NX Command Bridge
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_CommandBridge\build.ps1
+```
+
+Bridge требует корректно найденный каталог NXOpen целевой установки NX 2512.
+
+## Установка в NX
+
+Рекомендуемый режим — `managed-wrapper`. Он создаёт приватный каталог кастомизации и активирует его только для NX, запущенного через сгенерированный `.cmd`.
+
+Ключевое правило версий MenuScript:
+
+| Тип файла | Версия |
+|---|---:|
+| `.men` | `VERSION 139` |
+| `.tbr` / `.rtb` | `VERSION 170` |
+
+NXKeys генерирует версии по типу файла. Смешивание этих значений вызывает ошибки парсера NX.
+
+Подробная инструкция: [docs/INSTALLATION.md](docs/INSTALLATION.md).
+
+## Control Center
+
+`NX2512_ControlCenter` — дополнительный русскоязычный интерфейс для контроля текущей конфигурации.
+
+Вкладки:
+
+- **Обзор** — профиль, версия NX, количество Leader-последовательностей, доля команд с `BUTTON ID`, состояние и свежесть Bridge;
+- **Adaptive Leader** — ранжированный список команд текущего модуля и причины временной недоступности;
+- **NX API Explorer** — поиск по CSV-каталогу NXOpen/UFUN/UI;
+- **Настройки** — trigger, таймауты Leader, ограничение перехвата активным NX и путь к API-каталогу.
+
+Control Center может:
+
+- сохранить изменённый JSON-профиль;
+- запустить HotkeyStudio в GUI-режиме;
+- запустить фоновый Leader Engine;
+- автоматически найти последний каталог в `%LOCALAPPDATA%\NXKeys\catalog`;
+- использовать путь из `NXKEYS_CATALOG_DIR` или параметра `--catalog`.
+
+Он не заменяет полный редактор профиля HotkeyStudio.
+
+## HotkeyStudio
+
+Основные разделы HotkeyStudio:
+
+- **Обзор** — профиль, процессы NX, состояние Bridge и нерешённые команды;
+- **Команды** — клавиатурные привязки и поиск по каталогу;
+- **Leader Key** — запуск/остановка hook, HUD и управление последовательностями;
+- **Radials** — редактор восьми направлений;
+- **NX / Bridge** — сканирование, сгенерированные файлы и очереди Bridge;
+- **Deploy** — план, dry-run и применение;
+- **Backups / Profile** — сохранение профиля и восстановление резервных копий.
+
+Прямой запуск:
+
+```powershell
+& "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe" `
+  --gui `
+  --config ".\config\nx2512-pro-hybrid.json"
+```
+
+## Leader-меню
+
+По умолчанию используется `CapsLock`, но в профиле можно выбрать другой trigger.
+
+Управление HUD:
+
+| Клавиша | Действие |
+|---|---|
+| `Tab` / `Shift+Tab` | следующий или предыдущий модуль при ручном выборе |
+| `Space` | поиск по командам |
+| `Backspace` | удалить символ или вернуться на уровень выше |
+| `Esc` | закрыть Leader HUD |
+| `Enter` | подтвердить опасную команду |
+
+Контекстная логика учитывает:
+
+- активный модуль;
+- общие слои `selection_object`, `inspect_view`, `reuse`;
+- требование выбранного объекта, когда Bridge передаёт этот признак;
+- наличие модального диалога, когда Bridge передаёт этот признак;
+- разрушительность и необходимость подтверждения;
+- локальную историю использования в Adaptive Control Center.
+
+## NX Command Bridge
+
+`NX2512_CommandBridge.dll` загружается внутрь NX и обрабатывает JSON-запросы из:
+
+```text
+%LOCALAPPDATA%\NXKeys\bridge\pending
+```
+
+Результаты перемещаются в:
+
+```text
+%LOCALAPPDATA%\NXKeys\bridge\completed
+%LOCALAPPDATA%\NXKeys\bridge\failed
+```
+
+Текущий протокол запроса содержит:
+
+- `schema_version`;
+- уникальный `request_id`;
+- действие `execute_command` или `switch_module`;
+- `command_id` и имя команды;
+- последовательность Leader;
+- модуль и целевое приложение;
+- время создания и истечения запроса;
+- PID источника;
+- ожидаемую ревизию контекста и количество выбранных объектов.
+
+Bridge проверяет, что кнопка существует, доступна и чувствительна, затем вызывает её через NX UI. Ошибка контекста записывается в `failed`, а не маскируется.
+
+## NX API Explorer
+
+Запуск с явным каталогом:
+
+```powershell
+.\dist\control-center\NX2512_ControlCenter.exe `
+  --config .\config\nx2512-pro-hybrid.json `
+  --catalog "D:\NX2512_Full_Function_API_Catalog_YYYYMMDD_HHMMSS"
+```
+
+Или:
+
+```powershell
+$env:NXKEYS_CATALOG_DIR = "D:\NX2512_Full_Function_API_Catalog_YYYYMMDD_HHMMSS"
+```
+
+Примеры запросов:
+
+```text
+Как через NXOpen создать выдавливание?
+поиск функции UFUN для тела
+selection manager
+edge blend builder
+UG_FILE_SAVE_PART
+```
+
+Поиск основан на токенах и небольшом русско-английском словаре. Это локальный поисковый интерфейс, а не генератор готового безопасного NXOpen-кода.
+
+## Профили и покрытие 80%
+
+Источником истины является JSON. Сгенерированные `.men`, `.tbr`, `.rtb` и отчёты вручную не редактируются — следующее применение заменит их.
+
+Основные профили:
+
+- `config/nx2512-pro-hybrid.json`;
+- `config/nx2512-ergo-80.json`;
+- встроенные копии в `internal/defaults/`.
+
+Показатель покрытия нужно разделять:
+
+| Метрика | Что показывает |
+|---|---|
+| Workflow coverage | доля типовых операций, доступных через штатные клавиши, Leader, radial или поиск |
+| Leader coverage | доля запланированных Leader-команд в профиле |
+| Verified BUTTON ID | доля включённых команд с непустым точным `BUTTON ID` |
+| Runtime availability | команды, реально принятые NX в текущем модуле и контексте |
+| API mapping coverage | команды, для которых найден кандидат NXOpen/UFUN |
+
+Control Center сейчас отображает долю включённых Leader-последовательностей с непустым `BUTTON ID`. Это полезная проверка профиля, но не доказательство успешного выполнения внутри NX.
+
+Подробная раскладка: [NX_2512_Ergonomic_80_горячие_клавиши_и_радиальные_меню.md](NX_2512_Ergonomic_80_горячие_клавиши_и_радиальные_меню.md).
+
+## Безопасность и резервные копии
+
+NXKeys:
+
+- не перезаписывает файлы установки Siemens;
+- не декодирует и не модифицирует внутренности `.mtx`;
+- исключает неоднозначные команды из оверлея;
+- формирует план до записи;
+- создаёт резервную копию перед первой записью;
+- использует атомарную замену при включённом `atomic_writes`;
+- проверяет хеш перед восстановлением;
+- требует закрыть NX для полного обновления заблокированной DLL.
+
+Подробно: [docs/SAFETY_MODEL.md](docs/SAFETY_MODEL.md).
+
+## Структура каталогов
+
+Управляемая установка:
 
 ```text
 %LOCALAPPDATA%\NXKeys\managed\NX2512.6000\
@@ -102,7 +385,7 @@ Default install location:
 └─ radial-menu-plan.json
 ```
 
-Runtime state:
+Состояние выполнения:
 
 ```text
 %LOCALAPPDATA%\NXKeys\
@@ -113,79 +396,60 @@ Runtime state:
 │  ├─ failed\
 │  ├─ context.json
 │  └─ status.json
-└─ logs\
+├─ cache\
+├─ catalog\
+├─ logs\
+└─ leader-usage.json
 ```
 
-## HotkeyStudio Console
+## Команды CLI
 
-HotkeyStudio is the main operator UI. It is a compact adaptive console with these sections:
-
-- `Обзор`: profile, health, NX process, bridge state, unresolved bindings.
-- `Команды`: keyboard bindings plus command catalog search.
-- `Leader Key`: background hook controls, HUD preview, sequence management.
-- `Radials`: radial menu list and 8-direction editor.
-- `NX / Bridge`: scanner results, generated files, pending/completed/failed queue state.
-- `Deploy`: dry-run, deployment plan, apply.
-- `Backups / Profile`: selected backup restore and JSON profile save.
-
-Open it directly:
+HotkeyStudio поддерживает операционные команды:
 
 ```powershell
-& "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe" --gui --config ".\nx2512-pro-hybrid.json"
+$studio = "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe"
+
+& $studio validate --config .\config\nx2512-pro-hybrid.json
+& $studio scan --config .\config\nx2512-pro-hybrid.json
+& $studio catalog --config .\config\nx2512-pro-hybrid.json
+& $studio plan --config .\config\nx2512-pro-hybrid.json
+& $studio apply --config .\config\nx2512-pro-hybrid.json --yes
+& $studio health --config .\config\nx2512-pro-hybrid.json
+& $studio bridge-status
+& $studio backups --config .\config\nx2512-pro-hybrid.json
+& $studio restore --config .\config\nx2512-pro-hybrid.json
+& $studio leader --config .\config\nx2512-pro-hybrid.json
 ```
 
-Or from NX via the NXKeys ribbon/toolbar/menu entry.
-
-## CLI Commands
-
-The installed HotkeyStudio executable supports operational CLI commands:
+Восстановление по конкретному манифесту:
 
 ```powershell
-& "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe" validate --config ".\nx2512-pro-hybrid.json"
-& "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe" scan --config ".\nx2512-pro-hybrid.json"
-& "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe" plan --config ".\nx2512-pro-hybrid.json"
-& "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe" apply --config ".\nx2512-pro-hybrid.json" --yes
-& "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe" health --config ".\nx2512-pro-hybrid.json"
-& "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe" bridge-status
-& "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe" backups --config ".\nx2512-pro-hybrid.json"
+& $studio restore `
+  --config .\config\nx2512-pro-hybrid.json `
+  --manifest "$env:LOCALAPPDATA\NXKeys\backups\YYYYMMDD_HHMMSS.mmm\manifest.json"
 ```
 
-Restore latest backup:
+## Проверка и диагностика
+
+Рекомендуемая проверка:
 
 ```powershell
-& "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe" restore --config ".\nx2512-pro-hybrid.json"
+go test ./...
+go vet ./...
+dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64
+dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64
 ```
 
-Restore a specific backup manifest:
+Проверка установленного профиля:
 
 ```powershell
-& "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe" restore --config ".\nx2512-pro-hybrid.json" --manifest "$env:LOCALAPPDATA\NXKeys\backups\YYYYMMDD_HHMMSS.mmm\manifest.json"
+$studio = "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe"
+& $studio validate --config .\config\nx2512-pro-hybrid.json
+& $studio plan --config .\config\nx2512-pro-hybrid.json
+& $studio health --config .\config\nx2512-pro-hybrid.json
 ```
 
-The Go CLI/TUI remains available from `dist\nxkeys.exe` or `dist\nxkeys-windows-amd64.exe` after `scripts\build.ps1`.
-
-## Health Checks
-
-Use `health` whenever NX shows a customization error or the bridge behaves strangely:
-
-```powershell
-& "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe" health --config ".\nx2512-pro-hybrid.json"
-```
-
-It reports:
-
-- managed package path;
-- live NX processes;
-- expected `.men` / `.tbr` / `.rtb` versions;
-- invalid NXKeys MenuScript files;
-- bridge loaded state;
-- pending/completed/failed bridge queue counts;
-- recent failed command executions;
-- locked bridge DLL;
-- missing managed files;
-- dist-vs-installed hash mismatches for HotkeyStudio.
-
-Healthy version output should include:
+Нормальные показатели MenuScript:
 
 ```text
 MenuScript versions OK: yes
@@ -193,198 +457,64 @@ Invalid NXKeys VERSION files: 0
 Managed package OK: yes
 ```
 
-When NX is closed, `Bridge loaded: no` is normal. When NX is launched through the wrapper and the CommandBridge loads, it should become `yes`.
+Когда NX закрыт, `Bridge loaded: no` является нормальным состоянием.
 
-## Command Bridge
+Подробная диагностика: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
-`NX2512_CommandBridge.dll` is loaded by NX from the managed custom directory. HotkeyStudio and the Leader HUD enqueue command requests under:
+## Документация
 
-```text
-%LOCALAPPDATA%\NXKeys\bridge\pending
-```
+Начальная страница: [docs/README.md](docs/README.md).
 
-The bridge moves results to:
+| Документ | Назначение |
+|---|---|
+| [Установка](docs/INSTALLATION.md) | сборка, установка, обновление и удаление |
+| [Конфигурация](docs/CONFIGURATION.md) | поля JSON, модули, Leader, radial и deployment |
+| [Архитектура](docs/ARCHITECTURE.md) | компоненты и потоки данных |
+| [Модель безопасности](docs/SAFETY_MODEL.md) | инварианты, угрозы и границы |
+| [Диагностика](docs/TROUBLESHOOTING.md) | типовые ошибки и порядок проверки |
+| [Спецификация NX Pro Hybrid](docs/NX_PRO_HYBRID_SOURCE_SPEC.md) | источник принципов профиля и покрытия |
+| [Control Center](NX2512_ControlCenter/README.md) | запуск и ограничения адаптивного интерфейса |
+| [Роли NX](roles/README.md) | безопасная работа с экспортированными `.mtx` |
 
-```text
-%LOCALAPPDATA%\NXKeys\bridge\completed
-%LOCALAPPDATA%\NXKeys\bridge\failed
-```
-
-Failures can be legitimate NX context failures. Examples:
-
-- button does not exist in this NX install;
-- command exists but is unavailable in the current module;
-- command is insensitive because no suitable object/dialog/context is active.
-
-The bridge records these instead of guessing or force-running unavailable commands.
-
-## Leader Key
-
-The Leader Key engine uses module-aware sequential chords.
-
-Default behavior:
-
-- trigger key: usually `CapsLock`;
-- `Tab` / `Shift+Tab`: cycle modules when NX context is unavailable;
-- `Space`: search;
-- `Backspace`: step back;
-- `Esc`: cancel;
-- `Enter`: confirm a pending dangerous command.
-
-Commands marked as destructive or requiring confirmation are not executed immediately. The HUD asks before enqueueing the bridge request.
-
-## Keyboard Bindings
-
-Bindings live in JSON:
-
-```json
-{
-  "shortcut": "Ctrl+S",
-  "command": {
-    "id": "UG_FILE_SAVE_PART",
-    "name": "Save",
-    "aliases": ["Save Part"]
-  },
-  "scope": "Global",
-  "enabled": true
-}
-```
-
-If `command.id` is empty, NXKeys searches discovered menu files by name and aliases. Weak or ambiguous matches are omitted from generated overlays and listed in `resolution-report.md`.
-
-Current known profile status may include ambiguous bindings such as command names that match several NX buttons. Fix those by setting the exact `command.id`.
-
-## Radial Menus
-
-NXKeys keeps radial menu intent in JSON and exports:
+## Структура проекта
 
 ```text
-radial-menu-plan.md
-radial-menu-plan.json
+cmd/nxkeys/                    точка входа Go CLI/TUI
+internal/config/               конфигурация, значения по умолчанию и валидация
+internal/discovery/            ограниченное сканирование установки и профилей NX
+internal/nxmenu/               парсер MenuScript и генератор оверлея
+internal/backup/               резервное копирование и восстановление
+internal/engine/               планирование и применение
+internal/tui/                  интерфейс Bubble Tea / Lip Gloss
+NX2512_HotkeyStudio/           редактор, Leader HUD и службы развёртывания
+NX2512_ControlCenter/          адаптивный центр управления и API Explorer
+NX2512_CommandBridge/          внутрипроцессный NXOpen Bridge
+NX2512_Catalog_Studio/         формирование каталога NXOpen/UFUN/UI
+config/                        распространяемые шаблоны профилей
+internal/defaults/             встроенные копии профилей Go
+roles/                         проверенные экспортированные роли `.mtx`
+docs/                          русская документация
+scripts/                       сценарии сборки
 ```
 
-For unattended role deployment, configure radial menus in NX, export a known-good `.mtx` role, and set `role_deployment.source_mtx`. NXKeys backs up and copies that role; it does not rewrite role internals.
+## Разработка
 
-## Deployment Modes
+В репозиторий следует добавлять:
 
-Default mode:
+- исходный код;
+- шаблоны из `config/` и `internal/defaults/`;
+- документацию;
+- сценарии сборки и установки;
+- только намеренно распространяемые роли из `roles/`.
 
-```json
-{
-  "deployment": {
-    "mode": "managed-wrapper"
-  }
-}
-```
-
-This writes everything under `%LOCALAPPDATA%\NXKeys\managed\...` and activates it only through the generated launch wrapper.
-
-Existing `custom_dirs.dat` mode:
-
-```json
-{
-  "deployment": {
-    "mode": "existing-custom-dirs",
-    "existing_custom_dirs_file": "D:\\NX\\custom_dirs.dat",
-    "patch_existing_custom_dirs": true
-  }
-}
-```
-
-Use this only when you intentionally want NXKeys added to an existing NX customization file.
-
-## Troubleshooting
-
-MenuScript error in `.men` says `VERSION 170` is invalid:
-
-- `.men` must be `VERSION 139`.
-- Run `health` and reinstall after closing NX.
-
-Toolbar/ribbon error in `.tbr` or `.rtb` says `VERSION 139` is unexpected:
-
-- `.tbr/.rtb` must be `VERSION 170`.
-- The toolbar/ribbon files should be thin placement files. Button labels/actions are defined in `.men`.
-
-Installer cannot copy `NX2512_CommandBridge.dll`:
-
-- NX is still running and has loaded the DLL.
-- Close NX, then rerun `install-nx-ribbon-buttons.ps1`.
-
-Bridge shows failed commands:
-
-- Check `%LOCALAPPDATA%\NXKeys\bridge\failed`.
-- Failures may indicate the command is unavailable in the current NX context, not that NXKeys itself is broken.
-
-HotkeyStudio says managed package hash mismatch:
-
-- Rebuild and rerun the installer, or copy the current `NX2512_HotkeyStudio.exe/.dll` into the managed root.
-
-## Development
-
-Recommended verification:
-
-```powershell
-go test ./...
-dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release --nologo
-dotnet build .\NX2512_CommandBridge\NX2512_CommandBridge.csproj -c Release --nologo
-& .\NX2512_HotkeyStudio\dist\NX2512_HotkeyStudio.exe validate --config .\nx2512-pro-hybrid.json
-& .\NX2512_HotkeyStudio\dist\NX2512_HotkeyStudio.exe plan --config .\nx2512-pro-hybrid.json
-& .\NX2512_HotkeyStudio\dist\NX2512_HotkeyStudio.exe health --config .\nx2512-pro-hybrid.json
-```
-
-Refresh distributable HotkeyStudio artifacts:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_HotkeyStudio\build.ps1
-```
-
-Refresh managed installation:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.ps1
-```
-
-If NX is running, the installer may fail on the bridge DLL. Close NX and rerun for a full update.
-
-## Project Layout
-
-```text
-cmd/nxkeys/                    Go CLI/TUI entry point
-internal/config/               JSON config, defaults, validation
-internal/discovery/            bounded NX install/profile scanner
-internal/nxmenu/               MenuScript parser and Go overlay generator
-internal/backup/               Go backup/restore engine
-internal/engine/               Go planning/apply pipeline
-internal/tui/                  Bubble Tea/Lip Gloss TUI
-NX2512_HotkeyStudio/           WinForms console, Leader HUD, deployment services
-NX2512_CommandBridge/          NXOpen in-process command bridge
-NX2512_Catalog_Studio/         catalog extraction/inspection helper
-config/                        source profile templates
-internal/defaults/             embedded Go profile defaults
-roles/                         exported .mtx role templates
-docs/                          design and safety docs
-scripts/                       build scripts
-```
-
-## What Should Be Committed
-
-Commit:
-
-- source code;
-- `config/` templates;
-- `internal/defaults/` templates;
-- docs;
-- build/install scripts;
-- curated role templates in `roles/` if intentionally shared.
-
-Do not commit:
+Не следует добавлять:
 
 - `bin/`, `obj/`, `dist/`;
-- local root-level operator profiles;
-- managed runtime trees;
-- `%LOCALAPPDATA%\NXKeys` backups/bridge/logs copied into the repo;
-- generated executables, DLLs, PDBs, runtimeconfig/deps files.
+- локальные рабочие профили пользователя;
+- содержимое `%LOCALAPPDATA%\NXKeys`;
+- резервные копии, очереди Bridge и журналы;
+- скомпилированные EXE, DLL, PDB, `runtimeconfig` и `deps`.
 
-## License
+## Лицензия
 
 MIT.
