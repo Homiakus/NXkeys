@@ -36,9 +36,6 @@ namespace NX2512_HotkeyStudio.Services
         private const byte VK_MENU = 0x12;
 
         private const uint KEYEVENTF_KEYUP = 0x0002;
-        private const int ResultTimeoutMs = 20000;
-        private const int ModuleSwitchTimeoutMs = 8000;
-        private const int ConfirmationTimeoutMs = 10000;
 
         [StructLayout(LayoutKind.Sequential)]
         private struct KBDLLHOOKSTRUCT
@@ -125,6 +122,7 @@ namespace NX2512_HotkeyStudio.Services
         }
 
         private readonly LeaderKeyConfig config;
+        private readonly LeaderBehaviorProfile behaviorProfile;
         private readonly ConcurrentQueue<InputEvent> inputQueue = new ConcurrentQueue<InputEvent>();
         private readonly Dictionary<string, LeaderSequenceItem> itemByDefinitionId;
         private readonly LeaderUsageStore usageStore = new LeaderUsageStore();
@@ -153,12 +151,14 @@ namespace NX2512_HotkeyStudio.Services
         public bool IsRunning => isRunning;
         public bool IsActive => stateMachine.IsCapturing;
         public LeaderState CurrentState => stateMachine.State;
+        public string BehaviorProfilePath => behaviorProfile.SourcePath;
 
         public LeaderKeyEngine(LeaderKeyConfig cfg)
         {
             config = cfg ?? new LeaderKeyConfig();
             config.ApplyDefaults();
             ParseTriggerKey();
+            behaviorProfile = LeaderBehaviorProfile.LoadDefault();
 
             List<LeaderSequenceItem> items = (config.Sequences ?? new List<LeaderSequenceItem>())
                 .Where(item => item != null && item.Enabled)
@@ -171,7 +171,9 @@ namespace NX2512_HotkeyStudio.Services
                 item => AdaptiveLeaderPolicy.NormalizeSequence(item.Sequence),
                 item => item,
                 StringComparer.OrdinalIgnoreCase);
-            stateMachine = new LeaderStateMachine(new SequenceAutomaton(definitions));
+            stateMachine = new LeaderStateMachine(
+                new SequenceAutomaton(definitions),
+                new ContextGuardEvaluator(behaviorProfile));
 
             eventPumpTimer = new Timer { Interval = 15 };
             eventPumpTimer.Tick += EventPumpTimerTick;
@@ -207,7 +209,8 @@ namespace NX2512_HotkeyStudio.Services
             eventPumpTimer.Start();
             contextTimer.Start();
             isRunning = true;
-            StatusChanged?.Invoke("Leader HFSM активен; состояние Idle");
+            StatusChanged?.Invoke("Leader HFSM активен; профиль: " +
+                (string.IsNullOrWhiteSpace(behaviorProfile.SourcePath) ? "встроенные defaults" : behaviorProfile.SourcePath));
         }
 
         public void Stop()
@@ -394,7 +397,7 @@ namespace NX2512_HotkeyStudio.Services
                     return;
 
                 case LeaderActionKind.Activated:
-                    StartDeadline(Math.Max(1000, config.FirstKeyTimeoutMs));
+                    StartDeadline(behaviorProfile.Timeouts.RootMs);
                     hudDelayTimer.Stop();
                     hudDelayTimer.Interval = Math.Max(50, config.HudDelayMs);
                     hudDelayTimer.Start();
@@ -415,13 +418,13 @@ namespace NX2512_HotkeyStudio.Services
                     break;
 
                 case LeaderActionKind.RequireConfirmation:
-                    StartDeadline(ConfirmationTimeoutMs);
+                    StartDeadline(behaviorProfile.Timeouts.ConfirmationMs);
                     ShowConfirmation(transition.Command);
                     StatusChanged?.Invoke("Leader → " + transition.Command?.Sequence + ": требуется Enter");
                     break;
 
                 case LeaderActionKind.SwitchModule:
-                    StartDeadline(ModuleSwitchTimeoutMs);
+                    StartDeadline(behaviorProfile.Timeouts.ModuleSwitchMs);
                     QueueModuleSwitch(transition.TargetModuleId);
                     break;
 
@@ -430,7 +433,7 @@ namespace NX2512_HotkeyStudio.Services
                     break;
 
                 case LeaderActionKind.RequestQueued:
-                    StartDeadline(ResultTimeoutMs);
+                    StartDeadline(behaviorProfile.Timeouts.ResultMs);
                     StatusChanged?.Invoke("Команда поставлена в очередь: " + transition.RequestId);
                     break;
 
@@ -586,16 +589,17 @@ namespace NX2512_HotkeyStudio.Services
             switch (state)
             {
                 case LeaderState.Prefix:
+                    return behaviorProfile.Timeouts.PrefixMs;
                 case LeaderState.Search:
-                    return Math.Max(1000, config.NextKeyTimeoutMs);
+                    return behaviorProfile.Timeouts.SearchMs;
                 case LeaderState.SwitchingModule:
-                    return ModuleSwitchTimeoutMs;
+                    return behaviorProfile.Timeouts.ModuleSwitchMs;
                 case LeaderState.AwaitingConfirmation:
-                    return ConfirmationTimeoutMs;
+                    return behaviorProfile.Timeouts.ConfirmationMs;
                 case LeaderState.AwaitingResult:
-                    return ResultTimeoutMs;
+                    return behaviorProfile.Timeouts.ResultMs;
                 default:
-                    return Math.Max(1000, config.FirstKeyTimeoutMs);
+                    return behaviorProfile.Timeouts.RootMs;
             }
         }
 
@@ -655,7 +659,7 @@ namespace NX2512_HotkeyStudio.Services
             }
             else
             {
-                StartDeadline(Math.Max(1000, config.FirstKeyTimeoutMs));
+                StartDeadline(behaviorProfile.Timeouts.RootMs);
                 UpdateHud();
             }
             Interlocked.Exchange(ref captureFlag, stateMachine.IsCapturing ? 1 : 0);
