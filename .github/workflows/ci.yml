@@ -63,6 +63,17 @@ jobs:
           Get-Content control-build.log -Tail 100
           exit $code
 
+      - name: Publish C# diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: csharp-build-logs
+          path: |
+            hotkey-build.log
+            hotkey-publish.log
+            control-build.log
+          if-no-files-found: ignore
+
       - name: Publish Adaptive Control Center
         shell: pwsh
         run: |
