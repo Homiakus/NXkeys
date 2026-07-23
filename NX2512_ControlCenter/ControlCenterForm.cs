@@ -17,7 +17,7 @@ namespace NX2512_ControlCenter
         private string catalogPath;
         private Config config;
         private NxBridgeContext context;
-        private readonly Timer timer = new Timer { Interval = 1000 };
+        private readonly System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer { Interval = 1000 };
         private readonly List<ApiRow> apiRows = new List<ApiRow>();
 
         private readonly Color bg = Color.FromArgb(13, 17, 23);
@@ -147,15 +147,15 @@ namespace NX2512_ControlCenter
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             var bar = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.LeftToRight };
-            bar.Controls.Add(ActionButton("Запустить Leader", (_, _) => StartLeader("--leader"), true));
-            bar.Controls.Add(ActionButton("Открыть Studio", (_, _) => StartLeader(string.Empty), false));
+            bar.Controls.Add(ActionButton("Запустить Leader", (_, _) => LaunchHotkeyStudio(true), true));
+            bar.Controls.Add(ActionButton("Открыть Studio", (_, _) => LaunchHotkeyStudio(false), false));
             bar.Controls.Add(ActionButton("Сохранить профиль", (_, _) => SaveProfile(), false));
             leaderList = List();
-            leaderList.Columns.Add("Sequence", 105);
-            leaderList.Columns.Add("Module", 160);
-            leaderList.Columns.Add("Command", 250);
+            leaderList.Columns.Add("Последовательность", 130);
+            leaderList.Columns.Add("Модуль", 160);
+            leaderList.Columns.Add("Команда", 250);
             leaderList.Columns.Add("BUTTON ID", 300);
-            leaderList.Columns.Add("Context", 230);
+            leaderList.Columns.Add("Контекст", 230);
             layout.Controls.Add(bar, 0, 0);
             layout.Controls.Add(leaderList, 0, 1);
             page.Controls.Add(layout);
@@ -180,9 +180,9 @@ namespace NX2512_ControlCenter
             layout.SetColumnSpan(search, 2);
             layout.Controls.Add(search, 0, 0);
             apiList = List();
-            apiList.Columns.Add("Kind", 115);
-            apiList.Columns.Add("Name", 330);
-            apiList.Columns.Add("UI command", 220);
+            apiList.Columns.Add("Тип", 150);
+            apiList.Columns.Add("Имя", 330);
+            apiList.Columns.Add("UI-команда", 220);
             apiList.SelectedIndexChanged += (_, _) => ShowApi();
             apiDetails = new RichTextBox { Dock = DockStyle.Fill, ReadOnly = true, BackColor = raised, ForeColor = fg, BorderStyle = BorderStyle.None, Font = new Font("Consolas", 9f) };
             layout.Controls.Add(apiList, 0, 1);
@@ -204,11 +204,11 @@ namespace NX2512_ControlCenter
             nextTimeout = Number(1000, 60000, 1000);
             nxOnly = new CheckBox { Text = "Перехватывать Leader только при активном NX", AutoSize = true, ForeColor = fg, BackColor = panel };
             catalogBox = new TextBox { Dock = DockStyle.Fill, BackColor = raised, ForeColor = fg };
-            AddRow(table, 0, "Leader trigger", trigger, null);
+            AddRow(table, 0, "Клавиша Leader", trigger, null);
             AddRow(table, 1, "Первая клавиша, мс", firstTimeout, null);
             AddRow(table, 2, "Следующая клавиша, мс", nextTimeout, null);
             AddRow(table, 3, "Контекст", nxOnly, null);
-            AddRow(table, 4, "NX API catalog", catalogBox, ActionButton("Выбрать", (_, _) => BrowseCatalog(), false));
+            AddRow(table, 4, "Каталог NX API", catalogBox, ActionButton("Выбрать", (_, _) => BrowseCatalog(), false));
             AddRow(table, 5, string.Empty, ActionButton("Сохранить настройки", (_, _) => SaveSettings(), true), null);
             page.Controls.Add(table);
             return page;
@@ -236,9 +236,9 @@ namespace NX2512_ControlCenter
             RichTextBox details = Controls.Find("overviewDetails", true).FirstOrDefault() as RichTextBox;
             if (details != null)
             {
-                details.Text = $"Profile: {configPath}\nNX version: {config.Profile?.NXVersion}\nSequences: {total}\nVerified BUTTON IDs: {verified}\n\n" +
-                               $"Module: {context?.ModuleLabel ?? "unknown"} ({context?.ModuleId ?? "-"})\nSelection: {context?.SelectionCount.ToString() ?? "unknown"}\n" +
-                               $"Work part: {context?.WorkPartAvailable.ToString() ?? "unknown"}\nBridge result: {context?.LastResult ?? "-"}\n{context?.LastMessage ?? string.Empty}";
+                details.Text = $"Профиль: {configPath}\nВерсия NX: {config.Profile?.NXVersion}\nПоследовательностей: {total}\nТочных BUTTON ID: {verified}\n\n" +
+                               $"Модуль: {context?.ModuleLabel ?? "неизвестен"} ({context?.ModuleId ?? "-"})\nВыбрано: {context?.SelectionCount.ToString() ?? "неизвестно"}\n" +
+                               $"Рабочая деталь: {context?.WorkPartAvailable.ToString() ?? "неизвестно"}\nРезультат Bridge: {context?.LastResult ?? "-"}\n{context?.LastMessage ?? string.Empty}";
             }
         }
 
@@ -256,7 +256,7 @@ namespace NX2512_ControlCenter
                 row.SubItems.Add(string.IsNullOrWhiteSpace(item.ModuleID) ? item.Category : item.ModuleID);
                 row.SubItems.Add(item.Command?.Name ?? item.Notes);
                 row.SubItems.Add(item.Command?.ID ?? string.Empty);
-                row.SubItems.Add(string.IsNullOrWhiteSpace(state.Reason) ? "Ready" : state.Reason);
+                row.SubItems.Add(string.IsNullOrWhiteSpace(state.Reason) ? "Готово" : state.Reason);
                 row.ForeColor = state.CanExecute ? fg : muted;
                 leaderList.Items.Add(row);
             }
@@ -286,7 +286,7 @@ namespace NX2512_ControlCenter
             apiRows.Clear();
             if (string.IsNullOrWhiteSpace(catalogPath) || !Directory.Exists(catalogPath))
             {
-                status.Text = "API-каталог не найден. Укажите каталог NX2512_Catalog_Studio в настройках.";
+                status.Text = "API-каталог не найден. Укажите экспорт NX2512_Catalog_Studio в настройках.";
                 return;
             }
             foreach (string file in new[] { "04_nxopen_members.csv", "05_nxopen_entry_points.csv", "06_ui_commands_buttons.csv", "07_ufun_functions.csv", "08_ui_command_api_candidates.csv" })
@@ -297,7 +297,13 @@ namespace NX2512_ControlCenter
                 {
                     string[] cells = ParseCsv(line);
                     if (cells.Length == 0) continue;
-                    apiRows.Add(new ApiRow { Kind = Path.GetFileNameWithoutExtension(file), Name = cells.ElementAtOrDefault(0) ?? string.Empty, UiCommand = cells.FirstOrDefault(x => x.StartsWith("UG_", StringComparison.OrdinalIgnoreCase)) ?? string.Empty, Raw = string.Join(" | ", cells) });
+                    apiRows.Add(new ApiRow
+                    {
+                        Kind = Path.GetFileNameWithoutExtension(file),
+                        Name = cells.ElementAtOrDefault(0) ?? string.Empty,
+                        UiCommand = cells.FirstOrDefault(x => x.StartsWith("UG_", StringComparison.OrdinalIgnoreCase)) ?? string.Empty,
+                        Raw = string.Join(" | ", cells)
+                    });
                 }
             }
             status.Text = $"API-каталог загружен: {apiRows.Count:N0} записей";
@@ -308,7 +314,7 @@ namespace NX2512_ControlCenter
             string query = ExpandQuery(apiQuery.Text);
             string[] tokens = query.Split(new[] { ' ', '.', ':', '/', '\\', '(', ')', '_', '-' }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.Length > 1).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-            var results = apiRows.Select(row => new { Row = row, Score = tokens.Count(t => row.Raw.IndexOf(t, StringComparison.OrdinalIgnoreCase) >= 0) })
+            var results = apiRows.Select(row => new { Row = row, Score = tokens.Count(token => row.Raw.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0) })
                 .Where(x => x.Score > 0).OrderByDescending(x => x.Score).ThenBy(x => x.Row.Name).Take(200).ToList();
             apiList.BeginUpdate();
             apiList.Items.Clear();
@@ -376,15 +382,37 @@ namespace NX2512_ControlCenter
             catch (Exception ex) { MessageBox.Show(ex.Message, "Ошибка сохранения", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
 
-        private void StartLeader(string argument)
+        private void LaunchHotkeyStudio(bool background)
         {
             string exe = Path.Combine(AppContext.BaseDirectory, "NX2512_HotkeyStudio.exe");
             if (!File.Exists(exe))
             {
-                exe = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar)) ?? AppContext.BaseDirectory, "NX2512_HotkeyStudio.exe");
+                string parent = Path.GetDirectoryName(AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar)) ?? AppContext.BaseDirectory;
+                exe = Path.Combine(parent, "NX2512_HotkeyStudio.exe");
             }
-            if (!File.Exists(exe)) { MessageBox.Show("NX2512_HotkeyStudio.exe не найден рядом с Control Center.", "NXKeys", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
-            Process.Start(new ProcessStartInfo(exe, argument) { UseShellExecute = true, WorkingDirectory = Path.GetDirectoryName(exe) });
+            if (!File.Exists(exe))
+            {
+                MessageBox.Show("NX2512_HotkeyStudio.exe не найден в папке Control Center или в родительском managed root.", "NXKeys", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                var start = new ProcessStartInfo(exe)
+                {
+                    UseShellExecute = false,
+                    WorkingDirectory = Path.GetDirectoryName(exe) ?? AppContext.BaseDirectory
+                };
+                start.ArgumentList.Add(background ? "--ensure-background" : "--gui");
+                start.ArgumentList.Add("--config");
+                start.ArgumentList.Add(configPath);
+                Process.Start(start);
+                status.Text = background ? "Leader запущен или уже работает." : "Открывается NXKeys Studio.";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка запуска NXKeys Studio", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void BrowseCatalog()
@@ -433,16 +461,16 @@ namespace NX2512_ControlCenter
             var values = new List<string>();
             var current = new StringBuilder();
             bool quoted = false;
-            for (int i = 0; i < line.Length; i++)
+            for (int index = 0; index < line.Length; index++)
             {
-                char c = line[i];
-                if (c == '"')
+                char character = line[index];
+                if (character == '"')
                 {
-                    if (quoted && i + 1 < line.Length && line[i + 1] == '"') { current.Append('"'); i++; }
+                    if (quoted && index + 1 < line.Length && line[index + 1] == '"') { current.Append('"'); index++; }
                     else quoted = !quoted;
                 }
-                else if (c == ',' && !quoted) { values.Add(current.ToString()); current.Clear(); }
-                else current.Append(c);
+                else if (character == ',' && !quoted) { values.Add(current.ToString()); current.Clear(); }
+                else current.Append(character);
             }
             values.Add(current.ToString());
             return values.ToArray();
