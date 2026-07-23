@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "timeouts": {
     "root_ms": 4000,
     "prefix_ms": 2500,
@@ -17,74 +17,63 @@
       "message": "Команда недоступна в текущем контексте NX"
     }
   },
+  "adaptive_module": {
+    "enabled": true,
+    "scope": "active_module",
+    "auto_prefix": true,
+    "fallback_module": "modeling",
+    "search_scope": "active_module"
+  },
   "commands": {
-    "MB": {
+    "MX": {
       "guards": {
         "modules": ["modeling"],
         "require_work_part": true,
         "minimum_context_confidence": 60,
-        "selection": {
-          "minimum": 1,
-          "types_any": ["Edge"]
-        }
+        "selection": { "minimum": 1, "types_any": ["Edge"] }
       },
-      "on_unavailable": {
-        "action": "show_reason",
-        "message": "Выберите одно или несколько рёбер"
-      }
+      "on_unavailable": { "action": "show_reason", "message": "Выберите одно или несколько рёбер" }
     },
-    "MC": {
+    "MZ": {
       "guards": {
         "modules": ["modeling"],
         "require_work_part": true,
-        "selection": {
-          "minimum": 1,
-          "types_any": ["Edge"]
-        }
+        "selection": { "minimum": 1, "types_any": ["Edge"] }
       },
-      "on_unavailable": {
-        "action": "show_reason",
-        "message": "Выберите рёбра для построения фаски"
-      }
+      "on_unavailable": { "action": "show_reason", "message": "Выберите рёбра для построения фаски" }
     },
-    "SL": {
-      "guards": {
-        "modules": ["sketch"],
-        "require_work_part": true
-      },
-      "on_unavailable": {
-        "action": "switch_module",
-        "target_module": "sketch",
-        "retry_once": true,
-        "message": "Переход в Sketch перед запуском команды"
-      }
+    "SW": {
+      "guards": { "modules": ["sketch"], "require_work_part": true },
+      "on_unavailable": { "action": "show_reason", "message": "Команда Line доступна в активном эскизе" }
     },
-    "DB": {
-      "guards": {
-        "modules": ["drafting"],
-        "require_work_part": true
-      },
-      "on_unavailable": {
-        "action": "switch_module",
-        "target_module": "drafting",
-        "retry_once": true,
-        "message": "Переход в Drafting перед созданием базового вида"
-      }
+    "DW": {
+      "guards": { "modules": ["drafting"], "require_work_part": true },
+      "on_unavailable": { "action": "show_reason", "message": "Команда Base View доступна в Drafting" }
     },
     "AX": {
       "guards": {
         "modules": ["assembly"],
         "require_work_part": true,
-        "selection": {
-          "minimum": 1,
-          "types_any": ["Component"]
-        }
+        "selection": { "minimum": 1, "types_any": ["Component"] }
       },
       "confirmation": "required",
-      "on_unavailable": {
-        "action": "show_reason",
-        "message": "Выберите компонент для удаления"
-      }
-    }
+      "on_unavailable": { "action": "show_reason", "message": "Выберите компонент для замены" }
+    },
+    "AZ": {
+      "guards": {
+        "modules": ["assembly"],
+        "require_work_part": true,
+        "selection": { "minimum": 1, "types_any": ["Component"] }
+      },
+      "confirmation": "required",
+      "on_unavailable": { "action": "show_reason", "message": "Выберите компонент для удаления" }
+    },
+    "CX": { "guards": { "modules": ["manufacturing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
+    "CZ": { "guards": { "modules": ["manufacturing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
+    "XX": { "guards": { "modules": ["simulation"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
+    "XZ": { "guards": { "modules": ["simulation"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
+    "GX": { "guards": { "modules": ["routing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
+    "GZ": { "guards": { "modules": ["routing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
+    "RX": { "guards": { "modules": ["reuse"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" }
   }
 }
