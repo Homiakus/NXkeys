@@ -55,7 +55,9 @@ namespace NXKeys.StateMachines
     {
         public bool Allowed { get; set; }
         public bool RequiresModuleSwitch { get; set; }
+        public bool ConfirmationRequired { get; set; }
         public string TargetModuleId { get; set; } = string.Empty;
+        public string FallbackAction { get; set; } = "show_reason";
         public string Reason { get; set; } = string.Empty;
     }
 
@@ -249,52 +251,102 @@ namespace NXKeys.StateMachines
             "selection_object", "inspect_view", "reuse"
         };
 
+        private readonly LeaderBehaviorProfile behaviorProfile;
+
+        public ContextGuardEvaluator(LeaderBehaviorProfile behaviorProfile = null)
+        {
+            this.behaviorProfile = behaviorProfile ?? LeaderBehaviorProfile.LoadDefault();
+        }
+
+        public LeaderBehaviorProfile BehaviorProfile => behaviorProfile;
+
         public GuardResult Evaluate(SequenceDefinition command, NxContextSnapshot context, bool allowModuleSwitch)
         {
-            if (command == null || !command.Enabled)
-                return Deny("Команда отключена.");
-            if (string.IsNullOrWhiteSpace(command.CommandId))
-                return Deny("У команды отсутствует точный NX BUTTON ID.");
-            if (context == null || !context.IsFresh)
-                return Deny("Контекст NX отсутствует или устарел.");
-            if (!string.Equals(context.Status, "running", StringComparison.OrdinalIgnoreCase))
-                return Deny("NX Command Bridge не готов.");
-            if (context.ModalDialogActive)
-                return Deny("Закройте активный модальный диалог NX.");
+            ResolvedCommandBehavior behavior = behaviorProfile.Resolve(command);
+            ContextGuardPolicy policy = behavior.Guards;
+            FallbackPolicy fallback = behavior.OnUnavailable ?? new FallbackPolicy();
 
-            string commandModule = NormalizeModule(command.ModuleId);
+            if (command == null || !command.Enabled)
+                return Deny("Команда отключена.", behavior);
+            if (string.IsNullOrWhiteSpace(command.CommandId))
+                return Deny("У команды отсутствует точный NX BUTTON ID.", behavior);
+            if (context == null || !context.IsFresh)
+                return Deny("Контекст NX отсутствует или устарел.", behavior);
+
+            if (policy.BridgeStatuses != null && policy.BridgeStatuses.Count > 0 &&
+                !policy.BridgeStatuses.Contains(context.Status ?? string.Empty, StringComparer.OrdinalIgnoreCase))
+                return Deny("NX Command Bridge не готов: " + context.Status, behavior);
+
+            if (context.ContextConfidence < Math.Max(0, policy.MinimumContextConfidence))
+                return Deny("Достоверность контекста NX недостаточна: " + context.ContextConfidence + "%.", behavior);
+
+            string interactionState = context.ModalDialogActive
+                ? "modal_dialog"
+                : string.IsNullOrWhiteSpace(context.ActiveCommandId) ? "idle" : "command_active";
+            if (policy.InteractionStates != null && policy.InteractionStates.Count > 0 &&
+                !policy.InteractionStates.Contains(interactionState, StringComparer.OrdinalIgnoreCase))
+                return Deny(context.ModalDialogActive ? "Закройте активный модальный диалог NX." : "Завершите активную команду NX.", behavior);
+
+            List<string> requiredModules = policy.Modules ?? new List<string>();
             string activeModule = NormalizeModule(context.ModuleId);
-            bool moduleMatches = string.IsNullOrWhiteSpace(commandModule) ||
+            bool moduleMatches = requiredModules.Count == 0 ||
                                  string.IsNullOrWhiteSpace(activeModule) ||
-                                 string.Equals(commandModule, activeModule, StringComparison.OrdinalIgnoreCase) ||
-                                 SharedModules.Contains(commandModule);
+                                 requiredModules.Contains(activeModule, StringComparer.OrdinalIgnoreCase) ||
+                                 requiredModules.Any(SharedModules.Contains);
             if (!moduleMatches)
             {
-                if (allowModuleSwitch)
+                string target = !string.IsNullOrWhiteSpace(fallback.TargetModule)
+                    ? NormalizeModule(fallback.TargetModule)
+                    : requiredModules.FirstOrDefault() ?? NormalizeModule(command.ModuleId);
+                bool maySwitch = allowModuleSwitch &&
+                    string.Equals(fallback.Action, "switch_module", StringComparison.OrdinalIgnoreCase) &&
+                    !string.IsNullOrWhiteSpace(target);
+                if (maySwitch)
                 {
                     return new GuardResult
                     {
                         Allowed = false,
                         RequiresModuleSwitch = true,
-                        TargetModuleId = commandModule,
-                        Reason = "Требуется переключение модуля NX."
+                        ConfirmationRequired = behavior.ConfirmationRequired,
+                        TargetModuleId = target,
+                        FallbackAction = "switch_module",
+                        Reason = string.IsNullOrWhiteSpace(fallback.Message)
+                            ? "Требуется переключение модуля NX."
+                            : fallback.Message
                     };
                 }
-                return Deny("NX не подтвердил переключение в модуль " + commandModule + ".");
+                return Deny("Команда недоступна в модуле " + activeModule + ".", behavior);
             }
 
-            if (command.RequiresSelection)
+            if (policy.RequireWorkPart == true && !context.WorkPartAvailable)
+                return Deny("Нет активной рабочей детали.", behavior);
+            if (policy.RequireDisplayPart == true && !context.DisplayPartAvailable)
+                return Deny("Нет отображаемой детали.", behavior);
+
+            SelectionGuardPolicy selection = policy.Selection ?? new SelectionGuardPolicy();
+            if (selection.Minimum > 0 || selection.Maximum >= 0 ||
+                selection.TypesAny.Count > 0 || selection.TypesAll.Count > 0)
             {
                 if (context.SelectionCount < 0 || string.Equals(context.SelectionState, "unknown", StringComparison.OrdinalIgnoreCase))
-                    return Deny("NX не предоставил надёжный контекст выбора.");
-                if (context.SelectionCount < Math.Max(1, command.MinimumSelectionCount))
-                    return Deny("Сначала выберите подходящий объект.");
+                    return Deny("NX не предоставил надёжный контекст выбора.", behavior);
+                if (context.SelectionCount < selection.Minimum)
+                    return Deny("Выбрано недостаточно объектов: " + context.SelectionCount + ".", behavior);
+                if (selection.Maximum >= 0 && context.SelectionCount > selection.Maximum)
+                    return Deny("Выбрано слишком много объектов: " + context.SelectionCount + ".", behavior);
+
+                List<string> selectedTypes = context.SelectedTypes ?? new List<string>();
+                if (selection.TypesAny.Count > 0 && !selection.TypesAny.Any(required => selectedTypes.Any(actual => TypeMatches(actual, required))))
+                    return Deny("Выбор не содержит объект требуемого типа: " + string.Join(" или ", selection.TypesAny) + ".", behavior);
+                if (selection.TypesAll.Count > 0 && !selection.TypesAll.All(required => selectedTypes.Any(actual => TypeMatches(actual, required))))
+                    return Deny("В выборе отсутствует один из обязательных типов: " + string.Join(", ", selection.TypesAll) + ".", behavior);
             }
 
-            if (command.NeedsWorkPart && !context.WorkPartAvailable)
-                return Deny("Нет активной рабочей детали.");
-
-            return new GuardResult { Allowed = true };
+            return new GuardResult
+            {
+                Allowed = true,
+                ConfirmationRequired = behavior.ConfirmationRequired,
+                FallbackAction = fallback.Action ?? "show_reason"
+            };
         }
 
         public static bool CommandNeedsWorkPart(string commandId)
@@ -327,9 +379,29 @@ namespace NXKeys.StateMachines
             }
         }
 
-        private static GuardResult Deny(string reason)
+        private static bool TypeMatches(string actual, string required)
         {
-            return new GuardResult { Allowed = false, Reason = reason ?? string.Empty };
+            if (string.IsNullOrWhiteSpace(actual) || string.IsNullOrWhiteSpace(required)) return false;
+            string actualValue = actual.Trim();
+            string requiredValue = required.Trim();
+            return string.Equals(actualValue, requiredValue, StringComparison.OrdinalIgnoreCase) ||
+                   actualValue.EndsWith("." + requiredValue, StringComparison.OrdinalIgnoreCase) ||
+                   actualValue.EndsWith("+" + requiredValue, StringComparison.OrdinalIgnoreCase) ||
+                   actualValue.IndexOf(requiredValue, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static GuardResult Deny(string reason, ResolvedCommandBehavior behavior)
+        {
+            FallbackPolicy fallback = behavior?.OnUnavailable ?? new FallbackPolicy();
+            string effectiveReason = string.IsNullOrWhiteSpace(fallback.Message) ? reason : fallback.Message;
+            return new GuardResult
+            {
+                Allowed = false,
+                ConfirmationRequired = behavior?.ConfirmationRequired == true,
+                FallbackAction = string.IsNullOrWhiteSpace(fallback.Action) ? "show_reason" : fallback.Action,
+                TargetModuleId = fallback.TargetModule ?? string.Empty,
+                Reason = effectiveReason ?? string.Empty
+            };
         }
     }
 
@@ -349,6 +421,7 @@ namespace NXKeys.StateMachines
         public string PendingRequestId { get; private set; } = string.Empty;
         public NxContextSnapshot Context { get; private set; }
         public bool IsCapturing => State != LeaderState.Idle;
+        public LeaderBehaviorProfile BehaviorProfile => guards.BehaviorProfile;
 
         public LeaderStateMachine(SequenceAutomaton automaton, ContextGuardEvaluator guards = null)
         {
@@ -530,7 +603,7 @@ namespace NXKeys.StateMachines
                 return Snapshot(LeaderActionKind.SwitchModule, guard.Reason, targetModuleId: targetModuleId);
             }
             if (!guard.Allowed) return Reject(guard.Reason);
-            if (command.Destructive || command.ConfirmBeforeExecute)
+            if (guard.ConfirmationRequired)
             {
                 State = LeaderState.AwaitingConfirmation;
                 return Snapshot(LeaderActionKind.RequireConfirmation, "Для выполнения нажмите Enter.");
