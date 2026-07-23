@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using NX2512_HotkeyStudio.Models;
 
 namespace NX2512_HotkeyStudio.Services
@@ -16,133 +16,69 @@ namespace NX2512_HotkeyStudio.Services
             "nxkeys_generated.men",
             "nxkeys_command_bridge.men",
             "nxkeys_ribbon.rtb",
-            "nxkeys_toolbar.tbr",
-            "rbn_nxkeys.rtb"
+            "nxkeys_toolbar.tbr"
         };
 
         public static NxKeysHealthReport Check(Config config)
         {
             if (config == null) throw new ArgumentNullException(nameof(config));
             config.ApplyDefaults();
-
-            NxKeysHealthReport report = new NxKeysHealthReport
-            {
-                ManagedRoot = config.Deployment.ManagedRoot
-            };
+            var report = new NxKeysHealthReport { ManagedRoot = config.Deployment.ManagedRoot };
 
             report.MenuFiles = FindNxKeysMenuFiles(config.Deployment.ManagedRoot);
-            report.StaleFiles = report.MenuFiles.Where(f => !f.IsExpectedVersion).ToList();
-            report.MenuScriptVersionOk = report.StaleFiles.Count == 0 &&
-                                         report.MenuFiles
-                                             .Where(f => f.Path.StartsWith(config.Deployment.ManagedRoot, StringComparison.OrdinalIgnoreCase))
-                                             .All(f => f.IsExpectedVersion);
+            report.StaleFiles = report.MenuFiles.Where(file => !file.IsExpectedVersion).ToList();
+            report.MenuScriptVersionOk = report.MenuFiles.Count > 0 && report.StaleFiles.Count == 0;
 
             ReadBridgeState(report);
-            ReadNxProcesses(report);
+            foreach (NxProcessInfo process in NxRuntimeService.FindRunningProcesses())
+            {
+                report.NxRunning = true;
+                report.NxProcesses.Add(process.ToString());
+            }
             ReadManagedPackageState(config, report);
-
             return report;
         }
 
         private static List<NxKeysMenuFileStatus> FindNxKeysMenuFiles(string managedRoot)
         {
-            List<NxKeysMenuFileStatus> files = new List<NxKeysMenuFileStatus>();
-            foreach (string root in CandidateMenuRoots(managedRoot))
+            var result = new List<NxKeysMenuFileStatus>();
+            if (string.IsNullOrWhiteSpace(managedRoot) || !Directory.Exists(managedRoot)) return result;
+            try
             {
-                if (!Directory.Exists(root)) continue;
-                foreach (string path in Directory.GetFiles(root, "*.*", SearchOption.AllDirectories))
+                foreach (string path in Directory.GetFiles(managedRoot, "*.*", SearchOption.AllDirectories))
                 {
-                    string name = Path.GetFileName(path);
-                    if (!NxKeysMenuNames.Contains(name, StringComparer.OrdinalIgnoreCase)) continue;
-                    NxKeysMenuFileStatus status = ReadMenuStatus(path);
-                    if (status != null) files.Add(status);
+                    if (!NxKeysMenuNames.Contains(Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)) continue;
+                    result.Add(ReadMenuStatus(path));
                 }
             }
-            return files
-                .GroupBy(f => f.Path, StringComparer.OrdinalIgnoreCase)
-                .Select(g => g.First())
-                .OrderBy(f => f.Path, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-        }
-
-        private static IEnumerable<string> CandidateMenuRoots(string managedRoot)
-        {
-            if (!string.IsNullOrWhiteSpace(managedRoot)) yield return managedRoot;
-
-            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            yield return Path.Combine(localAppData, "Siemens");
-            yield return Path.Combine(appData, "Siemens");
+            catch { }
+            return result.OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase).ToList();
         }
 
         private static NxKeysMenuFileStatus ReadMenuStatus(string path)
         {
             try
             {
-                string text;
-                using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                using (StreamReader reader = new StreamReader(stream, true))
-                {
-                    text = reader.ReadToEnd();
-                }
-
+                string text = File.ReadAllText(path);
                 Match match = Regex.Match(text, @"(?m)^VERSION\s+(\d+)\s*$");
-                int version = match.Success && int.TryParse(match.Groups[1].Value, out int v) ? v : 0;
-                return new NxKeysMenuFileStatus
-                {
-                    Path = path,
-                    Version = version,
-                    IsExpectedVersion = version == MenuScriptDefaults.ExpectedVersionForPath(path),
-                    IsStale = version != MenuScriptDefaults.ExpectedVersionForPath(path)
-                };
+                int version = match.Success && int.TryParse(match.Groups[1].Value, out int parsed) ? parsed : 0;
+                int expected = MenuScriptDefaults.ExpectedVersionForPath(path);
+                return new NxKeysMenuFileStatus { Path = path, Version = version, IsExpectedVersion = version == expected, IsStale = version != expected };
             }
             catch
             {
-                return new NxKeysMenuFileStatus
-                {
-                    Path = path,
-                    Version = 0,
-                    IsExpectedVersion = false,
-                    IsStale = true
-                };
+                return new NxKeysMenuFileStatus { Path = path, Version = 0, IsExpectedVersion = false, IsStale = true };
             }
         }
 
         private static void ReadBridgeState(NxKeysHealthReport report)
         {
             string root = NxCommandBridgeClient.BridgeRoot;
-            string pending = Path.Combine(root, "pending");
-            string completed = Path.Combine(root, "completed");
-            string failed = Path.Combine(root, "failed");
-            string statusPath = Path.Combine(root, "status.json");
-
-            report.BridgeLoaded = IsLiveBridgeStatus(statusPath);
-            report.PendingCount = CountFiles(pending, "*.json");
-            report.CompletedCount = CountFiles(completed, "*.json");
-            report.FailedCount = CountFiles(failed, "*.json");
-            report.LastFailures = RecentResultLines(failed, 6);
-        }
-
-        private static void ReadNxProcesses(NxKeysHealthReport report)
-        {
-            foreach (string processName in new[] { "ugraf", "run_nx", "nx" })
-            {
-                foreach (Process proc in Process.GetProcessesByName(processName))
-                {
-                    using (proc)
-                    {
-                        string path = string.Empty;
-                        try { path = proc.MainModule?.FileName ?? string.Empty; } catch { }
-                        bool isNx = processName == "ugraf" || processName == "run_nx" ||
-                                    path.IndexOf(@"\Siemens\", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                    path.IndexOf(@"\DesigncenterNX", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                    path.IndexOf(@"\NXBIN\", StringComparison.OrdinalIgnoreCase) >= 0;
-                        if (!isNx) continue;
-                        report.NxRunning = true;
-                        report.NxProcesses.Add($"{proc.ProcessName}[{proc.Id}] {path}");
-                    }
-                }
-            }
+            report.BridgeLoaded = IsLiveBridgeStatus(Path.Combine(root, "status.json"));
+            report.PendingCount = CountFiles(Path.Combine(root, "pending"), "*.json");
+            report.CompletedCount = CountFiles(Path.Combine(root, "completed"), "*.json");
+            report.FailedCount = CountFiles(Path.Combine(root, "failed"), "*.json");
+            report.LastFailures = RecentResultLines(Path.Combine(root, "failed"), 6);
         }
 
         private static bool IsLiveBridgeStatus(string statusPath)
@@ -150,112 +86,80 @@ namespace NX2512_HotkeyStudio.Services
             if (!File.Exists(statusPath)) return false;
             try
             {
-                using (FileStream stream = new FileStream(statusPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                using (JsonDocument doc = JsonDocument.Parse(stream))
+                using (JsonDocument document = JsonDocument.Parse(File.ReadAllText(statusPath)))
                 {
-                    if (doc.RootElement.TryGetProperty("process_id", out JsonElement pidElement) &&
-                        pidElement.TryGetInt32(out int pid) &&
-                        pid > 0)
-                    {
-                        try
-                        {
-                            Process proc = Process.GetProcessById(pid);
-                            using (proc)
-                            {
-                                return !proc.HasExited;
-                            }
-                        }
-                        catch
-                        {
-                            return false;
-                        }
-                    }
+                    if (!document.RootElement.TryGetProperty("process_id", out JsonElement pidValue) || !pidValue.TryGetInt32(out int pid)) return false;
+                    using (Process process = Process.GetProcessById(pid)) return !process.HasExited;
                 }
             }
-            catch { }
-            return true;
+            catch { return false; }
         }
 
         private static void ReadManagedPackageState(Config config, NxKeysHealthReport report)
         {
-            string root = config.Deployment.ManagedRoot;
-            string appDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string[] required =
-            {
-                "NX2512_HotkeyStudio.exe",
-                "NX2512_HotkeyStudio.dll",
-                Path.Combine("custom", "application", "NX2512_CommandBridge.dll"),
-                Path.Combine("custom", "application", "nxkeys_command_bridge.men"),
-                Path.Combine("custom", "startup", config.Deployment.OverlayFilename),
-                Path.Combine("custom", "startup", "nxkeys_ribbon.rtb"),
-                Path.Combine("custom", "startup", "nxkeys_toolbar.tbr")
-            };
-
-            foreach (string relative in required)
-            {
-                string path = Path.Combine(root, relative);
-                if (!File.Exists(path)) report.MissingManagedFiles.Add(path);
-            }
-
-            CompareHashIfPresent(Path.Combine(appDir, "NX2512_HotkeyStudio.exe"), Path.Combine(root, "NX2512_HotkeyStudio.exe"), report);
-            CompareHashIfPresent(Path.Combine(appDir, "NX2512_HotkeyStudio.dll"), Path.Combine(root, "NX2512_HotkeyStudio.dll"), report);
-
+            string root = Path.GetFullPath(config.Deployment.ManagedRoot);
+            string manifestPath = Path.Combine(root, "package-manifest.json");
             string bridgeDll = Path.Combine(root, "custom", "application", "NX2512_CommandBridge.dll");
             report.BridgeDllLocked = File.Exists(bridgeDll) && IsLocked(bridgeDll);
-            report.ManagedPackageOk = report.MissingManagedFiles.Count == 0 && report.HashMismatches.Count == 0;
-        }
 
-        private static void CompareHashIfPresent(string source, string installed, NxKeysHealthReport report)
-        {
-            if (!File.Exists(source) || !File.Exists(installed)) return;
-            try
+            PackageManifest manifest = null;
+            try { if (File.Exists(manifestPath)) manifest = JsonSerializer.Deserialize<PackageManifest>(File.ReadAllText(manifestPath)); }
+            catch { report.HashMismatches.Add(manifestPath + " (повреждённый манифест)"); }
+
+            if (manifest?.Files == null || manifest.Files.Count == 0)
             {
-                string sourceHash = BackupEngine.ComputeSha256(source);
-                string installedHash = BackupEngine.ComputeSha256(installed);
-                if (!string.Equals(sourceHash, installedHash, StringComparison.OrdinalIgnoreCase))
-                {
-                    report.HashMismatches.Add(installed);
-                }
+                report.MissingManagedFiles.Add(manifestPath);
+                report.ManagedPackageOk = false;
+                return;
             }
-            catch { }
+
+            foreach (PackageFileEntry entry in manifest.Files)
+            {
+                string path = Path.GetFullPath(Path.Combine(root, entry.RelativePath ?? string.Empty));
+                if (!path.StartsWith(root.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                {
+                    report.HashMismatches.Add(path + " (выход за managed_root)");
+                    continue;
+                }
+                if (!File.Exists(path))
+                {
+                    if (entry.Required) report.MissingManagedFiles.Add(path);
+                    continue;
+                }
+                try
+                {
+                    string actual = BackupEngine.ComputeSha256(path);
+                    if (!string.Equals(actual, entry.Sha256, StringComparison.OrdinalIgnoreCase)) report.HashMismatches.Add(path);
+                }
+                catch { report.HashMismatches.Add(path + " (ошибка чтения)"); }
+            }
+
+            report.ManagedPackageOk = report.MissingManagedFiles.Count == 0 && report.HashMismatches.Count == 0;
         }
 
         private static bool IsLocked(string path)
         {
-            try
-            {
-                using (new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }
-                return false;
-            }
-            catch (IOException)
-            {
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            try { using (new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { } return false; }
+            catch (IOException) { return true; }
+            catch { return false; }
         }
 
-        private static int CountFiles(string directory, string pattern)
-        {
-            return Directory.Exists(directory) ? Directory.GetFiles(directory, pattern).Length : 0;
-        }
+        private static int CountFiles(string directory, string pattern) => Directory.Exists(directory) ? Directory.GetFiles(directory, pattern).Length : 0;
 
         private static List<string> RecentResultLines(string directory, int count)
         {
             if (!Directory.Exists(directory)) return new List<string>();
-            return new DirectoryInfo(directory)
-                .GetFiles("*.result.txt")
-                .OrderByDescending(f => f.LastWriteTimeUtc)
+            return new DirectoryInfo(directory).GetFiles("*.result.txt")
+                .OrderByDescending(file => file.LastWriteTimeUtc)
                 .Take(count)
-                .Select(f =>
-                {
-                    string first = string.Empty;
-                    try { first = File.ReadLines(f.FullName).FirstOrDefault() ?? string.Empty; } catch { }
-                    return $"{f.Name}: {first}";
-                })
+                .Select(file => file.Name + ": " + SafeFirstLine(file.FullName))
                 .ToList();
+        }
+
+        private static string SafeFirstLine(string path)
+        {
+            try { return File.ReadLines(path).FirstOrDefault() ?? string.Empty; }
+            catch { return string.Empty; }
         }
     }
 }
