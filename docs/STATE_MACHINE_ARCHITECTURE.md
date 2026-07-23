@@ -2,11 +2,12 @@
 
 ## Назначение
 
-Контекстные сочетания NXKeys реализованы тремя согласованными слоями:
+Контекстные сочетания NXKeys реализованы четырьмя согласованными слоями:
 
 1. `SequenceAutomaton` — детерминированный автомат распознавания клавишных последовательностей.
 2. `LeaderStateMachine` — иерархический автомат пользовательского взаимодействия.
 3. `ContextGuardEvaluator` — единая проверка контекста Siemens NX перед dispatch.
+4. `LeaderBehaviorProfile` — декларативные guards, fallback-действия и таймауты состояний.
 
 Windows keyboard hook не выполняет команды и не изменяет бизнес-состояние напрямую. Он только формирует события, которые последовательно обрабатываются WinForms event loop.
 
@@ -31,6 +32,7 @@ Failed
 - смена модуля считается завершённой только после нового `context.json` с целевым `module_id`;
 - `Esc`, потеря фокуса NX и остановка движка всегда приводят в `Idle`;
 - non-sticky тайм-аут всегда освобождает keyboard capture;
+- ошибка записи запроса немедленно завершает `Dispatching` и освобождает автомат;
 - завершение запроса переводит автомат в `Idle` или `Root` для sticky-режима.
 
 ## DFA последовательностей
@@ -43,6 +45,83 @@ Failed
 - команды без достижимого терминального состояния.
 
 Каждый ввод имеет один однозначный переход. Поиск команд является отдельным состоянием HFSM и не изменяет DFA.
+
+## Декларативная policy
+
+Файл:
+
+```text
+config/nx2512-state-machines.json
+```
+
+автоматически включается в `dotnet publish` и устанавливаемый managed-пакет. Альтернативный путь можно задать через:
+
+```text
+NXKEYS_STATE_MACHINE_CONFIG
+```
+
+Policy содержит отдельные таймауты:
+
+```json
+{
+  "timeouts": {
+    "root_ms": 4000,
+    "prefix_ms": 2500,
+    "search_ms": 5000,
+    "confirmation_ms": 10000,
+    "result_ms": 20000,
+    "module_switch_ms": 8000
+  }
+}
+```
+
+Для каждой нормализованной последовательности можно определить:
+
+- допустимые модули;
+- допустимые состояния Bridge;
+- допустимое состояние взаимодействия: `idle`, `modal_dialog`, `command_active`;
+- минимальную достоверность контекста;
+- необходимость work/display part;
+- минимальное и максимальное число выбранных объектов;
+- `types_any` и `types_all` для выбранных NXOpen-типов;
+- обязательное подтверждение;
+- формальное действие `on_unavailable`.
+
+Пример:
+
+```json
+{
+  "commands": {
+    "MB": {
+      "guards": {
+        "modules": ["modeling"],
+        "require_work_part": true,
+        "minimum_context_confidence": 60,
+        "selection": {
+          "minimum": 1,
+          "types_any": ["Edge"]
+        }
+      },
+      "on_unavailable": {
+        "action": "show_reason",
+        "message": "Выберите одно или несколько рёбер"
+      }
+    },
+    "DB": {
+      "guards": {
+        "modules": ["drafting"]
+      },
+      "on_unavailable": {
+        "action": "switch_module",
+        "target_module": "drafting",
+        "retry_once": true
+      }
+    }
+  }
+}
+```
+
+`switch_module` не меняет локальный модуль немедленно. HFSM переходит в `SwitchingModule` и продолжает команду только после подтверждённого `context.module_id`.
 
 ## Контекст NX
 
@@ -58,6 +137,7 @@ selected_types
 work_part_available
 display_part_available
 modal_dialog_active
+active_command_id
 context_confidence
 updated_utc
 ```
@@ -101,10 +181,17 @@ completed | failed
 CI выполняет:
 
 - компиляцию и запуск DFA/HFSM-инвариантов;
+- deterministic replay одного event log;
+- randomized-проверку 20 000 переходов;
+- проверку запрета обхода confirmation;
+- проверку типизированных selection guards;
+- проверку fallback `switch_module`;
+- проверку загрузки декларативных таймаутов;
 - проверку snake_case round-trip;
 - проверку expiry;
 - проверку destructive confirmation;
 - сборку HotkeyStudio и Control Center;
+- проверку наличия policy JSON в publish output;
 - компиляцию CommandBridge против минимального NXOpen contract stub;
 - статическую проверку отсутствия старых неявных флагов;
 - проверку queue/context/deployment-инвариантов.
