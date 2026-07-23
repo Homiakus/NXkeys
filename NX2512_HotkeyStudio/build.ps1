@@ -1,7 +1,5 @@
 [CmdletBinding()]
 param(
-    [string]$NxRoot,
-    [string]$NxOpenDll,
     [switch]$Clean
 )
 
@@ -13,51 +11,40 @@ $ProjectFile = Join-Path $ProjectDir 'NX2512_HotkeyStudio.csproj'
 $DistDir = Join-Path $ProjectDir 'dist'
 $BuildDir = Join-Path $ProjectDir 'bin'
 $ObjDir = Join-Path $ProjectDir 'obj'
+$RepoRoot = Split-Path -Parent $ProjectDir
 
-function Write-Step([string]$Text) {
-    Write-Host "`n==> $Text" -ForegroundColor Cyan
+function Assert-DotNet8 {
+    $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
+    if (-not $dotnet) { throw '.NET 8 SDK не найден.' }
+    $sdks = @(& $dotnet.Path --list-sdks)
+    if (-not ($sdks | Where-Object { $_ -match '^8\.' })) { throw 'Для сборки требуется .NET 8 SDK.' }
+    return $dotnet.Path
 }
 
+$dotnetExe = Assert-DotNet8
 if ($Clean) {
-    Write-Step 'Clearing previous build directories'
-    Remove-Item -LiteralPath $BuildDir, $ObjDir, $DistDir -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $BuildDir, $ObjDir -Recurse -Force -ErrorAction SilentlyContinue
+}
+Remove-Item -LiteralPath $DistDir -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force -Path $DistDir | Out-Null
+
+Write-Host '==> Публикация NX2512_HotkeyStudio .NET 8 win-x64' -ForegroundColor Cyan
+& $dotnetExe publish $ProjectFile -c Release -r win-x64 --self-contained false -p:Platform=x64 -o $DistDir --nologo
+if ($LASTEXITCODE -ne 0) { throw "Сборка завершилась с кодом $LASTEXITCODE." }
+
+$configCandidates = @(
+    (Join-Path $RepoRoot 'config\nx2512-pro-hybrid.json'),
+    (Join-Path $RepoRoot 'internal\defaults\nx2512-pro-hybrid.json'),
+    (Join-Path $RepoRoot 'config\nx2512-ergo-80.json')
+)
+$configSource = $configCandidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+if (-not $configSource) { throw 'Канонический профиль NXKeys не найден.' }
+Copy-Item -LiteralPath $configSource -Destination (Join-Path $DistDir 'nx2512-pro-hybrid.json') -Force
+
+$required = @('NX2512_HotkeyStudio.exe', 'NX2512_HotkeyStudio.dll', 'NX2512_HotkeyStudio.deps.json', 'NX2512_HotkeyStudio.runtimeconfig.json')
+foreach ($name in $required) {
+    $path = Join-Path $DistDir $name
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "После публикации отсутствует $path" }
 }
 
-Write-Step 'Building NX2512_HotkeyStudio .NET 8 x64'
-
-$dotnetExe = (Get-Command dotnet -ErrorAction SilentlyContinue).Path
-if (-not $dotnetExe) {
-    $localDotnet = Join-Path $env:LocalAppData 'Microsoft\dotnet\dotnet.exe'
-    if (Test-Path -LiteralPath $localDotnet) {
-        $dotnetExe = $localDotnet
-    }
-}
-
-if (-not $dotnetExe) {
-    throw "dotnet CLI is not installed or not found in PATH."
-}
-
-& $dotnetExe build $ProjectFile --configuration Release --nologo
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Build failed with exit code $LASTEXITCODE."
-}
-
-New-Item -ItemType Directory -Path $DistDir -Force | Out-Null
-
-$binOutDir = Join-Path $ProjectDir 'bin\Release\net8.0-windows'
-if (Test-Path -LiteralPath $binOutDir) {
-    Get-ChildItem -LiteralPath $binOutDir -File | ForEach-Object {
-        Copy-Item -LiteralPath $_.FullName -Destination $DistDir -Force
-    }
-    Write-Host "Copied all runtime artifacts to dist/" -ForegroundColor Green
-}
-
-# Copy default config template
-$configSource = Join-Path (Split-Path -Parent $ProjectDir) 'nx2512-pro-hybrid.json'
-if (Test-Path -LiteralPath $configSource) {
-    Copy-Item -LiteralPath $configSource -Destination (Join-Path $DistDir 'nx2512-pro-hybrid.json') -Force
-    Write-Host "Copied default profile nx2512-pro-hybrid.json to dist/" -ForegroundColor Yellow
-}
-
-Write-Host "`nSUCCESS: NX2512_HotkeyStudio build completed successfully." -ForegroundColor Green
+Write-Host "SUCCESS: $DistDir" -ForegroundColor Green
