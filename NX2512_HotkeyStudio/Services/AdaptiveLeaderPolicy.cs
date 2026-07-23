@@ -37,8 +37,6 @@ namespace NX2512_HotkeyStudio.Services
             }
 
             SequenceDefinition definition = ToDefinition(item);
-            if (!string.IsNullOrWhiteSpace(activeModuleId) && context != null)
-                context.ModuleId = activeModuleId;
             GuardResult guard = GuardEvaluator.Evaluate(definition, context, true);
 
             result.Score = 100;
