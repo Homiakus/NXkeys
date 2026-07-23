@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -22,8 +21,7 @@ namespace NX2512_HotkeyStudio.Services
         private const int WM_KEYUP = 0x0101;
         private const int WM_SYSKEYDOWN = 0x0104;
         private const int WM_SYSKEYUP = 0x0105;
-        private const uint LLKHF_INJECTED = 0x00000010;
-
+        private const uint LLKHF_INJECTED = 0x10;
         private const byte VK_CAPITAL = 0x14;
         private const byte VK_F12 = 0x7B;
         private const byte VK_ESCAPE = 0x1B;
@@ -34,8 +32,6 @@ namespace NX2512_HotkeyStudio.Services
         private const byte VK_SHIFT = 0x10;
         private const byte VK_CONTROL = 0x11;
         private const byte VK_MENU = 0x12;
-
-        private const uint KEYEVENTF_KEYUP = 0x0002;
 
         [StructLayout(LayoutKind.Sequential)]
         private struct KBDLLHOOKSTRUCT
@@ -62,60 +58,33 @@ namespace NX2512_HotkeyStudio.Services
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct RECT
-        {
-            public int Left;
-            public int Top;
-            public int Right;
-            public int Bottom;
-        }
-
-        private delegate IntPtr HookProc(int nCode, IntPtr wParam, IntPtr lParam);
+        private struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
+        private delegate IntPtr HookProc(int code, IntPtr message, IntPtr data);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr SetWindowsHookEx(int idHook, HookProc callback, IntPtr module, uint threadId);
-
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool UnhookWindowsHookEx(IntPtr hook);
-
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr CallNextHookEx(IntPtr hook, int code, IntPtr message, IntPtr data);
-
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr GetModuleHandle(string moduleName);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
+        [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
-
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern int GetClassName(IntPtr window, StringBuilder className, int maximumCount);
-
-        [DllImport("user32.dll")]
-        private static extern short GetKeyState(int virtualKey);
-
-        [DllImport("user32.dll")]
-        private static extern void keybd_event(byte virtualKey, byte scanCode, uint flags, UIntPtr extraInfo);
-
+        [DllImport("user32.dll")] private static extern short GetKeyState(int virtualKey);
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GetGUIThreadInfo(uint threadId, ref GUITHREADINFO info);
 
-        private enum InputKind
-        {
-            Trigger,
-            Key,
-            Cancel
-        }
-
+        private enum InputKind { Trigger, Key, Cancel }
         private sealed class InputEvent
         {
             public InputKind Kind { get; set; }
             public uint VirtualKey { get; set; }
-            public uint ScanCode { get; set; }
             public bool Shift { get; set; }
             public DateTime TimestampUtc { get; set; }
             public string Reason { get; set; } = string.Empty;
@@ -123,417 +92,324 @@ namespace NX2512_HotkeyStudio.Services
 
         private readonly LeaderKeyConfig config;
         private readonly LeaderBehaviorProfile behaviorProfile;
-        private readonly ConcurrentQueue<InputEvent> inputQueue = new ConcurrentQueue<InputEvent>();
-        private readonly Dictionary<string, LeaderSequenceItem> itemByDefinitionId;
+        private readonly ConcurrentQueue<InputEvent> queue = new ConcurrentQueue<InputEvent>();
+        private readonly Dictionary<string, LeaderSequenceItem> itemsById;
         private readonly LeaderUsageStore usageStore = new LeaderUsageStore();
         private readonly LeaderStateMachine stateMachine;
-        private readonly Timer eventPumpTimer;
-        private readonly Timer hudDelayTimer;
-        private readonly Timer progressTimer;
-        private readonly Timer contextTimer;
+        private readonly Timer eventPump = new Timer { Interval = 15 };
+        private readonly Timer hudDelay;
+        private readonly Timer progress = new Timer { Interval = 40 };
+        private readonly Timer contextWatch = new Timer { Interval = 250 };
 
-        private IntPtr hookId = IntPtr.Zero;
+        private IntPtr hookId;
         private HookProc hookDelegate;
-        private LeaderHudForm hudForm;
+        private LeaderHudForm hud;
         private uint triggerVk = VK_CAPITAL;
-        private bool isRunning;
+        private bool running;
         private int captureFlag;
-        private DateTime lastLeaderPressUtc = DateTime.MinValue;
+        private DateTime lastTriggerUtc = DateTime.MinValue;
+        private DateTime timeoutStartUtc;
         private DateTime deadlineUtc = DateTime.MaxValue;
-        private DateTime timeoutStartedUtc = DateTime.MinValue;
-        private int currentTimeoutMs;
-        private IntPtr targetNxWindow = IntPtr.Zero;
+        private int timeoutMs;
         private NxBridgeContext currentContext;
+        private ModuleConfig activeModule;
 
         public event Action<string> StatusChanged;
         public event Action<string, LeaderSequenceItem> SequenceExecuted;
-
-        public bool IsRunning => isRunning;
+        public bool IsRunning => running;
         public bool IsActive => stateMachine.IsCapturing;
         public LeaderState CurrentState => stateMachine.State;
         public string BehaviorProfilePath => behaviorProfile.SourcePath;
+        public string ActiveModuleId => activeModule?.ID ?? string.Empty;
 
-        public LeaderKeyEngine(LeaderKeyConfig cfg)
+        public LeaderKeyEngine(LeaderKeyConfig value)
         {
-            config = cfg ?? new LeaderKeyConfig();
+            config = value ?? new LeaderKeyConfig();
             config.ApplyDefaults();
-            ParseTriggerKey();
+            config.RebuildFromModules(config.RuntimeModules);
+            if (!config.AdaptiveModuleMode) throw new InvalidOperationException("Adaptive module mode is required.");
+            if (config.Sequences.Count == 0) throw new InvalidOperationException("The profile contains no module commands.");
+
+            triggerVk = string.Equals(config.TriggerKey, "F12", StringComparison.OrdinalIgnoreCase) ? VK_F12 : VK_CAPITAL;
             behaviorProfile = LeaderBehaviorProfile.LoadDefault();
+            List<LeaderSequenceItem> items = config.Sequences.Where(item => item != null && item.Enabled).ToList();
+            List<SequenceDefinition> definitions = items.Select(AdaptiveLeaderPolicy.ToDefinition).Where(item => item != null).ToList();
+            itemsById = items.ToDictionary(item => AdaptiveLeaderPolicy.NormalizeSequence(item.Sequence), item => item, StringComparer.OrdinalIgnoreCase);
+            stateMachine = new LeaderStateMachine(new SequenceAutomaton(definitions), new ContextGuardEvaluator(behaviorProfile));
 
-            List<LeaderSequenceItem> items = (config.Sequences ?? new List<LeaderSequenceItem>())
-                .Where(item => item != null && item.Enabled)
-                .ToList();
-            List<SequenceDefinition> definitions = items
-                .Select(AdaptiveLeaderPolicy.ToDefinition)
-                .Where(definition => definition != null)
-                .ToList();
-            itemByDefinitionId = items.ToDictionary(
-                item => AdaptiveLeaderPolicy.NormalizeSequence(item.Sequence),
-                item => item,
-                StringComparer.OrdinalIgnoreCase);
-            stateMachine = new LeaderStateMachine(
-                new SequenceAutomaton(definitions),
-                new ContextGuardEvaluator(behaviorProfile));
-
-            eventPumpTimer = new Timer { Interval = 15 };
-            eventPumpTimer.Tick += EventPumpTimerTick;
-            hudDelayTimer = new Timer { Interval = Math.Max(50, config.HudDelayMs) };
-            hudDelayTimer.Tick += HudDelayTimerTick;
-            progressTimer = new Timer { Interval = 40 };
-            progressTimer.Tick += ProgressTimerTick;
-            contextTimer = new Timer { Interval = 250 };
-            contextTimer.Tick += ContextTimerTick;
+            hudDelay = new Timer { Interval = Math.Max(50, config.HudDelayMs) };
+            eventPump.Tick += EventPumpTick;
+            hudDelay.Tick += HudDelayTick;
+            progress.Tick += ProgressTick;
+            contextWatch.Tick += ContextWatchTick;
         }
 
         public void Start()
         {
-            if (isRunning) return;
-            hudForm = new LeaderHudForm();
+            if (running) return;
+            hud = new LeaderHudForm();
             hookDelegate = HookCallback;
-
             IntPtr module = GetModuleHandle(null);
             if (module == IntPtr.Zero)
             {
                 using (Process process = Process.GetCurrentProcess())
                 using (ProcessModule processModule = process.MainModule)
-                {
-                    module = GetModuleHandle(processModule.ModuleName);
-                }
+                    module = GetModuleHandle(processModule?.ModuleName);
             }
-
             hookId = SetWindowsHookEx(WH_KEYBOARD_LL, hookDelegate, module, 0);
             if (hookId == IntPtr.Zero)
-                throw new InvalidOperationException("Не удалось установить low-level keyboard hook. Win32=" + Marshal.GetLastWin32Error());
-
-            currentContext = NxCommandBridgeClient.ReadContext();
-            eventPumpTimer.Start();
-            contextTimer.Start();
-            isRunning = true;
-            StatusChanged?.Invoke("Leader HFSM активен; профиль: " +
-                (string.IsNullOrWhiteSpace(behaviorProfile.SourcePath) ? "встроенные defaults" : behaviorProfile.SourcePath));
+                throw new InvalidOperationException("Не удалось установить keyboard hook. Win32=" + Marshal.GetLastWin32Error());
+            RefreshContext();
+            eventPump.Start();
+            contextWatch.Start();
+            running = true;
+            StatusChanged?.Invoke("Адаптивный Leader активен: CapsLock → команда текущего модуля NX");
         }
 
         public void Stop()
         {
-            if (!isRunning) return;
-            eventPumpTimer.Stop();
-            contextTimer.Stop();
-            hudDelayTimer.Stop();
-            progressTimer.Stop();
-            if (hookId != IntPtr.Zero)
-            {
-                UnhookWindowsHookEx(hookId);
-                hookId = IntPtr.Zero;
-            }
-            ApplyTransition(stateMachine.Cancel("Движок остановлен."));
-            if (hudForm != null && !hudForm.IsDisposed)
-            {
-                hudForm.DismissHud();
-                hudForm.Dispose();
-            }
-            hudForm = null;
-            isRunning = false;
-            StatusChanged?.Invoke("Leader HFSM остановлен");
+            if (!running) return;
+            eventPump.Stop();
+            contextWatch.Stop();
+            hudDelay.Stop();
+            progress.Stop();
+            if (hookId != IntPtr.Zero) { UnhookWindowsHookEx(hookId); hookId = IntPtr.Zero; }
+            Apply(stateMachine.Cancel("Движок остановлен."));
+            if (hud != null && !hud.IsDisposed) { hud.DismissHud(); hud.Dispose(); }
+            hud = null;
+            activeModule = null;
+            running = false;
+            StatusChanged?.Invoke("Адаптивный Leader остановлен");
         }
 
-        private void ParseTriggerKey()
+        private IntPtr HookCallback(int code, IntPtr message, IntPtr dataPointer)
         {
-            string key = (config.TriggerKey ?? "CapsLock").Trim().ToLowerInvariant();
-            triggerVk = key == "f12" ? VK_F12 : VK_CAPITAL;
-        }
+            if (code < 0) return CallNextHookEx(hookId, code, message, dataPointer);
+            bool down = message == (IntPtr)WM_KEYDOWN || message == (IntPtr)WM_SYSKEYDOWN;
+            bool up = message == (IntPtr)WM_KEYUP || message == (IntPtr)WM_SYSKEYUP;
+            if (!down && !up) return CallNextHookEx(hookId, code, message, dataPointer);
+            KBDLLHOOKSTRUCT data = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(dataPointer);
+            if ((data.flags & LLKHF_INJECTED) != 0) return CallNextHookEx(hookId, code, message, dataPointer);
 
-        private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
-        {
-            if (nCode < 0) return CallNextHookEx(hookId, nCode, wParam, lParam);
-            bool keyDown = wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN;
-            bool keyUp = wParam == (IntPtr)WM_KEYUP || wParam == (IntPtr)WM_SYSKEYUP;
-            if (!keyDown && !keyUp) return CallNextHookEx(hookId, nCode, wParam, lParam);
-
-            KBDLLHOOKSTRUCT data = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
-            if ((data.flags & LLKHF_INJECTED) != 0)
-                return CallNextHookEx(hookId, nCode, wParam, lParam);
-
-            bool capture = Volatile.Read(ref captureFlag) == 1;
-            if (keyUp)
+            bool capturing = Volatile.Read(ref captureFlag) == 1;
+            if (up)
             {
-                if (data.vkCode == triggerVk || capture) return (IntPtr)1;
-                return CallNextHookEx(hookId, nCode, wParam, lParam);
+                if (data.vkCode == triggerVk || capturing) return (IntPtr)1;
+                return CallNextHookEx(hookId, code, message, dataPointer);
             }
 
-            IntPtr activeNxWindow = GetActiveNXWindow();
-            if (config.HookOnlyWhenNXActive && activeNxWindow == IntPtr.Zero)
+            if (config.HookOnlyWhenNXActive && GetActiveNxWindow() == IntPtr.Zero)
             {
-                if (capture)
-                {
-                    inputQueue.Enqueue(new InputEvent
-                    {
-                        Kind = InputKind.Cancel,
-                        TimestampUtc = DateTime.UtcNow,
-                        Reason = "Фокус покинул Siemens NX."
-                    });
-                }
-                return CallNextHookEx(hookId, nCode, wParam, lParam);
+                if (capturing) queue.Enqueue(new InputEvent { Kind = InputKind.Cancel, Reason = "Фокус покинул Siemens NX.", TimestampUtc = DateTime.UtcNow });
+                return CallNextHookEx(hookId, code, message, dataPointer);
             }
-            if (activeNxWindow != IntPtr.Zero) targetNxWindow = activeNxWindow;
 
             if (data.vkCode == triggerVk)
             {
-                if (IsFocusedInTextInput()) return CallNextHookEx(hookId, nCode, wParam, lParam);
+                if (IsFocusedInTextInput()) return CallNextHookEx(hookId, code, message, dataPointer);
                 Interlocked.Exchange(ref captureFlag, 1);
-                inputQueue.Enqueue(new InputEvent
-                {
-                    Kind = InputKind.Trigger,
-                    VirtualKey = data.vkCode,
-                    ScanCode = data.scanCode,
-                    TimestampUtc = DateTime.UtcNow
-                });
+                queue.Enqueue(new InputEvent { Kind = InputKind.Trigger, VirtualKey = data.vkCode, TimestampUtc = DateTime.UtcNow });
                 return (IntPtr)1;
             }
 
-            if (capture)
+            if (!capturing) return CallNextHookEx(hookId, code, message, dataPointer);
+            queue.Enqueue(new InputEvent
             {
-                inputQueue.Enqueue(new InputEvent
-                {
-                    Kind = InputKind.Key,
-                    VirtualKey = data.vkCode,
-                    ScanCode = data.scanCode,
-                    Shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0,
-                    TimestampUtc = DateTime.UtcNow
-                });
-                return (IntPtr)1;
-            }
-
-            return CallNextHookEx(hookId, nCode, wParam, lParam);
+                Kind = InputKind.Key,
+                VirtualKey = data.vkCode,
+                Shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0,
+                TimestampUtc = DateTime.UtcNow
+            });
+            return (IntPtr)1;
         }
 
-        private void EventPumpTimerTick(object sender, EventArgs e)
+        private void EventPumpTick(object sender, EventArgs eventArgs)
         {
             int processed = 0;
-            while (processed < 64 && inputQueue.TryDequeue(out InputEvent input))
+            while (processed++ < 64 && queue.TryDequeue(out InputEvent input))
             {
-                processed++;
                 try { ProcessInput(input); }
-                catch (Exception ex)
+                catch (Exception exception)
                 {
-                    ApplyTransition(stateMachine.Cancel("Внутренняя ошибка обработки ввода."));
-                    StatusChanged?.Invoke("Leader HFSM error: " + ex.Message);
+                    Apply(stateMachine.Cancel("Внутренняя ошибка Leader."));
+                    StatusChanged?.Invoke(exception.Message);
                 }
             }
         }
 
         private void ProcessInput(InputEvent input)
         {
-            if (input.Kind == InputKind.Cancel)
-            {
-                ApplyTransition(stateMachine.Cancel(input.Reason));
-                return;
-            }
-            if (input.Kind == InputKind.Trigger)
-            {
-                TimeSpan sinceLast = input.TimestampUtc - lastLeaderPressUtc;
-                lastLeaderPressUtc = input.TimestampUtc;
-                bool doubleTap = config.StickyModeOnDoubleTap && sinceLast.TotalMilliseconds >= 0 && sinceLast.TotalMilliseconds <= 380;
-                RefreshContext();
-                if (!stateMachine.IsCapturing)
-                {
-                    ApplyTransition(stateMachine.Activate(doubleTap, currentContext));
-                }
-                else if (doubleTap && !stateMachine.Sticky)
-                {
-                    ApplyTransition(stateMachine.Activate(true, currentContext));
-                }
-                else if (!doubleTap)
-                {
-                    ApplyTransition(stateMachine.Cancel("Leader закрыт повторным нажатием."));
-                }
-                return;
-            }
-
+            if (input.Kind == InputKind.Cancel) { Apply(stateMachine.Cancel(input.Reason)); return; }
+            if (input.Kind == InputKind.Trigger) { ProcessTrigger(input.TimestampUtc); return; }
             uint key = input.VirtualKey;
-            if (key == VK_ESCAPE)
-            {
-                ApplyTransition(stateMachine.Cancel("Отменено клавишей Esc."));
-                return;
-            }
-            if (key == VK_TAB)
-            {
-                CycleModule(input.Shift ? -1 : 1);
-                return;
-            }
+            if (key == VK_ESCAPE) { Apply(stateMachine.Cancel("Отменено клавишей Esc.")); return; }
+            if (key == VK_TAB) { CycleModule(input.Shift ? -1 : 1); return; }
             if (key == VK_RETURN)
             {
-                ApplyTransition(stateMachine.Confirm());
+                if (stateMachine.State == LeaderState.Search) ExecuteFirstSearchResult();
+                else Apply(stateMachine.Confirm());
                 return;
             }
             if (key == VK_BACK)
             {
-                ApplyTransition(stateMachine.Backspace());
+                if (stateMachine.State == LeaderState.Prefix) Apply(stateMachine.Cancel("Leader закрыт."));
+                else Apply(stateMachine.Backspace());
                 return;
             }
-            if (key == VK_SPACE)
-            {
-                ApplyTransition(stateMachine.EnterSearch());
-                return;
-            }
+            if (key == VK_SPACE) { Apply(stateMachine.EnterSearch()); return; }
             if (key == VK_SHIFT || key == VK_CONTROL || key == VK_MENU) return;
+            char character = MapKey(key);
+            if (character == '\0') { System.Media.SystemSounds.Asterisk.Play(); return; }
+            Apply(stateMachine.InputToken(character.ToString()));
+        }
 
-            char character = MapVkToChar(key);
-            if (character == '\0')
+        private void ProcessTrigger(DateTime timestampUtc)
+        {
+            TimeSpan sinceLast = timestampUtc - lastTriggerUtc;
+            lastTriggerUtc = timestampUtc;
+            bool doubleTap = config.StickyModeOnDoubleTap && sinceLast.TotalMilliseconds >= 0 && sinceLast.TotalMilliseconds <= 380;
+            RefreshContext();
+            if (!stateMachine.IsCapturing) ActivateScoped(doubleTap);
+            else if (doubleTap && !stateMachine.Sticky) ActivateScoped(true);
+            else if (!doubleTap) Apply(stateMachine.Cancel("Leader закрыт повторным нажатием."));
+        }
+
+        private void ActivateScoped(bool sticky)
+        {
+            AdaptiveModuleResolution resolution = AdaptiveModuleResolver.Resolve(config.RuntimeModules, currentContext);
+            if (!resolution.IsResolved)
             {
+                Apply(stateMachine.Cancel(resolution.Reason));
                 System.Media.SystemSounds.Asterisk.Play();
                 return;
             }
-            ApplyTransition(stateMachine.InputToken(character.ToString()));
+            activeModule = resolution.Module;
+            Apply(stateMachine.Activate(sticky, currentContext));
+            Apply(stateMachine.InputToken(activeModule.LeaderPrefix));
+            StatusChanged?.Invoke("Leader: " + activeModule.Label + " · QWE/A·D/ZXC");
         }
 
-        private void ApplyTransition(LeaderTransition transition)
+        private void ExecuteFirstSearchResult()
+        {
+            LeaderSequenceItem first = RankedCandidates().FirstOrDefault();
+            if (first == null) { System.Media.SystemSounds.Asterisk.Play(); return; }
+            bool sticky = stateMachine.Sticky;
+            stateMachine.Cancel("Search selection");
+            Apply(stateMachine.Activate(sticky, currentContext));
+            Apply(stateMachine.InputToken(activeModule.LeaderPrefix));
+            Apply(stateMachine.InputToken(first.InputKey));
+        }
+
+        private void Apply(LeaderTransition transition)
         {
             if (transition == null) return;
             Interlocked.Exchange(ref captureFlag, stateMachine.IsCapturing ? 1 : 0);
-
             switch (transition.Action)
             {
-                case LeaderActionKind.None:
-                    return;
-
+                case LeaderActionKind.None: return;
                 case LeaderActionKind.Activated:
                     StartDeadline(behaviorProfile.Timeouts.RootMs);
-                    hudDelayTimer.Stop();
-                    hudDelayTimer.Interval = Math.Max(50, config.HudDelayMs);
-                    hudDelayTimer.Start();
-                    progressTimer.Start();
-                    StatusChanged?.Invoke(stateMachine.Sticky ? "Leader: Sticky Root" : "Leader: Root");
-                    UpdateHud();
+                    hudDelay.Stop(); hudDelay.Start(); progress.Start(); UpdateHud();
                     break;
-
                 case LeaderActionKind.Updated:
-                    StartDeadline(TimeoutForState(transition.State));
-                    UpdateHud();
+                    StartDeadline(TimeoutFor(transition.State)); UpdateHud();
                     if (!string.IsNullOrWhiteSpace(transition.Reason)) StatusChanged?.Invoke(transition.Reason);
                     break;
-
                 case LeaderActionKind.Beep:
                     System.Media.SystemSounds.Asterisk.Play();
                     if (!string.IsNullOrWhiteSpace(transition.Reason)) StatusChanged?.Invoke(transition.Reason);
                     break;
-
                 case LeaderActionKind.RequireConfirmation:
-                    StartDeadline(behaviorProfile.Timeouts.ConfirmationMs);
-                    ShowConfirmation(transition.Command);
-                    StatusChanged?.Invoke("Leader → " + transition.Command?.Sequence + ": требуется Enter");
+                    StartDeadline(behaviorProfile.Timeouts.ConfirmationMs); ShowConfirmation(transition.Command);
                     break;
-
                 case LeaderActionKind.SwitchModule:
-                    StartDeadline(behaviorProfile.Timeouts.ModuleSwitchMs);
-                    QueueModuleSwitch(transition.TargetModuleId);
+                    StartDeadline(behaviorProfile.Timeouts.ModuleSwitchMs); QueueModuleSwitch(transition.TargetModuleId);
                     break;
-
-                case LeaderActionKind.ExecuteCommand:
-                    DispatchCommand(transition.Command, transition.ConfirmationAccepted);
-                    break;
-
+                case LeaderActionKind.ExecuteCommand: Dispatch(transition.Command, transition.ConfirmationAccepted); break;
                 case LeaderActionKind.RequestQueued:
                     StartDeadline(behaviorProfile.Timeouts.ResultMs);
                     StatusChanged?.Invoke("Команда поставлена в очередь: " + transition.RequestId);
                     break;
-
                 case LeaderActionKind.RequestCompleted:
-                    if (transition.Command != null && TryGetItem(transition.Command, out LeaderSequenceItem completed))
-                        usageStore.Record(completed);
-                    StatusChanged?.Invoke("NX подтвердил выполнение: " + transition.Reason);
-                    FinishVisualState();
+                    if (transition.Command != null && TryGetItem(transition.Command, out LeaderSequenceItem completed)) usageStore.Record(completed);
+                    StatusChanged?.Invoke("NX подтвердил выполнение: " + transition.Reason); FinishVisual();
                     break;
-
                 case LeaderActionKind.RequestFailed:
                 case LeaderActionKind.Rejected:
                     System.Media.SystemSounds.Exclamation.Play();
-                    StatusChanged?.Invoke("Команда отклонена: " + transition.Reason);
-                    FinishVisualState();
+                    StatusChanged?.Invoke("Команда отклонена: " + transition.Reason); FinishVisual();
                     break;
-
                 case LeaderActionKind.Cancelled:
                 case LeaderActionKind.TimedOut:
-                    StatusChanged?.Invoke(transition.Reason);
-                    FinishVisualState();
+                    StatusChanged?.Invoke(transition.Reason); FinishVisual();
                     break;
             }
         }
 
-        private void DispatchCommand(SequenceDefinition definition, bool confirmationAccepted)
+        private void Dispatch(SequenceDefinition definition, bool confirmationAccepted)
         {
             if (!TryGetItem(definition, out LeaderSequenceItem item))
             {
-                ApplyTransition(stateMachine.CompleteRequest(false, "Команда отсутствует в профиле."));
+                Apply(stateMachine.CompleteRequest(false, "Команда отсутствует в профиле."));
                 return;
             }
-
             try
             {
                 NxCommandRequest request = NxCommandBridgeClient.Enqueue(item, confirmationAccepted);
-                ApplyTransition(stateMachine.MarkRequestQueued(request.RequestId));
-                SequenceExecuted?.Invoke(item.Sequence, item);
+                Apply(stateMachine.MarkRequestQueued(request.RequestId));
+                SequenceExecuted?.Invoke(item.DisplayPath(config.TriggerKey), item);
             }
-            catch (Exception ex)
-            {
-                ApplyTransition(stateMachine.CompleteRequest(false, ex.Message));
-            }
+            catch (Exception exception) { Apply(stateMachine.CompleteRequest(false, exception.Message)); }
         }
 
         private void QueueModuleSwitch(string targetModuleId)
         {
-            ModuleConfig module = config.RuntimeModules?.FirstOrDefault(value =>
-                value.Enabled && string.Equals(
-                    ContextGuardEvaluator.NormalizeModule(value.ID),
-                    ContextGuardEvaluator.NormalizeModule(targetModuleId),
-                    StringComparison.OrdinalIgnoreCase));
-            if (module == null)
-            {
-                ApplyTransition(stateMachine.Cancel("В профиле отсутствует описание модуля " + targetModuleId + "."));
-                return;
-            }
+            ModuleConfig module = config.RuntimeModules.FirstOrDefault(value => value.Enabled && string.Equals(
+                ContextGuardEvaluator.NormalizeModule(value.ID), ContextGuardEvaluator.NormalizeModule(targetModuleId), StringComparison.OrdinalIgnoreCase));
+            if (module == null) { Apply(stateMachine.Cancel("Модуль отсутствует в профиле: " + targetModuleId)); return; }
             try
             {
                 NxCommandBridgeClient.EnqueueModuleSwitch(module);
-                StatusChanged?.Invoke("Ожидание подтверждения переключения NX → " + module.Label);
+                StatusChanged?.Invoke("Ожидание переключения NX → " + module.Label);
                 UpdateHud(module.Label + " (переключение)", module.ID);
             }
-            catch (Exception ex)
-            {
-                ApplyTransition(stateMachine.Cancel("Не удалось запросить переключение модуля: " + ex.Message));
-            }
+            catch (Exception exception) { Apply(stateMachine.Cancel("Не удалось переключить модуль: " + exception.Message)); }
         }
 
         private void CycleModule(int delta)
         {
-            List<ModuleConfig> modules = config.RuntimeModules?
-                .Where(module => module != null && module.Enabled && !string.IsNullOrWhiteSpace(module.ID))
-                .ToList() ?? new List<ModuleConfig>();
-            if (modules.Count == 0)
-            {
-                System.Media.SystemSounds.Asterisk.Play();
-                return;
-            }
-
-            string current = ContextGuardEvaluator.NormalizeModule(currentContext?.ModuleId);
-            int index = modules.FindIndex(module => string.Equals(
-                ContextGuardEvaluator.NormalizeModule(module.ID), current, StringComparison.OrdinalIgnoreCase));
+            List<ModuleConfig> modules = config.RuntimeModules.Where(module => module != null && module.Enabled).ToList();
+            if (modules.Count == 0) return;
+            int index = modules.FindIndex(module => AdaptiveModuleResolver.Same(module, activeModule));
             if (index < 0) index = 0;
             int next = (index + delta) % modules.Count;
             if (next < 0) next += modules.Count;
-            ApplyTransition(stateMachine.BeginManualModuleSwitch(modules[next].ID));
+            Apply(stateMachine.BeginManualModuleSwitch(modules[next].ID));
         }
 
-        private void ContextTimerTick(object sender, EventArgs e)
+        private void ContextWatchTick(object sender, EventArgs eventArgs)
         {
-            if (!isRunning) return;
+            if (!running) return;
+            ModuleConfig previous = activeModule;
             RefreshContext();
             LeaderTransition contextTransition = stateMachine.UpdateContext(currentContext);
-            if (contextTransition.Action != LeaderActionKind.None) ApplyTransition(contextTransition);
+            if (contextTransition.Action != LeaderActionKind.None) Apply(contextTransition);
 
             if (stateMachine.State == LeaderState.AwaitingResult &&
                 NxCommandBridgeClient.TryReadResult(stateMachine.PendingRequestId, out NxBridgeResult result))
+                Apply(stateMachine.CompleteRequest(result.Success, result.Message));
+
+            if (stateMachine.IsCapturing && stateMachine.State != LeaderState.AwaitingResult &&
+                stateMachine.State != LeaderState.Dispatching && stateMachine.State != LeaderState.AwaitingConfirmation &&
+                stateMachine.State != LeaderState.SwitchingModule && !AdaptiveModuleResolver.Same(previous, activeModule))
             {
-                ApplyTransition(stateMachine.CompleteRequest(result.Success, result.Message));
+                bool sticky = stateMachine.Sticky;
+                stateMachine.Cancel("Контекст изменён");
+                ActivateScoped(sticky);
+            }
+            else if (stateMachine.IsCapturing && stateMachine.State == LeaderState.Root && activeModule != null)
+            {
+                Apply(stateMachine.InputToken(activeModule.LeaderPrefix));
             }
         }
 
@@ -541,219 +417,126 @@ namespace NX2512_HotkeyStudio.Services
         {
             NxBridgeContext latest = NxCommandBridgeClient.ReadContext();
             if (latest != null) currentContext = latest;
+            AdaptiveModuleResolution resolution = AdaptiveModuleResolver.Resolve(config.RuntimeModules, currentContext);
+            if (resolution.IsResolved) activeModule = resolution.Module;
         }
 
-        private void HudDelayTimerTick(object sender, EventArgs e)
+        private void HudDelayTick(object sender, EventArgs eventArgs)
         {
-            hudDelayTimer.Stop();
-            if (!stateMachine.IsCapturing || hudForm == null || hudForm.IsDisposed) return;
-            string label = ModuleLabel();
-            string id = currentContext?.ModuleId ?? string.Empty;
-            hudForm.DisplayHud(config.TriggerKey, stateMachine.Sticky, RankedCandidates(), config.HudOpacity, label, id);
+            hudDelay.Stop();
+            if (!stateMachine.IsCapturing || hud == null || hud.IsDisposed) return;
+            hud.DisplayHud(config.TriggerKey, stateMachine.Sticky, RankedCandidates(), config.HudOpacity,
+                ModuleLabel(), activeModule?.ID ?? currentContext?.ModuleId ?? string.Empty);
             UpdateHud();
         }
 
-        private void ProgressTimerTick(object sender, EventArgs e)
+        private void ProgressTick(object sender, EventArgs eventArgs)
         {
-            if (!stateMachine.IsCapturing)
-            {
-                progressTimer.Stop();
-                return;
-            }
+            if (!stateMachine.IsCapturing) { progress.Stop(); return; }
             if (deadlineUtc == DateTime.MaxValue) return;
-
-            double elapsed = (DateTime.UtcNow - timeoutStartedUtc).TotalMilliseconds;
-            float remaining = currentTimeoutMs <= 0
-                ? 0
-                : (float)Math.Max(0.0, 1.0 - elapsed / currentTimeoutMs);
-            if (hudForm != null && !hudForm.IsDisposed && hudForm.Visible)
-                hudForm.UpdateTimeoutProgress(remaining);
-
+            double elapsed = (DateTime.UtcNow - timeoutStartUtc).TotalMilliseconds;
+            float remaining = timeoutMs <= 0 ? 0 : (float)Math.Max(0, 1 - elapsed / timeoutMs);
+            if (hud != null && !hud.IsDisposed && hud.Visible) hud.UpdateTimeoutProgress(remaining);
             if (remaining > 0) return;
             if (stateMachine.State == LeaderState.AwaitingResult)
-                ApplyTransition(stateMachine.CompleteRequest(false, "Bridge не вернул результат за отведённое время."));
-            else
-                ApplyTransition(stateMachine.Timeout());
+                Apply(stateMachine.CompleteRequest(false, "Bridge не вернул результат за отведённое время."));
+            else Apply(stateMachine.Timeout());
         }
 
         private void StartDeadline(int milliseconds)
         {
-            currentTimeoutMs = Math.Max(250, milliseconds);
-            timeoutStartedUtc = DateTime.UtcNow;
-            deadlineUtc = timeoutStartedUtc.AddMilliseconds(currentTimeoutMs);
-            progressTimer.Start();
+            timeoutMs = Math.Max(250, milliseconds);
+            timeoutStartUtc = DateTime.UtcNow;
+            deadlineUtc = timeoutStartUtc.AddMilliseconds(timeoutMs);
+            progress.Start();
         }
 
-        private int TimeoutForState(LeaderState state)
+        private int TimeoutFor(LeaderState state)
         {
             switch (state)
             {
-                case LeaderState.Prefix:
-                    return behaviorProfile.Timeouts.PrefixMs;
-                case LeaderState.Search:
-                    return behaviorProfile.Timeouts.SearchMs;
-                case LeaderState.SwitchingModule:
-                    return behaviorProfile.Timeouts.ModuleSwitchMs;
-                case LeaderState.AwaitingConfirmation:
-                    return behaviorProfile.Timeouts.ConfirmationMs;
-                case LeaderState.AwaitingResult:
-                    return behaviorProfile.Timeouts.ResultMs;
-                default:
-                    return behaviorProfile.Timeouts.RootMs;
+                case LeaderState.Prefix: return behaviorProfile.Timeouts.PrefixMs;
+                case LeaderState.Search: return behaviorProfile.Timeouts.SearchMs;
+                case LeaderState.SwitchingModule: return behaviorProfile.Timeouts.ModuleSwitchMs;
+                case LeaderState.AwaitingConfirmation: return behaviorProfile.Timeouts.ConfirmationMs;
+                case LeaderState.AwaitingResult: return behaviorProfile.Timeouts.ResultMs;
+                default: return behaviorProfile.Timeouts.RootMs;
             }
         }
 
         private void UpdateHud(string moduleLabel = null, string moduleId = null)
         {
-            if (hudForm == null || hudForm.IsDisposed || !hudForm.Visible) return;
-            string label = moduleLabel ?? ModuleLabel();
-            string id = moduleId ?? currentContext?.ModuleId ?? string.Empty;
+            if (hud == null || hud.IsDisposed || !hud.Visible) return;
             List<LeaderSequenceItem> candidates = RankedCandidates();
-            if (stateMachine.State == LeaderState.Search)
-                hudForm.SetSearchMode(stateMachine.SearchQuery, candidates, label, id);
-            else
-                hudForm.UpdateState(stateMachine.Prefix, candidates, stateMachine.Sticky, label, id);
+            string label = moduleLabel ?? ModuleLabel();
+            string id = moduleId ?? activeModule?.ID ?? currentContext?.ModuleId ?? string.Empty;
+            if (stateMachine.State == LeaderState.Search) hud.SetSearchMode(stateMachine.SearchQuery, candidates, label, id);
+            else hud.UpdateState(string.Empty, candidates, stateMachine.Sticky, label, id);
         }
 
         private void ShowConfirmation(SequenceDefinition definition)
         {
-            if (!TryGetItem(definition, out LeaderSequenceItem item)) return;
-            if (hudForm != null && !hudForm.IsDisposed)
-                hudForm.SetConfirmation(item, ModuleLabel(), currentContext?.ModuleId ?? string.Empty);
+            if (TryGetItem(definition, out LeaderSequenceItem item) && hud != null && !hud.IsDisposed)
+                hud.SetConfirmation(item, ModuleLabel(), activeModule?.ID ?? currentContext?.ModuleId ?? string.Empty);
         }
 
         private List<LeaderSequenceItem> RankedCandidates()
         {
+            string moduleId = activeModule?.ID ?? currentContext?.ModuleId;
             List<LeaderSequenceItem> items = stateMachine.CurrentCandidates()
                 .Select(definition => TryGetItem(definition, out LeaderSequenceItem item) ? item : null)
-                .Where(item => item != null)
-                .ToList();
-            return AdaptiveLeaderPolicy.Rank(
-                items,
-                currentContext,
-                usageStore,
-                currentContext?.ModuleId,
-                true);
+                .Where(item => item != null && string.Equals(ContextGuardEvaluator.NormalizeModule(item.ModuleID),
+                    ContextGuardEvaluator.NormalizeModule(moduleId), StringComparison.OrdinalIgnoreCase)).ToList();
+            return AdaptiveLeaderPolicy.Rank(items, currentContext, usageStore, moduleId, true);
         }
 
         private bool TryGetItem(SequenceDefinition definition, out LeaderSequenceItem item)
         {
             item = null;
-            return definition != null && itemByDefinitionId.TryGetValue(definition.Id, out item);
+            return definition != null && itemsById.TryGetValue(definition.Id, out item);
         }
 
-        private string ModuleLabel()
-        {
-            if (!string.IsNullOrWhiteSpace(currentContext?.ModuleLabel)) return currentContext.ModuleLabel;
-            return string.IsNullOrWhiteSpace(currentContext?.ModuleId) ? "NX context unknown" : currentContext.ModuleId;
-        }
+        private string ModuleLabel() => activeModule?.Label ?? currentContext?.ModuleLabel ?? currentContext?.ModuleId ?? "NX context unknown";
 
-        private void FinishVisualState()
+        private void FinishVisual()
         {
-            hudDelayTimer.Stop();
+            hudDelay.Stop();
             if (!stateMachine.IsCapturing)
             {
-                progressTimer.Stop();
-                deadlineUtc = DateTime.MaxValue;
-                if (hudForm != null && !hudForm.IsDisposed) hudForm.DismissHud();
+                progress.Stop(); deadlineUtc = DateTime.MaxValue;
+                if (hud != null && !hud.IsDisposed) hud.DismissHud();
             }
             else
             {
-                StartDeadline(behaviorProfile.Timeouts.RootMs);
+                if (stateMachine.State == LeaderState.Root && activeModule != null) Apply(stateMachine.InputToken(activeModule.LeaderPrefix));
+                StartDeadline(behaviorProfile.Timeouts.PrefixMs);
                 UpdateHud();
             }
             Interlocked.Exchange(ref captureFlag, stateMachine.IsCapturing ? 1 : 0);
         }
 
-        public static void SendShortcutToActiveWindow(string shortcut)
+        private static char MapKey(uint value)
         {
-            if (string.IsNullOrWhiteSpace(shortcut)) return;
-            string[] parts = shortcut.Split(new[] { '+' }, StringSplitOptions.RemoveEmptyEntries);
-            var modifiers = new List<byte>();
-            byte mainKey = 0;
-            foreach (string part in parts)
-            {
-                string token = part.Trim().ToLowerInvariant();
-                switch (token)
-                {
-                    case "ctrl":
-                    case "control": modifiers.Add(VK_CONTROL); break;
-                    case "alt": modifiers.Add(VK_MENU); break;
-                    case "shift": modifiers.Add(VK_SHIFT); break;
-                    default:
-                        if (TryParseKeyToken(token, out Keys key)) mainKey = (byte)key;
-                        break;
-                }
-            }
-            foreach (byte modifier in modifiers) keybd_event(modifier, 0, 0, UIntPtr.Zero);
-            if (mainKey != 0)
-            {
-                keybd_event(mainKey, 0, 0, UIntPtr.Zero);
-                Thread.Sleep(20);
-                keybd_event(mainKey, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
-            }
-            for (int index = modifiers.Count - 1; index >= 0; index--)
-                keybd_event(modifiers[index], 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
-        }
-
-        private static bool TryParseKeyToken(string token, out Keys key)
-        {
-            key = Keys.None;
-            if (string.IsNullOrWhiteSpace(token)) return false;
-            if (token.Length == 1)
-            {
-                char character = char.ToUpperInvariant(token[0]);
-                if (character >= 'A' && character <= 'Z')
-                {
-                    key = Keys.A + (character - 'A');
-                    return true;
-                }
-                if (character >= '0' && character <= '9')
-                {
-                    key = Keys.D0 + (character - '0');
-                    return true;
-                }
-            }
-            switch (token.ToLowerInvariant())
-            {
-                case "esc": key = Keys.Escape; return true;
-                case "del": key = Keys.Delete; return true;
-                case "pgup": key = Keys.PageUp; return true;
-                case "pgdn": key = Keys.PageDown; return true;
-                default: return Enum.TryParse(token, true, out key);
-            }
-        }
-
-        private static char MapVkToChar(uint virtualKey)
-        {
-            if (virtualKey >= 0x41 && virtualKey <= 0x5A) return (char)virtualKey;
-            if (virtualKey >= 0x30 && virtualKey <= 0x39) return (char)virtualKey;
+            if (value >= 0x41 && value <= 0x5A) return (char)value;
+            if (value >= 0x30 && value <= 0x39) return (char)value;
             return '\0';
         }
 
-        private static IntPtr GetActiveNXWindow()
+        private static IntPtr GetActiveNxWindow()
         {
             IntPtr window = GetForegroundWindow();
-            return IsNXWindow(window) ? window : IntPtr.Zero;
-        }
-
-        private static bool IsNXWindow(IntPtr window)
-        {
-            if (window == IntPtr.Zero) return false;
+            if (window == IntPtr.Zero) return IntPtr.Zero;
             GetWindowThreadProcessId(window, out uint processId);
-            if (processId == 0) return false;
+            if (processId == 0) return IntPtr.Zero;
             try
             {
                 using (Process process = Process.GetProcessById((int)processId))
                 {
                     string name = process.ProcessName.ToLowerInvariant();
-                    return name == "ugraf" || name == "nx" || name == "run_nx" || name.StartsWith("designcenter");
+                    return name == "ugraf" || name == "nx" || name == "run_nx" || name.StartsWith("designcenter") ? window : IntPtr.Zero;
                 }
             }
-            catch
-            {
-                return false;
-            }
+            catch { return IntPtr.Zero; }
         }
 
         private static bool IsFocusedInTextInput()
@@ -772,10 +555,10 @@ namespace NX2512_HotkeyStudio.Services
         public void Dispose()
         {
             Stop();
-            eventPumpTimer.Dispose();
-            hudDelayTimer.Dispose();
-            progressTimer.Dispose();
-            contextTimer.Dispose();
+            eventPump.Dispose();
+            hudDelay.Dispose();
+            progress.Dispose();
+            contextWatch.Dispose();
         }
     }
 }
