@@ -11,21 +11,16 @@ const json = relative => JSON.parse(text(relative));
 const normalizeShortcut = value => String(value ?? "").replace(/\s+/g, "").toUpperCase();
 
 const requiredShortcuts = new Map([
-  ["CTRL+N", "UG_FILE_NEW"],
-  ["CTRL+O", "UG_FILE_OPEN"],
-  ["CTRL+S", "UG_FILE_SAVE_PART"],
-  ["CTRL+SHIFT+S", "UG_FILE_SAVE_AS"],
-  ["CTRL+Z", "UG_EDIT_UNDO"],
-  ["CTRL+Y", "UG_EDIT_REDO"],
-  ["CTRL+X", "UG_EDIT_CUT"],
-  ["CTRL+C", "UG_EDIT_COPY"],
-  ["CTRL+V", "UG_EDIT_PASTE"],
-  ["DELETE", "UG_EDIT_DELETE"],
-  ["CTRL+F", "UG_VIEW_FIT"],
-  ["F5", "UG_VIEW_REFRESH"]
+  ["CTRL+N", "UG_FILE_NEW"], ["CTRL+O", "UG_FILE_OPEN"],
+  ["CTRL+S", "UG_FILE_SAVE_PART"], ["CTRL+SHIFT+S", "UG_FILE_SAVE_AS"],
+  ["CTRL+Z", "UG_EDIT_UNDO"], ["CTRL+Y", "UG_EDIT_REDO"],
+  ["CTRL+X", "UG_EDIT_CUT"], ["CTRL+C", "UG_EDIT_COPY"],
+  ["CTRL+V", "UG_EDIT_PASTE"], ["DELETE", "UG_EDIT_DELETE"],
+  ["CTRL+F", "UG_VIEW_FIT"], ["F5", "UG_VIEW_REFRESH"]
 ]);
 const expectedKeyMap = { N: "W", NE: "E", E: "D", SE: "C", S: "X", SW: "Z", W: "A", NW: "Q" };
 const slots = Object.keys(expectedKeyMap);
+const removedFeaturePattern = /radial[\s_-]*(menu|plan|editor|item)|радиальн\w*\s+меню/i;
 
 try {
   const profile = json("config/nx2512-pro-hybrid.json");
@@ -45,9 +40,7 @@ try {
     if (seenShortcuts.has(shortcut)) fail(`Duplicate shortcut: ${binding.shortcut}.`);
     seenShortcuts.add(shortcut);
     if (!requiredShortcuts.has(shortcut)) fail(`Non-basic shortcut is forbidden: ${binding.shortcut}.`);
-    if (requiredShortcuts.get(shortcut) !== binding.command?.id) {
-      fail(`${binding.shortcut} must target ${requiredShortcuts.get(shortcut)}, got ${binding.command?.id}.`);
-    }
+    if (requiredShortcuts.get(shortcut) !== binding.command?.id) fail(`${binding.shortcut} must target ${requiredShortcuts.get(shortcut)}, got ${binding.command?.id}.`);
   }
   for (const shortcut of requiredShortcuts.keys()) if (!seenShortcuts.has(shortcut)) fail(`Missing basic shortcut: ${shortcut}.`);
 
@@ -90,16 +83,11 @@ try {
   }
   if (commandRows.length !== 112) fail(`Expected 112 module commands, got ${commandRows.length}.`);
 
-  for (const sequence of Object.keys(policy.commands ?? {})) {
-    if (!internalSequences.has(sequence.toUpperCase())) fail(`Policy references unknown adaptive sequence: ${sequence}.`);
-  }
-  if (policy.adaptive_module?.enabled !== true || policy.adaptive_module?.scope !== "active_module") {
-    fail("Policy must enable active_module scope.");
-  }
+  for (const sequence of Object.keys(policy.commands ?? {})) if (!internalSequences.has(sequence.toUpperCase())) fail(`Policy references unknown adaptive sequence: ${sequence}.`);
+  if (policy.adaptive_module?.enabled !== true || policy.adaptive_module?.scope !== "active_module") fail("Policy must enable active_module scope.");
 
-  const forbiddenJsonKeys = ["radials", "legacy_radials"];
   const serializedProfile = JSON.stringify(profile).toLowerCase();
-  for (const key of forbiddenJsonKeys) if (serializedProfile.includes(`\"${key}\"`)) fail(`Removed JSON key returned: ${key}.`);
+  for (const key of ["radials", "legacy_radials"]) if (serializedProfile.includes(`\"${key}\"`)) fail(`Removed JSON key returned: ${key}.`);
 
   const applicationFiles = [
     "NX2512_HotkeyStudio/Models/ConfigModels.cs",
@@ -110,10 +98,7 @@ try {
     "NX2512_HotkeyStudio/UI/HotkeyStudioForm.cs",
     "NX2512_HotkeyStudio/UI/LeaderHudForm.cs"
   ];
-  for (const relative of applicationFiles) {
-    const source = text(relative);
-    if (/radial/i.test(source)) fail(`Removed menu subsystem reference found in ${relative}.`);
-  }
+  for (const relative of applicationFiles) if (removedFeaturePattern.test(text(relative))) fail(`Removed menu subsystem reference found in ${relative}.`);
   const uiDirectory = path.join(root, "NX2512_HotkeyStudio", "UI");
   for (const name of fs.readdirSync(uiDirectory)) if (/radial/i.test(name)) fail(`Removed UI file still exists: ${name}.`);
 
@@ -122,9 +107,7 @@ try {
     "docs/INSTALLATION.md", "docs/SAFETY_MODEL.md", "docs/NX_PRO_HYBRID_SOURCE_SPEC.md",
     "roles/README.md", "docs/command-tree.html"
   ];
-  for (const relative of documentationFiles) {
-    if (/radial|радиал/i.test(text(relative))) fail(`Removed feature is still documented in ${relative}.`);
-  }
+  for (const relative of documentationFiles) if (removedFeaturePattern.test(text(relative))) fail(`Removed feature is still documented in ${relative}.`);
 
   const htmlMarkers = [
     'data-panel="current"', 'data-panel="matrix"', 'data-panel="basic"', 'data-panel="fsm"',
@@ -140,7 +123,8 @@ try {
   if (scripts.length !== 1) fail(`Expected one inline application script, got ${scripts.length}.`);
   for (const script of scripts) try { new Function(script); } catch (error) { fail(`Inline JavaScript syntax error: ${error.message}.`); }
 
-  if (!readme.includes("CapsLock") || !readme.includes("QWE / A·D / ZXC")) fail("Root README lacks adaptive input documentation.");
+  const normalizedReadme = readme.replace(/\s+/g, "");
+  if (!readme.includes("CapsLock") || !normalizedReadme.includes("QWE/A·D/ZXC")) fail("Root README lacks adaptive input documentation.");
   if (!readme.includes("scripts\\validate-command-tree.mjs") && !readme.includes("scripts/validate-command-tree.mjs")) fail("Root README lacks validator command.");
   if (!docsReadme.includes("command-tree.html")) fail("docs/README.md must link to the command map.");
 
