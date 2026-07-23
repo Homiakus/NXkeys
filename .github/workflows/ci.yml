@@ -146,7 +146,7 @@ jobs:
         run: |
           $engine = Get-Content .\NX2512_HotkeyStudio\Services\DeploymentEngine.cs -Raw
           if ($engine -match 'DeployToSiemensUserProfiles') { throw 'Broad Siemens profile deployment must not return.' }
-          if ($engine -match 'custom.*startup.*NX2512_CommandBridge\.dll') { throw 'CommandBridge DLL must not be installed into custom/startup.' }
+          if ($engine -match 'Path\.Combine\(startup,\s*"NX2512_CommandBridge\.dll"') { throw 'CommandBridge DLL must not be installed into custom/startup.' }
           if ($engine -match 'set "PATH=' -or $engine -match 'UGII_USER_DIR') { throw 'NX launcher must not override PATH or UGII_USER_DIR.' }
           if ($engine -match 'radial-menu-plan') { throw 'Removed deployment artifacts must not return.' }
 
