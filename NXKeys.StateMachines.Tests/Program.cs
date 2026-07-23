@@ -20,7 +20,8 @@ namespace NXKeys.StateMachines.Tests
             Run("Разрушительная команда требует Enter", DestructiveCommandRequiresConfirmation);
             Run("Команда с выбором блокируется без выбора", SelectionGuardBlocks);
             Run("Устаревший контекст блокирует выполнение", StaleContextBlocks);
-            Run("Смена модуля подтверждается новым контекстом", ModuleSwitchWaitsForContext);
+            Run("Явная смена модуля подтверждается новым контекстом", ManualModuleSwitchWaitsForContext);
+            Run("Команда другого модуля не переключает NX скрыто", CrossModuleCommandIsRejected);
             Run("Результат завершает AwaitingResult", RequestResultCompletes);
             Run("Ошибка dispatch немедленно освобождает автомат", DispatchFailureCompletes);
 
@@ -51,20 +52,12 @@ namespace NXKeys.StateMachines.Tests
 
         private static void DuplicateSequenceFailsCompilation()
         {
-            AssertThrows(() => new SequenceAutomaton(new[]
-            {
-                Command("ME", "modeling"),
-                Command("M E", "modeling")
-            }));
+            AssertThrows(() => new SequenceAutomaton(new[] { Command("ME", "modeling"), Command("M E", "modeling") }));
         }
 
         private static void TerminalPrefixFailsCompilation()
         {
-            AssertThrows(() => new SequenceAutomaton(new[]
-            {
-                Command("M", "modeling"),
-                Command("ME", "modeling")
-            }));
+            AssertThrows(() => new SequenceAutomaton(new[] { Command("M", "modeling"), Command("ME", "modeling") }));
         }
 
         private static void CancelAlwaysReturnsIdle()
@@ -127,17 +120,28 @@ namespace NXKeys.StateMachines.Tests
             Assert(transition.Action == LeaderActionKind.Rejected, "Устаревший контекст должен блокировать execution.");
         }
 
-        private static void ModuleSwitchWaitsForContext()
+        private static void ManualModuleSwitchWaitsForContext()
         {
-            LeaderStateMachine machine = CreateMachine(Command("DB", "drafting"));
+            LeaderStateMachine machine = CreateMachine(Command("ME", "modeling"), Command("DW", "drafting"));
+            machine.Activate(false, Context("modeling"));
+            LeaderTransition request = machine.BeginManualModuleSwitch("drafting");
+            Assert(request.Action == LeaderActionKind.SwitchModule, "Явный Tab должен дать SwitchModule.");
+            Assert(machine.State == LeaderState.SwitchingModule, "Автомат должен ждать контекст нового модуля.");
+            Assert(machine.UpdateContext(Context("modeling")).Action == LeaderActionKind.None, "Старый контекст не завершает переключение.");
+            LeaderTransition confirmed = machine.UpdateContext(Context("drafting"));
+            Assert(confirmed.Action == LeaderActionKind.Updated, "Новый контекст должен подтвердить ручную смену.");
+            Assert(machine.State == LeaderState.Root, "После ручной смены ожидается Root.");
+        }
+
+        private static void CrossModuleCommandIsRejected()
+        {
+            LeaderStateMachine machine = CreateMachine(Command("DW", "drafting"));
             machine.Activate(false, Context("modeling"));
             machine.InputToken("D");
-            LeaderTransition switchTransition = machine.InputToken("B");
-            Assert(switchTransition.Action == LeaderActionKind.SwitchModule, "Ожидается SwitchModule.");
-            Assert(machine.State == LeaderState.SwitchingModule, "Автомат должен ждать контекст нового модуля.");
-            LeaderTransition contextTransition = machine.UpdateContext(Context("drafting"));
-            Assert(contextTransition.Action == LeaderActionKind.ExecuteCommand, "После подтверждения drafting команда должна dispatch-иться.");
-            Assert(machine.State == LeaderState.Dispatching, "Ожидается Dispatching.");
+            LeaderTransition transition = machine.InputToken("W");
+            Assert(transition.Action == LeaderActionKind.Rejected, "Команда другого модуля должна быть отклонена.");
+            Assert(transition.Action != LeaderActionKind.SwitchModule, "Команда не должна инициировать скрытую смену модуля.");
+            Assert(machine.State == LeaderState.Idle, "После отказа non-sticky должен вернуться Idle.");
         }
 
         private static void RequestResultCompletes()
@@ -166,57 +170,41 @@ namespace NXKeys.StateMachines.Tests
             Assert(machine.State == LeaderState.Idle, "Ошибка dispatch должна немедленно вернуть Idle.");
         }
 
-        private static LeaderStateMachine CreateMachine(params SequenceDefinition[] commands)
-        {
-            return new LeaderStateMachine(new SequenceAutomaton(commands));
-        }
+        private static LeaderStateMachine CreateMachine(params SequenceDefinition[] commands) =>
+            new LeaderStateMachine(new SequenceAutomaton(commands));
 
-        private static SequenceDefinition Command(string sequence, string module)
+        private static SequenceDefinition Command(string sequence, string module) => new SequenceDefinition
         {
-            return new SequenceDefinition
-            {
-                Id = sequence.Replace(" ", string.Empty).ToUpperInvariant(),
-                Sequence = sequence,
-                ModuleId = module,
-                CommandId = "UG_TEST_" + sequence.Replace(" ", string.Empty).ToUpperInvariant(),
-                CommandName = sequence,
-                NeedsWorkPart = true,
-                Enabled = true
-            };
-        }
+            Id = sequence.Replace(" ", string.Empty).ToUpperInvariant(),
+            Sequence = sequence,
+            ModuleId = module,
+            CommandId = "UG_TEST_" + sequence.Replace(" ", string.Empty).ToUpperInvariant(),
+            CommandName = sequence,
+            NeedsWorkPart = true,
+            Enabled = true
+        };
 
-        private static NxContextSnapshot Context(string module, int selectionCount = 1)
+        private static NxContextSnapshot Context(string module, int selectionCount = 1) => new NxContextSnapshot
         {
-            return new NxContextSnapshot
-            {
-                SchemaVersion = NxProtocolConstants.SchemaVersion,
-                Revision = 10,
-                Status = "running",
-                ApplicationId = "UG_APP_" + module.ToUpperInvariant(),
-                ModuleId = module,
-                ModuleLabel = module,
-                SelectionCount = selectionCount,
-                SelectionState = selectionCount < 0 ? "unknown" : selectionCount == 0 ? "none" : selectionCount == 1 ? "single" : "multiple",
-                WorkPartAvailable = true,
-                DisplayPartAvailable = true,
-                ModalDialogActive = false,
-                ContextConfidence = 100,
-                UpdatedUtc = DateTimeOffset.UtcNow.ToString("O")
-            };
-        }
+            SchemaVersion = NxProtocolConstants.SchemaVersion,
+            Revision = 10,
+            Status = "running",
+            ApplicationId = "UG_APP_" + module.ToUpperInvariant(),
+            ModuleId = module,
+            ModuleLabel = module,
+            SelectionCount = selectionCount,
+            SelectionState = selectionCount < 0 ? "unknown" : selectionCount == 0 ? "none" : selectionCount == 1 ? "single" : "multiple",
+            WorkPartAvailable = true,
+            DisplayPartAvailable = true,
+            ModalDialogActive = false,
+            ContextConfidence = 100,
+            UpdatedUtc = DateTimeOffset.UtcNow.ToString("O")
+        };
 
         private static void Run(string name, Action test)
         {
-            try
-            {
-                test();
-                Console.WriteLine("[OK] " + name);
-            }
-            catch (Exception ex)
-            {
-                failures++;
-                Console.Error.WriteLine("[FAIL] " + name + ": " + ex.Message);
-            }
+            try { test(); Console.WriteLine("[OK] " + name); }
+            catch (Exception exception) { failures++; Console.Error.WriteLine("[FAIL] " + name + ": " + exception.Message); }
         }
 
         private static void Assert(bool condition, string message)
@@ -226,14 +214,8 @@ namespace NXKeys.StateMachines.Tests
 
         private static void AssertThrows(Action action)
         {
-            try
-            {
-                action();
-            }
-            catch (InvalidOperationException)
-            {
-                return;
-            }
+            try { action(); }
+            catch (InvalidOperationException) { return; }
             throw new InvalidOperationException("Ожидалось InvalidOperationException.");
         }
     }
