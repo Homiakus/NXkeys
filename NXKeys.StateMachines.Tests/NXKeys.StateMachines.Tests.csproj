@@ -9,6 +9,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\NXKeys.Protocol\NxProtocol.cs" Link="Protocol\NxProtocol.cs" />
+    <Compile Include="..\NXKeys.StateMachines\LeaderBehaviorProfile.cs" Link="StateMachines\LeaderBehaviorProfile.cs" />
     <Compile Include="..\NXKeys.StateMachines\LeaderStateMachines.cs" Link="StateMachines\LeaderStateMachines.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\config\nx2512-state-machines.json" Link="nx2512-state-machines.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>
