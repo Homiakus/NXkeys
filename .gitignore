@@ -1,0 +1,102 @@
+# NXKeys progressive ignore file
+# Keep source, configs, docs, and scripts reviewable; keep local builds,
+# machine state, backups, and generated NX runtime files out of version control.
+
+################################################################################
+# OS, editors, and local tooling
+################################################################################
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.swp
+*.swo
+
+################################################################################
+# Logs, temp files, and crash dumps
+################################################################################
+*.log
+*.tmp
+*.temp
+*.bak
+*.old
+*.orig
+*.dmp
+*.trace
+*.pid
+*.lock
+*.cache
+
+################################################################################
+# Go build/test outputs
+################################################################################
+*.test
+*.prof
+*.cover
+coverage.out
+coverage.html
+/bin/
+/build/
+
+################################################################################
+# .NET / WinForms build outputs
+################################################################################
+**/bin/
+**/obj/
+TestResults/
+*.nupkg
+*.snupkg
+
+################################################################################
+# Binary artifacts
+################################################################################
+*.exe
+*.dll
+*.pdb
+*.deps.json
+*.runtimeconfig.json
+
+################################################################################
+# NXKeys release/build folders
+################################################################################
+/dist/
+**/dist/
+
+################################################################################
+# Local operator profiles and generated deployment artifacts
+################################################################################
+# Source defaults live under config/ and internal/defaults/. Root-level JSON
+# files are treated as operator-editable local profiles.
+/nx2512-pro-hybrid.json
+/nx2512-ergo-80.json
+/default-profile.json
+
+# Generated reports and local packaging output.
+/resolution-report.md
+/radial-menu-plan.md
+/radial-menu-plan.json
+/custom_dirs.dat
+/launch-nx2512-with-nxkeys.cmd
+/README(*).md
+
+################################################################################
+# Siemens NX / NXKeys runtime state
+################################################################################
+*.mtx.backup
+*.men.bak
+*.tbr.bak
+*.rtb.bak
+*.gly.bak
+*.abr.bak
+
+# Never commit copied user-machine runtime trees if they are staged in repo.
+/managed/
+/backups/
+/bridge/
+/logs/

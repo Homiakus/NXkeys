@@ -1,0 +1,42 @@
+{
+  "NX2512_FullFunctionCatalog.cs": {
+    "counts": {
+      "{": 296,
+      "}": 296,
+      "(": 912,
+      ")": 912,
+      "[": 27,
+      "]": 27
+    },
+    "balanced": true
+  },
+  "CatalogModels.cs": {
+    "counts": {
+      "{": 67,
+      "}": 67,
+      "(": 62,
+      ")": 62,
+      "[": 0,
+      "]": 0
+    },
+    "balanced": true
+  },
+  "CatalogStudioForm.cs": {
+    "counts": {
+      "{": 222,
+      "}": 222,
+      "(": 690,
+      ")": 690,
+      "[": 43,
+      "]": 43
+    },
+    "balanced": true
+  },
+  "targeted": {
+    "presets_present": true,
+    "dependency_management_present": true,
+    "dynamic_confidence_thresholds": true,
+    "crosswalk_validation_present": true,
+    "all_balanced": true
+  }
+}

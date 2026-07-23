@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AssemblyName>NX2512_CatalogStudio</AssemblyName>
+    <RootNamespace>NX2512_CatalogStudio</RootNamespace>
+
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <UseWindowsForms>true</UseWindowsForms>
+
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <Deterministic>true</Deterministic>
+    <DebugType>portable</DebugType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="NXOpen">
+      <HintPath>$(NXOpenDir)\NXOpen.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NXOpen.Utilities" Condition="Exists('$(NXOpenDir)\NXOpen.Utilities.dll')">
+      <HintPath>$(NXOpenDir)\NXOpen.Utilities.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NXOpenUF" Condition="Exists('$(NXOpenDir)\NXOpenUF.dll')">
+      <HintPath>$(NXOpenDir)\NXOpenUF.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NXOpenUI" Condition="Exists('$(NXOpenDir)\NXOpenUI.dll')">
+      <HintPath>$(NXOpenDir)\NXOpenUI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(NXSigningResource)' != '' and Exists('$(NXSigningResource)')">
+    <EmbeddedResource Include="$(NXSigningResource)">
+      <LogicalName>NXSigningResource.res</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <Target Name="ValidateNxOpenReference" BeforeTargets="ResolveReferences">
+    <Error
+      Condition="'$(NXOpenDir)' == ''"
+      Text="NXOpenDir is not defined. Run build.ps1 or pass -p:NXOpenDir=&quot;...\managed&quot;." />
+    <Error
+      Condition="!Exists('$(NXOpenDir)\NXOpen.dll')"
+      Text="NXOpen.dll was not found in NXOpenDir=$(NXOpenDir)." />
+  </Target>
+
+</Project>

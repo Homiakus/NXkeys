@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <AssemblyName>NX2512_HotkeyStudio</AssemblyName>
+    <RootNamespace>NX2512_HotkeyStudio</RootNamespace>
+
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <UseWindowsForms>true</UseWindowsForms>
+
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <Deterministic>true</Deterministic>
+    <DebugType>portable</DebugType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(NXOpenDir)' != '' and Exists('$(NXOpenDir)\NXOpen.dll')">
+    <Reference Include="NXOpen">
+      <HintPath>$(NXOpenDir)\NXOpen.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NXOpen.Utilities" Condition="Exists('$(NXOpenDir)\NXOpen.Utilities.dll')">
+      <HintPath>$(NXOpenDir)\NXOpen.Utilities.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NXOpenUI" Condition="Exists('$(NXOpenDir)\NXOpenUI.dll')">
+      <HintPath>$(NXOpenDir)\NXOpenUI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

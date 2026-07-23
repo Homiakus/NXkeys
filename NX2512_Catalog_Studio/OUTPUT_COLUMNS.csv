@@ -1,0 +1,29 @@
+﻿file,column,meaning
+00_environment_roots.csv,source,Источник пути
+00_environment_roots.csv,name,Имя переменной или типа корня
+00_environment_roots.csv,value,Путь
+00_environment_roots.csv,exists,Существует ли путь
+01_nxopen_assemblies.csv,assembly,Имя NXOpen-сборки
+01_nxopen_assemblies.csv,version,Версия сборки
+01_nxopen_assemblies.csv,location,Физический путь DLL
+02_nxopen_namespaces.csv,namespace,Пространство имён
+02_nxopen_namespaces.csv,public_type_count,Число публичных типов
+02_nxopen_namespaces.csv,public_member_count,Число публичных членов
+03_nxopen_types.csv,full_name,Полное программное имя типа
+03_nxopen_types.csv,category,Builder/Collection/Manager/Service и т. д.
+03_nxopen_types.csv,is_obsolete,Помечен ли тип устаревшим
+04_nxopen_members.csv,type,Полное имя объявляющего типа
+04_nxopen_members.csv,name,Программное имя метода/свойства
+04_nxopen_members.csv,signature,Полная сигнатура
+05_nxopen_entry_points.csv,declaring_type,Класс точки входа
+05_nxopen_entry_points.csv,entry_kind,Тип точки входа
+06_ui_commands_buttons.csv,button_id,Внутренний ID UI-команды
+06_ui_commands_buttons.csv,label,Отображаемое имя команды
+06_ui_commands_buttons.csv,accelerator,Назначенное сочетание
+06_ui_commands_buttons.csv,actions,MenuScript action
+07_ufun_functions.csv,function_name,Имя UFUN-функции
+07_ufun_functions.csv,signature,Объявление функции
+08_ui_command_api_candidates.csv,api_name,Кандидат программного API
+08_ui_command_api_candidates.csv,score,Оценка совпадения 0–100
+08_ui_command_api_candidates.csv,confidence,HIGH/MEDIUM/LOW
+09_ui_commands_without_strong_api_match.csv,reason,Почему сильное совпадение не найдено
