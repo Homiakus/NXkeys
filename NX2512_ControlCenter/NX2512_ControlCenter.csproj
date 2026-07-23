@@ -3,11 +3,14 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
     <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
     <AssemblyName>NX2512_ControlCenter</AssemblyName>
     <RootNamespace>NX2512_ControlCenter</RootNamespace>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj" />
