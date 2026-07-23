@@ -17,163 +17,291 @@ namespace NX2512_HotkeyStudio.Services
         public List<string> LauncherFiles { get; } = new List<string>();
         public CatalogIndex Catalog { get; } = new CatalogIndex();
         public List<string> Warnings { get; } = new List<string>();
+        public string DocumentationCatalogDirectory { get; set; } = string.Empty;
     }
 
     public static class NxScanner
     {
+        private static readonly string[] ApiCatalogFiles =
+        {
+            "04_nxopen_members.csv",
+            "05_nxopen_entry_points.csv",
+            "06_ui_commands_buttons.csv",
+            "07_ufun_functions.csv",
+            "08_ui_command_api_candidates.csv"
+        };
+
         public static ScanResult Scan(Config config, string documentationCatalogDir = null)
         {
+            if (config == null) throw new ArgumentNullException(nameof(config));
             var result = new ScanResult();
+            foreach (string root in DiscoverRoots(config)) result.DiscoveredRoots.Add(root);
 
-            List<string> roots = DiscoverRoots(config);
-            foreach (string r in roots)
-            {
-                if (!result.DiscoveredRoots.Contains(r, StringComparer.OrdinalIgnoreCase))
-                {
-                    result.DiscoveredRoots.Add(r);
-                }
-            }
-
-            // 1. Scan live menu files across discovered roots. Parsing happens after cache lookup.
-            int maxDepth = config?.Scan?.MaxDepth ?? 8;
-            int maxFiles = config?.Scan?.MaxFiles ?? 25000;
-            int fileCount = 0;
-
-            HashSet<string> menuExts = new HashSet<string>(config?.Scan?.MenuExtensions ?? new List<string> { ".men", ".tbr", ".rtb", ".gly", ".abr" }, StringComparer.OrdinalIgnoreCase);
-            HashSet<string> roleExts = new HashSet<string>(config?.Scan?.RoleExtensions ?? new List<string> { ".mtx" }, StringComparer.OrdinalIgnoreCase);
-            HashSet<string> launcherExts = new HashSet<string>(config?.Scan?.LauncherExtensions ?? new List<string> { ".bat", ".cmd", ".ps1" }, StringComparer.OrdinalIgnoreCase);
+            int maxDepth = Math.Max(1, config.Scan?.MaxDepth ?? 8);
+            int maxFiles = Math.Max(100, config.Scan?.MaxFiles ?? 25000);
+            int visited = 0;
+            var menuExtensions = new HashSet<string>(config.Scan?.MenuExtensions ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
+            var roleExtensions = new HashSet<string>(config.Scan?.RoleExtensions ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
+            var launcherExtensions = new HashSet<string>(config.Scan?.LauncherExtensions ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
 
             foreach (string root in result.DiscoveredRoots)
             {
-                if (!Directory.Exists(root)) continue;
-
-                ScanDirectoryRecursive(root, 0, maxDepth, ref fileCount, maxFiles, path =>
-                {
-                    string ext = Path.GetExtension(path);
-                    if (menuExts.Contains(ext))
-                    {
-                        result.MenuFiles.Add(path);
-                    }
-                    else if (roleExts.Contains(ext))
-                    {
-                        result.RoleFiles.Add(path);
-                    }
-                    else if (launcherExts.Contains(ext))
-                    {
-                        result.LauncherFiles.Add(path);
-                    }
-                });
-
-                if (fileCount >= maxFiles)
-                {
-                    result.Warnings.Add($"Scan stopped after reaching max_files limit of {maxFiles}");
-                    break;
-                }
+                if (visited >= maxFiles) break;
+                ScanDirectory(root, 0, maxDepth, maxFiles, config.Scan?.FollowSymlinks == true, ref visited, result, menuExtensions, roleExtensions, launcherExtensions);
             }
+            if (visited >= maxFiles) result.Warnings.Add("Сканирование остановлено по лимиту max_files=" + maxFiles + ".");
 
-            result.Catalog.Commands.Clear();
-            result.Catalog.CrosswalkEntries.Clear();
-            if (config?.Performance?.CatalogCacheEnabled == true && TryLoadCatalogCache(config, result))
+            result.MenuFiles.Sort(StringComparer.OrdinalIgnoreCase);
+            result.RoleFiles.Sort(StringComparer.OrdinalIgnoreCase);
+            result.LauncherFiles.Sort(StringComparer.OrdinalIgnoreCase);
+            result.DocumentationCatalogDirectory = ResolveCatalogDirectory(documentationCatalogDir);
+
+            string signature = ComputeCatalogSignature(result.MenuFiles, result.DocumentationCatalogDirectory);
+            if (config.Performance?.CatalogCacheEnabled == true && TryLoadCatalogCache(config, signature, result))
             {
-                result.Warnings.Add("Catalog cache hit.");
+                result.Warnings.Add("Использован проверенный кэш каталога.");
                 return result;
             }
 
-            if (!string.IsNullOrWhiteSpace(documentationCatalogDir) && Directory.Exists(documentationCatalogDir))
+            if (!string.IsNullOrWhiteSpace(result.DocumentationCatalogDirectory))
             {
-                CsvCatalogLoader.LoadFromDirectory(result.Catalog, documentationCatalogDir);
+                CsvCatalogLoader.LoadFromDirectory(result.Catalog, result.DocumentationCatalogDirectory);
             }
             else
             {
-                string defaultDocDir = @"c:\Users\KDFX Modes\Desktop\NX2512_Full_Function_API_Catalog_20260722_061449";
-                if (Directory.Exists(defaultDocDir))
-                {
-                    CsvCatalogLoader.LoadFromDirectory(result.Catalog, defaultDocDir);
-                }
-            }
-            foreach (string menuFile in result.MenuFiles)
-            {
-                MenuScriptParser.ParseFile(result.Catalog, menuFile);
-            }
-            if (config?.Performance?.CatalogCacheEnabled == true)
-            {
-                TryWriteCatalogCache(config, result);
+                result.Warnings.Add("NX API-каталог не найден. Задайте --catalog, NXKEYS_CATALOG_DIR или поместите экспорт в %LOCALAPPDATA%\\NXKeys\\catalog.");
             }
 
+            foreach (string menuFile in result.MenuFiles)
+            {
+                try { MenuScriptParser.ParseFile(result.Catalog, menuFile); }
+                catch (Exception ex) { result.Warnings.Add("Не удалось разобрать MenuScript " + menuFile + ": " + ex.Message); }
+            }
+
+            if (config.Performance?.CatalogCacheEnabled == true) TryWriteCatalogCache(config, signature, result);
             return result;
         }
 
-        private static bool TryLoadCatalogCache(Config config, ScanResult result)
+        public static List<string> DiscoverRoots(Config config)
+        {
+            var candidates = new List<string>();
+            AddRange(candidates, config?.Scan?.Roots);
+            AddRange(candidates, config?.Scan?.InstallHints);
+            AddRange(candidates, config?.Scan?.ProfileHints);
+
+            foreach (string variable in new[]
+            {
+                "UGII_BASE_DIR", "UGII_ROOT_DIR", "UGII_USER_PROFILE_DIR",
+                "UGII_SITE_DIR", "UGOPEN", "UGII_CUSTOM_DIRECTORY_FILE"
+            })
+            {
+                AddPath(candidates, Environment.GetEnvironmentVariable(variable));
+            }
+
+            foreach (string basePath in new[]
+            {
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)
+            })
+            {
+                if (string.IsNullOrWhiteSpace(basePath)) continue;
+                AddPath(candidates, Path.Combine(basePath, "Siemens"));
+                AddPath(candidates, Path.Combine(basePath, "Unigraphics Solutions"));
+            }
+
+            var result = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string candidate in candidates)
+            {
+                if (string.IsNullOrWhiteSpace(candidate)) continue;
+                string expanded = Config.ExpandPath(candidate);
+                if (File.Exists(expanded)) expanded = Path.GetDirectoryName(expanded);
+                if (string.IsNullOrWhiteSpace(expanded) || !Directory.Exists(expanded)) continue;
+                string full = Path.GetFullPath(expanded);
+                if (seen.Add(full)) result.Add(full);
+            }
+            return result;
+        }
+
+        private static void ScanDirectory(
+            string directory,
+            int depth,
+            int maxDepth,
+            int maxFiles,
+            bool followSymlinks,
+            ref int visited,
+            ScanResult result,
+            HashSet<string> menuExtensions,
+            HashSet<string> roleExtensions,
+            HashSet<string> launcherExtensions)
+        {
+            if (depth > maxDepth || visited >= maxFiles) return;
+            try
+            {
+                var info = new DirectoryInfo(directory);
+                if (!followSymlinks && (info.Attributes & FileAttributes.ReparsePoint) != 0) return;
+
+                foreach (string file in Directory.EnumerateFiles(directory))
+                {
+                    if (++visited > maxFiles) return;
+                    string extension = Path.GetExtension(file);
+                    if (menuExtensions.Contains(extension)) AddUnique(result.MenuFiles, file);
+                    else if (roleExtensions.Contains(extension)) AddUnique(result.RoleFiles, file);
+                    else if (launcherExtensions.Contains(extension) && LauncherLooksRelevant(file)) AddUnique(result.LauncherFiles, file);
+                }
+
+                foreach (string child in Directory.EnumerateDirectories(directory))
+                {
+                    if (visited >= maxFiles) return;
+                    ScanDirectory(child, depth + 1, maxDepth, maxFiles, followSymlinks, ref visited, result, menuExtensions, roleExtensions, launcherExtensions);
+                }
+            }
+            catch (UnauthorizedAccessException ex) { result.Warnings.Add("Нет доступа к " + directory + ": " + ex.Message); }
+            catch (IOException ex) { result.Warnings.Add("Ошибка чтения " + directory + ": " + ex.Message); }
+        }
+
+        private static bool LauncherLooksRelevant(string path)
         {
             try
             {
-                string signature = ComputeCatalogSignature(result.MenuFiles);
-                string path = CatalogCachePath(config, signature);
-                if (!File.Exists(path)) return false;
-                CatalogCachePayload payload = JsonSerializer.Deserialize<CatalogCachePayload>(File.ReadAllText(path));
-                if (payload == null || payload.Signature != signature || payload.NXVersion != config.Profile.NXVersion || payload.Commands == null) return false;
-                foreach (CommandItem item in payload.Commands)
+                using (var reader = new StreamReader(path, Encoding.Default, true))
                 {
-                    result.Catalog.AddOrMerge(item);
+                    for (int line = 0; line < 200 && !reader.EndOfStream; line++)
+                    {
+                        string value = (reader.ReadLine() ?? string.Empty).ToLowerInvariant();
+                        if (value.Contains("ugii_") || value.Contains("ugraf.exe") || value.Contains("run_nx.exe")) return true;
+                    }
                 }
-                return true;
             }
-            catch
+            catch { }
+            return false;
+        }
+
+        private static string ResolveCatalogDirectory(string explicitPath)
+        {
+            foreach (string candidate in new[]
             {
-                return false;
+                explicitPath,
+                Environment.GetEnvironmentVariable("NXKEYS_CATALOG_DIR")
+            })
+            {
+                if (!string.IsNullOrWhiteSpace(candidate))
+                {
+                    string expanded = Config.ExpandPath(candidate);
+                    if (Directory.Exists(expanded) && HasCatalogFiles(expanded)) return Path.GetFullPath(expanded);
+                }
+            }
+
+            string root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys", "catalog");
+            if (!Directory.Exists(root)) return string.Empty;
+            try
+            {
+                return Directory.EnumerateDirectories(root, "*", SearchOption.AllDirectories)
+                    .Where(HasCatalogFiles)
+                    .OrderByDescending(Directory.GetLastWriteTimeUtc)
+                    .FirstOrDefault() ?? string.Empty;
+            }
+            catch { return string.Empty; }
+        }
+
+        private static bool HasCatalogFiles(string directory)
+        {
+            return ApiCatalogFiles.Any(name => File.Exists(Path.Combine(directory, name)));
+        }
+
+        private static string ComputeCatalogSignature(IEnumerable<string> menuFiles, string catalogDirectory)
+        {
+            var records = new List<string>();
+            foreach (string path in menuFiles ?? Enumerable.Empty<string>()) AddSignatureRecord(records, path);
+            if (!string.IsNullOrWhiteSpace(catalogDirectory))
+            {
+                foreach (string file in ApiCatalogFiles) AddSignatureRecord(records, Path.Combine(catalogDirectory, file));
+            }
+            records.Add("scanner-schema=2");
+            records.Sort(StringComparer.OrdinalIgnoreCase);
+            using (var sha = SHA256.Create())
+            {
+                return Convert.ToHexString(sha.ComputeHash(Encoding.UTF8.GetBytes(string.Join("\n", records)))).ToLowerInvariant();
             }
         }
 
-        private static void TryWriteCatalogCache(Config config, ScanResult result)
+        private static void AddSignatureRecord(List<string> records, string path)
         {
             try
             {
-                string signature = ComputeCatalogSignature(result.MenuFiles);
+                var info = new FileInfo(path);
+                records.Add(Path.GetFullPath(path) + "|" + info.Length + "|" + info.LastWriteTimeUtc.Ticks);
+            }
+            catch { records.Add(path + "|missing"); }
+        }
+
+        private static bool TryLoadCatalogCache(Config config, string signature, ScanResult result)
+        {
+            try
+            {
+                string path = CatalogCachePath(config, signature);
+                if (!File.Exists(path)) return false;
+                CatalogCachePayload payload = JsonSerializer.Deserialize<CatalogCachePayload>(File.ReadAllText(path));
+                if (payload == null || payload.Signature != signature || payload.NXVersion != config.Profile.NXVersion) return false;
+                foreach (CommandItem command in payload.Commands ?? new List<CommandItem>()) result.Catalog.AddOrMerge(command);
+                foreach (ApiCrosswalkItem item in payload.CrosswalkEntries ?? new List<ApiCrosswalkItem>())
+                {
+                    result.Catalog.CrosswalkEntries.Add(item);
+                    if (result.Catalog.Commands.TryGetValue(item.ButtonID ?? string.Empty, out CommandItem command)) command.ApiCandidates.Add(item);
+                }
+                return result.Catalog.Commands.Count > 0;
+            }
+            catch { return false; }
+        }
+
+        private static void TryWriteCatalogCache(Config config, string signature, ScanResult result)
+        {
+            try
+            {
                 string path = CatalogCachePath(config, signature);
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
-                CatalogCachePayload payload = new CatalogCachePayload
+                var payload = new CatalogCachePayload
                 {
                     NXVersion = config.Profile.NXVersion,
                     Signature = signature,
                     CreatedUtc = DateTime.UtcNow.ToString("O"),
-                    Commands = result.Catalog.Commands.Values.ToList()
+                    Commands = result.Catalog.Commands.Values.ToList(),
+                    CrosswalkEntries = result.Catalog.CrosswalkEntries.ToList()
                 };
-                File.WriteAllText(path, JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = false }));
+                AtomicFileWriter.WriteAllText(path, JsonSerializer.Serialize(payload), true);
             }
-            catch
-            {
-                // Cache is an optimization only.
-            }
+            catch { }
         }
 
         private static string CatalogCachePath(Config config, string signature)
         {
             string root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys", "cache");
-            string version = string.IsNullOrWhiteSpace(config?.Profile?.NXVersion) ? "unknown" : config.Profile.NXVersion.Replace('\\', '_').Replace('/', '_').Replace(':', '_').Replace(' ', '_');
-            return Path.Combine(root, $"catalog-{version}-{signature.Substring(0, 16)}.json");
+            string version = string.IsNullOrWhiteSpace(config.Profile?.NXVersion) ? "unknown" : Sanitize(config.Profile.NXVersion);
+            return Path.Combine(root, "catalog-" + version + "-" + signature.Substring(0, 16) + ".json");
         }
 
-        private static string ComputeCatalogSignature(IEnumerable<string> paths)
+        private static string Sanitize(string value)
         {
-            var lines = new List<string>();
-            foreach (string path in paths ?? Enumerable.Empty<string>())
-            {
-                try
-                {
-                    FileInfo info = new FileInfo(path);
-                    lines.Add($"{Path.GetFullPath(path)}|{info.Length}|{info.LastWriteTimeUtc.Ticks}");
-                }
-                catch
-                {
-                    lines.Add($"{path}|missing");
-                }
-            }
-            lines.Sort(StringComparer.OrdinalIgnoreCase);
-            using (SHA256 sha = SHA256.Create())
-            {
-                byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(string.Join("\n", lines)));
-                return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-            }
+            foreach (char invalid in Path.GetInvalidFileNameChars()) value = value.Replace(invalid, '_');
+            return value.Replace(' ', '_');
+        }
+
+        private static void AddRange(List<string> target, IEnumerable<string> values)
+        {
+            if (values == null) return;
+            foreach (string value in values) AddPath(target, value);
+        }
+
+        private static void AddPath(List<string> target, string value)
+        {
+            if (!string.IsNullOrWhiteSpace(value)) target.Add(value);
+        }
+
+        private static void AddUnique(List<string> target, string path)
+        {
+            if (!target.Contains(path, StringComparer.OrdinalIgnoreCase)) target.Add(path);
         }
 
         private sealed class CatalogCachePayload
@@ -182,89 +310,7 @@ namespace NX2512_HotkeyStudio.Services
             public string Signature { get; set; } = string.Empty;
             public string CreatedUtc { get; set; } = string.Empty;
             public List<CommandItem> Commands { get; set; } = new List<CommandItem>();
-        }
-
-        public static List<string> DiscoverRoots(Config config)
-        {
-            var roots = new List<string>();
-
-            string[] envVars = { "UGII_BASE_DIR", "UGII_ROOT_DIR", "UGII_USER_PROFILE_DIR", "UGII_SITE_DIR", "UGOPEN", "UGII_CUSTOM_DIRECTORY_FILE" };
-            foreach (string varName in envVars)
-            {
-                string val = Environment.GetEnvironmentVariable(varName);
-                if (!string.IsNullOrWhiteSpace(val))
-                {
-                    val = Config.ExpandPath(val);
-                    if (File.Exists(val)) val = Path.GetDirectoryName(val);
-                    if (!string.IsNullOrEmpty(val) && Directory.Exists(val)) roots.Add(val);
-                }
-            }
-
-            if (config?.Scan?.Roots != null)
-            {
-                foreach (string r in config.Scan.Roots)
-                {
-                    if (!string.IsNullOrWhiteSpace(r) && Directory.Exists(r)) roots.Add(r);
-                }
-            }
-
-            string[] subDirs = { "Siemens", "Unigraphics Solutions" };
-            string[] sysEnvs = { "LOCALAPPDATA", "APPDATA", "ProgramFiles", "ProgramFiles(x86)" };
-            foreach (string sysEnv in sysEnvs)
-            {
-                string baseDir = Environment.GetEnvironmentVariable(sysEnv);
-                if (string.IsNullOrWhiteSpace(baseDir)) continue;
-
-                foreach (string sub in subDirs)
-                {
-                    string candidate = Path.Combine(baseDir, sub);
-                    if (Directory.Exists(candidate)) roots.Add(candidate);
-                }
-            }
-
-            return DedupePaths(roots);
-        }
-
-        private static void ScanDirectoryRecursive(string currentDir, int depth, int maxDepth, ref int fileCount, int maxFiles, Action<string> fileAction)
-        {
-            if (depth > maxDepth || fileCount >= maxFiles) return;
-
-            try
-            {
-                foreach (string file in Directory.EnumerateFiles(currentDir))
-                {
-                    fileCount++;
-                    fileAction(file);
-                    if (fileCount >= maxFiles) return;
-                }
-
-                foreach (string subDir in Directory.EnumerateDirectories(currentDir))
-                {
-                    ScanDirectoryRecursive(subDir, depth + 1, maxDepth, ref fileCount, maxFiles, fileAction);
-                    if (fileCount >= maxFiles) return;
-                }
-            }
-            catch
-            {
-                // Ignore permission or file access errors during scan
-            }
-        }
-
-        private static List<string> DedupePaths(IEnumerable<string> paths)
-        {
-            var result = new List<string>();
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (string p in paths)
-            {
-                if (string.IsNullOrWhiteSpace(p)) continue;
-                string clean = Path.GetFullPath(p);
-                if (seen.Add(clean))
-                {
-                    result.Add(clean);
-                }
-            }
-            return result;
+            public List<ApiCrosswalkItem> CrosswalkEntries { get; set; } = new List<ApiCrosswalkItem>();
         }
     }
 }
