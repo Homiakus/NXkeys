@@ -35,7 +35,10 @@ jobs:
       - name: Validate adaptive profile and documentation
         shell: pwsh
         run: |
-          node .\scripts\validate-command-tree.mjs
+          node .\scripts\validate-command-tree.mjs *> adaptive-validation.log
+          $code = $LASTEXITCODE
+          Get-Content adaptive-validation.log -Tail 200
+          exit $code
 
       - name: Run DFA and HFSM invariants
         shell: pwsh
@@ -120,7 +123,7 @@ jobs:
           foreach ($required in @('BasicShortcutPolicy','AdaptiveModuleMode','SlotKeyMap','RebuildFromModules','JsonIgnore')) {
             if ($models -notmatch $required) { throw "Missing adaptive config element: $required" }
           }
-          foreach ($required in @('module_id','module_label','application_id','NXApplicationIDs','ApplicationFallbacks')) {
+          foreach ($required in @('ModuleId','ModuleLabel','ApplicationId','NXApplicationIDs','ApplicationFallbacks')) {
             if ($resolver -notmatch $required) { throw "Missing module resolution element: $required" }
           }
           foreach ($required in @('ActivateScoped','AdaptiveModuleResolver','InputToken(activeModule.LeaderPrefix)','activeModule','Search')) {
@@ -147,12 +150,13 @@ jobs:
           if ($engine -match 'set "PATH=' -or $engine -match 'UGII_USER_DIR') { throw 'NX launcher must not override PATH or UGII_USER_DIR.' }
           if ($engine -match 'radial-menu-plan') { throw 'Removed deployment artifacts must not return.' }
 
-      - name: Publish C# diagnostic logs
+      - name: Publish diagnostic logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: csharp-build-logs
           path: |
+            adaptive-validation.log
             state-machine-tests.log
             hotkey-build.log
             hotkey-publish.log
