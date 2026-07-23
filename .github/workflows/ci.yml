@@ -1,15 +1,37 @@
 name: ci
+
 on:
   push:
   pull_request:
+
 jobs:
   test:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-go@v5
         with:
           go-version: '1.25.x'
-      - run: go test ./...
-      - run: go vet ./...
-      - run: go build -o dist/nxkeys.exe ./cmd/nxkeys
+
+      - name: Test Go packages
+        run: go test ./...
+
+      - name: Vet Go packages
+        run: go vet ./...
+
+      - name: Build Go CLI
+        run: go build -o dist/nxkeys.exe ./cmd/nxkeys
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build Hotkey Studio
+        run: dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64
+
+      - name: Build Adaptive Control Center
+        run: dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64
+
+      - name: Publish Adaptive Control Center
+        run: dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -r win-x64 --self-contained false -o .\dist\control-center
