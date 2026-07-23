@@ -22,6 +22,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\NXKeys.Protocol\NxProtocol.cs" Link="Protocol\NxProtocol.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="NXOpen">
       <HintPath>$(NXOpenDir)\NXOpen.dll</HintPath>
       <Private>false</Private>
