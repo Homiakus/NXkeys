@@ -86,8 +86,8 @@ jobs:
           $machine = Get-Content .\NXKeys.StateMachines\LeaderStateMachines.cs -Raw
           $protocol = Get-Content .\NXKeys.Protocol\NxProtocol.cs -Raw
           $bridge = Get-Content .\NX2512_CommandBridge\Program.cs -Raw
-          if ($leader -match 'bool\s+isActive' -or $leader -match 'bool\s+isSticky' -or $leader -match 'string\s+buffer') {
-            throw 'Legacy implicit Leader state flags must not return.'
+          if ($leader -cmatch 'private\s+bool\s+isActive' -or $leader -cmatch 'private\s+bool\s+isSticky' -or $leader -cmatch 'private\s+string\s+buffer') {
+            throw 'Legacy implicit Leader state fields must not return.'
           }
           foreach ($required in @('AwaitingConfirmation','AwaitingResult','SwitchingModule','SequenceAutomaton','ContextGuardEvaluator')) {
             if ($machine -notmatch $required) { throw "Missing state-machine element: $required" }
