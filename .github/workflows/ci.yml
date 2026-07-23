@@ -32,6 +32,11 @@ jobs:
             Get-Content $_.FullName -Raw -Encoding UTF8 | ConvertFrom-Json | Out-Null
           }
 
+      - name: Validate README and command tree
+        shell: pwsh
+        run: |
+          node .\scripts\validate-command-tree.mjs
+
       - name: Run DFA and HFSM invariants
         shell: pwsh
         run: |
