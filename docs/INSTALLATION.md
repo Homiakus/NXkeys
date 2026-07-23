@@ -1,138 +1,238 @@
 # Установка и обновление NXKeys
 
-Документ описывает рекомендуемую установку NXKeys для Siemens NX 2512 на Windows x64.
+Документ описывает рекомендуемую установку NXKeys для Siemens NX 2512 на Windows x64 после перехода проекта на единый C#-контур.
 
 ## 1. Требования
 
-- Windows 10/11 x64;
+- Windows 10 или Windows 11 x64;
 - Siemens NX / Designcenter NX 2512;
 - PowerShell 5.1 или PowerShell 7;
-- .NET 8 SDK;
-- Go 1.25+ для Go CLI/TUI;
-- права записи в `%LOCALAPPDATA%`;
-- доступ к каталогу NXOpen целевой установки для сборки Command Bridge.
+- .NET 8 SDK x64;
+- доступ к `NXOpen.dll` и `NXOpenUI.dll` целевой установки;
+- права записи в `%LOCALAPPDATA%\NXKeys`.
 
-Перед полным обновлением закройте все процессы NX. Загруженная `NX2512_CommandBridge.dll` может быть заблокирована процессом NX.
+Go, Bubble Tea и Lip Gloss больше не используются.
 
-## 2. Получение исходного кода
+Build-скрипты не устанавливают .NET SDK автоматически и не запускают удалённые install-скрипты.
 
-```powershell
-git clone https://github.com/Homiakus/NXkeys.git
-Set-Location .\NXkeys
+## 2. Канонический профиль
+
+Основной профиль находится по пути:
+
+```text
+config\nx2512-pro-hybrid.json
 ```
 
-Для обновления существующей копии:
+Перед установкой проверьте:
 
 ```powershell
-git pull --ff-only origin main
+Get-Content .\config\nx2512-pro-hybrid.json -Raw -Encoding UTF8 |
+  ConvertFrom-Json |
+  Out-Null
 ```
 
-## 3. Сборка компонентов
+Ключевые поля:
 
-### HotkeyStudio
+```json
+{
+  "profile": {
+    "nx_version": "2512.6000"
+  },
+  "deployment": {
+    "mode": "managed-wrapper",
+    "managed_root": "%LOCALAPPDATA%\\NXKeys\\managed\\NX2512.6000",
+    "require_nx_stopped": true,
+    "atomic_writes": true
+  }
+}
+```
+
+## 3. Рекомендуемая установка
+
+Закройте NX и выполните:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_HotkeyStudio\build.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.ps1 `
+  -Clean `
+  -NxRoot "C:\Program Files\Siemens\NX2512"
 ```
 
-### NX Command Bridge
+Для точного пути NXOpen:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_CommandBridge\build.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.ps1 `
+  -Clean `
+  -NxOpenDll "D:\Siemens\NX2512\NXBIN\managed\NXOpen.dll"
 ```
 
-Сценарий должен найти NXOpen-сборки целевой версии NX. При ошибке задайте корректный путь в соответствии с сообщением сценария сборки.
-
-### Go CLI/TUI
+Для другого профиля:
 
 ```powershell
-.\scripts\build.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.ps1 `
+  -ConfigPath ".\config\nx2512-ergo-80.json" `
+  -NxRoot "C:\Program Files\Siemens\NX2512"
 ```
 
-### Adaptive Control Center
+## 4. Что делает установщик
 
-```powershell
-dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj `
-  -c Release `
-  -r win-x64 `
-  --self-contained false `
-  -o .\dist\control-center
-```
+PowerShell отвечает только за оркестрацию сборки:
 
-Control Center требует установленный .NET 8 Desktop Runtime, потому что публикуется с `--self-contained false`.
+1. проверяет наличие .NET 8;
+2. проверяет процессы `ugraf`, `run_nx` и подтверждённый Siemens `nx`;
+3. собирает HotkeyStudio;
+4. собирает CommandBridge против целевого NXOpen;
+5. публикует Control Center;
+6. создаёт новый временный staging-каталог;
+7. копирует в staging только текущие артефакты;
+8. запускает `NX2512_HotkeyStudio.exe apply`.
 
-## 4. Рекомендуемая установка: managed-wrapper
+Все операции установки выполняет C# `DeploymentEngine`:
 
-Запустите:
+1. строит список управляемых файлов;
+2. проверяет наличие обязательных EXE/DLL;
+3. вычисляет SHA-256 staging-файлов;
+4. читает предыдущий `package-manifest.json`;
+5. определяет принадлежащие NXKeys устаревшие файлы;
+6. создаёт резервную копию;
+7. записывает файлы атомарно;
+8. удаляет только файлы из предыдущего манифеста;
+9. записывает новый package manifest последним;
+10. повторно проверяет SHA-256;
+11. при исключении восстанавливает backup manifest.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.ps1
-```
-
-Установщик создаёт управляемое дерево:
+## 5. Структура установленного пакета
 
 ```text
 %LOCALAPPDATA%\NXKeys\managed\NX2512.6000\
+├─ NX2512_HotkeyStudio.exe
+├─ NX2512_HotkeyStudio.dll
+├─ NX2512_HotkeyStudio.deps.json
+├─ NX2512_HotkeyStudio.runtimeconfig.json
+├─ nx2512-pro-hybrid.json
+├─ package-manifest.json
+├─ custom_dirs.dat
+├─ launch-nx2512-with-nxkeys.cmd
+├─ resolution-report.md
+├─ radial-menu-plan.md
+├─ radial-menu-plan.json
+├─ control-center\
+│  └─ NX2512_ControlCenter.exe
+└─ custom\
+   ├─ application\
+   │  ├─ NX2512_CommandBridge.dll
+   │  └─ nxkeys_command_bridge.men
+   └─ startup\
+      ├─ nxkeys_generated.men
+      ├─ nxkeys_ribbon.rtb
+      ├─ nxkeys_toolbar.tbr
+      ├─ launch-hotkeystudio-daemon.cmd
+      └─ launch-hotkeystudio-gui.cmd
 ```
 
-И формирует отдельный запуск NX:
+CommandBridge DLL не копируется в `custom\startup`.
+
+## 6. Запуск NX
+
+Используйте:
+
+```powershell
+& "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\launch-nx2512-with-nxkeys.cmd"
+```
+
+Launcher вызывает C# CLI:
+
+```powershell
+NX2512_HotkeyStudio.exe launch `
+  --config nx2512-pro-hybrid.json `
+  -- <аргументы NX>
+```
+
+C# launcher устанавливает для дочернего процесса только:
 
 ```text
-%LOCALAPPDATA%\NXKeys\managed\NX2512.6000\launch-nx2512-with-nxkeys.cmd
+UGII_CUSTOM_DIRECTORY_FILE=<managed-root>\custom_dirs.dat
 ```
 
-Этот режим рекомендуется первым, потому что он не меняет глобальную установку NX и активирует кастомизацию только для процесса, запущенного через обёртку.
+Он не изменяет:
 
-## 5. Первый запуск
+- глобальные переменные Windows;
+- `PATH`;
+- `UGII_USER_DIR`;
+- файлы установки Siemens.
+
+## 7. Сборка HotkeyStudio отдельно
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_HotkeyStudio\build.ps1 -Clean
+```
+
+Результат:
+
+```text
+NX2512_HotkeyStudio\dist\
+```
+
+Скрипт всегда очищает `dist` и выполняет framework-dependent publish под `win-x64`.
+
+## 8. Сборка CommandBridge отдельно
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_CommandBridge\build.ps1 `
+  -NxRoot "C:\Program Files\Siemens\NX2512" `
+  -Clean
+```
+
+При нескольких установках NX передавайте точный путь:
+
+```powershell
+-NxOpenDll "D:\Siemens\NX2512\NXBIN\managed\NXOpen.dll"
+```
+
+По умолчанию скрипт отклоняет путь, который не подтверждает версию `2512`. Параметр `-AllowVersionMismatch` допускается только после ручной проверки совместимости.
+
+## 9. Сборка Catalog Studio
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_Catalog_Studio\build.ps1 `
+  -NxRoot "C:\Program Files\Siemens\NX2512" `
+  -Clean
+```
+
+Скрипт не устанавливает SDK автоматически.
+
+## 10. Обновление
 
 1. Закройте NX.
-2. Запустите `launch-nx2512-with-nxkeys.cmd`.
-3. Дождитесь открытия NX.
-4. Проверьте появление элементов NXKeys в меню/ленте.
-5. Откройте HotkeyStudio.
-6. Выполните `health` и проверьте версии MenuScript.
-
-Команда проверки:
+2. Получите актуальную ветку `main`.
+3. Повторите установку с `-Clean`.
 
 ```powershell
-$studio = "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe"
-& $studio health --config .\config\nx2512-pro-hybrid.json
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.ps1 `
+  -Clean `
+  -NxRoot "C:\Program Files\Siemens\NX2512"
 ```
 
-## 6. Установка Control Center
+Устаревшие файлы удаляются только при наличии в предыдущем `package-manifest.json`.
 
-Текущий установщик управляемого пакета автоматически не копирует Control Center. Запускайте его из `dist\control-center` либо вручную разместите опубликованные файлы рядом с `NX2512_HotkeyStudio.exe`.
+## 11. Установка без повторной сборки
+
+Параметр разрешён только при уже проверенных чистых `dist`-каталогах:
 
 ```powershell
-.\dist\control-center\NX2512_ControlCenter.exe `
-  --config .\config\nx2512-pro-hybrid.json
+.\install-nx-ribbon-buttons.ps1 -NoBuild
 ```
 
-Чтобы кнопки `Запустить Leader` и `Открыть Studio` работали, `NX2512_HotkeyStudio.exe` должен находиться рядом с Control Center либо на ожидаемом соседнем уровне.
+Перед использованием должны существовать:
 
-## 7. Подключение API-каталога
-
-Сформируйте каталог через `NX2512_Catalog_Studio`, затем укажите его одним из способов.
-
-Параметр запуска:
-
-```powershell
-.\dist\control-center\NX2512_ControlCenter.exe `
-  --config .\config\nx2512-pro-hybrid.json `
-  --catalog "D:\NX2512_Full_Function_API_Catalog_YYYYMMDD_HHMMSS"
+```text
+NX2512_HotkeyStudio\dist\NX2512_HotkeyStudio.exe
+NX2512_CommandBridge\dist\NX2512_CommandBridge.dll
+NX2512_ControlCenter\dist\NX2512_ControlCenter.exe
 ```
 
-Переменная окружения:
+## 12. Режим existing-custom-dirs
 
-```powershell
-$env:NXKEYS_CATALOG_DIR = "D:\NX2512_Full_Function_API_Catalog_YYYYMMDD_HHMMSS"
-```
-
-Автоматический поиск выполняется также в `%LOCALAPPDATA%\NXKeys\catalog`.
-
-## 8. Альтернативный режим existing-custom-dirs
-
-В JSON-профиле:
+В профиле необходимо явно задать:
 
 ```json
 {
@@ -144,56 +244,50 @@ $env:NXKEYS_CATALOG_DIR = "D:\NX2512_Full_Function_API_Catalog_YYYYMMDD_HHMMSS"
 }
 ```
 
-Этот режим изменяет существующий список пользовательских каталогов и влияет на каждый запуск NX, который использует данный файл. Перед применением обязательно выполните `plan` и проверьте резервную копию.
+Автоматический выбор первого найденного файла отключён. Массовая запись во все каталоги `%APPDATA%\Siemens\*` и `%LOCALAPPDATA%\Siemens\*` удалена.
 
-## 9. Обновление
+При обновлении сохраняются кодировка, BOM и окончания строк исходного файла.
 
-Рекомендуемый порядок:
-
-```powershell
-git pull --ff-only origin main
-powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_HotkeyStudio\build.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File .\NX2512_CommandBridge\build.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.ps1
-```
-
-Затем отдельно обновите Control Center:
+## 13. Проверка после установки
 
 ```powershell
-dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj `
-  -c Release -r win-x64 --self-contained false `
-  -o .\dist\control-center
+$root = "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000"
+& "$root\NX2512_HotkeyStudio.exe" health --config "$root\nx2512-pro-hybrid.json"
 ```
 
-## 10. Версии MenuScript
+Ожидается:
 
-NX 2512 ожидает:
+```text
+MenuScript versions: OK
+Managed package: OK
+```
 
-| Тип | Версия |
-|---|---:|
-| `.men` | `VERSION 139` |
-| `.tbr` и `.rtb` | `VERSION 170` |
+При закрытом NX значение `Bridge loaded: нет` нормально.
 
-Не копируйте версию из одного типа файла в другой.
+## 14. Восстановление
 
-## 11. Удаление управляемой установки
-
-1. Закройте NX и HotkeyStudio.
-2. Сохраните нужные пользовательские JSON-профили.
-3. Удалите каталог `%LOCALAPPDATA%\NXKeys\managed\NX2512.6000`.
-4. При необходимости удалите runtime-данные из `%LOCALAPPDATA%\NXKeys`.
-
-Не удаляйте `backups`, пока не убедитесь, что восстановление больше не требуется.
-
-Если использовался `existing-custom-dirs`, восстановите исходный `custom_dirs.dat` из резервной копии либо вручную удалите только строку NXKeys.
-
-## 12. Проверка после установки
+Список резервных копий:
 
 ```powershell
-go test ./...
-go vet ./...
-dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64
-dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64
+& "$root\NX2512_HotkeyStudio.exe" backups --config "$root\nx2512-pro-hybrid.json"
 ```
 
-Для ошибок установки используйте [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+Восстановление конкретного manifest:
+
+```powershell
+& "$root\NX2512_HotkeyStudio.exe" restore `
+  --config "$root\nx2512-pro-hybrid.json" `
+  --manifest "$env:LOCALAPPDATA\NXKeys\backups\<timestamp>\manifest.json"
+```
+
+`--force` применяется только после проверки, если файлы были изменены после установки.
+
+## 15. Удаление
+
+Закройте NX и сохраните нужные пользовательские профили. Затем удалите managed root:
+
+```powershell
+Remove-Item "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000" -Recurse -Force
+```
+
+При `managed-wrapper` установка Siemens не изменяется, поэтому дополнительных действий не требуется.
