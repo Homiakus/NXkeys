@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using NX2512_HotkeyStudio.Models;
+using NXKeys.StateMachines;
 
 namespace NX2512_HotkeyStudio.Services
 {
@@ -11,16 +12,14 @@ namespace NX2512_HotkeyStudio.Services
     {
         public bool IsVisible { get; set; } = true;
         public bool CanExecute { get; set; } = true;
+        public bool RequiresModuleSwitch { get; set; }
         public string Reason { get; set; } = string.Empty;
         public double Score { get; set; }
     }
 
     public static class AdaptiveLeaderPolicy
     {
-        private static readonly HashSet<string> SharedModules = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "selection_object", "inspect_view", "reuse"
-        };
+        private static readonly ContextGuardEvaluator GuardEvaluator = new ContextGuardEvaluator();
 
         public static LeaderCommandAvailability Evaluate(
             LeaderSequenceItem item,
@@ -37,27 +36,29 @@ namespace NX2512_HotkeyStudio.Services
                 return result;
             }
 
-            string itemModule = NormalizeModule(item.ModuleID, item.Category);
-            string activeModule = string.IsNullOrWhiteSpace(activeModuleId)
-                ? NormalizeModule(context?.ModuleId, string.Empty)
-                : NormalizeModule(activeModuleId, string.Empty);
-
-            bool moduleMatches = string.IsNullOrWhiteSpace(itemModule) ||
-                                 string.IsNullOrWhiteSpace(activeModule) ||
-                                 string.Equals(itemModule, activeModule, StringComparison.OrdinalIgnoreCase) ||
-                                 SharedModules.Contains(itemModule);
-
-            if (!moduleMatches)
-            {
-                result.IsVisible = false;
-                result.CanExecute = false;
-                result.Reason = "Недоступно в текущем модуле";
-                return result;
-            }
+            SequenceDefinition definition = ToDefinition(item);
+            if (!string.IsNullOrWhiteSpace(activeModuleId) && context != null)
+                context.ModuleId = activeModuleId;
+            GuardResult guard = GuardEvaluator.Evaluate(definition, context, true);
 
             result.Score = 100;
-            if (string.Equals(itemModule, activeModule, StringComparison.OrdinalIgnoreCase)) result.Score += 60;
-            if (SharedModules.Contains(itemModule)) result.Score += 20;
+            string normalizedItemModule = ContextGuardEvaluator.NormalizeModule(item.ModuleID);
+            string normalizedActiveModule = ContextGuardEvaluator.NormalizeModule(activeModuleId ?? context?.ModuleId);
+            if (string.Equals(normalizedItemModule, normalizedActiveModule, StringComparison.OrdinalIgnoreCase)) result.Score += 60;
+            if (guard.RequiresModuleSwitch)
+            {
+                result.RequiresModuleSwitch = true;
+                result.CanExecute = true;
+                result.Reason = "Будет выполнено после переключения модуля";
+                result.Score -= 12;
+            }
+            else if (!guard.Allowed)
+            {
+                result.CanExecute = false;
+                result.Reason = guard.Reason;
+                result.Score -= 100;
+            }
+
             if (usage != null)
             {
                 result.Score += Math.Min(35, Math.Log10(usage.ExecutionCount + 1) * 18.0);
@@ -68,38 +69,11 @@ namespace NX2512_HotkeyStudio.Services
                 }
             }
 
-            if (item.RequiresSelection && context != null && context.SelectionCount == 0)
-            {
-                result.CanExecute = false;
-                result.Reason = "Сначала выберите объект";
-                result.Score -= 80;
-            }
-            else if (item.RequiresSelection && context != null && context.SelectionCount < 0)
-            {
-                result.Reason = "Требуется выбор объекта";
-                result.Score -= 8;
-            }
-
-            if (context != null && context.ModalDialogActive)
-            {
-                result.CanExecute = false;
-                result.Reason = "Закройте активный диалог NX";
-                result.Score -= 100;
-            }
-
             if (item.Destructive || item.ConfirmBeforeExecute)
             {
                 result.Score -= 12;
                 if (string.IsNullOrWhiteSpace(result.Reason)) result.Reason = "Требуется подтверждение";
             }
-
-            if (context != null && !context.WorkPartAvailable && NeedsWorkPart(item))
-            {
-                result.CanExecute = false;
-                result.Reason = "Нет активной рабочей детали";
-                result.Score -= 100;
-            }
-
             return result;
         }
 
@@ -116,42 +90,45 @@ namespace NX2512_HotkeyStudio.Services
                     Item = item,
                     Availability = Evaluate(item, context, usageStore?.Get(item), activeModuleId)
                 })
-                .Where(x => x.Availability.IsVisible && (includeUnavailable || x.Availability.CanExecute))
-                .OrderByDescending(x => x.Availability.Score)
-                .ThenBy(x => x.Item.Sequence, StringComparer.OrdinalIgnoreCase)
-                .Select(x => x.Item)
+                .Where(value => value.Availability.IsVisible && (includeUnavailable || value.Availability.CanExecute))
+                .OrderByDescending(value => value.Availability.Score)
+                .ThenBy(value => value.Item.Sequence, StringComparer.OrdinalIgnoreCase)
+                .Select(value => value.Item)
                 .ToList();
+        }
+
+        public static SequenceDefinition ToDefinition(LeaderSequenceItem item)
+        {
+            if (item == null) return null;
+            return new SequenceDefinition
+            {
+                Id = NormalizeSequence(item.Sequence),
+                Sequence = item.Sequence ?? string.Empty,
+                ModuleId = NormalizeModule(item.ModuleID, item.Category),
+                CommandId = item.Command?.ID ?? string.Empty,
+                CommandName = item.Command?.Name ?? string.Empty,
+                SearchText = string.Join(" ", new[] { item.Category, item.Notes, item.Fallback }),
+                RequiresSelection = item.RequiresSelection,
+                MinimumSelectionCount = 1,
+                NeedsWorkPart = ContextGuardEvaluator.CommandNeedsWorkPart(item.Command?.ID),
+                Destructive = item.Destructive,
+                ConfirmBeforeExecute = item.ConfirmBeforeExecute || item.Destructive,
+                Enabled = item.Enabled
+            };
         }
 
         public static string NormalizeModule(string moduleId, string category)
         {
             string value = !string.IsNullOrWhiteSpace(moduleId) ? moduleId : category;
-            value = (value ?? string.Empty).Trim().ToLowerInvariant().Replace(' ', '_');
-            switch (value)
-            {
-                case "view":
-                case "inspect":
-                case "inspect_/_view": return "inspect_view";
-                case "selection_filters":
-                case "selection": return "selection_object";
-                case "cam_/_manufacturing":
-                case "cam": return "manufacturing";
-                case "cae_/_simulation":
-                case "cae": return "simulation";
-                case "mold_/_tooling": return "mold";
-                case "reuse_/_templates": return "reuse";
-                default: return value;
-            }
+            return ContextGuardEvaluator.NormalizeModule(value);
         }
 
-        private static bool NeedsWorkPart(LeaderSequenceItem item)
+        public static string NormalizeSequence(string sequence)
         {
-            string id = item?.Command?.ID ?? string.Empty;
-            if (id.StartsWith("UG_FILE_", StringComparison.OrdinalIgnoreCase)) return false;
-            if (id.StartsWith("UG_APP_", StringComparison.OrdinalIgnoreCase)) return false;
-            if (id.StartsWith("UG_VIEW_", StringComparison.OrdinalIgnoreCase)) return false;
-            if (id.StartsWith("UG_HELP_", StringComparison.OrdinalIgnoreCase)) return false;
-            return true;
+            return new string((sequence ?? string.Empty)
+                .Where(char.IsLetterOrDigit)
+                .Select(char.ToUpperInvariant)
+                .ToArray());
         }
     }
 
@@ -184,7 +161,14 @@ namespace NX2512_HotkeyStudio.Services
             string key = Key(item);
             lock (sync)
             {
-                if (entries.TryGetValue(key, out LeaderUsageSnapshot value)) return value;
+                if (entries.TryGetValue(key, out LeaderUsageSnapshot value))
+                {
+                    return new LeaderUsageSnapshot
+                    {
+                        ExecutionCount = value.ExecutionCount,
+                        LastExecutedUtc = value.LastExecutedUtc
+                    };
+                }
                 return new LeaderUsageSnapshot();
             }
         }
@@ -209,7 +193,7 @@ namespace NX2512_HotkeyStudio.Services
         private static string Key(LeaderSequenceItem item)
         {
             string id = item.Command?.ID ?? item.Command?.Name ?? string.Empty;
-            return (item.Sequence ?? string.Empty).Replace(" ", string.Empty).ToUpperInvariant() + "|" + id.ToUpperInvariant();
+            return AdaptiveLeaderPolicy.NormalizeSequence(item.Sequence) + "|" + id.ToUpperInvariant();
         }
 
         private void Load()
@@ -217,27 +201,22 @@ namespace NX2512_HotkeyStudio.Services
             try
             {
                 if (!File.Exists(path)) return;
-                Dictionary<string, LeaderUsageSnapshot> data = JsonSerializer.Deserialize<Dictionary<string, LeaderUsageSnapshot>>(File.ReadAllText(path));
+                Dictionary<string, LeaderUsageSnapshot> data =
+                    JsonSerializer.Deserialize<Dictionary<string, LeaderUsageSnapshot>>(File.ReadAllText(path));
                 if (data == null) return;
                 foreach (var pair in data) entries[pair.Key] = pair.Value;
             }
             catch
             {
+                string corrupt = path + ".corrupt-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                try { if (File.Exists(path)) File.Move(path, corrupt); } catch { }
             }
         }
 
         private void Save()
         {
-            try
-            {
-                string temp = path + ".tmp";
-                File.WriteAllText(temp, JsonSerializer.Serialize(entries, new JsonSerializerOptions { WriteIndented = true }));
-                File.Copy(temp, path, true);
-                File.Delete(temp);
-            }
-            catch
-            {
-            }
+            string json = JsonSerializer.Serialize(entries, new JsonSerializerOptions { WriteIndented = true });
+            AtomicFileWriter.WriteAllText(path, json + Environment.NewLine, true);
         }
     }
 }
