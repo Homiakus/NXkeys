@@ -12,7 +12,6 @@ namespace NX2512_HotkeyStudio.Services
     {
         public bool IsVisible { get; set; } = true;
         public bool CanExecute { get; set; } = true;
-        public bool RequiresModuleSwitch { get; set; }
         public string Reason { get; set; } = string.Empty;
         public double Score { get; set; }
     }
@@ -36,21 +35,20 @@ namespace NX2512_HotkeyStudio.Services
                 return result;
             }
 
-            SequenceDefinition definition = ToDefinition(item);
-            GuardResult guard = GuardEvaluator.Evaluate(definition, context, true);
-
-            result.Score = 100;
-            string normalizedItemModule = ContextGuardEvaluator.NormalizeModule(item.ModuleID);
-            string normalizedActiveModule = ContextGuardEvaluator.NormalizeModule(activeModuleId ?? context?.ModuleId);
-            if (string.Equals(normalizedItemModule, normalizedActiveModule, StringComparison.OrdinalIgnoreCase)) result.Score += 60;
-            if (guard.RequiresModuleSwitch)
+            string itemModule = ContextGuardEvaluator.NormalizeModule(item.ModuleID);
+            string activeModule = ContextGuardEvaluator.NormalizeModule(activeModuleId ?? context?.ModuleId);
+            if (string.IsNullOrWhiteSpace(activeModule) ||
+                !string.Equals(itemModule, activeModule, StringComparison.OrdinalIgnoreCase))
             {
-                result.RequiresModuleSwitch = true;
-                result.CanExecute = true;
-                result.Reason = "Будет выполнено после переключения модуля";
-                result.Score -= 12;
+                result.IsVisible = false;
+                result.CanExecute = false;
+                result.Reason = "Команда принадлежит другому модулю NX";
+                return result;
             }
-            else if (!guard.Allowed)
+
+            GuardResult guard = GuardEvaluator.Evaluate(ToDefinition(item), context, false);
+            result.Score = 160;
+            if (!guard.Allowed)
             {
                 result.CanExecute = false;
                 result.Reason = guard.Reason;
@@ -90,7 +88,7 @@ namespace NX2512_HotkeyStudio.Services
                 })
                 .Where(value => value.Availability.IsVisible && (includeUnavailable || value.Availability.CanExecute))
                 .OrderByDescending(value => value.Availability.Score)
-                .ThenBy(value => value.Item.Sequence, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(value => value.Item.InputKey, StringComparer.OrdinalIgnoreCase)
                 .Select(value => value.Item)
                 .ToList();
         }
@@ -105,9 +103,9 @@ namespace NX2512_HotkeyStudio.Services
                 ModuleId = NormalizeModule(item.ModuleID, item.Category),
                 CommandId = item.Command?.ID ?? string.Empty,
                 CommandName = item.Command?.Name ?? string.Empty,
-                SearchText = string.Join(" ", new[] { item.Category, item.Notes, item.Fallback }),
+                SearchText = string.Join(" ", new[] { item.Category, item.Slot, item.InputKey, item.Notes, item.Fallback }),
                 RequiresSelection = item.RequiresSelection,
-                MinimumSelectionCount = 1,
+                MinimumSelectionCount = item.RequiresSelection ? 1 : 0,
                 NeedsWorkPart = ContextGuardEvaluator.CommandNeedsWorkPart(item.Command?.ID),
                 Destructive = item.Destructive,
                 ConfirmBeforeExecute = item.ConfirmBeforeExecute || item.Destructive,
@@ -145,9 +143,7 @@ namespace NX2512_HotkeyStudio.Services
 
         public LeaderUsageStore()
         {
-            string root = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "NXKeys");
+            string root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys");
             Directory.CreateDirectory(root);
             path = Path.Combine(root, "leader-usage.json");
             Load();
@@ -156,27 +152,19 @@ namespace NX2512_HotkeyStudio.Services
         public LeaderUsageSnapshot Get(LeaderSequenceItem item)
         {
             if (item == null) return new LeaderUsageSnapshot();
-            string key = Key(item);
             lock (sync)
             {
-                if (entries.TryGetValue(key, out LeaderUsageSnapshot value))
-                {
-                    return new LeaderUsageSnapshot
-                    {
-                        ExecutionCount = value.ExecutionCount,
-                        LastExecutedUtc = value.LastExecutedUtc
-                    };
-                }
-                return new LeaderUsageSnapshot();
+                if (!entries.TryGetValue(Key(item), out LeaderUsageSnapshot value)) return new LeaderUsageSnapshot();
+                return new LeaderUsageSnapshot { ExecutionCount = value.ExecutionCount, LastExecutedUtc = value.LastExecutedUtc };
             }
         }
 
         public void Record(LeaderSequenceItem item)
         {
             if (item == null) return;
-            string key = Key(item);
             lock (sync)
             {
+                string key = Key(item);
                 if (!entries.TryGetValue(key, out LeaderUsageSnapshot value))
                 {
                     value = new LeaderUsageSnapshot();
@@ -191,7 +179,7 @@ namespace NX2512_HotkeyStudio.Services
         private static string Key(LeaderSequenceItem item)
         {
             string id = item.Command?.ID ?? item.Command?.Name ?? string.Empty;
-            return AdaptiveLeaderPolicy.NormalizeSequence(item.Sequence) + "|" + id.ToUpperInvariant();
+            return ContextGuardEvaluator.NormalizeModule(item.ModuleID) + "|" + id.ToUpperInvariant();
         }
 
         private void Load()
@@ -202,7 +190,7 @@ namespace NX2512_HotkeyStudio.Services
                 Dictionary<string, LeaderUsageSnapshot> data =
                     JsonSerializer.Deserialize<Dictionary<string, LeaderUsageSnapshot>>(File.ReadAllText(path));
                 if (data == null) return;
-                foreach (var pair in data) entries[pair.Key] = pair.Value;
+                foreach (KeyValuePair<string, LeaderUsageSnapshot> pair in data) entries[pair.Key] = pair.Value;
             }
             catch
             {
