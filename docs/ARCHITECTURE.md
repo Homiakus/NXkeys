@@ -1,237 +1,360 @@
 # Архитектура NXKeys
 
-## 1. Назначение системы
+## 1. Цель
 
-NXKeys разделяет редактирование профиля, генерацию файлов NX, выполнение UI-команд и исследование API. Такое разделение уменьшает риск изменения NX и позволяет проверять каждый слой отдельно.
+NXKeys построен как единый C#-контур для Siemens NX 2512. Все основные операции используют общие модели конфигурации, единый сканер, один deployment engine и один launcher.
+
+Основные цели:
+
+- исключить расхождение нескольких реализаций развёртывания;
+- не изменять установку Siemens;
+- обеспечить транзакционную установку;
+- выполнять команды только через проверенный контекст NX;
+- разделить UI-команды и низкоуровневый NXOpen/UFUN-каталог;
+- сохранять возможность полного восстановления.
 
 ## 2. Компоненты
 
 ```text
-JSON-профиль
-   │
-   ├── Go CLI/TUI ── сканирование, план, MenuScript, backup/restore
-   │
-   ├── HotkeyStudio ── редактор, Leader HUD, deploy, health
-   │        │
-   │        └── файловая очередь Bridge
-   │                 │
-   │                 └── NX2512_CommandBridge.dll внутри NX
-   │
-   ├── Control Center ── контекстный обзор, настройки, API Explorer
-   │
-   └── Catalog Studio ── CSV-каталог UI/NXOpen/UFUN
+config/nx2512-pro-hybrid.json
+              │
+              ▼
+NX2512_HotkeyStudio
+ ├─ WinForms UI
+ ├─ C# CLI
+ ├─ NxScanner
+ ├─ CommandResolver
+ ├─ DeploymentEngine
+ ├─ NxRuntimeService
+ ├─ LeaderKeyEngine
+ ├─ BackupEngine
+ └─ HealthService
+      │
+      ├───────────────┐
+      ▼               ▼
+managed package   bridge queue
+      │               │
+      ▼               ▼
+C# NX launcher    NX2512_CommandBridge.dll
+      │               │
+      └──────► Siemens NX ◄──────┘
+
+NX2512_ControlCenter
+ ├─ Adaptive Leader overview
+ ├─ coverage metrics
+ ├─ bridge context
+ └─ NX API Explorer
+
+NX2512_Catalog_Studio
+ └─ NXOpen/UFUN/UI catalog export
 ```
 
-### Go CLI/TUI
-
-Пакеты:
-
-- `internal/config` — загрузка, значения по умолчанию и валидация;
-- `internal/discovery` — ограниченное сканирование файлов NX;
-- `internal/nxmenu` — чтение MenuScript, каталог и генерация оверлея;
-- `internal/engine` — планирование и применение;
-- `internal/backup` — резервные копии и восстановление;
-- `internal/tui` — интерфейс Bubble Tea/Lip Gloss.
-
-### HotkeyStudio
-
-WinForms-приложение выполняет:
-
-- редактирование JSON-профиля;
-- поиск и разрешение команд;
-- управление Leader Hook/HUD;
-- редактирование radial-планов;
-- развёртывание;
-- health-check;
-- просмотр очередей Bridge;
-- восстановление резервных копий.
-
-### Adaptive Control Center
-
-Control Center использует модели и сервисы HotkeyStudio через ссылку на проект. Он не дублирует полный редактор, а предоставляет компактный слой:
-
-- обзор профиля и Bridge;
-- контекстно ранжированный список Leader-команд;
-- основные настройки Leader;
-- запуск HotkeyStudio/Leader;
-- поиск по CSV-каталогу API.
-
-### Command Bridge
-
-`NX2512_CommandBridge.dll` работает внутри процесса NX.
-
-Основной поток:
-
-```text
-HotkeyStudio/Leader
-  → pending/<request>.json
-  → FileSystemWatcher или периодический опрос
-  → GetButtonFromName(BUTTON_ID)
-  → проверка Availability/Sensitivity
-  → InvokeMenuButtonAction
-  → completed или failed
-  → context.json/status.json/log
-```
-
-Файловая очередь выбрана как простая диагностируемая граница между внешним интерфейсом и процессом NX.
-
-### Catalog Studio
-
-Catalog Studio инвентаризирует:
-
-- UI `BUTTON ID`;
-- сборки и пространства имён NXOpen;
-- типы и члены;
-- вероятные точки входа;
-- UFUN-заголовки/функции;
-- кандидатный crosswalk UI → API.
-
-Между UI-кнопкой и API-методом часто нет однозначного соответствия. Поэтому crosswalk не используется как автоматическое доказательство эквивалентности.
+Go CLI/TUI удалён. Каталоги `cmd/`, `internal/`, `go.mod` и Go build-скрипты больше не входят в архитектуру.
 
 ## 3. Источник истины
 
+Единственный редактируемый источник конфигурации:
+
 ```text
-config/*.json
+config/nx2512-pro-hybrid.json
 ```
 
-Производные артефакты:
+Производные файлы:
 
-- `.men`;
-- `.tbr`;
-- `.rtb`;
+- `nxkeys_generated.men`;
+- `nxkeys_ribbon.rtb`;
+- `nxkeys_toolbar.tbr`;
 - `custom_dirs.dat`;
-- launcher `.cmd`;
-- `resolution-report.md`;
-- `radial-menu-plan.*`;
-- runtime-очереди и журналы.
+- CMD launchers;
+- отчёт разрешения;
+- radial-план;
+- `package-manifest.json`.
 
-Редактирование производного файла без изменения JSON будет потеряно при следующем применении.
+Производные файлы не редактируются вручную.
 
-## 4. Контекст Leader
+## 4. Сканирование
 
-Контекст содержит или может содержать:
+`NxScanner` собирает корни из:
+
+- `scan.roots`;
+- `scan.install_hints`;
+- `scan.profile_hints`;
+- `UGII_BASE_DIR`;
+- `UGII_ROOT_DIR`;
+- `UGII_USER_PROFILE_DIR`;
+- `UGII_SITE_DIR`;
+- `UGOPEN`;
+- `UGII_CUSTOM_DIRECTORY_FILE`;
+- стандартных каталогов Siemens в Program Files и AppData.
+
+Ограничения:
+
+- `max_depth`;
+- `max_files`;
+- symbolic links/reparse points не обходятся без `follow_symlinks: true`;
+- launcher-файлы учитываются только при наличии NX-маркеров;
+- ошибки доступа сохраняются как предупреждения.
+
+## 5. API-каталог
+
+Порядок разрешения каталога:
+
+1. явный `--catalog`;
+2. переменная `NXKEYS_CATALOG_DIR`;
+3. наиболее свежий каталог под `%LOCALAPPDATA%\NXKeys\catalog`.
+
+Абсолютные пути рабочего компьютера разработчика запрещены.
+
+Ключ кэша включает:
+
+- пути MenuScript-файлов;
+- размеры;
+- время изменения;
+- все используемые CSV API-каталога;
+- версию схемы сканера;
+- версию NX.
+
+Кэш сохраняет как команды, так и crosswalk entries.
+
+## 6. План развёртывания
+
+`DeploymentEngine.BuildPlan`:
+
+1. разрешает горячие клавиши;
+2. определяет конфликты;
+3. формирует MenuScript;
+4. формирует отчёт разрешения;
+5. формирует radial-план;
+6. показывает managed root и число подтверждённых команд.
+
+Неразрешённые и неоднозначные команды не должны попадать в активный overlay.
+
+## 7. Транзакционный deployment
+
+`DeploymentEngine.ApplyPlan` использует следующие фазы.
+
+### 7.1. Проверка
+
+- валидируется профиль;
+- проверяется план;
+- проверяется состояние NX;
+- проверяются обязательные артефакты;
+- вычисляются полные пути;
+- запрещается неявный выбор existing `custom_dirs.dat`.
+
+### 7.2. Формирование набора
+
+В управляемый набор входят:
+
+- HotkeyStudio runtime;
+- канонический профиль;
+- MenuScript;
+- ribbon/toolbar;
+- C# launcher;
+- Bridge только в `custom\application`;
+- Control Center в отдельной подпапке;
+- отчёты;
+- роль `.mtx`, только если включена явно.
+
+### 7.3. Staging
+
+Каждый файл сначала сохраняется во временный staging-каталог:
+
+```text
+%LOCALAPPDATA%\NXKeys\staging\<guid>
+```
+
+После записи проверяется SHA-256.
+
+### 7.4. Backup
+
+До изменения целевых файлов создаётся backup manifest. Он включает:
+
+- изменяемые файлы;
+- новые файлы;
+- файлы, которые будут удалены как устаревшие;
+- package manifest.
+
+### 7.5. Commit
+
+Запись выполняет `AtomicFileWriter`:
+
+1. создаёт временный файл в каталоге назначения;
+2. записывает с `WriteThrough`;
+3. выполняет `Flush(true)`;
+4. сохраняет локальную rollback-копию существующего файла;
+5. заменяет целевой файл;
+6. восстанавливает исходный файл при ошибке replace/move;
+7. повторяет операцию при временной блокировке.
+
+### 7.6. Удаление устаревших файлов
+
+Удаляются только пути, которые:
+
+- перечислены в предыдущем `package-manifest.json`;
+- находятся внутри текущего `managed_root`;
+- отсутствуют в новом наборе.
+
+Произвольные пользовательские файлы не удаляются.
+
+### 7.7. Package manifest
+
+`package-manifest.json` записывается последним и содержит:
+
+- schema version;
+- package version;
+- target NX;
+- managed root;
+- дату;
+- относительный путь каждого файла;
+- SHA-256;
+- размер;
+- обязательность.
+
+### 7.8. Post-check
+
+После commit-фазы проверяются:
+
+- существование каждого файла;
+- соответствие SHA-256;
+- отсутствие выхода относительных путей за managed root.
+
+### 7.9. Rollback
+
+Любое исключение после создания backup вызывает принудительное восстановление backup manifest.
+
+## 8. Existing custom directories
+
+Режим `existing-custom-dirs` больше не сканирует и не изменяет все подпапки Siemens.
+
+Требуется явный путь:
 
 ```json
 {
-  "schema_version": 1,
-  "revision": 0,
-  "status": "running",
-  "application_id": "UG_APP_MODELING",
-  "module_id": "modeling",
-  "module_label": "Modeling",
-  "selection_count": -1,
-  "work_part_available": true,
-  "display_part_available": true,
-  "modal_dialog_active": false,
-  "updated_utc": "..."
+  "deployment": {
+    "mode": "existing-custom-dirs",
+    "existing_custom_dirs_file": "D:\\NX\\custom_dirs.dat",
+    "patch_existing_custom_dirs": true
+  }
 }
 ```
 
-`-1` для `selection_count` означает, что количество выбранных объектов неизвестно. Потребитель не должен интерпретировать неизвестное значение как гарантированное отсутствие выбора.
+`TextFileCodec` сохраняет:
 
-Текущий Bridge гарантированно публикует активное приложение, модуль, время и последний результат. Расширенные поля зависят от фактически установленной версии Bridge.
+- UTF-8 / UTF-8 BOM;
+- UTF-16 LE/BE;
+- системную кодировку при невозможности строгого UTF-8 decode;
+- CRLF или LF;
+- существующие строки.
 
-## 5. AdaptiveLeaderPolicy
+## 9. Запуск NX
 
-Оценка команды состоит из:
-
-- базового веса;
-- бонуса совпадения модуля;
-- бонуса общего слоя;
-- частоты и давности использования;
-- штрафа за разрушительность;
-- блокировки при известном отсутствии требуемого выбора;
-- блокировки при известном модальном диалоге;
-- блокировки при известном отсутствии рабочей детали.
-
-Control Center применяет политику для отображения. Интеграцию одной и той же политики непосредственно в Leader HUD следует рассматривать как отдельный этап развития, пока код HUD использует собственные индексы и правила видимости.
-
-## 6. Протокол Bridge
-
-Запрос схемы v2:
-
-```json
-{
-  "schema_version": 2,
-  "request_id": "...",
-  "action": "execute_command",
-  "command_id": "UG_...",
-  "command_name": "...",
-  "sequence": "M E",
-  "module_id": "modeling",
-  "target_application_id": "",
-  "created_utc": "...",
-  "expires_utc": "...",
-  "source_process_id": 1234,
-  "expected_context_revision": 0,
-  "expected_selection_count": -1
-}
-```
-
-Поля ожидания контекста позволяют развивать защиту от выполнения устаревшей команды. Потребитель Bridge должен сохранять обратную совместимость с запросами старой схемы.
-
-## 7. Развёртывание
-
-### managed-wrapper
-
-Создаёт отдельное дерево и launcher, который задаёт `UGII_CUSTOM_DIRECTORY_FILE` только для запущенного процесса NX.
-
-Преимущества:
-
-- минимальное влияние на существующую настройку;
-- простое удаление;
-- предсказуемый набор файлов;
-- удобное тестирование.
-
-### existing-custom-dirs
-
-Подключает NXKeys к существующему списку custom directories. Используется только при осознанной интеграции с корпоративной конфигурацией.
-
-## 8. Версии MenuScript
-
-Генераторы обязаны сохранять:
+Сгенерированный CMD не формирует среду NX самостоятельно. Он вызывает:
 
 ```text
-.men       VERSION 139
-.tbr/.rtb  VERSION 170
+NX2512_HotkeyStudio.exe launch
 ```
 
-## 9. Состояние и журналы
+`NxRuntimeService`:
+
+1. разрешает `ugraf.exe` из профиля, environment hints и стандартных путей;
+2. предпочитает путь, соответствующий версии профиля;
+3. проверяет файл;
+4. проверяет `custom_dirs.dat`;
+5. запускает Leader Engine через single-instance signal;
+6. создаёт дочерний процесс NX;
+7. задаёт только `UGII_CUSTOM_DIRECTORY_FILE`;
+8. передаёт аргументы через `ProcessStartInfo.ArgumentList`.
+
+`PATH` и `UGII_USER_DIR` не изменяются.
+
+## 10. Определение запущенного NX
+
+Единый `NxRuntimeService` проверяет процессы:
+
+- `ugraf`;
+- `run_nx`;
+- `nx` только при подтверждении по пути или описанию Siemens/Designcenter/NXBIN.
+
+Эта же логика используется launcher, installer и health-check.
+
+## 11. Leader Engine
+
+`LeaderKeyEngine` работает вне процесса NX и использует:
+
+- глобальный keyboard hook;
+- single-instance mutex;
+- event handles для GUI/toggle/start;
+- context-файл Bridge;
+- последовательности профиля;
+- подтверждение опасных команд.
+
+`AdaptiveLeaderPolicy` ранжирует команды по модулю, выбору, рабочей детали, модальному диалогу, частоте и давности использования.
+
+## 12. Command Bridge
+
+Bridge загружается только из:
 
 ```text
-%LOCALAPPDATA%\NXKeys\
-├─ backups
-├─ bridge
-├─ cache
-├─ catalog
-├─ logs
-└─ leader-usage.json
+custom\application\NX2512_CommandBridge.dll
 ```
 
-Runtime-данные не должны попадать в Git.
+Вторая DLL в `custom\startup` не создаётся.
 
-## 10. Тестовые границы
+Файловый протокол:
 
-Минимальный набор проверок:
+```text
+HotkeyStudio/Leader
+       │
+       ▼
+bridge\pending\<request>.json
+       │
+       ▼
+NX2512_CommandBridge внутри NX
+       │
+       ├─ completed
+       └─ failed
+```
 
-- unit-тесты Go;
-- `go vet`;
-- сборка HotkeyStudio;
-- сборка Control Center;
-- сборка Bridge против целевых NXOpen DLL;
-- JSON-валидация профилей;
-- равенство распространяемых и встроенных профилей;
-- тест генерации MenuScript;
-- тест backup/restore;
-- ручной runtime-тест внутри NX для каждого критичного `BUTTON ID`.
+Bridge проверяет `MenuButton`, availability, sensitivity и результат вызова.
 
-## 11. Направления развития
+## 13. Control Center
 
-- единая схема JSON для Go и C#;
-- полная проверка уникальности Leader-последовательностей;
-- публикация расширенного контекста непосредственно Bridge;
-- интеграция AdaptiveLeaderPolicy в HUD;
-- версионированный SQLite-каталог API;
-- строгие API-карточки с сигнатурами и примерами;
-- телеметрия выполнения без содержимого пользовательских моделей;
-- измеряемое workflow-покрытие по ролям пользователей.
+Control Center не заменяет runtime engine. Он:
+
+- показывает профиль;
+- отображает bridge context;
+- рассчитывает базовые метрики;
+- ранжирует Leader-команды;
+- объясняет недоступность;
+- ищет NXOpen/UFUN/UI candidates.
+
+## 14. Catalog Studio
+
+Catalog Studio формирует CSV-наборы:
+
+- NXOpen assemblies/namespaces/types;
+- members;
+- entry points;
+- UI buttons;
+- UFUN functions;
+- UI → API candidates.
+
+Crosswalk является эвристикой и не считается доказательством эквивалентности API-вызова UI-команде.
+
+## 15. Build и CI
+
+Репозиторий содержит только C#-исходники и PowerShell build/install wrappers.
+
+CI:
+
+- проверяет отсутствие `.go` и `go.mod`;
+- валидирует JSON;
+- собирает HotkeyStudio;
+- публикует HotkeyStudio;
+- выполняет C# `validate`;
+- собирает и публикует Control Center;
+- проверяет deployment-инварианты;
+- формирует Windows x64 artifact.
+
+CommandBridge собирается локально, поскольку требует проприетарные NXOpen DLL установленной версии Siemens NX.
