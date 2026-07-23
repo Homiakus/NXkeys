@@ -62,6 +62,11 @@ try {
   if (/<link[^>]+rel=["']stylesheet["']/i.test(html)) fail("Command tree must not depend on external stylesheets.");
   if (!/<html\s+lang=["']ru["']/i.test(html)) fail("Command tree must declare lang=ru.");
   if (!/<meta\s+name=["']viewport["']/i.test(html)) fail("Responsive viewport is missing.");
+  const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(match => match[1]);
+  if (inlineScripts.length !== 1) fail(`Expected one inline application script, got ${inlineScripts.length}.`);
+  for (const script of inlineScripts) {
+    try { new Function(script); } catch (error) { fail(`Inline JavaScript syntax error: ${error.message}`); }
+  }
   if (!policy.timeouts || !policy.commands) fail("State-machine policy lacks timeouts or command guards.");
 
   if (!readme.includes("docs/command-tree.html")) fail("Root README must link to the command tree.");
