@@ -1,51 +1,144 @@
-# NXKeys 0.1.0 — build and validation report
+# NXKeys — состояние сборки и поставки
 
-Date: 2026-07-21
+Дата актуализации: 23 июля 2026 года.
 
-## Delivered scope
+Целевая платформа: Windows x64, Siemens NX 2512, .NET 8 и Go 1.25.
 
-- Go application with Bubble Tea v2 and Lip Gloss v2 TUI.
-- Windows-oriented NX 2512 installation/profile scanner.
-- MenuScript command catalog parser for `BUTTON`, `LABEL`, `SYNONYMS`, `MESSAGE`, and `ACCELERATOR`.
-- Safe command resolution by exact ID, label, aliases, and guarded fuzzy matching.
-- JSON-only configuration source.
-- 47 keyboard bindings from the supplied NX Pro Hybrid specification.
-- 3 Application Radial layouts and 4 Object Radial layouts.
-- Dry-run and deterministic change plan.
-- Atomic writes.
-- SHA-256 backup manifest and guarded restore.
-- Managed `UGII_CUSTOM_DIRECTORY_FILE` launcher.
-- Optional deployment of a known-good exported NX `.mtx` role.
+## Реализованные компоненты
 
-## Validation performed
+### Go CLI/TUI
 
-The following checks passed in the build sandbox:
+- Bubble Tea v2 и Lip Gloss v2;
+- сканирование установки и профилей NX;
+- парсер MenuScript;
+- разрешение команд по ID, имени и aliases;
+- планирование изменений;
+- dry-run;
+- атомарная запись;
+- резервные копии SHA-256;
+- контролируемое восстановление;
+- managed-wrapper.
 
-- `gofmt` on all Go sources;
-- JSON syntax validation for both default configuration copies;
-- equality check between distributable and embedded JSON defaults;
-- unit tests for config, menu parsing/resolution, backup, and engine packages;
-- full package compile/type check using local Bubble Tea/Lip Gloss interface stubs;
-- `go vet` across all packages using those interfaces;
-- end-to-end simulation against a fake NX 2512 menu tree:
-  - scan;
-  - command resolution;
-  - plan;
-  - dry-run;
-  - apply;
-  - generated `ACCELERATOR` verification;
-  - backup listing;
-  - restore.
+### NX2512_HotkeyStudio
 
-## Toolchain note
+- WinForms-интерфейс;
+- редактирование горячих клавиш;
+- Leader Key и HUD;
+- radial-планы;
+- поиск по каталогу команд;
+- развёртывание;
+- health-check;
+- просмотр Bridge;
+- резервные копии и профиль.
 
-The project pins:
+### NX2512_CommandBridge
 
-- `charm.land/bubbletea/v2 v2.0.8`;
-- `charm.land/lipgloss/v2 v2.0.5`.
+- загрузка в процесс NX через NXOpen;
+- файловая очередь запросов;
+- выполнение точного `BUTTON ID`;
+- проверка доступности и чувствительности кнопки;
+- переключение приложения NX;
+- completed/failed-результаты;
+- статус, контекст и журнал.
 
-Both require Go 1.25. The sandbox did not have online module download or a Go 1.25 toolchain, so a release Windows executable and `go.sum` were not generated here. On a connected Windows workstation, `scripts/build.ps1` runs `go mod download`, the real dependency build, all tests, and produces `dist/nxkeys-windows-amd64.exe`.
+### NX2512_Catalog_Studio
 
-## Safety boundary
+- инвентаризация сборок и пространств имён NXOpen;
+- типы, члены и точки входа;
+- UI-команды;
+- функции UFUN;
+- кандидатный crosswalk UI → API.
 
-NXKeys deliberately does not decode or modify the internal structure of `user.mtx` or arbitrary `.mtx` files. Keyboard assignments are deployed as a generated MenuScript overlay. Radial menus are represented in JSON and can be deployed automatically only by copying a role exported and tested in NX 2512.
+### NX2512_ControlCenter
+
+- русскоязычный обзор профиля;
+- состояние и свежесть Bridge;
+- контекстно ранжированный список Leader-команд;
+- основные настройки Leader;
+- запуск HotkeyStudio/Leader;
+- NX API Explorer по CSV-каталогу;
+- русско-английское расширение простых запросов.
+
+## Профили
+
+- `config/nx2512-pro-hybrid.json`;
+- `config/nx2512-ergo-80.json`;
+- встроенные копии в `internal/defaults/`;
+- модульные наборы для основных приложений NX;
+- глобальные сочетания, Leader и radial-намерения.
+
+## CI
+
+Workflow `.github/workflows/ci.yml` настроен на `windows-latest` и выполняет:
+
+```text
+go test ./...
+go vet ./...
+go build ./cmd/nxkeys
+dotnet build NX2512_HotkeyStudio
+dotnet build NX2512_ControlCenter
+dotnet publish NX2512_ControlCenter win-x64
+```
+
+Сборка `NX2512_CommandBridge` не включена в общий CI, поскольку требует NXOpen DLL целевой установки Siemens NX.
+
+## Рекомендуемая локальная проверка
+
+```powershell
+go test ./...
+go vet ./...
+dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64
+dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64
+```
+
+Проверка профиля:
+
+```powershell
+$studio = "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe"
+& $studio validate --config .\config\nx2512-pro-hybrid.json
+& $studio plan --config .\config\nx2512-pro-hybrid.json
+& $studio health --config .\config\nx2512-pro-hybrid.json
+```
+
+## Границы подтверждения
+
+Наличие исходного кода и CI-конфигурации не означает, что каждая NX-команда проверена во всех ролях и лицензиях.
+
+Отдельно требуется подтвердить:
+
+- сборку Bridge против фактических NXOpen DLL;
+- загрузку Bridge в целевую сборку NX;
+- каждый критичный `BUTTON ID`;
+- работу в нужном модуле;
+- команды, требующие выбранный объект;
+- опасные операции;
+- экспортированную роль `.mtx`;
+- установку в корпоративной среде.
+
+## Известные ограничения текущей версии
+
+1. Control Center рассчитывает базовую метрику точных `BUTTON ID`, а не полное runtime-покрытие.
+2. AdaptiveLeaderPolicy используется Control Center для ранжирования; HotkeyStudio HUD сохраняет собственную логику.
+3. Клиент Bridge поддерживает расширенный контекст, но текущая библиотека Bridge может не публиковать все поля выбора и рабочей детали.
+4. API Explorer выполняет локальный токенизированный поиск и не генерирует готовый безопасный NXOpen-код.
+5. Control Center публикуется отдельно и пока автоматически не устанавливается `install-nx-ribbon-buttons.ps1`.
+6. Сопоставление UI → API является эвристическим.
+7. `.mtx` копируется целиком и не редактируется.
+
+## Модель безопасности
+
+NXKeys намеренно:
+
+- не изменяет установку Siemens;
+- не патчит неизвестные бинарные форматы;
+- исключает неоднозначные команды;
+- создаёт резервные копии;
+- использует управляемый wrapper;
+- проверяет доступность команды внутри NX;
+- сохраняет ошибки выполнения для диагностики.
+
+Подробности: [docs/SAFETY_MODEL.md](docs/SAFETY_MODEL.md).
+
+## Документация
+
+Начальная страница: [docs/README.md](docs/README.md).
