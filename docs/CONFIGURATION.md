@@ -1,55 +1,103 @@
-# JSON configuration reference
+# Справочник JSON-конфигурации NXKeys
 
-The JSON file is the only editable source of truth. Generated NX files should not be edited manually because the next apply will replace them.
+JSON-профиль является единственным редактируемым источником истины. Сгенерированные файлы NX (`.men`, `.tbr`, `.rtb`), отчёты и планы не следует изменять вручную: следующее применение профиля заменит их.
 
-## Root fields
+## 1. Основные профили
 
-| Field | Meaning |
+```text
+config/nx2512-pro-hybrid.json
+config/nx2512-ergo-80.json
+internal/defaults/nx2512-pro-hybrid.json
+internal/defaults/nx2512-ergo-80.json
+```
+
+Файлы из `config/` предназначены для распространения и редактирования. Копии в `internal/defaults/` встраиваются в Go-приложение и должны оставаться синхронизированными.
+
+## 2. Корневые поля
+
+| Поле | Назначение |
 |---|---|
-| `schema_version` | `1` legacy or `2` modular profile |
-| `profile` | Profile name, NX version and description |
-| `scan` | Search roots and scanner limits |
-| `deployment` | Overlay, backup, launcher and write policy |
-| `keyboard` | Shortcut-to-command bindings |
-| `radials` | Desired radial-menu sectors |
-| `modules` | Module-aware command sets, module switching and radial layouts |
-| `workflow_controls` | Common Accept/OK, Apply, Cancel and Back/Previous Step command references |
-| `performance` | Cache, lazy scan and bridge watcher switches |
-| `role_deployment` | Optional known-good `.mtx` copy operation |
+| `schema_version` | версия структуры: `1` — устаревший плоский профиль, `2` — модульный профиль |
+| `profile` | имя, версия NX и описание профиля |
+| `scan` | корни поиска, подсказки и ограничения сканера |
+| `deployment` | режим установки, пути, резервные копии и политика записи |
+| `keyboard` | глобальные и контекстные сочетания клавиш |
+| `radials` | устаревший общий слой радиальных меню |
+| `modules` | модульные наборы команд, переключение приложений и radial-наборы |
+| `workflow_controls` | общие команды OK, Apply, Cancel и Back |
+| `performance` | кэш каталога, ленивое сканирование и watcher Bridge |
+| `role_deployment` | необязательное копирование проверенной роли `.mtx` |
+| `leader_key` | trigger, таймауты, HUD и последовательности Leader |
 
-## Schema v2 migration
+## 3. Миграция схемы v1 → v2
 
-NXKeys still reads schema v1 files. When HotkeyStudio saves a profile, it writes schema v2 and keeps legacy `keyboard[]` and `radials[]` for compatibility. The new `modules[]` layer becomes the preferred source for Leader HUD, module-specific command lists and modular radial plans.
+NXKeys продолжает читать схему v1. После сохранения через HotkeyStudio профиль записывается как схема v2, при этом `keyboard[]` и `radials[]` сохраняются для совместимости.
 
-## `keyboard[]`
+Предпочтительным источником модульного поведения являются `modules[]` и `leader_key.sequences[]`.
+
+## 4. `profile`
+
+```json
+{
+  "profile": {
+    "name": "NX Pro Hybrid 2512.6000",
+    "nx_version": "2512.6000",
+    "description": "Модульный профиль NXKeys"
+  }
+}
+```
+
+Версия используется для путей управляемого пакета и кэша. Она должна соответствовать целевой установке NX.
+
+## 5. `scan`
+
+```json
+{
+  "scan": {
+    "roots": [],
+    "install_hints": [],
+    "profile_hints": [],
+    "menu_extensions": [".men", ".tbr", ".rtb", ".gly", ".abr"],
+    "role_extensions": [".mtx"],
+    "launcher_extensions": [".bat", ".cmd", ".ps1"],
+    "max_depth": 8,
+    "max_files": 25000,
+    "follow_symlinks": false
+  }
+}
+```
+
+Не увеличивайте `max_depth` и `max_files` без необходимости: сканирование системных и сетевых дисков может быть медленным.
+
+## 6. `keyboard[]`
 
 ```json
 {
   "shortcut": "Ctrl+4",
   "command": {
-    "id": "",
+    "id": "UG_MODELING_EXTRUDE",
     "name": "Extrude",
-    "aliases": []
+    "aliases": ["Выдавливание"]
   },
   "scope": "Modeling",
   "enabled": true,
-  "notes": "NX Pro Hybrid bank"
+  "notes": "Основная операция моделирования"
 }
 ```
 
-Resolution order:
+Порядок разрешения команды:
 
-1. exact `command.id`;
-2. exact normalized label or synonym;
-3. alias match;
-4. fuzzy token and edit-distance score;
-5. refuse if the score is weak or two candidates are too close.
+1. точный `command.id`;
+2. точное нормализованное имя;
+3. псевдоним;
+4. нечёткое совпадение по токенам и расстоянию редактирования;
+5. отказ, если оценка слабая или два кандидата слишком близки.
 
-Use the explicit `id` in production configurations.
+Для производственного профиля задавайте точный `BUTTON ID`. Имя и псевдонимы следует использовать для поиска и читаемости, а не как единственную гарантию выполнения.
 
-## `modules[]`
+## 7. `modules[]`
 
-Each module defines the command set visible when the user is working in that NX application:
+Модуль описывает команды, доступные в конкретном приложении NX.
 
 ```json
 {
@@ -57,51 +105,132 @@ Each module defines the command set visible when the user is working in that NX 
   "label": "Modeling",
   "enabled": true,
   "nx_application_ids": ["UG_APP_MODELING"],
-  "switch_command": {"id": "UG_APP_MODELING", "name": "Modeling"},
+  "switch_command": {
+    "id": "UG_APP_MODELING",
+    "name": "Modeling"
+  },
   "leader_prefix": "M",
   "selection_priorities": [],
-  "command_sets": [
-    {
-      "id": "primary",
-      "label": "Primary",
-      "slot_semantics": {
-        "N": "start/create/open primary object",
-        "NE": "next main process step",
-        "E": "add object/material/dependency",
-        "SE": "transform or replace",
-        "S": "finish/delete/secondary processing",
-        "SW": "remove/reduce/relax",
-        "W": "structure/link/pattern",
-        "NW": "inspect/measure/service command"
-      },
-      "commands": [
-        {
-          "slot": "N",
-          "command": {"id": "UG_CREATE_SKETCH", "name": "Sketch"},
-          "requires_selection": false,
-          "destructive": false,
-          "confirm_before_execute": false,
-          "fallback": ""
-        }
-      ]
-    }
-  ],
+  "command_sets": [],
   "radials": []
 }
 ```
 
-Validation rules:
+Встроенные значения охватывают:
 
-- enabled modules need a unique `id`;
-- commands inside one `command_set` cannot repeat the same `slot`;
-- each command needs either `command.id` or `command.name`;
-- radial directions remain limited to `N NE E SE S SW W NW`.
+- Modeling;
+- Sketch;
+- Assembly;
+- Drafting;
+- PMI;
+- Surface;
+- Sheet Metal;
+- Manufacturing/CAM;
+- Simulation/CAE;
+- Routing;
+- Mold/Tooling;
+- Reuse/Templates;
+- Inspect/View;
+- Selection/Object.
 
-The built-in v2 module defaults cover Modeling, Sketch, Assembly, Drafting, PMI, Surface, Sheet Metal, CAM/Manufacturing, CAE/Simulation, Routing, Mold/Tooling, Reuse/Templates, Inspect/View and Selection/Object. Specialized module commands are recommended starting points; availability depends on installed licenses and NX command catalogs.
+Наличие модуля в профиле не означает наличие лицензии на соответствующее приложение NX.
 
-## `workflow_controls`
+### Наборы команд
 
-`workflow_controls` standardizes the commands users expect while moving between dialogs and modules:
+```json
+{
+  "id": "primary",
+  "label": "Основные команды",
+  "slot_semantics": {
+    "N": "начать или создать",
+    "NE": "следующий основной шаг",
+    "E": "добавить",
+    "SE": "преобразовать или заменить",
+    "S": "завершить или удалить",
+    "SW": "убрать или уменьшить",
+    "W": "структура или размножение",
+    "NW": "проверка или служебная команда"
+  },
+  "commands": [
+    {
+      "slot": "N",
+      "command": {
+        "id": "UG_CREATE_SKETCH",
+        "name": "Sketch"
+      },
+      "requires_selection": false,
+      "destructive": false,
+      "confirm_before_execute": false,
+      "fallback": ""
+    }
+  ]
+}
+```
+
+Правила:
+
+- включённые модули должны иметь уникальный `id`;
+- в одном `command_set` слот не повторяется;
+- команда содержит `id` или `name`;
+- направление radial ограничено `N NE E SE S SW W NW`;
+- разрушительные операции помечаются явно.
+
+## 8. `leader_key`
+
+```json
+{
+  "leader_key": {
+    "enabled": true,
+    "trigger_key": "CapsLock",
+    "hud_delay_ms": 150,
+    "first_key_timeout_ms": 20000,
+    "next_key_timeout_ms": 20000,
+    "sticky_mode_on_double_tap": true,
+    "hud_opacity": 0.95,
+    "hook_only_when_nx_active": true,
+    "sequences": []
+  }
+}
+```
+
+### Последовательность
+
+```json
+{
+  "sequence": "M E",
+  "category": "Modeling",
+  "module_id": "modeling",
+  "enabled": true,
+  "command": {
+    "id": "UG_MODELING_EXTRUDE",
+    "name": "Extrude",
+    "aliases": ["Выдавливание"]
+  },
+  "requires_selection": false,
+  "destructive": false,
+  "confirm_before_execute": false,
+  "fallback": "",
+  "notes": "Основное выдавливание"
+}
+```
+
+Последовательности должны быть уникальными после удаления пробелов и нормализации регистра. Короткая последовательность не должна случайно полностью перекрывать другую ветку.
+
+### Контекстная оценка
+
+`AdaptiveLeaderPolicy` может учитывать:
+
+- совпадение активного модуля;
+- общие модули `selection_object`, `inspect_view`, `reuse`;
+- требование выбранного объекта;
+- активный модальный диалог;
+- наличие рабочей детали;
+- разрушительность;
+- историю использования.
+
+Control Center применяет эту оценку для ранжированного просмотра. Полный Leader HUD HotkeyStudio использует собственный индекс последовательностей и модульный контекст.
+
+## 9. `workflow_controls`
 
 ```json
 {
@@ -115,9 +244,9 @@ The built-in v2 module defaults cover Modeling, Sketch, Assembly, Drafting, PMI,
 }
 ```
 
-HotkeyStudio uses this policy for unsaved configuration edits. Leader HUD uses it for dangerous commands: `Esc` cancels, `Backspace` goes back, and `Enter` confirms.
+`Esc` отменяет, `Backspace` возвращает на предыдущий уровень, `Enter` подтверждает ожидающую опасную команду.
 
-## `performance`
+## 10. `performance`
 
 ```json
 {
@@ -129,30 +258,88 @@ HotkeyStudio uses this policy for unsaved configuration edits. Leader HUD uses i
 }
 ```
 
-When cache is enabled, NXKeys stores parsed catalog data under `%LOCALAPPDATA%\NXKeys\cache\catalog-{nxVersion}-{rootsHash}.json`. The cache is invalidated by menu-file path, size and modification time. HotkeyStudio starts scans in the background when `lazy_studio_scan` is enabled. The Command Bridge uses a file watcher for pending requests and keeps a slower polling fallback.
+Кэш каталога хранится под `%LOCALAPPDATA%\NXKeys\cache`. При сомнениях после обновления NX или каталога удалите кэш и выполните повторное сканирование.
 
-## `deployment.mode`
+## 11. `deployment`
 
-### `managed-wrapper`
+### Рекомендуемый режим `managed-wrapper`
 
-Creates a private custom directory and a `.cmd` launcher that sets `UGII_CUSTOM_DIRECTORY_FILE` for that NX process only. Recommended for first deployment.
+```json
+{
+  "deployment": {
+    "mode": "managed-wrapper",
+    "require_nx_stopped": true,
+    "atomic_writes": true,
+    "dry_run": true,
+    "clear_detected_conflicts": false
+  }
+}
+```
 
-### `existing-custom-dirs`
+Он создаёт приватный custom directory и запускает NX с отдельным `UGII_CUSTOM_DIRECTORY_FILE`.
 
-Adds the NXKeys custom directory to a discovered or configured custom-directory list. This affects every NX launch that consumes that list.
+### Режим `existing-custom-dirs`
 
-## Conflict policy
+```json
+{
+  "deployment": {
+    "mode": "existing-custom-dirs",
+    "existing_custom_dirs_file": "D:\\NX\\custom_dirs.dat",
+    "patch_existing_custom_dirs": true
+  }
+}
+```
 
-`clear_detected_conflicts` defaults to `false`.
+Используйте только после проверки плана и резервной копии.
 
-When enabled, NXKeys emits an empty `ACCELERATOR` directive for conflicting `BUTTON` IDs found in scanned menu files. It cannot reliably inspect opaque role data, so this option does not guarantee that all user-role conflicts are removed.
+### Политика конфликтов
 
-## Radial menus
+`clear_detected_conflicts` по умолчанию равен `false`. При включении NXKeys может вывести пустой `ACCELERATOR` для обнаруженного конфликтующего `BUTTON ID`, однако не может гарантированно найти конфликты внутри непрозрачной роли `.mtx`.
 
-In schema v2, prefer `modules[].radials` for module-specific Application Radials and Object Radials. Legacy `radials` is still read and exported under a separate legacy section. Directions must be one of:
+## 12. Радиальные меню
+
+Для схемы v2 используйте `modules[].radials`. Общий `radials[]` сохранён для совместимости.
 
 ```text
 N NE E SE S SW W NW
 ```
 
-Automatic application requires `role_deployment.enabled: true` and an exported role template.
+Автоматическое применение требует:
+
+```json
+{
+  "role_deployment": {
+    "enabled": true,
+    "source_mtx": "roles\\nx2512-tested-role.mtx"
+  }
+}
+```
+
+NXKeys копирует роль целиком и не изменяет её внутреннюю структуру.
+
+## 13. Валидация
+
+```powershell
+$studio = "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe"
+& $studio validate --config .\config\nx2512-pro-hybrid.json
+& $studio plan --config .\config\nx2512-pro-hybrid.json
+```
+
+Перед `apply` устраните:
+
+- пустые обязательные поля;
+- повторяющиеся сочетания;
+- повторяющиеся Leader-последовательности;
+- команды без ID и имени;
+- неоднозначные сопоставления;
+- неправильные направления radial;
+- несуществующие пути роли или custom directories.
+
+## 14. Рекомендации по сопровождению
+
+1. Храните эталонный профиль в Git.
+2. Локальные пользовательские варианты держите вне репозитория.
+3. После обновления NX повторно создавайте каталог команд.
+4. Сравнивайте точные `BUTTON ID` с целевой сборкой NX.
+5. Применяйте сначала на тестовом профиле и рабочей станции.
+6. Не считайте непустой `BUTTON ID` доказательством доступности команды в любом контексте.
