@@ -2,143 +2,209 @@
 
 Дата актуализации: 23 июля 2026 года.
 
-Целевая платформа: Windows x64, Siemens NX 2512, .NET 8 и Go 1.25.
+Целевая платформа: Windows x64, Siemens NX 2512, .NET 8.
+
+## Архитектурный статус
+
+Проект переведён на единый C#-контур.
+
+Удалены:
+
+- Go CLI/TUI;
+- Bubble Tea и Lip Gloss;
+- `go.mod`;
+- `cmd/nxkeys`;
+- Go-пакеты `internal/*`;
+- Go build-скрипты;
+- `run.cmd`.
+
+Канонический профиль перенесён в:
+
+```text
+config/nx2512-pro-hybrid.json
+```
 
 ## Реализованные компоненты
-
-### Go CLI/TUI
-
-- Bubble Tea v2 и Lip Gloss v2;
-- сканирование установки и профилей NX;
-- парсер MenuScript;
-- разрешение команд по ID, имени и aliases;
-- планирование изменений;
-- dry-run;
-- атомарная запись;
-- резервные копии SHA-256;
-- контролируемое восстановление;
-- managed-wrapper.
 
 ### NX2512_HotkeyStudio
 
 - WinForms-интерфейс;
-- редактирование горячих клавиш;
+- C# CLI;
+- сканирование NX;
+- разрешение UI-команд;
+- генерация MenuScript;
 - Leader Key и HUD;
-- radial-планы;
-- поиск по каталогу команд;
-- развёртывание;
+- транзакционное развёртывание;
+- C# launcher Siemens NX;
+- резервное копирование;
+- восстановление;
 - health-check;
-- просмотр Bridge;
-- резервные копии и профиль.
+- управление Bridge.
 
 ### NX2512_CommandBridge
 
-- загрузка в процесс NX через NXOpen;
+- NXOpen-библиотека x64;
+- загрузка в процесс NX;
 - файловая очередь запросов;
 - выполнение точного `BUTTON ID`;
-- проверка доступности и чувствительности кнопки;
+- проверка availability и sensitivity;
 - переключение приложения NX;
-- completed/failed-результаты;
-- статус, контекст и журнал.
-
-### NX2512_Catalog_Studio
-
-- инвентаризация сборок и пространств имён NXOpen;
-- типы, члены и точки входа;
-- UI-команды;
-- функции UFUN;
-- кандидатный crosswalk UI → API.
+- completed/failed результаты;
+- status/context/log.
 
 ### NX2512_ControlCenter
 
-- русскоязычный обзор профиля;
-- состояние и свежесть Bridge;
-- контекстно ранжированный список Leader-команд;
-- основные настройки Leader;
-- запуск HotkeyStudio/Leader;
-- NX API Explorer по CSV-каталогу;
-- русско-английское расширение простых запросов.
+- адаптивный обзор Leader-команд;
+- состояние Bridge;
+- базовые метрики покрытия;
+- настройки Leader;
+- NX API Explorer;
+- русский поиск по экспортированному каталогу.
 
-## Профили
+### NX2512_Catalog_Studio
 
-- `config/nx2512-pro-hybrid.json`;
-- `config/nx2512-ergo-80.json`;
-- встроенные копии в `internal/defaults/`;
-- модульные наборы для основных приложений NX;
-- глобальные сочетания, Leader и radial-намерения.
+- инвентаризация NXOpen assemblies и namespaces;
+- types/members/entry points;
+- UI buttons;
+- UFUN functions;
+- кандидатный crosswalk UI → API.
+
+## Deployment 0.2
+
+Новый C# `DeploymentEngine` выполняет:
+
+1. проверку профиля и плана;
+2. проверку запущенного NX;
+3. формирование точного набора файлов;
+4. staging;
+5. SHA-256 staging-проверку;
+6. backup manifest;
+7. атомарную запись;
+8. удаление только собственных устаревших файлов;
+9. package manifest;
+10. post-install SHA-256 verification;
+11. автоматический rollback при исключении.
+
+## Package manifest
+
+Установленный пакет содержит:
+
+```text
+package-manifest.json
+```
+
+Для каждого файла сохраняются:
+
+- относительный путь;
+- SHA-256;
+- размер;
+- required-флаг.
+
+Health-check сверяет установленный пакет с этим манифестом.
+
+## Launcher
+
+Запуск NX выполняет C# `NxRuntimeService`.
+
+Launcher:
+
+- разрешает абсолютный путь NX;
+- проверяет `custom_dirs.dat`;
+- запускает Leader Engine;
+- передаёт только `UGII_CUSTOM_DIRECTORY_FILE`;
+- не изменяет `PATH`;
+- не изменяет `UGII_USER_DIR`;
+- использует `ProcessStartInfo.ArgumentList`.
+
+## CommandBridge placement
+
+Единственное место установки DLL:
+
+```text
+custom/application/NX2512_CommandBridge.dll
+```
+
+Копирование Bridge DLL в `custom/startup` удалено.
+
+## Existing custom_dirs
+
+Для режима `existing-custom-dirs` требуется явный путь.
+
+Массовая запись во все каталоги Siemens удалена.
+
+При изменении сохраняются:
+
+- кодировка;
+- BOM;
+- окончания строк;
+- существующее содержимое.
+
+## Build scripts
+
+### HotkeyStudio
+
+- требуется .NET 8;
+- всегда очищается `dist`;
+- используется `dotnet publish` для `win-x64`;
+- копируется канонический профиль.
+
+### CommandBridge
+
+- требуется .NET 8;
+- проверяется наличие NXOpen и NXOpenUI;
+- по умолчанию требуется соответствие пути версии NX 2512;
+- в `dist` копируются только собственные Bridge artifacts;
+- выводится SHA-256 DLL.
+
+### Catalog Studio
+
+- автоматическая установка SDK удалена;
+- удалён запуск скачанного `dotnet-install.ps1`;
+- требуется установленный .NET 8;
+- проверяется версия NXOpen path.
+
+### Основной installer
+
+PowerShell формирует чистый staging-набор и передаёт установку C# deployment engine. Ручное копирование файлов в managed root удалено.
 
 ## CI
 
-Workflow `.github/workflows/ci.yml` настроен на `windows-latest` и выполняет:
+`.github/workflows/ci.yml` настроен на:
 
-```text
-go test ./...
-go vet ./...
-go build ./cmd/nxkeys
-dotnet build NX2512_HotkeyStudio
-dotnet build NX2512_ControlCenter
-dotnet publish NX2512_ControlCenter win-x64
-```
+- проверку отсутствия Go-кода;
+- JSON validation;
+- build/publish HotkeyStudio;
+- C# CLI profile validation;
+- build/publish Control Center;
+- проверку deployment-инвариантов;
+- публикацию Windows x64 artifact.
 
-Сборка `NX2512_CommandBridge` не включена в общий CI, поскольку требует NXOpen DLL целевой установки Siemens NX.
+CommandBridge не собирается в GitHub-hosted CI, потому что требует проприетарные NXOpen DLL конкретной установки.
 
-## Рекомендуемая локальная проверка
+## Необходимая проверка на рабочей станции NX
 
-```powershell
-go test ./...
-go vet ./...
-dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64
-dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64
-```
+Даже после успешной общей C#-сборки необходимо отдельно подтвердить:
 
-Проверка профиля:
-
-```powershell
-$studio = "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000\NX2512_HotkeyStudio.exe"
-& $studio validate --config .\config\nx2512-pro-hybrid.json
-& $studio plan --config .\config\nx2512-pro-hybrid.json
-& $studio health --config .\config\nx2512-pro-hybrid.json
-```
-
-## Границы подтверждения
-
-Наличие исходного кода и CI-конфигурации не означает, что каждая NX-команда проверена во всех ролях и лицензиях.
-
-Отдельно требуется подтвердить:
-
-- сборку Bridge против фактических NXOpen DLL;
-- загрузку Bridge в целевую сборку NX;
+- сборку Bridge против фактического NXOpen 2512;
+- загрузку Bridge в NX;
+- отсутствие второй загруженной копии DLL;
+- запуск NX через generated wrapper;
+- MenuScript versions 139/170;
 - каждый критичный `BUTTON ID`;
-- работу в нужном модуле;
-- команды, требующие выбранный объект;
-- опасные операции;
-- экспортированную роль `.mtx`;
-- установку в корпоративной среде.
+- контекст выбора и рабочей детали;
+- опасные команды;
+- экспортированную `.mtx` роль;
+- rollback при заблокированной DLL;
+- обновление при наличии старого package manifest.
 
-## Известные ограничения текущей версии
-
-1. Control Center рассчитывает базовую метрику точных `BUTTON ID`, а не полное runtime-покрытие.
-2. AdaptiveLeaderPolicy используется Control Center для ранжирования; HotkeyStudio HUD сохраняет собственную логику.
-3. Клиент Bridge поддерживает расширенный контекст, но текущая библиотека Bridge может не публиковать все поля выбора и рабочей детали.
-4. API Explorer выполняет локальный токенизированный поиск и не генерирует готовый безопасный NXOpen-код.
-5. Control Center публикуется отдельно и пока автоматически не устанавливается `install-nx-ribbon-buttons.ps1`.
-6. Сопоставление UI → API является эвристическим.
-7. `.mtx` копируется целиком и не редактируется.
-
-## Модель безопасности
+## Границы безопасности
 
 NXKeys намеренно:
 
 - не изменяет установку Siemens;
-- не патчит неизвестные бинарные форматы;
-- исключает неоднозначные команды;
-- создаёт резервные копии;
-- использует управляемый wrapper;
-- проверяет доступность команды внутри NX;
-- сохраняет ошибки выполнения для диагностики.
-
-Подробности: [docs/SAFETY_MODEL.md](docs/SAFETY_MODEL.md).
-
-## Документация
-
-Начальная страница: [docs/README.md](docs/README.md).
+- не патчит бинарный формат `.mtx`;
+- не пишет во все найденные профили Siemens;
+- не изменяет глобальный PATH;
+- не устанавливает SDK автоматически;
+- не удаляет файлы вне собственного package manifest;
+- не считает UI → API crosswalk доказанным эквивалентом.
