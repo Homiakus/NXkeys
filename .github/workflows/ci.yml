@@ -32,7 +32,7 @@ jobs:
             Get-Content $_.FullName -Raw -Encoding UTF8 | ConvertFrom-Json | Out-Null
           }
 
-      - name: Validate README and command tree
+      - name: Validate adaptive profile and documentation
         shell: pwsh
         run: |
           node .\scripts\validate-command-tree.mjs
@@ -42,7 +42,7 @@ jobs:
         run: |
           dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release --nologo *> state-machine-tests.log
           $code = $LASTEXITCODE
-          Get-Content state-machine-tests.log -Tail 160
+          Get-Content state-machine-tests.log -Tail 180
           exit $code
 
       - name: Build Hotkey Studio
@@ -50,7 +50,7 @@ jobs:
         run: |
           dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo -v:q *> hotkey-build.log
           $code = $LASTEXITCODE
-          Get-Content hotkey-build.log -Tail 120
+          Get-Content hotkey-build.log -Tail 180
           exit $code
 
       - name: Publish Hotkey Studio
@@ -58,7 +58,7 @@ jobs:
         run: |
           dotnet publish .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -r win-x64 --self-contained false -p:Platform=x64 -o .\artifacts\hotkey-studio --nologo -v:q *> hotkey-publish.log
           $code = $LASTEXITCODE
-          Get-Content hotkey-publish.log -Tail 120
+          Get-Content hotkey-publish.log -Tail 160
           if ($code -ne 0) { exit $code }
           if (-not (Test-Path .\artifacts\hotkey-studio\nx2512-state-machines.json)) {
             throw 'Declarative state-machine profile was not included in publish output.'
@@ -76,7 +76,7 @@ jobs:
         run: |
           dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64 --nologo -v:q *> control-build.log
           $code = $LASTEXITCODE
-          Get-Content control-build.log -Tail 120
+          Get-Content control-build.log -Tail 140
           exit $code
 
       - name: Publish Adaptive Control Center
@@ -84,7 +84,7 @@ jobs:
         run: |
           dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -r win-x64 --self-contained false -p:Platform=x64 -o .\artifacts\control-center --nologo -v:q *> control-publish.log
           $code = $LASTEXITCODE
-          Get-Content control-publish.log -Tail 120
+          Get-Content control-publish.log -Tail 140
           exit $code
 
       - name: Build NXOpen contract stubs
@@ -92,7 +92,7 @@ jobs:
         run: |
           dotnet build .\NX2512_CommandBridge.Tests\NXOpenUI\NXOpenUI.csproj -c Release -o .\artifacts\nxopen-contract --nologo -v:q *> nxopen-stubs-build.log
           $code = $LASTEXITCODE
-          Get-Content nxopen-stubs-build.log -Tail 120
+          Get-Content nxopen-stubs-build.log -Tail 140
           if ($code -ne 0) { exit $code }
           if (-not (Test-Path .\artifacts\nxopen-contract\NXOpen.dll)) { throw 'NXOpen contract assembly was not produced.' }
           if (-not (Test-Path .\artifacts\nxopen-contract\NXOpenUI.dll)) { throw 'NXOpenUI contract assembly was not produced.' }
@@ -103,26 +103,31 @@ jobs:
           $nxOpenDir = (Resolve-Path .\artifacts\nxopen-contract).Path
           dotnet build .\NX2512_CommandBridge\NX2512_CommandBridge.csproj -c Release -p:Platform=x64 -p:NXOpenDir="$nxOpenDir" --nologo -v:q *> bridge-contract-build.log
           $code = $LASTEXITCODE
-          Get-Content bridge-contract-build.log -Tail 160
+          Get-Content bridge-contract-build.log -Tail 180
           exit $code
 
-      - name: Validate state-machine and protocol invariants
+      - name: Validate adaptive state and protocol invariants
         shell: pwsh
         run: |
+          $models = Get-Content .\NX2512_HotkeyStudio\Models\ConfigModels.cs -Raw
+          $resolver = Get-Content .\NX2512_HotkeyStudio\Services\AdaptiveModuleResolver.cs -Raw
           $leader = Get-Content .\NX2512_HotkeyStudio\Services\LeaderKeyEngine.cs -Raw
           $machine = Get-Content .\NXKeys.StateMachines\LeaderStateMachines.cs -Raw
-          $behavior = Get-Content .\NXKeys.StateMachines\LeaderBehaviorProfile.cs -Raw
           $protocol = Get-Content .\NXKeys.Protocol\NxProtocol.cs -Raw
           $bridge = Get-Content .\NX2512_CommandBridge\Program.cs -Raw
-          $behaviorJson = Get-Content .\config\nx2512-state-machines.json -Raw
-          if ($leader -cmatch 'private\s+bool\s+isActive' -or $leader -cmatch 'private\s+bool\s+isSticky' -or $leader -cmatch 'private\s+string\s+buffer') {
-            throw 'Legacy implicit Leader state fields must not return.'
+          $profile = Get-Content .\config\nx2512-pro-hybrid.json -Raw
+
+          foreach ($required in @('BasicShortcutPolicy','AdaptiveModuleMode','SlotKeyMap','RebuildFromModules','JsonIgnore')) {
+            if ($models -notmatch $required) { throw "Missing adaptive config element: $required" }
+          }
+          foreach ($required in @('module_id','module_label','application_id','NXApplicationIDs','ApplicationFallbacks')) {
+            if ($resolver -notmatch $required) { throw "Missing module resolution element: $required" }
+          }
+          foreach ($required in @('ActivateScoped','AdaptiveModuleResolver','InputToken(activeModule.LeaderPrefix)','activeModule','Search')) {
+            if ($leader -notmatch [regex]::Escape($required)) { throw "Missing adaptive Leader element: $required" }
           }
           foreach ($required in @('AwaitingConfirmation','AwaitingResult','SwitchingModule','SequenceAutomaton','ContextGuardEvaluator','TypesAny','MinimumContextConfidence')) {
             if ($machine -notmatch $required) { throw "Missing state-machine element: $required" }
-          }
-          foreach ($required in @('LeaderTimeoutPolicy','FallbackPolicy','SelectionGuardPolicy','switch_module','retry_once')) {
-            if ($behavior -notmatch $required -and $behaviorJson -notmatch $required) { throw "Missing declarative behavior element: $required" }
           }
           foreach ($required in @('expected_context_revision','expected_selection_count','expires_utc','confirmation_accepted')) {
             if ($protocol -notmatch $required) { throw "Shared protocol field is missing: $required" }
@@ -130,6 +135,8 @@ jobs:
           foreach ($required in @('ProcessingDirectory','RecoverInterruptedRequests','ValidateExpectedContext','interrupted_unknown')) {
             if ($bridge -notmatch $required) { throw "Bridge reliability element is missing: $required" }
           }
+          if ($profile -notmatch '"schema_version"\s*:\s*3') { throw 'Canonical profile must use schema version 3.' }
+          if ($profile -match '"radials"') { throw 'Removed menu collection must not return to the canonical profile.' }
 
       - name: Validate deployment invariants
         shell: pwsh
@@ -138,6 +145,7 @@ jobs:
           if ($engine -match 'DeployToSiemensUserProfiles') { throw 'Broad Siemens profile deployment must not return.' }
           if ($engine -match 'custom.*startup.*NX2512_CommandBridge\.dll') { throw 'CommandBridge DLL must not be installed into custom/startup.' }
           if ($engine -match 'set "PATH=' -or $engine -match 'UGII_USER_DIR') { throw 'NX launcher must not override PATH or UGII_USER_DIR.' }
+          if ($engine -match 'radial-menu-plan') { throw 'Removed deployment artifacts must not return.' }
 
       - name: Publish C# diagnostic logs
         if: always()
