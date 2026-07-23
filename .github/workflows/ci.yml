@@ -79,6 +79,25 @@ jobs:
           Get-Content control-publish.log -Tail 120
           exit $code
 
+      - name: Build NXOpen contract stubs
+        shell: pwsh
+        run: |
+          dotnet build .\NX2512_CommandBridge.Tests\NXOpenUI\NXOpenUI.csproj -c Release -o .\artifacts\nxopen-contract --nologo -v:q *> nxopen-stubs-build.log
+          $code = $LASTEXITCODE
+          Get-Content nxopen-stubs-build.log -Tail 120
+          if ($code -ne 0) { exit $code }
+          if (-not (Test-Path .\artifacts\nxopen-contract\NXOpen.dll)) { throw 'NXOpen contract assembly was not produced.' }
+          if (-not (Test-Path .\artifacts\nxopen-contract\NXOpenUI.dll)) { throw 'NXOpenUI contract assembly was not produced.' }
+
+      - name: Compile Command Bridge against NXOpen contract
+        shell: pwsh
+        run: |
+          $nxOpenDir = (Resolve-Path .\artifacts\nxopen-contract).Path
+          dotnet build .\NX2512_CommandBridge\NX2512_CommandBridge.csproj -c Release -p:Platform=x64 -p:NXOpenDir="$nxOpenDir" --nologo -v:q *> bridge-contract-build.log
+          $code = $LASTEXITCODE
+          Get-Content bridge-contract-build.log -Tail 160
+          exit $code
+
       - name: Validate state-machine and protocol invariants
         shell: pwsh
         run: |
@@ -118,6 +137,8 @@ jobs:
             hotkey-publish.log
             control-build.log
             control-publish.log
+            nxopen-stubs-build.log
+            bridge-contract-build.log
           if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v4
