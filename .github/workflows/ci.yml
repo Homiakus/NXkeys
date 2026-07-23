@@ -32,12 +32,20 @@ jobs:
             Get-Content $_.FullName -Raw -Encoding UTF8 | ConvertFrom-Json | Out-Null
           }
 
+      - name: Run DFA and HFSM invariants
+        shell: pwsh
+        run: |
+          dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release --nologo *> state-machine-tests.log
+          $code = $LASTEXITCODE
+          Get-Content state-machine-tests.log -Tail 120
+          exit $code
+
       - name: Build Hotkey Studio
         shell: pwsh
         run: |
           dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo -v:q *> hotkey-build.log
           $code = $LASTEXITCODE
-          Get-Content hotkey-build.log -Tail 80
+          Get-Content hotkey-build.log -Tail 120
           exit $code
 
       - name: Publish Hotkey Studio
@@ -45,7 +53,7 @@ jobs:
         run: |
           dotnet publish .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -r win-x64 --self-contained false -p:Platform=x64 -o .\artifacts\hotkey-studio --nologo -v:q *> hotkey-publish.log
           $code = $LASTEXITCODE
-          Get-Content hotkey-publish.log -Tail 80
+          Get-Content hotkey-publish.log -Tail 120
           exit $code
 
       - name: Validate canonical profile through C# CLI
@@ -60,27 +68,36 @@ jobs:
         run: |
           dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64 --nologo -v:q *> control-build.log
           $code = $LASTEXITCODE
-          Get-Content control-build.log -Tail 100
+          Get-Content control-build.log -Tail 120
           exit $code
-
-      - name: Publish C# diagnostic logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: csharp-build-logs
-          path: |
-            hotkey-build.log
-            hotkey-publish.log
-            control-build.log
-          if-no-files-found: ignore
 
       - name: Publish Adaptive Control Center
         shell: pwsh
         run: |
           dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -r win-x64 --self-contained false -p:Platform=x64 -o .\artifacts\control-center --nologo -v:q *> control-publish.log
           $code = $LASTEXITCODE
-          Get-Content control-publish.log -Tail 100
+          Get-Content control-publish.log -Tail 120
           exit $code
+
+      - name: Validate state-machine and protocol invariants
+        shell: pwsh
+        run: |
+          $leader = Get-Content .\NX2512_HotkeyStudio\Services\LeaderKeyEngine.cs -Raw
+          $machine = Get-Content .\NXKeys.StateMachines\LeaderStateMachines.cs -Raw
+          $client = Get-Content .\NX2512_HotkeyStudio\Services\NxCommandBridgeClient.cs -Raw
+          $bridge = Get-Content .\NX2512_CommandBridge\Program.cs -Raw
+          if ($leader -match 'bool\s+isActive' -or $leader -match 'bool\s+isSticky' -or $leader -match 'string\s+buffer') {
+            throw 'Legacy implicit Leader state flags must not return.'
+          }
+          foreach ($required in @('AwaitingConfirmation','AwaitingResult','SwitchingModule','SequenceAutomaton','ContextGuardEvaluator')) {
+            if ($machine -notmatch $required) { throw "Missing state-machine element: $required" }
+          }
+          foreach ($required in @('expected_context_revision','expected_selection_count','expires_utc','confirmation_accepted')) {
+            if ($client -notmatch $required) { throw "Client protocol field is missing: $required" }
+          }
+          foreach ($required in @('ProcessingDirectory','RecoverInterruptedRequests','ValidateExpectedContext','interrupted_unknown')) {
+            if ($bridge -notmatch $required) { throw "Bridge reliability element is missing: $required" }
+          }
 
       - name: Validate deployment invariants
         shell: pwsh
@@ -89,6 +106,19 @@ jobs:
           if ($engine -match 'DeployToSiemensUserProfiles') { throw 'Broad Siemens profile deployment must not return.' }
           if ($engine -match 'custom.*startup.*NX2512_CommandBridge\.dll') { throw 'CommandBridge DLL must not be installed into custom/startup.' }
           if ($engine -match 'set "PATH=' -or $engine -match 'UGII_USER_DIR') { throw 'NX launcher must not override PATH or UGII_USER_DIR.' }
+
+      - name: Publish C# diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: csharp-build-logs
+          path: |
+            state-machine-tests.log
+            hotkey-build.log
+            hotkey-publish.log
+            control-build.log
+            control-publish.log
+          if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v4
         with:
