@@ -33,10 +33,20 @@ jobs:
           }
 
       - name: Build Hotkey Studio
-        run: dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
+        shell: pwsh
+        run: |
+          dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo -v:q *> hotkey-build.log
+          $code = $LASTEXITCODE
+          Get-Content hotkey-build.log -Tail 80
+          exit $code
 
       - name: Publish Hotkey Studio
-        run: dotnet publish .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -r win-x64 --self-contained false -p:Platform=x64 -o .\artifacts\hotkey-studio --nologo
+        shell: pwsh
+        run: |
+          dotnet publish .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -r win-x64 --self-contained false -p:Platform=x64 -o .\artifacts\hotkey-studio --nologo -v:q *> hotkey-publish.log
+          $code = $LASTEXITCODE
+          Get-Content hotkey-publish.log -Tail 80
+          exit $code
 
       - name: Validate canonical profile through C# CLI
         shell: pwsh
@@ -46,10 +56,20 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build Adaptive Control Center
-        run: dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64 --nologo
+        shell: pwsh
+        run: |
+          dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64 --nologo -v:q *> control-build.log
+          $code = $LASTEXITCODE
+          Get-Content control-build.log -Tail 100
+          exit $code
 
       - name: Publish Adaptive Control Center
-        run: dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -r win-x64 --self-contained false -p:Platform=x64 -o .\artifacts\control-center --nologo
+        shell: pwsh
+        run: |
+          dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -r win-x64 --self-contained false -p:Platform=x64 -o .\artifacts\control-center --nologo -v:q *> control-publish.log
+          $code = $LASTEXITCODE
+          Get-Content control-publish.log -Tail 100
+          exit $code
 
       - name: Validate deployment invariants
         shell: pwsh
