@@ -452,7 +452,7 @@ namespace NXKeys.StateMachines
 
         public LeaderTransition CompleteRequest(bool success, string message)
         {
-            if (State != LeaderState.AwaitingResult)
+            if (State != LeaderState.AwaitingResult && State != LeaderState.Dispatching)
                 return Snapshot(LeaderActionKind.None);
             LeaderActionKind action = success ? LeaderActionKind.RequestCompleted : LeaderActionKind.RequestFailed;
             SequenceDefinition completed = PendingCommand;
