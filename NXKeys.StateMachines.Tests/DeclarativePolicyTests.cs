@@ -16,22 +16,20 @@ namespace NXKeys.StateMachines.Tests
             Require(!string.IsNullOrWhiteSpace(profile.SourcePath), "Декларативный профиль не найден в output.");
 
             var evaluator = new ContextGuardEvaluator(profile);
-            SequenceDefinition edgeBlend = Command("MB", "modeling");
+            SequenceDefinition edgeBlend = Command("MX", "modeling");
             edgeBlend.RequiresSelection = true;
 
-            NxContextSnapshot faceContext = Context("modeling", "NXOpen.Face");
-            GuardResult faceResult = evaluator.Evaluate(edgeBlend, faceContext, true);
-            Require(!faceResult.Allowed, "MB не должен выполняться при выборе только Face.");
-            Require(faceResult.Reason.Contains("рёбер", StringComparison.OrdinalIgnoreCase), "Не применено декларативное сообщение fallback.");
+            GuardResult faceResult = evaluator.Evaluate(edgeBlend, Context("modeling", "NXOpen.Face"), true);
+            Require(!faceResult.Allowed, "MX не должен выполняться при выборе только Face.");
+            Require(faceResult.Reason.Contains("рёбер", StringComparison.OrdinalIgnoreCase), "Не применено сообщение выбора рёбер.");
 
-            NxContextSnapshot edgeContext = Context("modeling", "NXOpen.Edge");
-            GuardResult edgeResult = evaluator.Evaluate(edgeBlend, edgeContext, true);
-            Require(edgeResult.Allowed, "MB должен выполняться при выборе Edge.");
+            GuardResult edgeResult = evaluator.Evaluate(edgeBlend, Context("modeling", "NXOpen.Edge"), true);
+            Require(edgeResult.Allowed, "MX должен выполняться при выборе Edge.");
 
-            SequenceDefinition drafting = Command("DB", "drafting");
-            GuardResult switchResult = evaluator.Evaluate(drafting, Context("modeling", "NXOpen.Body"), true);
-            Require(switchResult.RequiresModuleSwitch, "DB должен запросить формальный fallback switch_module.");
-            Require(string.Equals(switchResult.TargetModuleId, "drafting", StringComparison.OrdinalIgnoreCase), "Неверный target_module для DB.");
+            SequenceDefinition sketchLine = Command("SW", "sketch");
+            GuardResult wrongModule = evaluator.Evaluate(sketchLine, Context("modeling", "NXOpen.Body"), true);
+            Require(!wrongModule.Allowed, "Команда Sketch не должна выполняться в Modeling.");
+            Require(!wrongModule.RequiresModuleSwitch, "Адаптивная команда не должна самовольно переключать модуль.");
 
             SequenceDefinition destructive = Command("AX", "assembly");
             ResolvedCommandBehavior destructiveBehavior = profile.Resolve(destructive);
@@ -41,22 +39,19 @@ namespace NXKeys.StateMachines.Tests
             lowConfidence.ContextConfidence = 20;
             Require(!evaluator.Evaluate(edgeBlend, lowConfidence, true).Allowed, "Низкая достоверность контекста должна блокировать команду.");
 
-            Console.WriteLine("[OK] Декларативные guards, selection types, fallback и таймауты.");
+            Console.WriteLine("[OK] Адаптивные guards, типы выбора и подтверждения.");
         }
 
-        private static SequenceDefinition Command(string sequence, string module)
+        private static SequenceDefinition Command(string sequence, string module) => new SequenceDefinition
         {
-            return new SequenceDefinition
-            {
-                Id = sequence,
-                Sequence = sequence,
-                ModuleId = module,
-                CommandId = "UG_TEST_" + sequence,
-                CommandName = sequence,
-                NeedsWorkPart = true,
-                Enabled = true
-            };
-        }
+            Id = sequence,
+            Sequence = sequence,
+            ModuleId = module,
+            CommandId = "UG_TEST_" + sequence,
+            CommandName = sequence,
+            NeedsWorkPart = true,
+            Enabled = true
+        };
 
         private static NxContextSnapshot Context(string module, string selectedType)
         {
