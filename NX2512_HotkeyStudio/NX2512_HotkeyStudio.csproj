@@ -20,6 +20,11 @@
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="..\NXKeys.Protocol\NxProtocol.cs" Link="Protocol\NxProtocol.cs" />
+    <Compile Include="..\NXKeys.StateMachines\LeaderStateMachines.cs" Link="StateMachines\LeaderStateMachines.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(NXOpenDir)' != '' and Exists('$(NXOpenDir)\NXOpen.dll')">
     <Reference Include="NXOpen">
       <HintPath>$(NXOpenDir)\NXOpen.dll</HintPath>
