@@ -1,44 +1,829 @@
 <!doctype html>
 <html lang="ru">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="dark light">
-<title>NXKeys — адаптивная карта команд NX 2512</title>
-<meta name="description" content="Интерактивная карта базовых сочетаний, 14 модулей, 112 команд, guards и конечных автоматов NXKeys.">
-<style>
-:root{--bg:#0b1017;--panel:#111923;--panel2:#172331;--text:#eaf0f6;--muted:#91a2b3;--line:#2a3b4e;--accent:#5bc9df;--ok:#82dfa8;--warn:#f0c45a;--danger:#ff7c8b;--shadow:0 18px 48px #0006;font-family:Inter,"Segoe UI",Arial,sans-serif}
-@media(prefers-color-scheme:light){:root{--bg:#f4f7fa;--panel:#fff;--panel2:#edf3f7;--text:#142230;--muted:#5b6a79;--line:#cfdae4;--accent:#087c98;--ok:#167e4a;--warn:#916800;--danger:#b52b40;--shadow:0 14px 40px #263b4f1f}}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0,#5bc9df1c,transparent 34rem),var(--bg);color:var(--text)}button,input,select{font:inherit}button,.file{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:.62rem .8rem;cursor:pointer}button:hover,.file:hover{border-color:var(--accent)}button[aria-selected=true],button[aria-pressed=true]{background:var(--accent);color:#07141a;border-color:transparent;font-weight:700}code,kbd{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:.12rem .4rem;background:var(--panel2);white-space:nowrap}.page{width:min(1700px,100%);margin:auto;padding:20px}.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--panel);box-shadow:var(--shadow)}h1{margin:0;font-size:clamp(1.9rem,4vw,3.3rem);line-height:1.05}.lead,.source,.muted{color:var(--muted);line-height:1.55}.actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-content:start}.file input{position:absolute;opacity:0;pointer-events:none}.stats{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:10px;margin:16px 0}.stat{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:13px}.stat b{display:block;font-size:1.5rem}.stat span{font-size:.8rem;color:var(--muted)}.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:14px}.side{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:14px}.field{display:grid;gap:6px;margin-bottom:12px}.field label{font-size:.8rem;color:var(--muted)}.field input,.field select{width:100%;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);padding:.68rem}.mods{display:grid;gap:6px}.mods button{text-align:left;display:flex;justify-content:space-between}.tabs{position:sticky;top:10px;z-index:5;display:flex;flex-wrap:wrap;gap:7px;padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:0 8px 24px #0003;margin-bottom:12px}.panel[hidden]{display:none}.context{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:14px;margin-bottom:12px}.prefix{display:grid;place-items:center;width:52px;height:52px;border-radius:12px;background:var(--accent);color:#061319;font-weight:900;font-family:monospace}.grid{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));grid-template-areas:"q w e" "a center d" "z x c";gap:10px;max-width:1050px;margin:auto}.command{min-height:145px;text-align:left;padding:13px;border:1px solid var(--line);border-radius:13px;background:var(--panel)}.command h3{margin:9px 0 6px;font-size:1rem}.command .key{font-size:1.2rem;font-weight:900;color:var(--accent)}.command[data-key=Q]{grid-area:q}.command[data-key=W]{grid-area:w}.command[data-key=E]{grid-area:e}.command[data-key=A]{grid-area:a}.command[data-key=D]{grid-area:d}.command[data-key=Z]{grid-area:z}.command[data-key=X]{grid-area:x}.command[data-key=C]{grid-area:c}.center{grid-area:center;display:grid;place-items:center;text-align:center;border:2px solid var(--accent);border-radius:50%;background:var(--panel);min-height:145px;padding:18px}.id{font-size:.72rem;color:var(--muted);overflow-wrap:anywhere}.badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.badge{font-size:.68rem;border:1px solid var(--line);border-radius:999px;padding:.15rem .43rem;color:var(--muted)}.badge.sel{color:var(--warn)}.badge.danger{color:var(--danger)}.badge.guard{color:var(--ok)}.table{overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel)}table{border-collapse:collapse;width:100%;min-width:940px}th,td{padding:9px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{position:sticky;top:0;background:var(--panel2);font-size:.76rem}.flow{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:8px;align-items:center}.flow div{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px;text-align:center}.flow div:not(:last-child)::after{content:"→";float:right;transform:translate(24px);color:var(--accent)}.notice{border:1px dashed var(--warn);border-radius:12px;padding:14px;color:var(--muted);margin:12px 0}.empty{padding:32px;text-align:center;color:var(--muted)}dialog{width:min(780px,calc(100% - 28px));border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--text);box-shadow:var(--shadow)}dialog::backdrop{background:#0009}.details{display:grid;grid-template-columns:150px 1fr;gap:8px 14px}.details dt{color:var(--muted)}.details dd{margin:0;overflow-wrap:anywhere}.drag{outline:4px dashed var(--accent);outline-offset:-12px}
-@media(max-width:1050px){.stats{grid-template-columns:repeat(3,1fr)}.layout{grid-template-columns:1fr}.side{position:static;max-height:none}.grid{grid-template-columns:repeat(2,1fr);grid-template-areas:"center center" "q w" "e d" "a x" "z c"}.flow{grid-template-columns:1fr}.flow div::after{display:none}}
-@media(max-width:620px){.page{padding:9px}.hero{grid-template-columns:1fr}.actions{justify-content:flex-start}.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr;grid-template-areas:"center" "q" "w" "e" "a" "d" "z" "x" "c"}.context{grid-template-columns:auto 1fr}.context>button{grid-column:1/-1}.details{grid-template-columns:1fr}}
-@media print{.side,.tabs,.actions{display:none}.layout{display:block}.panel{display:block!important}.command{break-inside:avoid}}
-</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="dark light">
+    <title>NXKeys — адаптивная карта команд NX 2512</title>
+    <meta name="description"
+        content="Интерактивная карта базовых сочетаний, 14 модулей, вложенных команд, guards и конечных автоматов NXKeys.">
+    <style>
+        :root {
+            --bg: #0b1017;
+            --panel: #111923;
+            --panel2: #172331;
+            --text: #eaf0f6;
+            --muted: #91a2b3;
+            --line: #2a3b4e;
+            --accent: #5bc9df;
+            --ok: #82dfa8;
+            --warn: #f0c45a;
+            --danger: #ff7c8b;
+            --shadow: 0 18px 48px #0006;
+            font-family: Inter, "Segoe UI", Arial, sans-serif
+        }
+
+        @media(prefers-color-scheme:light) {
+            :root {
+                --bg: #f4f7fa;
+                --panel: #fff;
+                --panel2: #edf3f7;
+                --text: #142230;
+                --muted: #5b6a79;
+                --line: #cfdae4;
+                --accent: #087c98;
+                --ok: #167e4a;
+                --warn: #916800;
+                --danger: #b52b40;
+                --shadow: 0 14px 40px #263b4f1f
+            }
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: radial-gradient(circle at 10% 0, #5bc9df1c, transparent 34rem), var(--bg);
+            color: var(--text)
+        }
+
+        button,
+        input,
+        select {
+            font: inherit
+        }
+
+        button,
+        .file {
+            border: 1px solid var(--line);
+            background: var(--panel2);
+            color: var(--text);
+            border-radius: 10px;
+            padding: .62rem .8rem;
+            cursor: pointer
+        }
+
+        button:hover,
+        .file:hover {
+            border-color: var(--accent)
+        }
+
+        button[aria-selected=true],
+        button[aria-pressed=true] {
+            background: var(--accent);
+            color: #07141a;
+            border-color: transparent;
+            font-weight: 700
+        }
+
+        code,
+        kbd {
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace
+        }
+
+        kbd {
+            border: 1px solid var(--line);
+            border-bottom-width: 2px;
+            border-radius: 6px;
+            padding: .12rem .4rem;
+            background: var(--panel2);
+            white-space: nowrap
+        }
+
+        .page {
+            width: min(1700px, 100%);
+            margin: auto;
+            padding: 20px
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 20px;
+            padding: 24px;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: var(--panel);
+            box-shadow: var(--shadow)
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(1.9rem, 4vw, 3.3rem);
+            line-height: 1.05
+        }
+
+        .lead,
+        .source,
+        .muted {
+            color: var(--muted);
+            line-height: 1.55
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+            align-content: start
+        }
+
+        .file input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 16px 0
+        }
+
+        .stat {
+            border: 1px solid var(--line);
+            background: var(--panel);
+            border-radius: 14px;
+            padding: 13px
+        }
+
+        .stat b {
+            display: block;
+            font-size: 1.5rem
+        }
+
+        .stat span {
+            font-size: .8rem;
+            color: var(--muted)
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 270px minmax(0, 1fr);
+            gap: 14px
+        }
+
+        .side {
+            position: sticky;
+            top: 10px;
+            max-height: calc(100vh - 20px);
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--panel);
+            padding: 14px
+        }
+
+        .field {
+            display: grid;
+            gap: 6px;
+            margin-bottom: 12px
+        }
+
+        .field label {
+            font-size: .8rem;
+            color: var(--muted)
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            background: var(--panel2);
+            color: var(--text);
+            padding: .68rem
+        }
+
+        .mods {
+            display: grid;
+            gap: 6px
+        }
+
+        .mods button {
+            text-align: left;
+            display: flex;
+            justify-content: space-between
+        }
+
+        .tabs {
+            position: sticky;
+            top: 10px;
+            z-index: 5;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            padding: 8px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--panel);
+            box-shadow: 0 8px 24px #0003;
+            margin-bottom: 12px
+        }
+
+        .panel[hidden] {
+            display: none
+        }
+
+        .context {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--panel);
+            padding: 14px;
+            margin-bottom: 12px
+        }
+
+        .prefix {
+            display: grid;
+            place-items: center;
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background: var(--accent);
+            color: #061319;
+            font-weight: 900;
+            font-family: monospace
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(180px, 1fr));
+            grid-template-areas: "q w e" "a center d" "z x c";
+            gap: 10px;
+            max-width: 1050px;
+            margin: auto
+        }
+
+        .command {
+            min-height: 145px;
+            text-align: left;
+            padding: 13px;
+            border: 1px solid var(--line);
+            border-radius: 13px;
+            background: var(--panel)
+        }
+
+        .command h3 {
+            margin: 9px 0 6px;
+            font-size: 1rem
+        }
+
+        .command .key {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--accent)
+        }
+
+        .mini-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.85rem;
+            height: 1.85rem;
+            margin-right: .5rem;
+            border: 1px solid #2a4c5e;
+            background: linear-gradient(135deg, #132431 0%, #1c3547 100%);
+            color: var(--accent);
+            border-radius: 6px;
+            vertical-align: middle;
+            flex-shrink: 0;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 4px rgba(0, 0, 0, 0.2)
+        }
+
+        .mini-icon svg, .mini-icon img {
+            width: 1.25rem;
+            height: 1.25rem;
+            object-fit: contain;
+            display: block
+        }
+
+        .command[data-key=Q] {
+            grid-area: q
+        }
+
+        .command[data-key=W] {
+            grid-area: w
+        }
+
+        .command[data-key=E] {
+            grid-area: e
+        }
+
+        .command[data-key=A] {
+            grid-area: a
+        }
+
+        .command[data-key=D] {
+            grid-area: d
+        }
+
+        .command[data-key=Z] {
+            grid-area: z
+        }
+
+        .command[data-key=X] {
+            grid-area: x
+        }
+
+        .command[data-key=C] {
+            grid-area: c
+        }
+
+        .center {
+            grid-area: center;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            background: var(--panel);
+            min-height: 145px;
+            padding: 18px
+        }
+
+        .id {
+            font-size: .72rem;
+            color: var(--muted);
+            overflow-wrap: anywhere
+        }
+
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px
+        }
+
+        .badge {
+            font-size: .68rem;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: .15rem .43rem;
+            color: var(--muted)
+        }
+
+        .badge.sel {
+            color: var(--warn)
+        }
+
+        .badge.danger {
+            color: var(--danger)
+        }
+
+        .badge.guard {
+            color: var(--ok)
+        }
+
+        .table {
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--panel)
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 940px
+        }
+
+        th,
+        td {
+            padding: 9px;
+            border-right: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: var(--panel2);
+            font-size: .76rem
+        }
+
+        .flow {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(110px, 1fr));
+            gap: 8px;
+            align-items: center
+        }
+
+        .flow div {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--panel);
+            padding: 14px;
+            text-align: center
+        }
+
+        .flow div:not(:last-child)::after {
+            content: "→";
+            float: right;
+            transform: translate(24px);
+            color: var(--accent)
+        }
+
+        .notice {
+            border: 1px dashed var(--warn);
+            border-radius: 12px;
+            padding: 14px;
+            color: var(--muted);
+            margin: 12px 0
+        }
+
+        .empty {
+            padding: 32px;
+            text-align: center;
+            color: var(--muted)
+        }
+
+        dialog {
+            width: min(780px, calc(100% - 28px));
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: var(--panel);
+            color: var(--text);
+            box-shadow: var(--shadow)
+        }
+
+        dialog::backdrop {
+            background: #0009
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 8px 14px
+        }
+
+        .details dt {
+            color: var(--muted)
+        }
+
+        .details dd {
+            margin: 0;
+            overflow-wrap: anywhere
+        }
+
+        .drag {
+            outline: 4px dashed var(--accent);
+            outline-offset: -12px
+        }
+
+        @media(max-width:1050px) {
+            .stats {
+                grid-template-columns: repeat(3, 1fr)
+            }
+
+            .layout {
+                grid-template-columns: 1fr
+            }
+
+            .side {
+                position: static;
+                max-height: none
+            }
+
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-areas: "center center" "q w" "e d" "a x" "z c"
+            }
+
+            .flow {
+                grid-template-columns: 1fr
+            }
+
+            .flow div::after {
+                display: none
+            }
+        }
+
+        @media(max-width:620px) {
+            .page {
+                padding: 9px
+            }
+
+            .hero {
+                grid-template-columns: 1fr
+            }
+
+            .actions {
+                justify-content: flex-start
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr)
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+                grid-template-areas: "center" "q" "w" "e" "a" "d" "z" "x" "c"
+            }
+
+            .context {
+                grid-template-columns: auto 1fr
+            }
+
+            .context>button {
+                grid-column: 1/-1
+            }
+
+            .details {
+                grid-template-columns: 1fr
+            }
+        }
+
+        @media print {
+
+            .side,
+            .tabs,
+            .actions {
+                display: none
+            }
+
+            .layout {
+                display: block
+            }
+
+            .panel {
+                display: block !important
+            }
+
+            .command {
+                break-inside: avoid
+            }
+        }
+    </style>
 </head>
+
 <body>
-<div class="page">
-<header class="hero"><div><p class="source">NXKeys · Siemens NX 2512 · schema v3</p><h1>Адаптивная карта команд</h1><p class="lead">12 базовых сочетаний и восемь команд, которые автоматически меняются вместе с активным приложением NX.</p><p class="source">Источник: <strong id="source">загрузка…</strong> · <span id="profileName"></span></p></div><div class="actions"><label class="file">Загрузить профиль<input id="profileFile" type="file" accept=".json,application/json"></label><label class="file">Загрузить policy<input id="policyFile" type="file" accept=".json,application/json"></label><button onclick="print()">Печать / PDF</button></div></header>
-<section class="stats"><div class="stat"><b id="sBasic">0</b><span>базовых сочетаний</span></div><div class="stat"><b id="sModules">0</b><span>модулей</span></div><div class="stat"><b id="sCommands">0</b><span>модульных команд</span></div><div class="stat"><b id="sSelection">0</b><span>требуют выбор</span></div><div class="stat"><b id="sDanger">0</b><span>требуют Enter</span></div><div class="stat"><b id="sGuards">0</b><span>policy-правил</span></div></section>
-<div class="layout"><aside class="side"><div class="field"><label for="search">Поиск</label><input id="search" type="search" placeholder="команда, ID, модуль…"></div><div class="field"><label for="moduleSelect">Модуль</label><select id="moduleSelect"></select></div><h2>Все модули</h2><div id="moduleButtons" class="mods"></div></aside>
-<main><nav class="tabs"><button data-tab="current" aria-selected="true">Текущий модуль</button><button data-tab="matrix" aria-selected="false">Матрица 14×8</button><button data-tab="basic" aria-selected="false">Базовые сочетания</button><button data-tab="fsm" aria-selected="false">FSM и guards</button></nav>
-<section class="panel" data-panel="current"><div class="context"><span class="prefix" id="currentPrefix">M</span><div><b id="currentLabel">Modeling</b><div class="muted" id="currentApplications"></div></div><button id="nextModule">Следующий модуль</button></div><div id="adaptiveGrid" class="grid"></div></section>
-<section class="panel" data-panel="matrix" hidden><div class="table"><table><thead><tr><th>Модуль</th><th><kbd>W</kbd> N</th><th><kbd>E</kbd> NE</th><th><kbd>D</kbd> E</th><th><kbd>C</kbd> SE</th><th><kbd>X</kbd> S</th><th><kbd>Z</kbd> SW</th><th><kbd>A</kbd> W</th><th><kbd>Q</kbd> NW</th></tr></thead><tbody id="matrix"></tbody></table></div></section>
-<section class="panel" data-panel="basic" hidden><div class="table"><table><thead><tr><th>Сочетание</th><th>Команда</th><th>BUTTON ID</th><th>Scope</th><th>Назначение</th></tr></thead><tbody id="basic"></tbody></table></div></section>
-<section class="panel" data-panel="fsm" hidden><h2>Путь исполнения</h2><div class="flow"><div>Bridge context</div><div>Module resolver</div><div>Keyboard queue</div><div>Sequence DFA</div><div>Leader HFSM</div><div>Context guards</div><div>NX BUTTON ID</div></div><div id="policySummary"></div></section></main></div></div>
-<dialog id="details"><h2 id="detailTitle"></h2><div id="detailBody"></div><p style="text-align:right"><button id="close">Закрыть</button></p></dialog>
-<script>
-(()=>{"use strict";const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];const slots=["N","NE","E","SE","S","SW","W","NW"];const defaultKeys={N:"W",NE:"E",E:"D",SE:"C",S:"X",SW:"Z",W:"A",NW:"Q"};const state={profile:null,policy:{},moduleId:"",query:"",source:""};const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));const modules=()=>state.profile?.modules?.filter(x=>x&&x.enabled!==false)||[];const commands=m=>(m?.command_sets||[]).flatMap(set=>(set.commands||[]).map(c=>({...c,setLabel:set.label||set.id||""})));const keyMap=()=>({...defaultKeys,...state.profile?.leader_key?.slot_key_map});const keyFor=slot=>keyMap()[slot]||"?";const sequence=(m,c)=>(String(m.leader_prefix||"")+keyFor(String(c.slot||"").toUpperCase())).toUpperCase();const policyFor=(m,c)=>state.policy?.commands?.[sequence(m,c)]||null;const active=()=>modules().find(x=>x.id===state.moduleId)||modules()[0];
-function matches(m,c){const q=state.query.toLowerCase();return!q||[m.id,m.label,m.leader_prefix,c.slot,keyFor(c.slot),c.command?.id,c.command?.name,c.notes,JSON.stringify(policyFor(m,c)||{})].join(" ").toLowerCase().includes(q)}
-function badges(m,c){const p=policyFor(m,c),items=[];if(c.requires_selection)items.push('<span class="badge sel">selection</span>');if(c.destructive||c.confirm_before_execute||p?.confirmation==="required")items.push('<span class="badge danger">Enter</span>');if(p)items.push('<span class="badge guard">guard</span>');return items.join("")}
-function renderModules(){const list=modules(),select=$("#moduleSelect");if(!state.moduleId&&list.length)state.moduleId=list[0].id;select.innerHTML=list.map(m=>'<option value="'+esc(m.id)+'" '+(m.id===state.moduleId?'selected':'')+'>'+esc(m.label)+'</option>').join("");$("#moduleButtons").innerHTML=list.map(m=>'<button data-module="'+esc(m.id)+'" aria-pressed="'+String(m.id===state.moduleId)+'"><span><kbd>'+esc(m.leader_prefix)+'</kbd> '+esc(m.label)+'</span><span>'+commands(m).length+'</span></button>').join("");$$('[data-module]').forEach(b=>b.onclick=()=>{state.moduleId=b.dataset.module;render()})}
-function renderGrid(){const m=active();if(!m)return;$("#currentPrefix").textContent=m.leader_prefix;$("#currentLabel").textContent=m.label;$("#currentApplications").textContent=(m.nx_application_ids||[]).join(", ");const map=Object.fromEntries(commands(m).map(c=>[String(c.slot).toUpperCase(),c]));const cards=slots.map(slot=>{const c=map[slot];if(!c||!matches(m,c))return'<button class="command" data-key="'+keyFor(slot)+'" disabled><span class="key">'+keyFor(slot)+'</span><h3>Не назначено</h3></button>';return'<button class="command" data-key="'+keyFor(slot)+'" data-command="'+esc(m.id)+'|'+slot+'"><span class="key">'+keyFor(slot)+'</span> <kbd>'+slot+'</kbd><h3>'+esc(c.command?.name)+'</h3><div class="id">'+esc(c.command?.id)+'</div><div class="badges">'+badges(m,c)+'</div></button>'}).join("");$("#adaptiveGrid").innerHTML=cards+'<div class="center"><div><b>CapsLock</b><br>'+esc(m.label)+'<br><span class="muted">набор выбран контекстом NX</span></div></div>';bindDetails()}
-function renderMatrix(){const rows=modules().filter(m=>commands(m).some(c=>matches(m,c)));$("#matrix").innerHTML=rows.map(m=>{const map=Object.fromEntries(commands(m).map(c=>[String(c.slot).toUpperCase(),c]));return'<tr><th><kbd>'+esc(m.leader_prefix)+'</kbd> '+esc(m.label)+'</th>'+slots.map(slot=>{const c=map[slot];return c&&matches(m,c)?'<td><button data-command="'+esc(m.id)+'|'+slot+'"><kbd>'+keyFor(slot)+'</kbd> '+esc(c.command?.name)+'</button><div class="id">'+esc(c.command?.id)+'</div></td>':'<td>—</td>'}).join("")+'</tr>'}).join("");bindDetails()}
-function renderBasic(){const q=state.query.toLowerCase(),rows=(state.profile?.keyboard||[]).filter(x=>x&&x.enabled!==false).filter(x=>!q||[x.shortcut,x.command?.id,x.command?.name,x.scope,x.notes].join(" ").toLowerCase().includes(q));$("#basic").innerHTML=rows.map(x=>'<tr><td><kbd>'+esc(x.shortcut)+'</kbd></td><td>'+esc(x.command?.name)+'</td><td><code>'+esc(x.command?.id)+'</code></td><td>'+esc(x.scope)+'</td><td>'+esc(x.notes)+'</td></tr>').join("")}
-function renderPolicy(){const p=state.policy||{},t=p.timeouts||{},rows=Object.entries(p.commands||{});$("#policySummary").innerHTML='<h2>Декларативная policy</h2><p class="muted">root '+(t.root_ms||0)+' ms · prefix '+(t.prefix_ms||0)+' ms · search '+(t.search_ms||0)+' ms · confirmation '+(t.confirmation_ms||0)+' ms · result '+(t.result_ms||0)+' ms</p><div class="table"><table><thead><tr><th>Внутренняя последовательность</th><th>Guards</th><th>Confirmation</th><th>Недоступность</th></tr></thead><tbody>'+rows.map(([k,v])=>'<tr><td><kbd>'+esc(k)+'</kbd></td><td><code>'+esc(JSON.stringify(v.guards||{}))+'</code></td><td>'+esc(v.confirmation||"по команде")+'</td><td>'+esc(v.on_unavailable?.message||v.on_unavailable?.action||"default")+'</td></tr>').join("")+'</tbody></table></div>'}
-function bindDetails(){$$('[data-command]').forEach(b=>b.onclick=()=>{const[id,slot]=b.dataset.command.split('|'),m=modules().find(x=>x.id===id),c=commands(m).find(x=>String(x.slot).toUpperCase()===slot),p=policyFor(m,c);$("#detailTitle").textContent=c.command?.name||"Команда";$("#detailBody").innerHTML='<dl class="details"><dt>Пользовательский ввод</dt><dd><kbd>CapsLock → '+keyFor(slot)+'</kbd></dd><dt>Внутренний DFA</dt><dd><code>'+sequence(m,c)+'</code></dd><dt>Модуль</dt><dd>'+esc(m.label)+' ('+esc(m.id)+')</dd><dt>Слот</dt><dd>'+esc(slot)+'</dd><dt>BUTTON ID</dt><dd><code>'+esc(c.command?.id)+'</code></dd><dt>Выбор</dt><dd>'+(c.requires_selection?'обязателен':'не обязателен')+'</dd><dt>Подтверждение</dt><dd>'+(c.destructive||c.confirm_before_execute||p?.confirmation==='required'?'Enter':'не требуется')+'</dd><dt>Guards</dt><dd><code>'+esc(JSON.stringify(p?.guards||{}))+'</code></dd></dl>';$("#details").showModal()})}
-function stats(){const all=modules().flatMap(m=>commands(m).map(c=>({m,c,p:policyFor(m,c)})));$("#sBasic").textContent=(state.profile?.keyboard||[]).filter(x=>x.enabled!==false).length;$("#sModules").textContent=modules().length;$("#sCommands").textContent=all.length;$("#sSelection").textContent=all.filter(x=>x.c.requires_selection).length;$("#sDanger").textContent=all.filter(x=>x.c.destructive||x.c.confirm_before_execute||x.p?.confirmation==='required').length;$("#sGuards").textContent=Object.keys(state.policy?.commands||{}).length;$("#source").textContent=state.source;$("#profileName").textContent=(state.profile?.profile?.name||"")+" · NX "+(state.profile?.profile?.nx_version||"2512")}
-function render(){if(!state.profile)return;renderModules();renderGrid();renderMatrix();renderBasic();renderPolicy();stats()}async function fileJson(file){return JSON.parse((await file.text()).replace(/^\uFEFF/,""))}async function load(){try{const[a,b]=await Promise.all([fetch('../config/nx2512-pro-hybrid.json',{cache:'no-store'}),fetch('../config/nx2512-state-machines.json',{cache:'no-store'})]);if(!a.ok)throw Error('profile HTTP '+a.status);state.profile=await a.json();state.policy=b.ok?await b.json():{};state.source='канонические JSON из ../config';render()}catch(error){state.source='загрузите JSON вручную или откройте страницу через локальный HTTP';$("#source").textContent=state.source;$("#adaptiveGrid").innerHTML='<div class="notice">Из корня репозитория выполните <code>py -m http.server 8080</code> либо загрузите профиль кнопкой.</div>'}}
-$("#moduleSelect").onchange=e=>{state.moduleId=e.target.value;render()};$("#nextModule").onclick=()=>{const list=modules(),index=list.findIndex(x=>x.id===state.moduleId);if(list.length){state.moduleId=list[(index+1+list.length)%list.length].id;render()}};$("#search").oninput=e=>{state.query=e.target.value.trim();render()};$("#profileFile").onchange=async e=>{state.profile=await fileJson(e.target.files[0]);state.source=e.target.files[0].name;state.moduleId="";render()};$("#policyFile").onchange=async e=>{state.policy=await fileJson(e.target.files[0]);render()};$("#close").onclick=()=>$("#details").close();$$('.tabs button').forEach(b=>b.onclick=()=>{$$('.tabs button').forEach(x=>x.setAttribute('aria-selected',String(x===b)));$$('.panel').forEach(x=>x.hidden=x.dataset.panel!==b.dataset.tab)});let depth=0;addEventListener('dragenter',e=>{e.preventDefault();depth++;document.body.classList.add('drag')});addEventListener('dragleave',e=>{e.preventDefault();if(--depth<=0)document.body.classList.remove('drag')});addEventListener('dragover',e=>e.preventDefault());addEventListener('drop',async e=>{e.preventDefault();depth=0;document.body.classList.remove('drag');for(const file of[...e.dataTransfer.files].filter(x=>x.name.endsWith('.json'))){const value=await fileJson(file);if(value.modules||value.keyboard){state.profile=value;state.source=file.name;state.moduleId=""}else if(value.timeouts||value.commands)state.policy=value}render()});load();})();
-</script>
+    <div class="page">
+        <header class="hero">
+            <div>
+                <p class="source">NXKeys · Siemens NX 2512 · schema v4</p>
+                <h1>Адаптивная карта команд</h1>
+                <p class="lead">12 базовых сочетаний и восемь команд, которые автоматически меняются вместе с активным
+                    приложением NX.</p>
+                <p class="source">Источник: <strong id="source">загрузка…</strong> · <span id="profileName"></span></p>
+            </div>
+            <div class="actions"><label class="file">Загрузить профиль<input id="profileFile" type="file"
+                        accept=".json,application/json"></label><label class="file">Загрузить policy<input
+                        id="policyFile" type="file" accept=".json,application/json"></label><button
+                    onclick="print()">Печать / PDF</button></div>
+        </header>
+        <section class="stats">
+            <div class="stat"><b id="sBasic">0</b><span>базовых сочетаний</span></div>
+            <div class="stat"><b id="sModules">0</b><span>модулей</span></div>
+            <div class="stat"><b id="sCommands">0</b><span>модульных команд</span></div>
+            <div class="stat"><b id="sSelection">0</b><span>требуют выбор</span></div>
+            <div class="stat"><b id="sDanger">0</b><span>требуют Enter</span></div>
+            <div class="stat"><b id="sGuards">0</b><span>policy-правил</span></div>
+        </section>
+        <div class="layout">
+            <aside class="side">
+                <div class="field"><label for="search">Поиск</label><input id="search" type="search"
+                        placeholder="команда, ID, модуль…"></div>
+                <div class="field"><label for="moduleSelect">Модуль</label><select id="moduleSelect"></select></div>
+                <h2>Все модули</h2>
+                <div id="moduleButtons" class="mods"></div>
+            </aside>
+            <main>
+                <nav class="tabs"><button data-tab="current" aria-selected="true">Текущий модуль</button><button
+                        data-tab="matrix" aria-selected="false">Матрица 14×8</button><button data-tab="basic"
+                        aria-selected="false">Базовые сочетания</button><button data-tab="fsm" aria-selected="false">FSM
+                        и guards</button></nav>
+                <section class="panel" data-panel="current">
+                    <div class="context"><span class="prefix" id="currentPrefix">M</span>
+                        <div><b id="currentLabel">Modeling</b>
+                            <div class="muted" id="currentApplications"></div>
+                        </div><button id="nextModule">Следующий модуль</button>
+                    </div>
+                    <div id="adaptiveGrid" class="grid"></div>
+                </section>
+                <section class="panel" data-panel="matrix" hidden>
+                    <div class="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Модуль</th>
+                                    <th><kbd>W</kbd> N</th>
+                                    <th><kbd>E</kbd> NE</th>
+                                    <th><kbd>D</kbd> E</th>
+                                    <th><kbd>C</kbd> SE</th>
+                                    <th><kbd>X</kbd> S</th>
+                                    <th><kbd>Z</kbd> SW</th>
+                                    <th><kbd>A</kbd> W</th>
+                                    <th><kbd>Q</kbd> NW</th>
+                                </tr>
+                            </thead>
+                            <tbody id="matrix"></tbody>
+                        </table>
+                    </div>
+                </section>
+                <section class="panel" data-panel="basic" hidden>
+                    <div class="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Сочетание</th>
+                                    <th>Команда</th>
+                                    <th>BUTTON ID</th>
+                                    <th>Scope</th>
+                                    <th>Назначение</th>
+                                </tr>
+                            </thead>
+                            <tbody id="basic"></tbody>
+                        </table>
+                    </div>
+                </section>
+                <section class="panel" data-panel="fsm" hidden>
+                    <h2>Путь исполнения</h2>
+                    <div class="flow">
+                        <div>Bridge context</div>
+                        <div>Module resolver</div>
+                        <div>Keyboard queue</div>
+                        <div>Sequence DFA</div>
+                        <div>Leader HFSM</div>
+                        <div>Context guards</div>
+                        <div>NX BUTTON ID</div>
+                    </div>
+                    <div id="policySummary"></div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <dialog id="details">
+        <h2 id="detailTitle"></h2>
+        <div id="detailBody"></div>
+        <p style="text-align:right"><button id="close">Закрыть</button></p>
+    </dialog>
+    <script>
+        (() => {
+            "use strict";
+            const $ = s => document.querySelector(s);
+            const $$ = s => [...document.querySelectorAll(s)];
+            const state = { profile: null, policy: {}, moduleId: "", query: "", source: "" };
+            const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+            const modules = () => state.profile?.modules?.filter(x => x && x.enabled !== false) || [];
+            const commands = m => (m?.command_sets || []).flatMap(set => (set.commands || []).map(c => ({ ...c, setLabel: set.label || set.id || "" })));
+            const keyFor = c => String(c?.input_key || "?").trim().toUpperCase();
+            const menuKeyFor = c => String(c?.submenu_key || "").trim().toUpperCase();
+            const sequence = (m, c) => (String(m.leader_prefix || "") + menuKeyFor(c) + keyFor(c)).toUpperCase();
+            const userPath = c => menuKeyFor(c) ? menuKeyFor(c) + " -> " + keyFor(c) : keyFor(c);
+            const SVGS = {
+                extrude: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4.5v7L12 18l-8-4.5v-7L12 2z" stroke="#5bc9df" fill="#5bc9df22"/><path d="M12 2v9m8-4.5l-8 4.5m-8-4.5l8 4.5" stroke="#5bc9df"/><path d="M12 15v7m-3-3l3 3 3-3" stroke="#f0c45a" stroke-width="2.2"/></svg>',
+                revolve: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20" stroke="#f0c45a" stroke-dasharray="2 2"/><ellipse cx="12" cy="12" rx="7" ry="3.5" stroke="#5bc9df"/><path d="M19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7" stroke="#5bc9df" stroke-width="2"/><path d="M6 10l-2 2 2 2" stroke="#5bc9df" stroke-width="2"/></svg>',
+                hole: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l8-3 8 3v12l-8 3-8-3V6z" stroke="#5bc9df" fill="#5bc9df18"/><ellipse cx="12" cy="9" rx="4" ry="2" stroke="#f0c45a" fill="#0b1017"/><path d="M8 9v6c0 1.1 1.79 2 4 2s4-.9 4-2V9" stroke="#f0c45a"/></svg>',
+                blend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V3h18" stroke="#5bc9df"/><path d="M3 13c5.5 0 10 4.5 10 10" stroke="#f0c45a" stroke-width="2.2"/><path d="M3 21h10v-8c0-5.5-4.5-10-10-10H3v18z" fill="#f0c45a22"/></svg>',
+                chamfer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V3h18" stroke="#5bc9df"/><path d="M3 12l9 9" stroke="#f0c45a" stroke-width="2.2"/><path d="M3 12l9 9H3V12z" fill="#f0c45a22"/></svg>',
+                rectangle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="1" stroke="#5bc9df" stroke-width="1.8" fill="#5bc9df18"/><circle cx="4" cy="5" r="2" fill="#f0c45a"/><circle cx="20" cy="5" r="2" fill="#f0c45a"/><circle cx="4" cy="19" r="2" fill="#f0c45a"/><circle cx="20" cy="19" r="2" fill="#f0c45a"/></svg>',
+                circle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8" stroke="#5bc9df" stroke-width="1.8" fill="#5bc9df15"/><path d="M12 2v4m0 12v4m-10-10h4m12 0h4" stroke="#f0c45a"/><circle cx="12" cy="12" r="1.5" fill="#f0c45a"/></svg>',
+                arc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17A10 10 0 0 1 19 7" stroke="#5bc9df" stroke-width="2.2"/><circle cx="4" cy="17" r="2" fill="#f0c45a"/><circle cx="12" cy="8" r="2" fill="#f0c45a"/><circle cx="19" cy="7" r="2" fill="#f0c45a"/></svg>',
+                line: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19L19 5" stroke="#5bc9df" stroke-width="2.2"/><circle cx="5" cy="19" r="2.5" fill="#f0c45a"/><circle cx="19" cy="5" r="2.5" fill="#f0c45a"/></svg>',
+                constraint: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19L12 5M10 19L16 5" stroke="#5bc9df" stroke-width="2"/><rect x="14" y="13" width="7" height="6" rx="1" fill="#f0c45a" stroke="#f0c45a"/><path d="M16 13v-2a1.5 1.5 0 0 1 3 0v2" stroke="#f0c45a"/></svg>',
+                pattern: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1" stroke="#5bc9df" fill="#5bc9df33"/><rect x="15" y="3" width="6" height="6" rx="1" stroke="#5bc9df" fill="#5bc9df33"/><rect x="3" y="15" width="6" height="6" rx="1" stroke="#5bc9df" fill="#5bc9df33"/><rect x="15" y="15" width="6" height="6" rx="1" stroke="#f0c45a" fill="#f0c45a44"/><path d="M9 6h6m-3-3l3 3-3 3M6 9v6m-3-3l3 3 3-3" stroke="#f0c45a"/></svg>',
+                mirror: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18" stroke="#f0c45a" stroke-dasharray="3 2" stroke-width="1.5"/><path d="M4 7l4 3-4 7V7z" stroke="#5bc9df" fill="#5bc9df22"/><path d="M20 7l-4 3 4 7V7z" stroke="#5bc9df" fill="#5bc9df55"/></svg>',
+                assembly_add: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l7 3.5 11-5.5-7-3.5L3 13z" stroke="#5bc9df" fill="#5bc9df22"/><path d="M3 13v5.5l7 3.5v-5.5M10 22l11-5.5V11" stroke="#5bc9df"/><path d="M12 2l5 2.5v5L12 12l-5-2.5v-5L12 2z" stroke="#f0c45a" fill="#f0c45a44"/></svg>',
+                assembly_constraints: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-4-4l4 4-4 4M9 8L5 12l4 4" stroke="#f0c45a" stroke-width="2"/><circle cx="12" cy="12" r="4" stroke="#5bc9df" fill="#5bc9df33"/></svg>',
+                sheet_metal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h8v12H4z" stroke="#5bc9df" fill="#5bc9df22"/><path d="M12 18l8-4V2l-8 4v12z" stroke="#f0c45a" fill="#f0c45a33"/><path d="M12 6v12" stroke="#f0c45a" stroke-width="2"/></svg>',
+                wave: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c2.5-4 5.5-4 8 0s5.5 4 8 0 3.5-2 4 0" stroke="#5bc9df" stroke-width="2.2"/><circle cx="6" cy="10" r="2.5" fill="#f0c45a"/><circle cx="18" cy="14" r="2.5" fill="#f0c45a"/></svg>',
+                layer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#f0c45a" fill="#f0c45a33"/><path d="M2 12l10 5 10-5" stroke="#5bc9df"/><path d="M2 17l10 5 10-5" stroke="#5bc9df"/></svg>',
+                material: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" stroke="#5bc9df" stroke-width="1.6" fill="#5bc9df22"/><path d="M6 12c0 3.3 2.7 6 6 6" stroke="#5bc9df"/><circle cx="9" cy="9" r="2.5" fill="#f0c45a"/></svg>',
+                sel_body: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v8l-7 4-7-4V7l7-4z" stroke="#5bc9df" stroke-width="1.8" fill="#5bc9df33"/><path d="M12 3v9m7-5l-7 5m-7-5l7 5" stroke="#5bc9df"/><path d="M15 15l5 5m-2-5l3 1-1 3" stroke="#f0c45a" stroke-width="2"/></svg>',
+                sel_face: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="5,4 19,4 15,16 3,16" stroke="#5bc9df" stroke-width="1.8" fill="#5bc9df44"/><path d="M14 14l5 5m-2-5l3 1-1 3" stroke="#f0c45a" stroke-width="2"/></svg>',
+                sel_edge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20L21 4" stroke="#f0c45a" stroke-width="3"/><path d="M14 14l5 5m-2-5l3 1-1 3" stroke="#5bc9df" stroke-width="2"/></svg>',
+                sel_curve: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17C8 5 16 19 21 7" stroke="#5bc9df" stroke-width="2.2"/><path d="M14 14l5 5m-2-5l3 1-1 3" stroke="#f0c45a" stroke-width="2"/></svg>',
+                sel_deselect: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l7 15 2-6 6-2L4 4z" stroke="#5bc9df" fill="#5bc9df22"/><circle cx="18" cy="18" r="4" fill="#ff7c8b" stroke="#ff7c8b"/><path d="M16 18h4" stroke="#0b1017" stroke-width="2"/></svg>',
+                selection: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" stroke="#5bc9df" stroke-dasharray="3 2"/><path d="M12 12l6 6m-3-6l4 1-1 4" stroke="#f0c45a" stroke-width="2"/></svg>',
+                inspect: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6v12M20 6v12M4 12h16" stroke="#f0c45a" stroke-width="1.8"/><path d="M7 9l-3 3 3 3M17 9l3 3-3 3" stroke="#f0c45a" stroke-width="1.8"/></svg>',
+                view_orient: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12L4 17m8-5l8 5m-8-5V3" stroke="#5bc9df" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#f0c45a"/></svg>',
+                view_fit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1" stroke="#5bc9df" stroke-width="1.6" fill="#5bc9df15"/><path d="M3 8V3h5M21 8V3h-5M3 16v5h5M21 16v-5" stroke="#f0c45a" stroke-width="2"/></svg>',
+                file_new: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#5bc9df" fill="#5bc9df15"/><polyline points="14 2 14 8 20 8" stroke="#5bc9df"/><path d="M12 11v6m-3-3h6" stroke="#82dfa8" stroke-width="2"/></svg>',
+                file_open: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" stroke="#5bc9df" fill="#5bc9df22"/><path d="M12 11v6m-3-3l3-3 3 3" stroke="#f0c45a" stroke-width="2"/></svg>',
+                file_save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke="#5bc9df" fill="#5bc9df15"/><polyline points="17 21 17 13 7 13 7 21" stroke="#5bc9df"/><polyline points="7 3 7 8 15 8" stroke="#f0c45a"/></svg>',
+                undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h13a5 5 0 0 1 0 10H7" stroke="#5bc9df" stroke-width="2"/><polyline points="7 5 3 9 7 13" stroke="#f0c45a" stroke-width="2"/></svg>',
+                redo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 9H8a5 5 0 0 0 0 10h9" stroke="#5bc9df" stroke-width="2"/><polyline points="17 5 21 9 17 13" stroke="#f0c45a" stroke-width="2"/></svg>',
+                cut: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3" stroke="#5bc9df"/><circle cx="6" cy="18" r="3" stroke="#5bc9df"/><line x1="20" y1="4" x2="8.12" y2="15.88" stroke="#f0c45a" stroke-width="1.8"/><line x1="14.47" y1="14.48" x2="20" y2="20" stroke="#f0c45a" stroke-width="1.8"/><line x1="8.12" y1="8.12" x2="12" y2="12" stroke="#f0c45a" stroke-width="1.8"/></svg>',
+                copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#5bc9df" fill="#5bc9df22"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="#f0c45a"/></svg>',
+                paste: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" stroke="#5bc9df"/><rect x="8" y="2" width="8" height="4" rx="1" fill="#f0c45a" stroke="#f0c45a"/></svg>',
+                delete: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6" stroke="#ff7c8b"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#ff7c8b"/></svg>',
+                menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#5bc9df" fill="#5bc9df15"/><path d="M7 9h4m-4 4h7m-7 4h10" stroke="#5bc9df"/><path d="M17 10l3 3-3 3" stroke="#f0c45a" stroke-width="2"/></svg>',
+                sketch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" stroke="#5bc9df" stroke-dasharray="3 2" fill="#5bc9df10"/><path d="M7 17l10-10" stroke="#f0c45a" stroke-width="2"/><circle cx="7" cy="17" r="2" fill="#5bc9df"/><circle cx="17" cy="7" r="2" fill="#5bc9df"/></svg>',
+                feature: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7l9-5z" stroke="#5bc9df" stroke-width="1.8" fill="#5bc9df20"/><path d="M12 2v20M3 7l18 10M21 7L3 17" stroke="#5bc9df" stroke-opacity="0.4"/><circle cx="12" cy="12" r="2.5" fill="#f0c45a"/></svg>',
+                assembly: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="10" height="10" rx="1.5" stroke="#5bc9df" fill="#5bc9df33"/><rect x="11" y="3" width="10" height="10" rx="1.5" stroke="#f0c45a" fill="#f0c45a33"/><path d="M11 11l2 2" stroke="#5bc9df" stroke-width="2"/></svg>',
+                view: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" stroke="#5bc9df" fill="#5bc9df15"/><path d="M12 3v18M3 12h18" stroke="#5bc9df" stroke-opacity="0.4"/><path d="M12 12l6 3" stroke="#f0c45a" stroke-width="2"/></svg>',
+                command: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7l9-5z" stroke="#5bc9df" stroke-width="1.8" fill="#5bc9df20"/><circle cx="12" cy="12" r="3" fill="#f0c45a"/></svg>'
+            };
+            const pngNameFor = c => {
+                if (!c) return "default.png";
+                if (c.isMenu || menuKeyFor(c)) return "menu.png";
+                const id = String(c.command?.id || "").toUpperCase();
+                const name = String(c.command?.name || "").toUpperCase();
+                const hint = String(c.icon_hint || "").toLowerCase();
+
+                if (id.includes("EXTRUDE") || name.includes("EXTRUDE")) return "extrude.png";
+                if (id.includes("REVOLVE") || name.includes("REVOLVE")) return "revolve.png";
+                if (id.includes("HOLE") || name.includes("HOLE")) return "hole.png";
+                if (id.includes("BLEND") || id.includes("FILLET") || name.includes("BLEND") || name.includes("FILLET")) return "blend.png";
+                if (id.includes("CHAMFER") || name.includes("CHAMFER")) return "chamfer.png";
+                if (id.includes("RECTANGLE") || name.includes("RECTANGLE")) return "rectangle.png";
+                if (id.includes("CIRCLE") || name.includes("CIRCLE")) return "circle.png";
+                if (id.includes("ARC") || name.includes("ARC")) return "arc.png";
+                if (id.includes("LINE") || name.includes("LINE")) return "line.png";
+                if (id.includes("CONSTRAINT") || name.includes("CONSTRAINT")) return "constraint.png";
+                if (id.includes("PATTERN") || name.includes("PATTERN")) return "pattern.png";
+                if (id.includes("MIRROR") || name.includes("MIRROR")) return "mirror.png";
+                if (id.includes("WAVE") || name.includes("WAVE")) return "wave.png";
+                if (id.includes("LAYER") || name.includes("LAYER")) return "layer.png";
+                if (id.includes("MATERIAL") || name.includes("MATERIAL")) return "material.png";
+                if (id.includes("SBSM") || id.includes("FLANGE") || id.includes("SHEET") || name.includes("SHEET")) return "sheet_metal.png";
+                if (id.includes("BODY_PRIORITY") || name.includes("BODY")) return "sel_body.png";
+                if (id.includes("FACE_PRIORITY") || name.includes("FACE")) return "sel_face.png";
+                if (id.includes("EDGE_PRIORITY") || name.includes("EDGE")) return "sel_edge.png";
+                if (id.includes("DESELECT") || name.includes("СНЯТЬ")) return "sel_deselect.png";
+                if (id.includes("SELECT") || hint === "selection") return "selection.png";
+                if (id.includes("ADD_COMPONENT") || id.includes("COMPONENT") || hint === "assembly") return "assembly.png";
+                if (id.includes("MEASURE") || id.includes("INFO") || hint === "inspect") return "inspect.png";
+                if (id.includes("FIT") || id.includes("ORIENT") || id.includes("VIEW") || hint === "view") return "view.png";
+                if (hint === "sketch") return "sketch.png";
+                return "default.png";
+            };
+            const icon = c => {
+                const cmdId = c?.command?.id;
+                const categoryPng = pngNameFor(c);
+                const getSvgFallback = () => {
+                    if (!c) return SVGS.command;
+                    if (c.isMenu || menuKeyFor(c)) return SVGS.menu;
+                    const id = String(c.command?.id || "").toUpperCase();
+                    const name = String(c.command?.name || "").toUpperCase();
+                    const hint = String(c.icon_hint || "").toLowerCase();
+                    if (id.includes("EXTRUDE") || name.includes("EXTRUDE")) return SVGS.extrude;
+                    if (id.includes("REVOLVE") || name.includes("REVOLVE")) return SVGS.revolve;
+                    if (id.includes("HOLE") || name.includes("HOLE")) return SVGS.hole;
+                    if (id.includes("BLEND") || id.includes("FILLET") || name.includes("BLEND") || name.includes("FILLET")) return SVGS.blend;
+                    if (id.includes("CHAMFER") || name.includes("CHAMFER")) return SVGS.chamfer;
+                    if (id.includes("RECTANGLE") || name.includes("RECTANGLE")) return SVGS.rectangle;
+                    if (id.includes("CIRCLE") || name.includes("CIRCLE")) return SVGS.circle;
+                    if (id.includes("ARC") || name.includes("ARC")) return SVGS.arc;
+                    if (id.includes("LINE") || name.includes("LINE")) return SVGS.line;
+                    if (id.includes("CONSTRAINT") || name.includes("CONSTRAINT")) return SVGS.constraint;
+                    if (id.includes("PATTERN") || name.includes("PATTERN")) return SVGS.pattern;
+                    if (id.includes("MIRROR") || name.includes("MIRROR")) return SVGS.mirror;
+                    if (id.includes("WAVE") || name.includes("WAVE")) return SVGS.wave;
+                    if (id.includes("LAYER") || name.includes("LAYER")) return SVGS.layer;
+                    if (id.includes("MATERIAL") || name.includes("MATERIAL")) return SVGS.material;
+                    if (id.includes("SBSM") || id.includes("FLANGE") || id.includes("SHEET") || name.includes("SHEET")) return SVGS.sheet_metal;
+                    if (id.includes("BODY_PRIORITY") || name.includes("BODY")) return SVGS.sel_body;
+                    if (id.includes("FACE_PRIORITY") || name.includes("FACE")) return SVGS.sel_face;
+                    if (id.includes("EDGE_PRIORITY") || name.includes("EDGE")) return SVGS.sel_edge;
+                    if (id.includes("DESELECT") || name.includes("СНЯТЬ")) return SVGS.sel_deselect;
+                    if (id.includes("SELECT") || hint === "selection") return SVGS.selection;
+                    if (id.includes("ADD_COMPONENT") || id.includes("COMPONENT") || hint === "assembly") return SVGS.assembly_add;
+                    if (id.includes("MEASURE") || id.includes("INFO") || hint === "inspect") return SVGS.inspect;
+                    if (id.includes("FIT") || id.includes("VIEW") || hint === "view") return SVGS.view_fit;
+                    return SVGS[hint] || SVGS.command;
+                };
+                if (cmdId) {
+                    return `<img src="assets/icons/${cmdId}.png" alt="" class="png-icon" onerror="this.onerror=null;this.src='assets/icons/${categoryPng}';this.onerror=function(){this.outerHTML='${getSvgFallback().replace(/'/g, "\\'")}';};" />`;
+                }
+                return `<img src="assets/icons/${categoryPng}" alt="" class="png-icon" onerror="this.outerHTML='${getSvgFallback().replace(/'/g, "\\'")}'" />`;
+            };
+            const policyFor = (m, c) => state.policy?.commands?.[sequence(m, c)] || null;
+            const active = () => modules().find(x => x.id === state.moduleId) || modules()[0];
+            function matches(m, c) { const q = state.query.toLowerCase(); return !q || [m.id, m.label, m.leader_prefix, c.slot, menuKeyFor(c), c.submenu_label, keyFor(c), c.command?.id, c.command?.name, c.notes, JSON.stringify(policyFor(m, c) || {})].join(" ").toLowerCase().includes(q); }
+            function badges(m, c) { const p = policyFor(m, c), items = []; if (menuKeyFor(c)) items.push('<span class="badge guard">submenu</span>'); if (c.requires_selection) items.push('<span class="badge sel">selection</span>'); if (c.destructive || c.confirm_before_execute || p?.confirmation === "required") items.push('<span class="badge danger">Enter</span>'); if (p) items.push('<span class="badge guard">guard</span>'); return items.join(""); }
+            function rootRows(m) { const groups = new Map(); for (const c of commands(m).filter(c => matches(m, c))) { const rootKey = menuKeyFor(c) || keyFor(c); if (!groups.has(rootKey)) groups.set(rootKey, []); groups.get(rootKey).push(c); } return [...groups.entries()].map(([key, group]) => { const first = group.slice().sort((a, b) => Number(a.display_order || 999) - Number(b.display_order || 999))[0]; return { key, group, first, isMenu: group.length > 1 || !!menuKeyFor(first), order: Number(first?.display_order || 999) }; }).sort((a, b) => a.order - b.order || a.key.localeCompare(b.key)); }
+            function renderModules() { const list = modules(), select = $("#moduleSelect"); if (!state.moduleId && list.length) state.moduleId = list[0].id; select.innerHTML = list.map(m => '<option value="' + esc(m.id) + '" ' + (m.id === state.moduleId ? 'selected' : '') + '>' + esc(m.label) + '</option>').join(""); $("#moduleButtons").innerHTML = list.map(m => '<button data-module="' + esc(m.id) + '" aria-pressed="' + String(m.id === state.moduleId) + '"><span><kbd>' + esc(m.leader_prefix) + '</kbd> ' + esc(m.label) + '</span><span>' + commands(m).length + '</span></button>').join(""); $$('[data-module]').forEach(b => b.onclick = () => { state.moduleId = b.dataset.module; render(); }); }
+            function renderGrid() { const m = active(); if (!m) return; $("#currentPrefix").textContent = m.leader_prefix; $("#currentLabel").textContent = m.label; $("#currentApplications").textContent = (m.nx_application_ids || []).join(", "); const cards = rootRows(m).map(row => { const c = row.first; const name = row.isMenu ? (c.submenu_label || "Подменю") + " >" : c.command?.name; const detail = row.isMenu ? row.group.length + " команд" : c.command?.id; return '<button class="command" data-command="' + esc(m.id) + '|' + esc(sequence(m, c)) + '"><span class="key">' + esc(row.key) + '</span><h3><span class="mini-icon">' + icon(c) + '</span>' + esc(name) + '</h3><div class="id">' + esc(detail) + '</div><div class="badges">' + badges(m, c) + '</div></button>'; }).join(""); $("#adaptiveGrid").innerHTML = cards + '<div class="center"><div><b>CapsLock</b><br>' + esc(m.label) + '<br><span class="muted">3 колонки + вложенные меню</span></div></div>'; bindDetails(); }
+            function renderMatrix() { const rows = modules().filter(m => commands(m).some(c => matches(m, c))); $("#matrix").innerHTML = rows.map(m => '<tr><th><kbd>' + esc(m.leader_prefix) + '</kbd> ' + esc(m.label) + '</th><td colspan="8">' + rootRows(m).map(row => { const c = row.first; const name = row.isMenu ? (c.submenu_label || "Подменю") + " >" : c.command?.name; return '<button data-command="' + esc(m.id) + '|' + esc(sequence(m, c)) + '"><kbd>' + esc(row.key) + '</kbd> <span class="mini-icon">' + icon(c) + '</span>' + esc(name) + '</button>'; }).join(" ") + '</td></tr>').join(""); bindDetails(); }
+            function renderBasic() { const q = state.query.toLowerCase(), rows = (state.profile?.keyboard || []).filter(x => x && x.enabled !== false).filter(x => !q || [x.shortcut, x.command?.id, x.command?.name, x.scope, x.notes].join(" ").toLowerCase().includes(q)); $("#basic").innerHTML = rows.map(x => '<tr><td><kbd>' + esc(x.shortcut) + '</kbd></td><td>' + esc(x.command?.name) + '</td><td><code>' + esc(x.command?.id) + '</code></td><td>' + esc(x.scope) + '</td><td>' + esc(x.notes) + '</td></tr>').join(""); }
+            function renderPolicy() { const p = state.policy || {}, t = p.timeouts || {}, rows = Object.entries(p.commands || {}); $("#policySummary").innerHTML = '<h2>Декларативная policy</h2><p class="muted">root ' + (t.root_ms || 0) + ' ms · prefix ' + (t.prefix_ms || 0) + ' ms · search ' + (t.search_ms || 0) + ' ms · confirmation ' + (t.confirmation_ms || 0) + ' ms · result ' + (t.result_ms || 0) + ' ms</p><div class="table"><table><thead><tr><th>Внутренняя последовательность</th><th>Guards</th><th>Confirmation</th><th>Недоступность</th></tr></thead><tbody>' + rows.map(([k, v]) => '<tr><td><kbd>' + esc(k) + '</kbd></td><td><code>' + esc(JSON.stringify(v.guards || {})) + '</code></td><td>' + esc(v.confirmation || "по команде") + '</td><td>' + esc(v.on_unavailable?.message || v.on_unavailable?.action || "default") + '</td></tr>').join("") + '</tbody></table></div>'; }
+            function bindDetails() { $$('[data-command]').forEach(b => b.onclick = () => { const [id, seq] = b.dataset.command.split('|'), m = modules().find(x => x.id === id), c = commands(m).find(x => sequence(m, x) === seq); if (!c) return; const p = policyFor(m, c); $("#detailTitle").textContent = c.command?.name || "Команда"; $("#detailBody").innerHTML = '<dl class="details"><dt>Пользовательский ввод</dt><dd><kbd>CapsLock -> ' + esc(userPath(c)) + '</kbd></dd><dt>Иконка</dt><dd><span class="mini-icon">' + icon(c) + '</span><code>' + esc(c.icon_hint || "command") + '</code></dd><dt>Внутренний DFA</dt><dd><code>' + esc(sequence(m, c)) + '</code></dd><dt>Модуль</dt><dd>' + esc(m.label) + ' (' + esc(m.id) + ')</dd><dt>Подменю</dt><dd>' + esc(c.submenu_label || "root") + '</dd><dt>BUTTON ID</dt><dd><code>' + esc(c.command?.id) + '</code></dd><dt>Выбор</dt><dd>' + (c.requires_selection ? 'обязателен' : 'не обязателен') + '</dd><dt>Подтверждение</dt><dd>' + (c.destructive || c.confirm_before_execute || p?.confirmation === 'required' ? 'Enter' : 'не требуется') + '</dd><dt>Guards</dt><dd><code>' + esc(JSON.stringify(p?.guards || {})) + '</code></dd></dl>'; $("#details").showModal(); }); }
+            function stats() { const all = modules().flatMap(m => commands(m).map(c => ({ m, c, p: policyFor(m, c) }))); $("#sBasic").textContent = (state.profile?.keyboard || []).filter(x => x.enabled !== false).length; $("#sModules").textContent = modules().length; $("#sCommands").textContent = all.length; $("#sSelection").textContent = all.filter(x => x.c.requires_selection).length; $("#sDanger").textContent = all.filter(x => x.c.destructive || x.c.confirm_before_execute || x.p?.confirmation === 'required').length; $("#sGuards").textContent = Object.keys(state.policy?.commands || {}).length; $("#source").textContent = state.source; $("#profileName").textContent = (state.profile?.profile?.name || "") + " · NX " + (state.profile?.profile?.nx_version || "2512"); }
+            function render() { if (!state.profile) return; renderModules(); renderGrid(); renderMatrix(); renderBasic(); renderPolicy(); stats(); }
+            async function fileJson(file) { return JSON.parse((await file.text()).replace(/^﻿/, "")); }
+            async function load() { try { const [a, b] = await Promise.all([fetch('../config/nx2512-pro-hybrid.json', { cache: 'no-store' }), fetch('../config/nx2512-state-machines.json', { cache: 'no-store' })]); if (!a.ok) throw Error('profile HTTP ' + a.status); state.profile = await a.json(); state.policy = b.ok ? await b.json() : {}; state.source = 'канонические JSON из ../config'; render(); } catch (error) { state.source = 'загрузите JSON вручную или откройте страницу через локальный HTTP'; $("#source").textContent = state.source; $("#adaptiveGrid").innerHTML = '<div class="notice">Из корня репозитория выполните <code>py -m http.server 8080</code> либо загрузите профиль кнопкой.</div>'; } }
+            $("#moduleSelect").onchange = e => { state.moduleId = e.target.value; render(); };
+            $("#nextModule").onclick = () => { const list = modules(), index = list.findIndex(x => x.id === state.moduleId); if (list.length) { state.moduleId = list[(index + 1 + list.length) % list.length].id; render(); } };
+            $("#search").oninput = e => { state.query = e.target.value.trim(); render(); };
+            $("#profileFile").onchange = async e => { state.profile = await fileJson(e.target.files[0]); state.source = e.target.files[0].name; state.moduleId = ""; render(); };
+            $("#policyFile").onchange = async e => { state.policy = await fileJson(e.target.files[0]); render(); };
+            $("#close").onclick = () => $("#details").close();
+            $$('.tabs button').forEach(b => b.onclick = () => { $$('.tabs button').forEach(x => x.setAttribute('aria-selected', String(x === b))); $$('.panel').forEach(x => x.hidden = x.dataset.panel !== b.dataset.tab); });
+            let depth = 0; addEventListener('dragenter', e => { e.preventDefault(); depth++; document.body.classList.add('drag'); }); addEventListener('dragleave', e => { e.preventDefault(); if (--depth <= 0) document.body.classList.remove('drag'); }); addEventListener('dragover', e => e.preventDefault()); addEventListener('drop', async e => { e.preventDefault(); depth = 0; document.body.classList.remove('drag'); for (const file of [...e.dataTransfer.files].filter(x => x.name.endsWith('.json'))) { const value = await fileJson(file); if (value.modules || value.keyboard) { state.profile = value; state.source = file.name; state.moduleId = ""; } else if (value.timeouts || value.commands) state.policy = value; } render(); });
+            load();
+        })();
+    </script>
 </body>
+
 </html>

@@ -56,7 +56,10 @@ namespace NX2512_HotkeyStudio.Models
 
     public sealed class Config
     {
-        [JsonPropertyName("schema_version")] public int SchemaVersion { get; set; } = 3;
+        public const int CurrentSchemaVersion = 4;
+        private const int MinimumSupportedSchemaVersion = 3;
+
+        [JsonPropertyName("schema_version")] public int SchemaVersion { get; set; } = CurrentSchemaVersion;
         [JsonPropertyName("profile")] public ProfileConfig Profile { get; set; } = new ProfileConfig();
         [JsonPropertyName("scan")] public ScanConfig Scan { get; set; } = new ScanConfig();
         [JsonPropertyName("deployment")] public DeploymentConfig Deployment { get; set; } = new DeploymentConfig();
@@ -102,7 +105,8 @@ namespace NX2512_HotkeyStudio.Models
 
         public void ApplyDefaults()
         {
-            SchemaVersion = 3;
+            if (SchemaVersion < MinimumSupportedSchemaVersion || SchemaVersion > CurrentSchemaVersion)
+                SchemaVersion = CurrentSchemaVersion;
             Profile ??= new ProfileConfig();
             if (string.IsNullOrWhiteSpace(Profile.NXVersion)) Profile.NXVersion = "2512";
             Scan ??= new ScanConfig();
@@ -119,7 +123,31 @@ namespace NX2512_HotkeyStudio.Models
             Role.ApplyDefaults(Profile.NXVersion);
             LeaderKey ??= new LeaderKeyConfig();
             LeaderKey.ApplyDefaults();
+            MigrateModuleCommands();
+            LeaderKey.SlotKeyMap = null;
+            SchemaVersion = CurrentSchemaVersion;
             LeaderKey.RebuildFromModules(Modules);
+        }
+
+        private void MigrateModuleCommands()
+        {
+            foreach (ModuleConfig module in Modules ?? Enumerable.Empty<ModuleConfig>())
+            {
+                if (module?.CommandSets == null) continue;
+                foreach (ModuleCommandSet set in module.CommandSets.Where(set => set?.Commands != null))
+                {
+                    int order = 1;
+                    foreach (ModuleCommand command in set.Commands.Where(command => command != null))
+                    {
+                        command.Command ??= new CommandRef();
+                        if (string.IsNullOrWhiteSpace(command.InputKey))
+                            command.InputKey = LeaderKey.ResolveInputKey(command.Slot, order);
+                        command.InputKey = LeaderKeyConfig.NormalizeInputKey(command.InputKey);
+                        if (command.DisplayOrder <= 0) command.DisplayOrder = order;
+                        order++;
+                    }
+                }
+            }
         }
 
         public void ExpandEnvironment()
@@ -165,7 +193,8 @@ namespace NX2512_HotkeyStudio.Models
         public void Validate()
         {
             var problems = new List<string>();
-            if (SchemaVersion != 3) problems.Add("schema_version must be 3");
+            if (SchemaVersion < MinimumSupportedSchemaVersion || SchemaVersion > CurrentSchemaVersion)
+                problems.Add("schema_version must be 3 or 4");
             if (Profile == null || string.IsNullOrWhiteSpace(Profile.Name)) problems.Add("profile.name is required");
             if (Deployment == null || string.IsNullOrWhiteSpace(Deployment.ManagedRoot)) problems.Add("deployment.managed_root is required");
             if (Deployment == null || string.IsNullOrWhiteSpace(Deployment.BackupRoot)) problems.Add("deployment.backup_root is required");
@@ -218,15 +247,35 @@ namespace NX2512_HotkeyStudio.Models
                 List<ModuleCommand> commands = module.CommandSets?
                     .Where(set => set?.Commands != null).SelectMany(set => set.Commands).Where(value => value != null).ToList()
                     ?? new List<ModuleCommand>();
-                if (commands.Count != ModuleDefaults.Slots.Count) problems.Add($"module {module.ID} must contain exactly 8 commands");
-                var slots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                if (commands.Count == 0) problems.Add($"module {module.ID} must contain commands");
+                var levelKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var fullSequences = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var rootBranches = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 foreach (ModuleCommand command in commands)
                 {
                     string slot = ModuleDefaults.NormalizeSlot(command.Slot);
-                    if (!ModuleDefaults.Slots.Contains(slot, StringComparer.OrdinalIgnoreCase)) problems.Add($"module {module.ID} has invalid slot {slot}");
-                    if (!slots.Add(slot)) problems.Add($"module {module.ID} repeats slot {slot}");
+                    if (SchemaVersion <= 3 && !ModuleDefaults.Slots.Contains(slot, StringComparer.OrdinalIgnoreCase))
+                        problems.Add($"module {module.ID} has invalid slot {slot}");
+                    string submenuKey = LeaderKeyConfig.NormalizeInputKey(command.SubmenuKey);
+                    string inputKey = LeaderKeyConfig.NormalizeInputKey(command.InputKey);
+                    if (string.IsNullOrWhiteSpace(inputKey)) problems.Add($"module {module.ID} has empty input_key");
+                    string rootKey = string.IsNullOrWhiteSpace(submenuKey) ? inputKey : submenuKey;
+                    string branchKind = string.IsNullOrWhiteSpace(submenuKey) ? "command" : "submenu";
+                    if (!string.IsNullOrWhiteSpace(rootKey) && rootBranches.TryGetValue(rootKey, out string existingKind) &&
+                        !string.Equals(existingKind, branchKind, StringComparison.OrdinalIgnoreCase))
+                        problems.Add($"module {module.ID} root key {rootKey} is both command and submenu");
+                    else if (!string.IsNullOrWhiteSpace(rootKey)) rootBranches[rootKey] = branchKind;
+                    string level = string.IsNullOrWhiteSpace(submenuKey) ? "$root" : submenuKey;
+                    if (!string.IsNullOrWhiteSpace(inputKey) && !levelKeys.Add(level + "|" + inputKey))
+                        problems.Add($"module {module.ID} repeats input_key {inputKey} in level {level}");
+                    string sequence = prefix + submenuKey + inputKey;
+                    if (!string.IsNullOrWhiteSpace(inputKey) && !fullSequences.Add(sequence))
+                        problems.Add($"module {module.ID} repeats sequence {sequence}");
+                    if (command.DisplayOrder <= 0) problems.Add($"module {module.ID} has invalid display_order {command.DisplayOrder}");
                     if (command.Command == null || string.IsNullOrWhiteSpace(command.Command.ID))
-                        problems.Add($"module {module.ID} slot {slot} requires exact command.id");
+                        problems.Add($"module {module.ID} key {inputKey} requires exact command.id");
+                    if (command.Command == null || string.IsNullOrWhiteSpace(command.Command.Name))
+                        problems.Add($"module {module.ID} key {inputKey} requires command.name");
                 }
             }
             if (ids.Count == 0) problems.Add("at least one enabled module is required");
@@ -326,7 +375,13 @@ namespace NX2512_HotkeyStudio.Models
     public sealed class ModuleCommand
     {
         [JsonPropertyName("slot")] public string Slot { get; set; } = string.Empty;
+        [JsonPropertyName("submenu_key")] public string SubmenuKey { get; set; } = string.Empty;
+        [JsonPropertyName("submenu_label")] public string SubmenuLabel { get; set; } = string.Empty;
+        [JsonPropertyName("input_key")] public string InputKey { get; set; } = string.Empty;
+        [JsonPropertyName("icon_hint")] public string IconHint { get; set; } = string.Empty;
+        [JsonPropertyName("display_order")] public int DisplayOrder { get; set; }
         [JsonPropertyName("command")] public CommandRef Command { get; set; } = new CommandRef();
+        [JsonPropertyName("enabled")] public bool Enabled { get; set; } = true;
         [JsonPropertyName("requires_selection")] public bool RequiresSelection { get; set; }
         [JsonPropertyName("destructive")] public bool Destructive { get; set; }
         [JsonPropertyName("confirm_before_execute")] public bool ConfirmBeforeExecute { get; set; }
@@ -351,6 +406,8 @@ namespace NX2512_HotkeyStudio.Models
             ConfirmDangerous = true;
         }
     }
+
+
 
     public sealed class PerformanceConfig
     {
@@ -381,12 +438,14 @@ namespace NX2512_HotkeyStudio.Models
         [JsonPropertyName("trigger_key")] public string TriggerKey { get; set; } = "CapsLock";
         [JsonPropertyName("adaptive_module_mode")] public bool AdaptiveModuleMode { get; set; } = true;
         [JsonPropertyName("hud_delay_ms")] public int HudDelayMs { get; set; } = 120;
-        [JsonPropertyName("first_key_timeout_ms")] public int FirstKeyTimeoutMs { get; set; } = 4000;
-        [JsonPropertyName("next_key_timeout_ms")] public int NextKeyTimeoutMs { get; set; } = 2500;
+        [JsonPropertyName("first_key_timeout_ms")] public int FirstKeyTimeoutMs { get; set; } = 20000;
+        [JsonPropertyName("next_key_timeout_ms")] public int NextKeyTimeoutMs { get; set; } = 20000;
         [JsonPropertyName("sticky_mode_on_double_tap")] public bool StickyModeOnDoubleTap { get; set; } = true;
         [JsonPropertyName("hud_opacity")] public double HudOpacity { get; set; } = 0.95;
         [JsonPropertyName("hook_only_when_nx_active")] public bool HookOnlyWhenNXActive { get; set; } = true;
-        [JsonPropertyName("slot_key_map")] public Dictionary<string, string> SlotKeyMap { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        [JsonPropertyName("slot_key_map")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Dictionary<string, string> SlotKeyMap { get; set; }
         [JsonIgnore] public List<LeaderSequenceItem> Sequences { get; set; } = new List<LeaderSequenceItem>();
         [JsonIgnore] public List<ModuleConfig> RuntimeModules { get; set; } = new List<ModuleConfig>();
 
@@ -395,12 +454,11 @@ namespace NX2512_HotkeyStudio.Models
             if (string.IsNullOrWhiteSpace(TriggerKey)) TriggerKey = "CapsLock";
             AdaptiveModuleMode = true;
             if (HudDelayMs <= 0) HudDelayMs = 120;
-            if (FirstKeyTimeoutMs <= 0) FirstKeyTimeoutMs = 4000;
-            if (NextKeyTimeoutMs <= 0) NextKeyTimeoutMs = 2500;
+            if (FirstKeyTimeoutMs <= 0) FirstKeyTimeoutMs = 20000;
+            if (NextKeyTimeoutMs <= 0) NextKeyTimeoutMs = 20000;
             if (HudOpacity <= 0 || HudOpacity > 1.0) HudOpacity = 0.95;
-            SlotKeyMap ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (KeyValuePair<string, string> pair in ModuleDefaults.DefaultSlotKeyMap)
-                if (!SlotKeyMap.ContainsKey(pair.Key) || string.IsNullOrWhiteSpace(SlotKeyMap[pair.Key])) SlotKeyMap[pair.Key] = pair.Value;
+            if (SlotKeyMap != null)
+                SlotKeyMap = new Dictionary<string, string>(SlotKeyMap, StringComparer.OrdinalIgnoreCase);
             Sequences ??= new List<LeaderSequenceItem>();
             RuntimeModules ??= new List<ModuleConfig>();
         }
@@ -418,18 +476,31 @@ namespace NX2512_HotkeyStudio.Models
                 IEnumerable<ModuleCommand> commands = module.CommandSets?
                     .Where(set => set?.Commands != null).SelectMany(set => set.Commands).Where(value => value != null)
                     ?? Enumerable.Empty<ModuleCommand>();
-                foreach (ModuleCommand moduleCommand in commands)
+                int fallbackOrder = 1;
+                foreach (ModuleCommand moduleCommand in commands.OrderBy(command => command.DisplayOrder <= 0 ? int.MaxValue : command.DisplayOrder))
                 {
+                    if (!moduleCommand.Enabled) continue;
                     string slot = ModuleDefaults.NormalizeSlot(moduleCommand.Slot);
-                    string inputKey = ResolveInputKey(slot);
+                    string submenuKey = NormalizeInputKey(moduleCommand.SubmenuKey);
+                    string inputKey = NormalizeInputKey(moduleCommand.InputKey);
+                    if (string.IsNullOrWhiteSpace(inputKey)) inputKey = ResolveInputKey(slot, fallbackOrder);
                     if (string.IsNullOrWhiteSpace(prefix) || string.IsNullOrWhiteSpace(inputKey) || moduleCommand.Command == null) continue;
+                    string sequence = string.IsNullOrWhiteSpace(submenuKey)
+                        ? prefix + " " + inputKey
+                        : prefix + " " + submenuKey + " " + inputKey;
                     result.Add(new LeaderSequenceItem
                     {
-                        Sequence = prefix + " " + inputKey,
+                        Sequence = sequence,
                         Category = module.Label,
                         ModuleID = module.ID,
                         Slot = slot,
+                        SubmenuKey = submenuKey,
+                        SubmenuLabel = moduleCommand.SubmenuLabel ?? string.Empty,
                         InputKey = inputKey,
+                        IconHint = string.IsNullOrWhiteSpace(moduleCommand.IconHint)
+                            ? CommandIconHints.FromCommand(moduleCommand.Command?.ID, moduleCommand.Command?.Name, submenuKey, moduleCommand.SubmenuLabel)
+                            : moduleCommand.IconHint.Trim(),
+                        DisplayOrder = moduleCommand.DisplayOrder <= 0 ? fallbackOrder : moduleCommand.DisplayOrder,
                         Command = moduleCommand.Command,
                         RequiresSelection = moduleCommand.RequiresSelection,
                         Destructive = moduleCommand.Destructive,
@@ -440,26 +511,35 @@ namespace NX2512_HotkeyStudio.Models
                             : moduleCommand.Notes,
                         Enabled = true
                     });
+                    fallbackOrder++;
                 }
             }
             Sequences = result;
         }
 
-        public string ResolveInputKey(string slot) =>
-            SlotKeyMap.TryGetValue(ModuleDefaults.NormalizeSlot(slot), out string value) ? NormalizeInputKey(value) : string.Empty;
+        public string ResolveInputKey(string slot) => ResolveInputKey(slot, 0);
+
+        public string ResolveInputKey(string slot, int fallbackOrder)
+        {
+            string normalizedSlot = ModuleDefaults.NormalizeSlot(slot);
+            if (SlotKeyMap != null && SlotKeyMap.TryGetValue(normalizedSlot, out string value))
+            {
+                string mapped = NormalizeInputKey(value);
+                if (!string.IsNullOrWhiteSpace(mapped)) return mapped;
+            }
+            if (ModuleDefaults.DefaultSlotKeyMap.TryGetValue(normalizedSlot, out string defaultValue))
+                return NormalizeInputKey(defaultValue);
+            if (fallbackOrder > 0 && fallbackOrder <= ModuleDefaults.DefaultInputKeys.Count)
+                return ModuleDefaults.DefaultInputKeys[fallbackOrder - 1];
+            return string.Empty;
+        }
 
         internal void Validate(List<string> problems)
         {
             if (!AdaptiveModuleMode) problems.Add("leader_key.adaptive_module_mode must be true");
-            var keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (string slot in ModuleDefaults.Slots)
-            {
-                string key = ResolveInputKey(slot);
-                if (string.IsNullOrWhiteSpace(key)) problems.Add("leader_key.slot_key_map is missing slot " + slot);
-                else if (!keys.Add(key)) problems.Add("leader_key.slot_key_map repeats key " + key);
-            }
             int expected = RuntimeModules.Where(module => module.Enabled)
-                .Sum(module => module.CommandSets?.Where(set => set?.Commands != null).Sum(set => set.Commands.Count) ?? 0);
+                .Sum(module => module.CommandSets?.Where(set => set?.Commands != null)
+                    .Sum(set => set.Commands.Count(command => command != null && command.Enabled)) ?? 0);
             if (Sequences.Count != expected) problems.Add($"derived adaptive sequence count mismatch: {Sequences.Count} != {expected}");
         }
 
@@ -477,7 +557,11 @@ namespace NX2512_HotkeyStudio.Models
         [JsonPropertyName("category")] public string Category { get; set; } = string.Empty;
         [JsonPropertyName("module_id")] public string ModuleID { get; set; } = string.Empty;
         [JsonPropertyName("slot")] public string Slot { get; set; } = string.Empty;
+        [JsonPropertyName("submenu_key")] public string SubmenuKey { get; set; } = string.Empty;
+        [JsonPropertyName("submenu_label")] public string SubmenuLabel { get; set; } = string.Empty;
         [JsonPropertyName("input_key")] public string InputKey { get; set; } = string.Empty;
+        [JsonPropertyName("icon_hint")] public string IconHint { get; set; } = string.Empty;
+        [JsonPropertyName("display_order")] public int DisplayOrder { get; set; }
         [JsonPropertyName("command")] public CommandRef Command { get; set; } = new CommandRef();
         [JsonPropertyName("enabled")] public bool Enabled { get; set; } = true;
         [JsonPropertyName("requires_selection")] public bool RequiresSelection { get; set; }
@@ -485,7 +569,74 @@ namespace NX2512_HotkeyStudio.Models
         [JsonPropertyName("confirm_before_execute")] public bool ConfirmBeforeExecute { get; set; }
         [JsonPropertyName("fallback")] public string Fallback { get; set; } = string.Empty;
         [JsonPropertyName("notes")] public string Notes { get; set; } = string.Empty;
-        public string DisplayPath(string triggerKey) => $"{triggerKey} → {InputKey}";
+        public string DisplayPath(string triggerKey)
+        {
+            string path = string.IsNullOrWhiteSpace(SubmenuKey) ? InputKey : SubmenuKey + " → " + InputKey;
+            return $"{triggerKey} → {path}";
+        }
+    }
+
+    public static class CommandIconHints
+    {
+        public static string FromCommand(string commandId, string commandName = "", string submenuKey = "", string submenuLabel = "")
+        {
+            string value = string.Join(" ", commandId ?? string.Empty, commandName ?? string.Empty, submenuLabel ?? string.Empty).ToUpperInvariant();
+            if (value.Contains("WAVE")) return "wave";
+            if (value.Contains("LAYER")) return "layer";
+            if (value.Contains("MATERIAL")) return "material";
+            if (value.Contains("SHEET") || value.Contains("FLANGE") || value.Contains("BEND") || value.Contains("SBSM")) return "sheet_metal";
+            if (value.Contains("ASSEMB") || value.Contains("COMPONENT") || value.Contains("CONSTRAINTS")) return "assembly";
+            if (value.Contains("SKETCH") || value.Contains("RECTANGLE") || value.Contains("CIRCLE") || value.Contains("ARC") || value.Contains("LINE")) return "sketch";
+            if (value.Contains("SEL_") || value.Contains("SELECT") || value.Contains("DESELECT")) return "selection";
+            if (value.Contains("VIEW") || value.Contains("DISPLAY") || value.Contains("SHOW") || value.Contains("HIDE")) return "view";
+            if (value.Contains("MEASURE") || value.Contains("INFO") || value.Contains("ANALYSIS")) return "inspect";
+            if (value.Contains("MIRROR") || value.Contains("PATTERN")) return "pattern";
+            if (value.Contains("EXTRUDE") || value.Contains("REVOLVE") || value.Contains("HOLE") || value.Contains("BLEND") || value.Contains("CHAMFER")) return "feature";
+            if (!string.IsNullOrWhiteSpace(submenuKey)) return "menu";
+            return "command";
+        }
+
+        public static string Glyph(string hint, string commandId = "")
+        {
+            string id = (commandId ?? string.Empty).ToUpperInvariant();
+            if (id.Contains("EXTRUDE")) return "⬡";
+            if (id.Contains("REVOLVE")) return "↺";
+            if (id.Contains("HOLE")) return "◎";
+            if (id.Contains("BLEND") || id.Contains("FILLET")) return "⌒";
+            if (id.Contains("CHAMFER")) return "⟁";
+            if (id.Contains("RECTANGLE")) return "▭";
+            if (id.Contains("CIRCLE")) return "○";
+            if (id.Contains("ARC")) return "⌒";
+            if (id.Contains("LINE")) return "╱";
+            if (id.Contains("CONSTRAINT")) return "⧉";
+            if (id.Contains("PATTERN")) return "❖";
+            if (id.Contains("MIRROR")) return "⧖";
+            if (id.Contains("WAVE")) return "〰";
+            if (id.Contains("LAYER")) return "≡";
+            if (id.Contains("MATERIAL")) return "◈";
+            if (id.Contains("BODY_PRIORITY")) return "⬛";
+            if (id.Contains("FACE_PRIORITY")) return "▨";
+            if (id.Contains("EDGE_PRIORITY")) return "━";
+            if (id.Contains("DESELECT")) return "✕";
+
+            string value = (string.IsNullOrWhiteSpace(hint) ? FromCommand(commandId) : hint).Trim().ToLowerInvariant();
+            switch (value)
+            {
+                case "wave": return "〰";
+                case "layer": return "≡";
+                case "material": return "◈";
+                case "sheet_metal": return "📜";
+                case "assembly": return "🧩";
+                case "sketch": return "📐";
+                case "selection": return "🎯";
+                case "view": return "👁";
+                case "inspect": return "📏";
+                case "pattern": return "❖";
+                case "feature": return "⚡";
+                case "menu": return "📁";
+                default: return "NX";
+            }
+        }
     }
 
     public static class ModuleDefaults
@@ -497,6 +648,7 @@ namespace NX2512_HotkeyStudio.Models
                 ["N"] = "W", ["NE"] = "E", ["E"] = "D", ["SE"] = "C",
                 ["S"] = "X", ["SW"] = "Z", ["W"] = "A", ["NW"] = "Q"
             };
+        public static readonly IReadOnlyList<string> DefaultInputKeys = new[] { "W", "E", "D", "C", "X", "Z", "A", "Q" };
         public static readonly IReadOnlyDictionary<string, string> SlotSemantics =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {

@@ -21,7 +21,10 @@ namespace NX2512_HotkeyStudio.Services
         private const int WM_KEYUP = 0x0101;
         private const int WM_SYSKEYDOWN = 0x0104;
         private const int WM_SYSKEYUP = 0x0105;
+        private const int WM_HOTKEY = 0x0312;
+        private const int HOTKEY_TRIGGER_ID = 0x4E584B;
         private const uint LLKHF_INJECTED = 0x10;
+        private const uint MOD_NOREPEAT = 0x4000;
         private const byte VK_CAPITAL = 0x14;
         private const byte VK_F12 = 0x7B;
         private const byte VK_ESCAPE = 0x1B;
@@ -32,6 +35,7 @@ namespace NX2512_HotkeyStudio.Services
         private const byte VK_SHIFT = 0x10;
         private const byte VK_CONTROL = 0x11;
         private const byte VK_MENU = 0x12;
+        private const uint KEYEVENTF_KEYUP = 0x0002;
 
         [StructLayout(LayoutKind.Sequential)]
         private struct KBDLLHOOKSTRUCT
@@ -75,10 +79,22 @@ namespace NX2512_HotkeyStudio.Services
         private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern int GetClassName(IntPtr window, StringBuilder className, int maximumCount);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern int GetWindowText(IntPtr window, StringBuilder text, int maximumCount);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern int GetWindowTextLength(IntPtr window);
         [DllImport("user32.dll")] private static extern short GetKeyState(int virtualKey);
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GetGUIThreadInfo(uint threadId, ref GUITHREADINFO info);
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool RegisterHotKey(IntPtr window, int id, uint modifiers, uint virtualKey);
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool UnregisterHotKey(IntPtr window, int id);
+        [DllImport("user32.dll")]
+        private static extern void keybd_event(byte virtualKey, byte scanCode, uint flags, UIntPtr extraInfo);
 
         private enum InputKind { Trigger, Key, Cancel }
         private sealed class InputEvent
@@ -98,19 +114,24 @@ namespace NX2512_HotkeyStudio.Services
         private readonly LeaderStateMachine stateMachine;
         private readonly Timer eventPump = new Timer { Interval = 15 };
         private readonly Timer hudDelay;
+        private readonly Timer capsLockRestore = new Timer { Interval = 35 };
         private readonly Timer progress = new Timer { Interval = 40 };
         private readonly Timer contextWatch = new Timer { Interval = 250 };
 
         private IntPtr hookId;
         private HookProc hookDelegate;
+        private HotkeyMessageWindow hotkeyWindow;
+        private bool registeredTriggerHotkey;
         private LeaderHudForm hud;
         private uint triggerVk = VK_CAPITAL;
         private bool running;
         private int captureFlag;
+        private DateTime lastQueuedTriggerUtc = DateTime.MinValue;
         private DateTime lastTriggerUtc = DateTime.MinValue;
         private DateTime timeoutStartUtc;
         private DateTime deadlineUtc = DateTime.MaxValue;
         private int timeoutMs;
+        private int capsLockRestoreAttempts;
         private NxBridgeContext currentContext;
         private ModuleConfig activeModule;
 
@@ -140,6 +161,7 @@ namespace NX2512_HotkeyStudio.Services
             hudDelay = new Timer { Interval = Math.Max(50, config.HudDelayMs) };
             eventPump.Tick += EventPumpTick;
             hudDelay.Tick += HudDelayTick;
+            capsLockRestore.Tick += CapsLockRestoreTick;
             progress.Tick += ProgressTick;
             contextWatch.Tick += ContextWatchTick;
         }
@@ -159,11 +181,13 @@ namespace NX2512_HotkeyStudio.Services
             hookId = SetWindowsHookEx(WH_KEYBOARD_LL, hookDelegate, module, 0);
             if (hookId == IntPtr.Zero)
                 throw new InvalidOperationException("Не удалось установить keyboard hook. Win32=" + Marshal.GetLastWin32Error());
+            TryRegisterTriggerHotkey();
             RefreshContext();
             eventPump.Start();
             contextWatch.Start();
             running = true;
-            StatusChanged?.Invoke("Адаптивный Leader активен: CapsLock → команда текущего модуля NX");
+            string triggerBackend = registeredTriggerHotkey ? "hook+hotkey" : "hook";
+            StatusChanged?.Invoke("Адаптивный Leader активен: CapsLock → команда текущего модуля NX (" + triggerBackend + ")");
         }
 
         public void Stop()
@@ -173,6 +197,9 @@ namespace NX2512_HotkeyStudio.Services
             contextWatch.Stop();
             hudDelay.Stop();
             progress.Stop();
+            if (registeredTriggerHotkey && hotkeyWindow != null) UnregisterHotKey(hotkeyWindow.Handle, HOTKEY_TRIGGER_ID);
+            registeredTriggerHotkey = false;
+            if (hotkeyWindow != null) { hotkeyWindow.DestroyHandle(); hotkeyWindow = null; }
             if (hookId != IntPtr.Zero) { UnhookWindowsHookEx(hookId); hookId = IntPtr.Zero; }
             Apply(stateMachine.Cancel("Движок остановлен."));
             if (hud != null && !hud.IsDisposed) { hud.DismissHud(); hud.Dispose(); }
@@ -208,7 +235,8 @@ namespace NX2512_HotkeyStudio.Services
             {
                 if (IsFocusedInTextInput()) return CallNextHookEx(hookId, code, message, dataPointer);
                 Interlocked.Exchange(ref captureFlag, 1);
-                queue.Enqueue(new InputEvent { Kind = InputKind.Trigger, VirtualKey = data.vkCode, TimestampUtc = DateTime.UtcNow });
+                ScheduleCapsLockRestore();
+                QueueTrigger(data.vkCode);
                 return (IntPtr)1;
             }
 
@@ -221,6 +249,69 @@ namespace NX2512_HotkeyStudio.Services
                 TimestampUtc = DateTime.UtcNow
             });
             return (IntPtr)1;
+        }
+
+        private void TryRegisterTriggerHotkey()
+        {
+            try
+            {
+                hotkeyWindow = new HotkeyMessageWindow(this);
+                hotkeyWindow.CreateHandle(new CreateParams { Caption = "NXKeysLeaderHotkeySink" });
+                registeredTriggerHotkey = RegisterHotKey(hotkeyWindow.Handle, HOTKEY_TRIGGER_ID, MOD_NOREPEAT, triggerVk);
+                if (!registeredTriggerHotkey)
+                    StatusChanged?.Invoke("CapsLock hotkey fallback недоступен. Win32=" + Marshal.GetLastWin32Error());
+            }
+            catch (Exception exception)
+            {
+                registeredTriggerHotkey = false;
+                StatusChanged?.Invoke("CapsLock hotkey fallback не запущен: " + exception.Message);
+            }
+        }
+
+        private void OnTriggerHotkey()
+        {
+            bool capturing = Volatile.Read(ref captureFlag) == 1;
+            if (config.HookOnlyWhenNXActive && GetActiveNxWindow() == IntPtr.Zero)
+            {
+                if (capturing) queue.Enqueue(new InputEvent { Kind = InputKind.Cancel, Reason = "Фокус покинул Siemens NX.", TimestampUtc = DateTime.UtcNow });
+                return;
+            }
+            if (IsFocusedInTextInput()) return;
+            Interlocked.Exchange(ref captureFlag, 1);
+            ScheduleCapsLockRestore();
+            QueueTrigger(triggerVk);
+        }
+
+        private void ScheduleCapsLockRestore()
+        {
+            if (triggerVk != VK_CAPITAL) return;
+            capsLockRestoreAttempts = 0;
+            capsLockRestore.Stop();
+            capsLockRestore.Start();
+        }
+
+        private void CapsLockRestoreTick(object sender, EventArgs eventArgs)
+        {
+            capsLockRestoreAttempts++;
+            EnsureCapsLockOff();
+            if (capsLockRestoreAttempts >= 4 || !IsCapsLockOn()) capsLockRestore.Stop();
+        }
+
+        private static bool IsCapsLockOn() => (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
+
+        private static void EnsureCapsLockOff()
+        {
+            if (!IsCapsLockOn()) return;
+            keybd_event(VK_CAPITAL, 0, 0, UIntPtr.Zero);
+            keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+        }
+
+        private void QueueTrigger(uint virtualKey)
+        {
+            DateTime now = DateTime.UtcNow;
+            if ((now - lastQueuedTriggerUtc).TotalMilliseconds < 120) return;
+            lastQueuedTriggerUtc = now;
+            queue.Enqueue(new InputEvent { Kind = InputKind.Trigger, VirtualKey = virtualKey, TimestampUtc = now });
         }
 
         private void EventPumpTick(object sender, EventArgs eventArgs)
@@ -286,7 +377,7 @@ namespace NX2512_HotkeyStudio.Services
             activeModule = resolution.Module;
             Apply(stateMachine.Activate(sticky, currentContext));
             Apply(stateMachine.InputToken(activeModule.LeaderPrefix));
-            StatusChanged?.Invoke("Leader: " + activeModule.Label + " · QWE/A·D/ZXC");
+            StatusChanged?.Invoke("Leader: " + activeModule.Label + " · 3 колонки");
         }
 
         private void ExecuteFirstSearchResult()
@@ -297,7 +388,11 @@ namespace NX2512_HotkeyStudio.Services
             stateMachine.Cancel("Search selection");
             Apply(stateMachine.Activate(sticky, currentContext));
             Apply(stateMachine.InputToken(activeModule.LeaderPrefix));
-            Apply(stateMachine.InputToken(first.InputKey));
+            List<string> tokens = SequenceAutomaton.TokenizeSequence(first.Sequence).ToList();
+            int start = tokens.Count > 0 &&
+                string.Equals(tokens[0], LeaderKeyConfig.NormalizeInputKey(activeModule?.LeaderPrefix), StringComparison.OrdinalIgnoreCase)
+                ? 1 : 0;
+            foreach (string token in tokens.Skip(start)) Apply(stateMachine.InputToken(token));
         }
 
         private void Apply(LeaderTransition transition)
@@ -390,6 +485,7 @@ namespace NX2512_HotkeyStudio.Services
         private void ContextWatchTick(object sender, EventArgs eventArgs)
         {
             if (!running) return;
+            if (triggerVk == VK_CAPITAL && GetActiveNxWindow() != IntPtr.Zero) EnsureCapsLockOff();
             ModuleConfig previous = activeModule;
             RefreshContext();
             LeaderTransition contextTransition = stateMachine.UpdateContext(currentContext);
@@ -416,9 +512,102 @@ namespace NX2512_HotkeyStudio.Services
         private void RefreshContext()
         {
             NxBridgeContext latest = NxCommandBridgeClient.ReadContext();
-            if (latest != null) currentContext = latest;
+            if (latest != null && latest.IsFresh) currentContext = latest;
+            else if (TryCreateForegroundNxFallbackContext(out NxBridgeContext fallback)) currentContext = fallback;
             AdaptiveModuleResolution resolution = AdaptiveModuleResolver.Resolve(config.RuntimeModules, currentContext);
             if (resolution.IsResolved) activeModule = resolution.Module;
+        }
+
+        private static bool TryCreateForegroundNxFallbackContext(out NxBridgeContext context)
+        {
+            context = null;
+            IntPtr window = GetActiveNxWindow();
+            if (window == IntPtr.Zero) return false;
+
+            string title = GetWindowTitle(window);
+            string moduleId = ModuleIdFromWindowTitle(title);
+            string applicationId = ApplicationIdFromModuleId(moduleId);
+            context = new NxBridgeContext
+            {
+                SchemaVersion = NXKeys.Protocol.NxProtocolConstants.SchemaVersion,
+                Revision = 0,
+                Status = "running",
+                ApplicationId = applicationId,
+                ModuleId = moduleId,
+                ModuleLabel = ModuleLabelFromModuleId(moduleId),
+                SelectionCount = 0,
+                SelectionState = "none",
+                WorkPartAvailable = true,
+                DisplayPartAvailable = true,
+                ModalDialogActive = false,
+                ContextConfidence = 60,
+                UpdatedUtc = DateTimeOffset.UtcNow.ToString("O"),
+                LastResult = "fallback",
+                LastMessage = "Command Bridge context is missing; module inferred from active NX window."
+            };
+            return true;
+        }
+
+        private static string GetWindowTitle(IntPtr window)
+        {
+            int length = Math.Max(256, GetWindowTextLength(window) + 1);
+            var builder = new StringBuilder(length);
+            return GetWindowText(window, builder, builder.Capacity) > 0 ? builder.ToString() : string.Empty;
+        }
+
+        private static string ModuleIdFromWindowTitle(string title)
+        {
+            string value = (title ?? string.Empty).ToLowerInvariant();
+            if (value.Contains("sketch") || value.Contains("эскиз")) return "sketch";
+            if (value.Contains("assembl") || value.Contains("сбор")) return "assembly";
+            if (value.Contains("draft") || value.Contains("черт")) return "drafting";
+            if (value.Contains("sheet") || value.Contains("лист")) return "sheet_metal";
+            if (value.Contains("manufact") || value.Contains("cam") || value.Contains("обработ")) return "manufacturing";
+            if (value.Contains("simulat") || value.Contains("cae") || value.Contains("симуля")) return "simulation";
+            if (value.Contains("routing") || value.Contains("трасс")) return "routing";
+            if (value.Contains("mold") || value.Contains("пресс")) return "mold";
+            if (value.Contains("pmi")) return "pmi";
+            if (value.Contains("surface") || value.Contains("поверх")) return "surface";
+            if (value.Contains("model") || value.Contains("модел")) return "modeling";
+            return "inspect_view";
+        }
+
+        private static string ApplicationIdFromModuleId(string moduleId)
+        {
+            switch ((moduleId ?? string.Empty).ToLowerInvariant())
+            {
+                case "modeling": return "UG_APP_MODELING";
+                case "sketch": return "UG_APP_SKETCH";
+                case "assembly": return "UG_APP_ASSEMBLIES";
+                case "drafting": return "UG_APP_DRAFTING";
+                case "pmi": return "UG_APP_PMI";
+                case "surface": return "UG_APP_STUDIO";
+                case "sheet_metal": return "UG_APP_SHEETMETAL";
+                case "manufacturing": return "UG_APP_MANUFACTURING";
+                case "simulation": return "UG_APP_SFEM";
+                case "routing": return "UG_APP_ROUTING";
+                case "mold": return "UG_APP_MOLDWIZARD";
+                default: return "UG_APP_GATEWAY";
+            }
+        }
+
+        private static string ModuleLabelFromModuleId(string moduleId)
+        {
+            switch ((moduleId ?? string.Empty).ToLowerInvariant())
+            {
+                case "modeling": return "Modeling";
+                case "sketch": return "Sketch";
+                case "assembly": return "Assembly";
+                case "drafting": return "Drafting";
+                case "pmi": return "PMI";
+                case "surface": return "Surface";
+                case "sheet_metal": return "Sheet Metal";
+                case "manufacturing": return "CAM / Manufacturing";
+                case "simulation": return "CAE / Simulation";
+                case "routing": return "Routing";
+                case "mold": return "Mold / Tooling";
+                default: return "Inspect / View";
+            }
         }
 
         private void HudDelayTick(object sender, EventArgs eventArgs)
@@ -426,7 +615,8 @@ namespace NX2512_HotkeyStudio.Services
             hudDelay.Stop();
             if (!stateMachine.IsCapturing || hud == null || hud.IsDisposed) return;
             hud.DisplayHud(config.TriggerKey, stateMachine.Sticky, RankedCandidates(), config.HudOpacity,
-                ModuleLabel(), activeModule?.ID ?? currentContext?.ModuleId ?? string.Empty);
+                ModuleLabel(), activeModule?.ID ?? currentContext?.ModuleId ?? string.Empty, IsBridgeReady(), currentContext?.SelectionCount ?? -1,
+                stateMachine.Prefix);
             UpdateHud();
         }
 
@@ -470,8 +660,12 @@ namespace NX2512_HotkeyStudio.Services
             List<LeaderSequenceItem> candidates = RankedCandidates();
             string label = moduleLabel ?? ModuleLabel();
             string id = moduleId ?? activeModule?.ID ?? currentContext?.ModuleId ?? string.Empty;
-            if (stateMachine.State == LeaderState.Search) hud.SetSearchMode(stateMachine.SearchQuery, candidates, label, id);
-            else hud.UpdateState(string.Empty, candidates, stateMachine.Sticky, label, id);
+            if (stateMachine.State == LeaderState.Search)
+                hud.SetSearchMode(stateMachine.SearchQuery, candidates, label, id, IsBridgeReady(), currentContext?.SelectionCount ?? -1,
+                    stateMachine.Prefix);
+            else
+                hud.UpdateState(string.Empty, candidates, stateMachine.Sticky, label, id, IsBridgeReady(), currentContext?.SelectionCount ?? -1,
+                    stateMachine.Prefix);
         }
 
         private void ShowConfirmation(SequenceDefinition definition)
@@ -497,6 +691,13 @@ namespace NX2512_HotkeyStudio.Services
         }
 
         private string ModuleLabel() => activeModule?.Label ?? currentContext?.ModuleLabel ?? currentContext?.ModuleId ?? "NX context unknown";
+
+        private bool IsBridgeReady()
+        {
+            if (currentContext == null || !currentContext.IsFresh) return false;
+            if (string.Equals(currentContext.LastResult, "fallback", StringComparison.OrdinalIgnoreCase)) return false;
+            return string.Equals(currentContext.Status, "running", StringComparison.OrdinalIgnoreCase);
+        }
 
         private void FinishVisual()
         {
@@ -557,8 +758,29 @@ namespace NX2512_HotkeyStudio.Services
             Stop();
             eventPump.Dispose();
             hudDelay.Dispose();
+            capsLockRestore.Dispose();
             progress.Dispose();
             contextWatch.Dispose();
+        }
+
+        private sealed class HotkeyMessageWindow : NativeWindow
+        {
+            private readonly LeaderKeyEngine owner;
+
+            public HotkeyMessageWindow(LeaderKeyEngine value)
+            {
+                owner = value;
+            }
+
+            protected override void WndProc(ref Message message)
+            {
+                if (message.Msg == WM_HOTKEY && message.WParam.ToInt32() == HOTKEY_TRIGGER_ID)
+                {
+                    owner.OnTriggerHotkey();
+                    return;
+                }
+                base.WndProc(ref message);
+            }
         }
     }
 }

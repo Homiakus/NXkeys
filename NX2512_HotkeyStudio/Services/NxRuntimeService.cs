@@ -56,6 +56,52 @@ namespace NX2512_HotkeyStudio.Services
 
         public static bool IsRunning() => FindRunningProcesses().Count > 0;
 
+        public static void StopNxKeysProcesses(string managedRoot)
+        {
+            int currentPid = Process.GetCurrentProcess().Id;
+            string[] names = { "NX2512_HotkeyStudio", "NX2512_ControlCenter" };
+            foreach (string name in names)
+            {
+                Process[] processes;
+                try { processes = Process.GetProcessesByName(name); }
+                catch { continue; }
+
+                foreach (Process proc in processes)
+                {
+                    if (proc.Id == currentPid) continue;
+                    try
+                    {
+                        proc.Kill(true);
+                        proc.WaitForExit(1500);
+                    }
+                    catch { }
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(managedRoot))
+            {
+                try
+                {
+                    string fullRoot = Path.GetFullPath(managedRoot).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                    foreach (Process proc in Process.GetProcesses())
+                    {
+                        if (proc.Id == currentPid) continue;
+                        try
+                        {
+                            string path = proc.MainModule?.FileName;
+                            if (!string.IsNullOrWhiteSpace(path) && path.StartsWith(fullRoot, StringComparison.OrdinalIgnoreCase))
+                            {
+                                proc.Kill(true);
+                                proc.WaitForExit(1500);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+            }
+        }
+
         public static string ResolveExecutable(Config config)
         {
             var candidates = new List<string>();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows.Forms;
@@ -251,6 +252,11 @@ namespace NX2512_CommandBridge
                     SwitchModule(request);
                     CompleteClaim(processingPath, request, "executed", "Switched module: " + request.TargetApplicationId, before.Revision);
                 }
+                else if (string.Equals(request.Action, "probe_command", StringComparison.OrdinalIgnoreCase))
+                {
+                    string message = ProbeNxCommand(request.CommandId);
+                    CompleteClaim(processingPath, request, "completed", message, before.Revision);
+                }
                 else
                 {
                     ExecuteNxCommand(request);
@@ -329,18 +335,49 @@ namespace NX2512_CommandBridge
             string commandId = request.CommandId.Trim();
             WriteLog("Executing direct NX command: " + request.Sequence + " -> " + commandId + " (" + request.CommandName + ")");
 
-            MenuButton button = theUI.MenuBarManager.GetButtonFromName(commandId);
-            if (button == null)
-                throw new InvalidOperationException("NX menu button was not found: " + commandId);
-            if (button.ButtonAvailability == MenuButton.AvailabilityStatus.Unavailable)
-                throw new InvalidOperationException("NX menu button is unavailable in the current context: " + commandId);
-            if (button.ButtonSensitivity == MenuButton.SensitivityStatus.Insensitive)
-                throw new InvalidOperationException("NX menu button is insensitive in the current context: " + commandId);
+            MenuButton button = RequireRunnableButton(commandId);
 
             bool invoked = theUI.DialogTester.InvokeMenuButtonAction(button);
             if (!invoked)
                 throw new InvalidOperationException("NX did not accept InvokeMenuButtonAction for: " + commandId);
             WriteLog("Executed direct NX command: " + commandId);
+        }
+
+        private static string ProbeNxCommand(string commandId)
+        {
+            string id = (commandId ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(id)) return "missing id";
+            try
+            {
+                MenuButton button = theUI.MenuBarManager.GetButtonFromName(id);
+                if (button == null) return "missing: " + id;
+                return "availability=" + button.ButtonAvailability + "; sensitivity=" + button.ButtonSensitivity;
+            }
+            catch (Exception ex)
+            {
+                return "missing: " + id + "; " + ex.Message;
+            }
+        }
+
+        private static MenuButton RequireRunnableButton(string commandId)
+        {
+            string id = (commandId ?? string.Empty).Trim();
+            MenuButton button;
+            try
+            {
+                button = theUI.MenuBarManager.GetButtonFromName(id);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("NX menu button was not found: " + id + ". " + ex.Message);
+            }
+            if (button == null)
+                throw new InvalidOperationException("NX menu button was not found: " + id);
+            if (button.ButtonAvailability == MenuButton.AvailabilityStatus.Unavailable)
+                throw new InvalidOperationException("NX menu button is unavailable in the current context: " + id);
+            if (button.ButtonSensitivity == MenuButton.SensitivityStatus.Insensitive)
+                throw new InvalidOperationException("NX menu button is insensitive in the current context: " + id);
+            return button;
         }
 
         private static void CompleteClaim(
@@ -628,10 +665,8 @@ namespace NX2512_CommandBridge
                 int inspected = Math.Min(count, 64);
                 for (int index = 0; index < inspected; index++)
                 {
-                    TaggedObject selected = theUI.SelectionManager.GetSelectedTaggedObject(index);
-                    string typeName = selected?.GetType().FullName;
-                    if (!string.IsNullOrWhiteSpace(typeName) && !selectedTypes.Contains(typeName, StringComparer.Ordinal))
-                        selectedTypes.Add(typeName);
+                    object selected = AskSelectedObject(index);
+                    AddSelectedType(selectedTypes, selected);
                 }
                 return count;
             }
@@ -639,6 +674,32 @@ namespace NX2512_CommandBridge
             {
                 WriteLog("AskSelectionCount failed: " + ex.Message);
                 return -1;
+            }
+        }
+
+        private static object AskSelectedObject(int index)
+        {
+            object manager = theUI?.SelectionManager;
+            if (manager == null) return null;
+            Type type = manager.GetType();
+            foreach (string methodName in new[] { "GetSelectedTaggedObject", "GetSelectedObject" })
+            {
+                var method = type.GetMethod(methodName, new[] { typeof(int) });
+                if (method == null) continue;
+                try { return method.Invoke(manager, new object[] { index }); }
+                catch (TargetInvocationException ex) { throw ex.InnerException ?? ex; }
+            }
+            return null;
+        }
+
+        private static void AddSelectedType(List<string> selectedTypes, object selected)
+        {
+            if (selected == null) return;
+            for (Type type = selected.GetType(); type != null && type != typeof(object); type = type.BaseType)
+            {
+                string typeName = type.FullName;
+                if (!string.IsNullOrWhiteSpace(typeName) && !selectedTypes.Contains(typeName, StringComparer.Ordinal))
+                    selectedTypes.Add(typeName);
             }
         }
 

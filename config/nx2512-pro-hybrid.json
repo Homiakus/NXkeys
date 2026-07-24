@@ -1,1 +1,4666 @@
-{"schema_version":3,"profile":{"name":"NX Adaptive Modules 2512.6000","nx_version":"2512.6000","description":"Basic global shortcuts plus context-adaptive module commands for Siemens NX 2512."},"scan":{"roots":["%LOCALAPPDATA%\\Siemens","%APPDATA%\\Siemens","%LOCALAPPDATA%\\Unigraphics Solutions","%APPDATA%\\Unigraphics Solutions"],"install_hints":["%ProgramFiles%\\Siemens\\DesigncenterNX2512","%ProgramFiles%\\Siemens\\NX2512","%ProgramFiles%\\Siemens"],"profile_hints":["%LOCALAPPDATA%\\Siemens\\Designcenter2512","%APPDATA%\\Siemens\\Designcenter2512","%LOCALAPPDATA%\\Siemens\\NX2512","%APPDATA%\\Siemens\\NX2512"],"menu_extensions":[".men",".tbr",".rtb",".gly",".abr"],"role_extensions":[".mtx"],"launcher_extensions":[".bat",".cmd",".ps1"],"max_depth":9,"max_files":30000,"follow_symlinks":false},"deployment":{"mode":"managed-wrapper","managed_root":"%LOCALAPPDATA%\\NXKeys\\managed\\NX2512.6000","backup_root":"%LOCALAPPDATA%\\NXKeys\\backups","overlay_filename":"nxkeys_generated.men","menuscript_version":139,"main_menubar_id":"UG_GATEWAY_MAIN_MENUBAR","nx_executable":"","existing_custom_dirs_file":"","patch_existing_custom_dirs":false,"require_nx_stopped":true,"clear_detected_conflicts":false,"atomic_writes":true,"dry_run":true},"keyboard":[{"shortcut":"Ctrl+N","command":{"id":"UG_FILE_NEW","name":"New"},"scope":"Global","enabled":true,"notes":"Создать новый файл"},{"shortcut":"Ctrl+O","command":{"id":"UG_FILE_OPEN","name":"Open"},"scope":"Global","enabled":true,"notes":"Открыть файл"},{"shortcut":"Ctrl+S","command":{"id":"UG_FILE_SAVE_PART","name":"Save"},"scope":"Global","enabled":true,"notes":"Сохранить рабочую деталь"},{"shortcut":"Ctrl+Shift+S","command":{"id":"UG_FILE_SAVE_AS","name":"Save As"},"scope":"Global","enabled":true,"notes":"Сохранить как"},{"shortcut":"Ctrl+Z","command":{"id":"UG_EDIT_UNDO","name":"Undo"},"scope":"Global","enabled":true,"notes":"Отменить"},{"shortcut":"Ctrl+Y","command":{"id":"UG_EDIT_REDO","name":"Redo"},"scope":"Global","enabled":true,"notes":"Повторить"},{"shortcut":"Ctrl+X","command":{"id":"UG_EDIT_CUT","name":"Cut"},"scope":"Global","enabled":true,"notes":"Вырезать"},{"shortcut":"Ctrl+C","command":{"id":"UG_EDIT_COPY","name":"Copy"},"scope":"Global","enabled":true,"notes":"Копировать"},{"shortcut":"Ctrl+V","command":{"id":"UG_EDIT_PASTE","name":"Paste"},"scope":"Global","enabled":true,"notes":"Вставить"},{"shortcut":"Delete","command":{"id":"UG_EDIT_DELETE","name":"Delete"},"scope":"Selection","enabled":true,"notes":"Удалить выбранное; команда NX запрашивает подтверждение при необходимости"},{"shortcut":"Ctrl+F","command":{"id":"UG_VIEW_FIT","name":"Fit"},"scope":"Graphics","enabled":true,"notes":"Вписать геометрию в окно"},{"shortcut":"F5","command":{"id":"UG_VIEW_REFRESH","name":"Refresh"},"scope":"Global","enabled":true,"notes":"Обновить отображение"}],"modules":[{"id":"modeling","label":"Modeling","enabled":true,"nx_application_ids":["UG_APP_MODELING"],"switch_command":{"id":"UG_APP_MODELING","name":"Modeling"},"leader_prefix":"M","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_CREATE_SKETCH","name":"Sketch"}},{"slot":"NE","command":{"id":"UG_MODELING_EXTRUDED_FEATURE","name":"Extrude"}},{"slot":"E","command":{"id":"UG_MODELING_HOLE_FEATURE","name":"Hole"}},{"slot":"SE","command":{"id":"UG_MODELING_REVOLVED_FEATURE","name":"Revolve"}},{"slot":"S","command":{"id":"UG_MODELING_BLEND_FEATURE","name":"Edge Blend"},"requires_selection":true},{"slot":"SW","command":{"id":"UG_MODELING_CHAMFER_FEATURE","name":"Chamfer"},"requires_selection":true},{"slot":"W","command":{"id":"UG_MODELING_PATTERNFEATURE_FEATURE","name":"Pattern Feature"},"requires_selection":true},{"slot":"NW","command":{"id":"UG_MODELING_MIRRORFEATURE_FEATURE","name":"Mirror Feature"},"requires_selection":true}]}]},{"id":"sketch","label":"Sketch","enabled":true,"nx_application_ids":["UG_APP_SKETCH","UG_APP_MODELING"],"switch_command":{"id":"UG_CREATE_SKETCH","name":"Sketch"},"leader_prefix":"S","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_SKETCH_LINE","name":"Line"}},{"slot":"NE","command":{"id":"UG_SKETCH_RECTANGLE","name":"Rectangle"}},{"slot":"E","command":{"id":"UG_SKETCH_CIRCLE","name":"Circle"}},{"slot":"SE","command":{"id":"UG_SKETCH_ARC","name":"Arc"}},{"slot":"S","command":{"id":"UG_SKETCH_TRIM","name":"Trim"},"requires_selection":true},{"slot":"SW","command":{"id":"UG_SKETCH_EXTEND","name":"Extend"},"requires_selection":true},{"slot":"W","command":{"id":"UG_SKETCH_OFFSET_CURVE","name":"Offset Curve"},"requires_selection":true},{"slot":"NW","command":{"id":"UG_SKETCH_CHECKER","name":"Sketch Checker"}}]}]},{"id":"assembly","label":"Assembly","enabled":true,"nx_application_ids":["UG_APP_ASSEMBLIES"],"switch_command":{"id":"UG_APP_ASSEMBLIES","name":"Assemblies"},"leader_prefix":"A","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_ASSEMBLIES_ADD_COMPONENT","name":"Add Component"}},{"slot":"NE","command":{"id":"UG_ASSEMBLIES_NEW_COMPONENT","name":"Create New Component"}},{"slot":"E","command":{"id":"UG_ASSEMBLIES_MOVE_COMPONENT","name":"Move Component"},"requires_selection":true},{"slot":"SE","command":{"id":"UG_ASSEMBLIES_CONSTRAINTS","name":"Assembly Constraints"},"requires_selection":true},{"slot":"S","command":{"id":"UG_ASSEMBLIES_REPLACE_COMPONENT","name":"Replace Component"},"requires_selection":true,"destructive":true,"confirm_before_execute":true},{"slot":"SW","command":{"id":"UG_ASSEMBLIES_REMOVE_COMPONENT","name":"Remove Component"},"requires_selection":true,"destructive":true,"confirm_before_execute":true},{"slot":"W","command":{"id":"UG_ASSEMBLIES_PATTERN_COMPONENT","name":"Pattern Component"},"requires_selection":true},{"slot":"NW","command":{"id":"UG_ASSEMBLIES_NAVIGATOR","name":"Assembly Navigator"}}]}]},{"id":"drafting","label":"Drafting","enabled":true,"nx_application_ids":["UG_APP_DRAFTING"],"switch_command":{"id":"UG_APP_DRAFTING","name":"Drafting"},"leader_prefix":"D","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_DRAFTING_BASE_VIEW","name":"Base View"}},{"slot":"NE","command":{"id":"UG_DRAFTING_PROJECTED_VIEW","name":"Projected View"}},{"slot":"E","command":{"id":"UG_DRAFTING_SECTION_VIEW","name":"Section View"}},{"slot":"SE","command":{"id":"UG_DRAFTING_DETAIL_VIEW","name":"Detail View"}},{"slot":"S","command":{"id":"UG_DRAFTING_UPDATE_VIEWS","name":"Update Views"}},{"slot":"SW","command":{"id":"UG_DRAFTING_VIEW_STYLE","name":"View Style"},"requires_selection":true},{"slot":"W","command":{"id":"UG_DRAFTING_PARTS_LIST","name":"Parts List"}},{"slot":"NW","command":{"id":"UG_DRAFTING_RAPID_DIMENSION","name":"Rapid Dimension"}}]}]},{"id":"pmi","label":"PMI","enabled":true,"nx_application_ids":["UG_APP_PMI"],"switch_command":{"id":"UG_APP_PMI","name":"PMI"},"leader_prefix":"P","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_PMI_RAPID_DIMENSION","name":"Rapid Dimension"}},{"slot":"NE","command":{"id":"UG_PMI_DATUM_FEATURE_SYMBOL","name":"Datum Feature Symbol"}},{"slot":"E","command":{"id":"UG_PMI_FEATURE_CONTROL_FRAME","name":"Feature Control Frame"}},{"slot":"SE","command":{"id":"UG_PMI_SURFACE_FINISH","name":"Surface Finish Symbol"}},{"slot":"S","command":{"id":"UG_PMI_NOTE","name":"PMI Note"}},{"slot":"SW","command":{"id":"UG_PMI_EDIT","name":"Edit PMI"},"requires_selection":true},{"slot":"W","command":{"id":"UG_PMI_MODEL_VIEW","name":"Model View"}},{"slot":"NW","command":{"id":"UG_PMI_VALIDATE","name":"Validate PMI"}}]}]},{"id":"surface","label":"Surface","enabled":true,"nx_application_ids":["UG_APP_MODELING","UG_APP_STUDIO"],"switch_command":{"id":"UG_APP_MODELING","name":"Surface Modeling"},"leader_prefix":"U","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_MODELING_THROUGH_CURVES_FEATURE","name":"Through Curves"}},{"slot":"NE","command":{"id":"UG_MODELING_SWEPT_FEATURE","name":"Swept"}},{"slot":"E","command":{"id":"UG_MODELING_STUDIO_SURFACE_FEATURE","name":"Studio Surface"}},{"slot":"SE","command":{"id":"UG_MODELING_TRIM_SHEET_FEATURE","name":"Trim Sheet"},"requires_selection":true},{"slot":"S","command":{"id":"UG_MODELING_SEW_FEATURE","name":"Sew"},"requires_selection":true},{"slot":"SW","command":{"id":"UG_MODELING_UNTRIM_FEATURE","name":"Untrim"},"requires_selection":true},{"slot":"W","command":{"id":"UG_MODELING_EXTRACT_GEOMETRY","name":"Extract Geometry"},"requires_selection":true},{"slot":"NW","command":{"id":"UG_ANALYSIS_FACE_CURVATURE","name":"Face Curvature"},"requires_selection":true}]}]},{"id":"sheet_metal","label":"Sheet Metal","enabled":true,"nx_application_ids":["UG_APP_SHEETMETAL"],"switch_command":{"id":"UG_APP_SHEETMETAL","name":"Sheet Metal"},"leader_prefix":"H","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_SHEET_METAL_BASE_TAB","name":"Base Tab"}},{"slot":"NE","command":{"id":"UG_SHEET_METAL_FLANGE","name":"Flange"},"requires_selection":true},{"slot":"E","command":{"id":"UG_SHEET_METAL_CONTOUR_FLANGE","name":"Contour Flange"}},{"slot":"SE","command":{"id":"UG_SHEET_METAL_BEND","name":"Bend"},"requires_selection":true},{"slot":"S","command":{"id":"UG_SHEET_METAL_UNBEND","name":"Unbend"},"requires_selection":true},{"slot":"SW","command":{"id":"UG_SHEET_METAL_REBEND","name":"Rebend"},"requires_selection":true},{"slot":"W","command":{"id":"UG_SHEET_METAL_FLAT_PATTERN","name":"Flat Pattern"}},{"slot":"NW","command":{"id":"UG_SHEET_METAL_VALIDATE","name":"Sheet Metal Preferences"}}]}]},{"id":"manufacturing","label":"CAM / Manufacturing","enabled":true,"nx_application_ids":["UG_APP_MANUFACTURING"],"switch_command":{"id":"UG_APP_MANUFACTURING","name":"Manufacturing"},"leader_prefix":"C","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_CAM_CREATE_OPERATION","name":"Create Operation"}},{"slot":"NE","command":{"id":"UG_CAM_CREATE_TOOL","name":"Create Tool"}},{"slot":"E","command":{"id":"UG_CAM_GENERATE_TOOL_PATH","name":"Generate Tool Path"},"requires_selection":true},{"slot":"SE","command":{"id":"UG_CAM_VERIFY_TOOL_PATH","name":"Verify Tool Path"},"requires_selection":true},{"slot":"S","command":{"id":"UG_CAM_POSTPROCESS","name":"Postprocess"},"requires_selection":true,"destructive":true,"confirm_before_execute":true},{"slot":"SW","command":{"id":"UG_CAM_DELETE_OPERATION","name":"Delete Operation"},"requires_selection":true,"destructive":true,"confirm_before_execute":true},{"slot":"W","command":{"id":"UG_CAM_OPERATION_NAVIGATOR","name":"Operation Navigator"}},{"slot":"NW","command":{"id":"UG_CAM_INFORMATION","name":"Tool Path Information"},"requires_selection":true}]}]},{"id":"simulation","label":"CAE / Simulation","enabled":true,"nx_application_ids":["UG_APP_SFEM","UG_APP_DESFEM"],"switch_command":{"id":"UG_APP_SFEM","name":"Simulation"},"leader_prefix":"X","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_SIM_CREATE_SOLUTION","name":"Create Solution"}},{"slot":"NE","command":{"id":"UG_SIM_CREATE_LOAD","name":"Create Load"}},{"slot":"E","command":{"id":"UG_SIM_CREATE_CONSTRAINT","name":"Create Constraint"}},{"slot":"SE","command":{"id":"UG_SIM_MESH","name":"Mesh"},"requires_selection":true},{"slot":"S","command":{"id":"UG_SIM_SOLVE","name":"Solve"},"requires_selection":true,"destructive":true,"confirm_before_execute":true},{"slot":"SW","command":{"id":"UG_SIM_DELETE","name":"Delete Simulation Object"},"requires_selection":true,"destructive":true,"confirm_before_execute":true},{"slot":"W","command":{"id":"UG_SIM_NAVIGATOR","name":"Simulation Navigator"}},{"slot":"NW","command":{"id":"UG_SIM_RESULTS","name":"Results"}}]}]},{"id":"routing","label":"Routing","enabled":true,"nx_application_ids":["UG_APP_ROUTING"],"switch_command":{"id":"UG_APP_ROUTING","name":"Routing"},"leader_prefix":"G","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_ROUTE_CREATE_ROUTE","name":"Create Route"}},{"slot":"NE","command":{"id":"UG_ROUTE_PLACE_PART","name":"Place Part"}},{"slot":"E","command":{"id":"UG_ROUTE_ADD_STOCK","name":"Add Stock"},"requires_selection":true},{"slot":"SE","command":{"id":"UG_ROUTE_EDIT_ROUTE","name":"Edit Route"},"requires_selection":true},{"slot":"S","command":{"id":"UG_ROUTE_DELETE","name":"Delete Route Object"},"requires_selection":true,"destructive":true,"confirm_before_execute":true},{"slot":"SW","command":{"id":"UG_ROUTE_REMOVE_PART","name":"Remove Part"},"requires_selection":true,"destructive":true,"confirm_before_execute":true},{"slot":"W","command":{"id":"UG_ROUTE_NAVIGATOR","name":"Routing Navigator"}},{"slot":"NW","command":{"id":"UG_ROUTE_VALIDATE","name":"Validate Route"}}]}]},{"id":"mold","label":"Mold / Tooling","enabled":true,"nx_application_ids":["UG_APP_MOLDWIZARD"],"switch_command":{"id":"UG_APP_MOLDWIZARD","name":"Mold Wizard"},"leader_prefix":"O","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_MOLD_INITIALIZE_PROJECT","name":"Initialize Project"}},{"slot":"NE","command":{"id":"UG_MOLD_PARTING","name":"Parting"},"requires_selection":true},{"slot":"E","command":{"id":"UG_MOLD_MOLD_BASE","name":"Mold Base"}},{"slot":"SE","command":{"id":"UG_MOLD_GATE","name":"Gate"},"requires_selection":true},{"slot":"S","command":{"id":"UG_MOLD_COOLING","name":"Cooling"}},{"slot":"SW","command":{"id":"UG_MOLD_EJECTOR","name":"Ejector"}},{"slot":"W","command":{"id":"UG_MOLD_LIBRARY","name":"Mold Library"}},{"slot":"NW","command":{"id":"UG_MOLD_VALIDATE","name":"Validate Mold Design"}}]}]},{"id":"reuse","label":"Reuse / Templates","enabled":true,"nx_application_ids":["UG_APP_MODELING"],"switch_command":{"id":"UG_NAVIGATOR_REUSE_LIBRARY","name":"Reuse Library"},"leader_prefix":"R","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_EXPRESSIONS","name":"Expressions"}},{"slot":"NE","command":{"id":"UG_MODELING_WAVE_LINKER","name":"WAVE Geometry Linker"}},{"slot":"E","command":{"id":"UG_NAVIGATOR_REUSE_LIBRARY","name":"Reuse Library"}},{"slot":"SE","command":{"id":"UG_CREATE_FEATURE_TEMPLATE","name":"Create Feature Template"},"requires_selection":true},{"slot":"S","command":{"id":"UG_REPLACE_FEATURE_TEMPLATE","name":"Replace Feature Template"},"requires_selection":true,"destructive":true,"confirm_before_execute":true},{"slot":"SW","command":{"id":"UG_NAVIGATOR_PART","name":"Part Navigator"}},{"slot":"W","command":{"id":"UG_PARAMETER_TABLE","name":"Parameter Table"}},{"slot":"NW","command":{"id":"UG_COMMAND_FINDER","name":"Command Finder"}}]}]},{"id":"inspect_view","label":"Inspect / View","enabled":true,"nx_application_ids":["UG_APP_GATEWAY","UG_APP_MODELING"],"switch_command":{"id":"UG_APP_GATEWAY","name":"Inspect and View"},"leader_prefix":"V","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_VIEW_FIT","name":"Fit"}},{"slot":"NE","command":{"id":"UG_VIEW_POPUP_ORIENT_TFRTRI","name":"Trimetric"}},{"slot":"E","command":{"id":"UG_HELP_MEASURE","name":"Measure"},"requires_selection":true},{"slot":"SE","command":{"id":"UG_INFO_OBJECT","name":"Object Information"},"requires_selection":true},{"slot":"S","command":{"id":"UG_VIEW_HIDE","name":"Hide"},"requires_selection":true},{"slot":"SW","command":{"id":"UG_VIEW_SHOW_ONLY","name":"Show Only"},"requires_selection":true},{"slot":"W","command":{"id":"UG_LAYER_SETTINGS","name":"Layer Settings"}},{"slot":"NW","command":{"id":"UG_COMMAND_FINDER","name":"Command Finder"}}]}]},{"id":"selection_object","label":"Selection / Object","enabled":true,"nx_application_ids":["UG_APP_GATEWAY","UG_APP_MODELING"],"switch_command":{"id":"UG_APP_GATEWAY","name":"Selection"},"leader_prefix":"F","command_sets":[{"id":"primary","label":"Primary","commands":[{"slot":"N","command":{"id":"UG_SEL_BODY_PRIORITY","name":"Body Selection Priority"}},{"slot":"NE","command":{"id":"UG_SEL_FACE_PRIORITY","name":"Face Selection Priority"}},{"slot":"E","command":{"id":"UG_SEL_EDGE_PRIORITY","name":"Edge Selection Priority"}},{"slot":"SE","command":{"id":"UG_SEL_FEATURE_PRIORITY","name":"Feature Selection Priority"}},{"slot":"S","command":{"id":"UG_SEL_COMPONENT_PRIORITY","name":"Component Selection Priority"}},{"slot":"SW","command":{"id":"UG_SEL_CURVE_PRIORITY","name":"Curve Selection Priority"}},{"slot":"W","command":{"id":"UG_SEL_DATUM_PRIORITY","name":"Datum Selection Priority"}},{"slot":"NW","command":{"id":"UG_SEL_TYPE_RESET","name":"Reset Selection Filter"}}]}]}],"workflow_controls":{"accept_ok":{"id":"","name":"OK","aliases":["Accept","Finish","Middle Mouse Button"]},"apply":{"id":"","name":"Apply","aliases":[]},"cancel":{"id":"","name":"Cancel","aliases":["Deselect"]},"back_previous_step":{"id":"","name":"Back","aliases":["Previous Step"]},"confirm_dangerous":true},"performance":{"catalog_cache_enabled":true,"lazy_studio_scan":true,"bridge_watcher":true},"role_deployment":{"enabled":false,"source_mtx":"","target_directory":"","target_name":"NX_Adaptive_Modules_2512.6000.mtx","set_as_default":false,"default_role_env":"UGII_DEFAULT_ROLE"},"leader_key":{"enabled":true,"trigger_key":"CapsLock","adaptive_module_mode":true,"hud_delay_ms":120,"first_key_timeout_ms":4000,"next_key_timeout_ms":2500,"sticky_mode_on_double_tap":true,"hud_opacity":0.95,"hook_only_when_nx_active":true,"slot_key_map":{"N":"W","NE":"E","E":"D","SE":"C","S":"X","SW":"Z","W":"A","NW":"Q"}}}
+{
+  "schema_version": 4,
+  "profile": {
+    "name": "NX Adaptive Modules 2512.6000",
+    "nx_version": "2512.6000",
+    "description": "Basic global shortcuts plus context-adaptive module commands for Siemens NX 2512."
+  },
+  "scan": {
+    "roots": [
+      "%LOCALAPPDATA%\\Siemens",
+      "%APPDATA%\\Siemens",
+      "%LOCALAPPDATA%\\Unigraphics Solutions",
+      "%APPDATA%\\Unigraphics Solutions"
+    ],
+    "install_hints": [
+      "%ProgramFiles%\\Siemens\\DesigncenterNX2512",
+      "%ProgramFiles%\\Siemens\\NX2512",
+      "%ProgramFiles%\\Siemens"
+    ],
+    "profile_hints": [
+      "%LOCALAPPDATA%\\Siemens\\Designcenter2512",
+      "%APPDATA%\\Siemens\\Designcenter2512",
+      "%LOCALAPPDATA%\\Siemens\\NX2512",
+      "%APPDATA%\\Siemens\\NX2512"
+    ],
+    "menu_extensions": [
+      ".men",
+      ".tbr",
+      ".rtb",
+      ".gly",
+      ".abr"
+    ],
+    "role_extensions": [
+      ".mtx"
+    ],
+    "launcher_extensions": [
+      ".bat",
+      ".cmd",
+      ".ps1"
+    ],
+    "max_depth": 9,
+    "max_files": 30000,
+    "follow_symlinks": false
+  },
+  "deployment": {
+    "mode": "managed-wrapper",
+    "managed_root": "%LOCALAPPDATA%\\NXKeys\\managed\\NX2512.6000",
+    "backup_root": "%LOCALAPPDATA%\\NXKeys\\backups",
+    "overlay_filename": "nxkeys_generated.men",
+    "menuscript_version": 139,
+    "main_menubar_id": "UG_GATEWAY_MAIN_MENUBAR",
+    "nx_executable": "",
+    "existing_custom_dirs_file": "",
+    "patch_existing_custom_dirs": false,
+    "require_nx_stopped": true,
+    "clear_detected_conflicts": false,
+    "atomic_writes": true,
+    "dry_run": true
+  },
+  "keyboard": [
+    {
+      "shortcut": "Ctrl+N",
+      "command": {
+        "id": "UG_FILE_NEW",
+        "name": "New"
+      },
+      "scope": "Global",
+      "enabled": true,
+      "notes": "Создать новый файл"
+    },
+    {
+      "shortcut": "Ctrl+O",
+      "command": {
+        "id": "UG_FILE_OPEN",
+        "name": "Open"
+      },
+      "scope": "Global",
+      "enabled": true,
+      "notes": "Открыть файл"
+    },
+    {
+      "shortcut": "Ctrl+S",
+      "command": {
+        "id": "UG_FILE_SAVE_PART",
+        "name": "Save"
+      },
+      "scope": "Global",
+      "enabled": true,
+      "notes": "Сохранить рабочую деталь"
+    },
+    {
+      "shortcut": "Ctrl+Shift+S",
+      "command": {
+        "id": "UG_FILE_SAVE_AS",
+        "name": "Save As"
+      },
+      "scope": "Global",
+      "enabled": true,
+      "notes": "Сохранить как"
+    },
+    {
+      "shortcut": "Ctrl+Z",
+      "command": {
+        "id": "UG_EDIT_UNDO",
+        "name": "Undo"
+      },
+      "scope": "Global",
+      "enabled": true,
+      "notes": "Отменить"
+    },
+    {
+      "shortcut": "Ctrl+Y",
+      "command": {
+        "id": "UG_EDIT_REDO",
+        "name": "Redo"
+      },
+      "scope": "Global",
+      "enabled": true,
+      "notes": "Повторить"
+    },
+    {
+      "shortcut": "Ctrl+X",
+      "command": {
+        "id": "UG_EDIT_CUT",
+        "name": "Cut"
+      },
+      "scope": "Global",
+      "enabled": true,
+      "notes": "Вырезать"
+    },
+    {
+      "shortcut": "Ctrl+C",
+      "command": {
+        "id": "UG_EDIT_COPY",
+        "name": "Copy"
+      },
+      "scope": "Global",
+      "enabled": true,
+      "notes": "Копировать"
+    },
+    {
+      "shortcut": "Ctrl+V",
+      "command": {
+        "id": "UG_EDIT_PASTE",
+        "name": "Paste"
+      },
+      "scope": "Global",
+      "enabled": true,
+      "notes": "Вставить"
+    },
+    {
+      "shortcut": "Delete",
+      "command": {
+        "id": "UG_EDIT_DELETE",
+        "name": "Delete"
+      },
+      "scope": "Selection",
+      "enabled": true,
+      "notes": "Удалить выбранное; команда NX запрашивает подтверждение при необходимости"
+    },
+    {
+      "shortcut": "Ctrl+F",
+      "command": {
+        "id": "UG_VIEW_FIT",
+        "name": "Fit"
+      },
+      "scope": "Graphics",
+      "enabled": true,
+      "notes": "Вписать геометрию в окно"
+    },
+    {
+      "shortcut": "F5",
+      "command": {
+        "id": "UG_VIEW_REFRESH",
+        "name": "Refresh"
+      },
+      "scope": "Global",
+      "enabled": true,
+      "notes": "Обновить отображение"
+    }
+  ],
+  "modules": [
+    {
+      "id": "modeling",
+      "label": "Modeling",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_MODELING"
+      ],
+      "switch_command": {
+        "id": "UG_APP_MODELING",
+        "name": "Modeling"
+      },
+      "leader_prefix": "M",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "N",
+              "command": {
+                "id": "UG_CREATE_SKETCH",
+                "name": "Sketch"
+              },
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "icon_hint": "sketch"
+            },
+            {
+              "slot": "NE",
+              "command": {
+                "id": "UG_MODELING_EXTRUDED_FEATURE",
+                "name": "Extrude"
+              },
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "icon_hint": "feature"
+            },
+            {
+              "slot": "E",
+              "command": {
+                "id": "UG_MODELING_HOLE_FEATURE",
+                "name": "Hole"
+              },
+              "input_key": "D",
+              "display_order": 3,
+              "enabled": true,
+              "icon_hint": "feature"
+            },
+            {
+              "slot": "SE",
+              "command": {
+                "id": "UG_MODELING_REVOLVED_FEATURE",
+                "name": "Revolve"
+              },
+              "input_key": "C",
+              "display_order": 4,
+              "enabled": true,
+              "icon_hint": "feature"
+            },
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_MODELING_BLEND_FEATURE",
+                "name": "Edge Blend"
+              },
+              "requires_selection": true,
+              "input_key": "X",
+              "display_order": 5,
+              "enabled": true,
+              "icon_hint": "feature"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_MODELING_CHAMFER_FEATURE",
+                "name": "Chamfer"
+              },
+              "requires_selection": true,
+              "input_key": "Z",
+              "display_order": 6,
+              "enabled": true,
+              "icon_hint": "feature"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_MODELING_PATTERNFEATURE_FEATURE",
+                "name": "Pattern Feature"
+              },
+              "requires_selection": true,
+              "input_key": "A",
+              "display_order": 7,
+              "enabled": true,
+              "icon_hint": "pattern"
+            },
+            {
+              "slot": "NW",
+              "command": {
+                "id": "UG_MODELING_MIRRORFEATURE_FEATURE",
+                "name": "Mirror Feature"
+              },
+              "requires_selection": true,
+              "input_key": "Q",
+              "display_order": 8,
+              "enabled": true,
+              "icon_hint": "pattern"
+            }
+          ]
+        },
+        {
+          "id": "selection_filters",
+          "label": "Selection Filters",
+          "commands": [
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body"
+              },
+              "input_key": "W",
+              "display_order": 81,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select bodies first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face"
+              },
+              "input_key": "E",
+              "display_order": 82,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select faces first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge"
+              },
+              "input_key": "D",
+              "display_order": 83,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select edges first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature"
+              },
+              "input_key": "C",
+              "display_order": 84,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select features first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component"
+              },
+              "input_key": "X",
+              "display_order": 85,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select components first",
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_RESET",
+                "name": "Reset Selection"
+              },
+              "input_key": "Z",
+              "display_order": 86,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Reset selection filters",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "input_key": "A",
+              "display_order": 87,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select all selectable objects",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "input_key": "Q",
+              "display_order": 88,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Clear current selection",
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        },
+        {
+          "id": "special_workflows",
+          "label": "Special Workflows",
+          "slot_semantics": {},
+          "commands": [
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "W",
+              "icon_hint": "feature",
+              "display_order": 89,
+              "command": {
+                "id": "UG_APP_MODELING",
+                "name": "Switch to Modeling"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Return to Modeling application."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "E",
+              "icon_hint": "sheet_metal",
+              "display_order": 90,
+              "command": {
+                "id": "UG_APP_SBSM",
+                "name": "Switch to Sheet Metal"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Open Sheet Metal application when current context is not Sketch."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "D",
+              "icon_hint": "wave",
+              "display_order": 91,
+              "command": {
+                "id": "UG_ASSY_WAVE_LINKER",
+                "name": "WAVE Geometry Linker"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Create associative WAVE geometry links."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "C",
+              "icon_hint": "wave",
+              "display_order": 92,
+              "command": {
+                "id": "UG_ASSY_WAVE_ASSOC_MANAGER",
+                "name": "WAVE Associativity Manager"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Review and repair WAVE associativity."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "X",
+              "icon_hint": "layer",
+              "display_order": 93,
+              "command": {
+                "id": "UG_LAYER_SETTINGS",
+                "name": "Layer Settings"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Open layer settings."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "Z",
+              "icon_hint": "layer",
+              "display_order": 94,
+              "command": {
+                "id": "UG_LAYER_MOVE",
+                "name": "Move to Layer"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Move selected objects to another layer."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "A",
+              "icon_hint": "material",
+              "display_order": 95,
+              "command": {
+                "id": "UG_MATERIAL_ASSIGN",
+                "name": "Assign Material"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Assign physical material to selected geometry."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "Q",
+              "icon_hint": "material",
+              "display_order": 96,
+              "command": {
+                "id": "UG_MATERIAL_LIBRARY_MANAGER",
+                "name": "Material Library Manager"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Open material library manager."
+            },
+            {
+              "slot": "",
+              "submenu_key": "3",
+              "submenu_label": "WAVE Tools",
+              "input_key": "W",
+              "icon_hint": "wave",
+              "display_order": 97,
+              "command": {
+                "id": "UG_ASSY_WAVE_INTERFACE_LINKER",
+                "name": "WAVE Interface Linker"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Create WAVE interface links."
+            },
+            {
+              "slot": "",
+              "submenu_key": "3",
+              "submenu_label": "WAVE Tools",
+              "input_key": "E",
+              "icon_hint": "wave",
+              "display_order": 98,
+              "command": {
+                "id": "UG_ASSY_WAVE_PART_NAVIGATOR",
+                "name": "WAVE Part Navigator"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Open WAVE part navigator."
+            },
+            {
+              "slot": "",
+              "submenu_key": "3",
+              "submenu_label": "WAVE Tools",
+              "input_key": "D",
+              "icon_hint": "wave",
+              "display_order": 99,
+              "command": {
+                "id": "UG_ASSY_WAVE_GRAPH_BROWSER",
+                "name": "WAVE Graph Browser"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Inspect WAVE graph relationships."
+            },
+            {
+              "slot": "",
+              "submenu_key": "3",
+              "submenu_label": "WAVE Tools",
+              "input_key": "C",
+              "icon_hint": "wave",
+              "display_order": 79,
+              "command": {
+                "id": "UG_ASSY_WAVE_LOAD_DATA",
+                "name": "Load WAVE Data"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Load/update WAVE data."
+            },
+            {
+              "slot": "",
+              "submenu_key": "4",
+              "submenu_label": "Layer Tools",
+              "input_key": "W",
+              "icon_hint": "layer",
+              "display_order": 75,
+              "command": {
+                "id": "UG_LAYER_VIEW",
+                "name": "Layer Visible in View"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Control visible layers in the current view."
+            },
+            {
+              "slot": "",
+              "submenu_key": "4",
+              "submenu_label": "Layer Tools",
+              "input_key": "E",
+              "icon_hint": "layer",
+              "display_order": 76,
+              "command": {
+                "id": "UG_LAYER_CATEGORY",
+                "name": "Layer Category"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Edit layer categories."
+            },
+            {
+              "slot": "",
+              "submenu_key": "4",
+              "submenu_label": "Layer Tools",
+              "input_key": "D",
+              "icon_hint": "layer",
+              "display_order": 77,
+              "command": {
+                "id": "UG_LAYER_COPY",
+                "name": "Copy to Layer"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Copy selected objects to another layer."
+            },
+            {
+              "slot": "",
+              "submenu_key": "4",
+              "submenu_label": "Layer Tools",
+              "input_key": "C",
+              "icon_hint": "layer",
+              "display_order": 78,
+              "command": {
+                "id": "UG_INFO_OTHER_LAYERS",
+                "name": "Layer Information"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Inspect object and layer information."
+            },
+            {
+              "slot": "",
+              "submenu_key": "5",
+              "submenu_label": "Material Display",
+              "input_key": "W",
+              "icon_hint": "material",
+              "display_order": 71,
+              "command": {
+                "id": "UG_VIEW_PALETTE_SYSTEM_MATERIALS",
+                "name": "System Materials Palette"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Open system material palette."
+            },
+            {
+              "slot": "",
+              "submenu_key": "5",
+              "submenu_label": "Material Display",
+              "input_key": "E",
+              "icon_hint": "material",
+              "display_order": 72,
+              "command": {
+                "id": "UG_VIEW_PALETTE_MATERIALS_IN_PART",
+                "name": "Part Materials Palette"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Open materials currently stored in the part."
+            },
+            {
+              "slot": "",
+              "submenu_key": "5",
+              "submenu_label": "Material Display",
+              "input_key": "D",
+              "icon_hint": "material",
+              "display_order": 73,
+              "command": {
+                "id": "UG_DISPLAY_APPEARANCE_VISUAL_MATERIAL",
+                "name": "Visual Material Display"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Toggle visual material display."
+            },
+            {
+              "slot": "",
+              "submenu_key": "5",
+              "submenu_label": "Material Display",
+              "input_key": "C",
+              "icon_hint": "material",
+              "display_order": 74,
+              "command": {
+                "id": "UG_VIEW_SHED_MATERIAL_OVERRIDE_DEASSIGN",
+                "name": "Deassign Visual Material"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": true,
+              "fallback": "",
+              "notes": "Remove visual material override from selected objects."
+            },
+            {
+              "slot": "",
+              "submenu_key": "6",
+              "submenu_label": "Sheet Metal Tools",
+              "input_key": "W",
+              "icon_hint": "sheet_metal",
+              "display_order": 67,
+              "command": {
+                "id": "UG_SBSM_SHEETMETAL_FROM_SOLID_FEATURE",
+                "name": "Sheet Metal from Solid"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Convert solid body workflow into Sheet Metal."
+            },
+            {
+              "slot": "",
+              "submenu_key": "6",
+              "submenu_label": "Sheet Metal Tools",
+              "input_key": "E",
+              "icon_hint": "sheet_metal",
+              "display_order": 68,
+              "command": {
+                "id": "UG_MODELING_SHEET_FEATURE",
+                "name": "Sheet Feature"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Create or edit sheet body feature."
+            },
+            {
+              "slot": "",
+              "submenu_key": "6",
+              "submenu_label": "Sheet Metal Tools",
+              "input_key": "D",
+              "icon_hint": "sheet_metal",
+              "display_order": 69,
+              "command": {
+                "id": "UG_MODELING_FF_EXTEND_SHEET",
+                "name": "Extend Sheet"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Extend sheet geometry."
+            },
+            {
+              "slot": "",
+              "submenu_key": "6",
+              "submenu_label": "Sheet Metal Tools",
+              "input_key": "C",
+              "icon_hint": "inspect",
+              "display_order": 70,
+              "command": {
+                "id": "UG_INFO_ANALYSIS_SHEET_BOUNDARY",
+                "name": "Sheet Boundary Analysis"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Inspect sheet boundary conditions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sketch",
+      "label": "Sketch",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_SKETCH",
+        "UG_APP_MODELING"
+      ],
+      "switch_command": {
+        "id": "UG_CREATE_SKETCH",
+        "name": "Sketch"
+      },
+      "leader_prefix": "S",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_SKETCH_TRIM",
+                "name": "Trim"
+              },
+              "requires_selection": true,
+              "input_key": "X",
+              "display_order": 40,
+              "enabled": true,
+              "icon_hint": "sketch"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_SKETCH_EXTEND",
+                "name": "Extend"
+              },
+              "requires_selection": true,
+              "input_key": "Z",
+              "display_order": 41,
+              "enabled": true,
+              "icon_hint": "sketch"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_SKETCH_OFFSET_CURVE",
+                "name": "Offset Curve"
+              },
+              "requires_selection": true,
+              "input_key": "A",
+              "display_order": 42,
+              "enabled": true,
+              "icon_hint": "sketch"
+            },
+            {
+              "slot": "",
+              "submenu_key": "W",
+              "submenu_label": "Line",
+              "command": {
+                "id": "UG_SKETCH_LINE_BY_TWO_POINTS",
+                "name": "Line by Two Points"
+              },
+              "requires_selection": false,
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "notes": "Line submenu",
+              "icon_hint": "sketch"
+            },
+            {
+              "slot": "",
+              "submenu_key": "W",
+              "submenu_label": "Line",
+              "command": {
+                "id": "UG_SKETCH_LINE_FROM_MIDPOINT",
+                "name": "Line from Midpoint"
+              },
+              "requires_selection": false,
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "notes": "Line submenu",
+              "icon_hint": "sketch"
+            },
+            {
+              "slot": "",
+              "submenu_key": "E",
+              "submenu_label": "Rectangle",
+              "command": {
+                "id": "UG_SKETCH_RECTANGLE_BY_TWO_POINTS",
+                "name": "Rectangle by Two Points"
+              },
+              "requires_selection": false,
+              "input_key": "W",
+              "display_order": 3,
+              "enabled": true,
+              "notes": "Rectangle submenu",
+              "icon_hint": "sketch"
+            },
+            {
+              "slot": "",
+              "submenu_key": "E",
+              "submenu_label": "Rectangle",
+              "command": {
+                "id": "UG_SKETCH_RECTANGLE_FROM_CENTER",
+                "name": "Rectangle from Center"
+              },
+              "requires_selection": false,
+              "input_key": "E",
+              "display_order": 4,
+              "enabled": true,
+              "notes": "Rectangle submenu",
+              "icon_hint": "sketch"
+            },
+            {
+              "slot": "",
+              "submenu_key": "E",
+              "submenu_label": "Rectangle",
+              "command": {
+                "id": "UG_SKETCH_RECTANGLE_BY_THREE_POINTS",
+                "name": "Rectangle by Three Points"
+              },
+              "requires_selection": false,
+              "input_key": "D",
+              "display_order": 5,
+              "enabled": true,
+              "notes": "Rectangle submenu",
+              "icon_hint": "sketch"
+            },
+            {
+              "slot": "",
+              "submenu_key": "D",
+              "submenu_label": "Circle",
+              "command": {
+                "id": "UG_SKETCH_CIRCLE_FROM_CENTER",
+                "name": "Circle from Center"
+              },
+              "requires_selection": false,
+              "input_key": "W",
+              "display_order": 6,
+              "enabled": true,
+              "notes": "Circle submenu",
+              "icon_hint": "sketch"
+            },
+            {
+              "slot": "",
+              "submenu_key": "D",
+              "submenu_label": "Circle",
+              "command": {
+                "id": "UG_SKETCH_CIRCLE_BY_THREE_POINTS",
+                "name": "Circle by Three Points"
+              },
+              "requires_selection": false,
+              "input_key": "E",
+              "display_order": 7,
+              "enabled": true,
+              "notes": "Circle submenu",
+              "icon_hint": "sketch"
+            },
+            {
+              "slot": "",
+              "submenu_key": "C",
+              "submenu_label": "Arc",
+              "command": {
+                "id": "UG_SKETCH_ARC_BY_THREE_POINTS",
+                "name": "Arc by Three Points"
+              },
+              "requires_selection": false,
+              "input_key": "W",
+              "display_order": 8,
+              "enabled": true,
+              "notes": "Arc submenu",
+              "icon_hint": "sketch"
+            },
+            {
+              "slot": "",
+              "submenu_key": "C",
+              "submenu_label": "Arc",
+              "command": {
+                "id": "UG_SKETCH_ARC_FROM_CENTER",
+                "name": "Arc from Center"
+              },
+              "requires_selection": false,
+              "input_key": "E",
+              "display_order": 9,
+              "enabled": true,
+              "notes": "Arc submenu",
+              "icon_hint": "sketch"
+            },
+            {
+              "slot": "",
+              "submenu_key": "Q",
+              "submenu_label": "Constraints",
+              "command": {
+                "id": "UG_SKETCH_RAPID_DIMENSION",
+                "name": "Rapid Dimension"
+              },
+              "requires_selection": false,
+              "input_key": "W",
+              "display_order": 10,
+              "enabled": true,
+              "notes": "Constraints submenu",
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "submenu_key": "Q",
+              "submenu_label": "Constraints",
+              "command": {
+                "id": "UG_SKETCH_LINEAR_DIMENSION",
+                "name": "Linear Dimension"
+              },
+              "requires_selection": false,
+              "input_key": "E",
+              "display_order": 11,
+              "enabled": true,
+              "notes": "Constraints submenu",
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "submenu_key": "Q",
+              "submenu_label": "Constraints",
+              "command": {
+                "id": "UG_SKETCH_COINCIDENT_CONSTRAINT",
+                "name": "Coincident Constraint"
+              },
+              "requires_selection": true,
+              "input_key": "D",
+              "display_order": 12,
+              "enabled": true,
+              "notes": "Constraints submenu",
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "submenu_key": "Q",
+              "submenu_label": "Constraints",
+              "command": {
+                "id": "UG_SKETCH_TANGENT_CONSTRAINT",
+                "name": "Tangent Constraint"
+              },
+              "requires_selection": true,
+              "input_key": "C",
+              "display_order": 13,
+              "enabled": true,
+              "notes": "Constraints submenu",
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "submenu_key": "Q",
+              "submenu_label": "Constraints",
+              "command": {
+                "id": "UG_SKETCH_PARALLEL_CONSTRAINT",
+                "name": "Parallel Constraint"
+              },
+              "requires_selection": true,
+              "input_key": "X",
+              "display_order": 14,
+              "enabled": true,
+              "notes": "Constraints submenu",
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "submenu_key": "Q",
+              "submenu_label": "Constraints",
+              "command": {
+                "id": "UG_SKETCH_PERPENDICULAR_CONSTRAINT",
+                "name": "Perpendicular Constraint"
+              },
+              "requires_selection": true,
+              "input_key": "Z",
+              "display_order": 15,
+              "enabled": true,
+              "notes": "Constraints submenu",
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "submenu_key": "Q",
+              "submenu_label": "Constraints",
+              "command": {
+                "id": "UG_SKETCH_HORIZONTAL_CONSTRAINT",
+                "name": "Horizontal Constraint"
+              },
+              "requires_selection": true,
+              "input_key": "A",
+              "display_order": 16,
+              "enabled": true,
+              "notes": "Constraints submenu",
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "submenu_key": "Q",
+              "submenu_label": "Constraints",
+              "command": {
+                "id": "UG_SKETCH_VERTICAL_CONSTRAINT",
+                "name": "Vertical Constraint"
+              },
+              "requires_selection": true,
+              "input_key": "Q",
+              "display_order": 17,
+              "enabled": true,
+              "notes": "Constraints submenu",
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "submenu_key": "Q",
+              "submenu_label": "Constraints",
+              "command": {
+                "id": "UG_SKETCH_CHECKER",
+                "name": "Sketch Checker"
+              },
+              "requires_selection": false,
+              "input_key": "S",
+              "display_order": 18,
+              "enabled": true,
+              "notes": "Constraints submenu",
+              "icon_hint": "assembly"
+            }
+          ]
+        },
+        {
+          "id": "selection_filters",
+          "label": "Selection Filters",
+          "commands": [
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body"
+              },
+              "input_key": "W",
+              "display_order": 81,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select bodies first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face"
+              },
+              "input_key": "E",
+              "display_order": 82,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select faces first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge"
+              },
+              "input_key": "D",
+              "display_order": 83,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select edges first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature"
+              },
+              "input_key": "C",
+              "display_order": 84,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select features first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component"
+              },
+              "input_key": "X",
+              "display_order": 85,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select components first",
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_RESET",
+                "name": "Reset Selection"
+              },
+              "input_key": "Z",
+              "display_order": 86,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Reset selection filters",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "input_key": "A",
+              "display_order": 87,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select all selectable objects",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "input_key": "Q",
+              "display_order": 88,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Clear current selection",
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "assembly",
+      "label": "Assembly",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_ASSEMBLIES"
+      ],
+      "switch_command": {
+        "id": "UG_APP_ASSEMBLIES",
+        "name": "Assemblies"
+      },
+      "leader_prefix": "A",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "N",
+              "command": {
+                "id": "UG_ASSEMBLIES_ADD_COMPONENT",
+                "name": "Add Component"
+              },
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "NE",
+              "command": {
+                "id": "UG_ASSEMBLIES_NEW_COMPONENT",
+                "name": "Create New Component"
+              },
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "E",
+              "command": {
+                "id": "UG_ASSEMBLIES_MOVE_COMPONENT",
+                "name": "Move Component"
+              },
+              "requires_selection": true,
+              "input_key": "D",
+              "display_order": 3,
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "SE",
+              "command": {
+                "id": "UG_ASSEMBLIES_CONSTRAINTS",
+                "name": "Assembly Constraints"
+              },
+              "requires_selection": true,
+              "input_key": "C",
+              "display_order": 4,
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_ASSEMBLIES_REPLACE_COMPONENT",
+                "name": "Replace Component"
+              },
+              "requires_selection": true,
+              "destructive": true,
+              "confirm_before_execute": true,
+              "input_key": "X",
+              "display_order": 5,
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_ASSEMBLIES_REMOVE_COMPONENT",
+                "name": "Remove Component"
+              },
+              "requires_selection": true,
+              "destructive": true,
+              "confirm_before_execute": true,
+              "input_key": "Z",
+              "display_order": 6,
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_ASSEMBLIES_PATTERN_COMPONENT",
+                "name": "Pattern Component"
+              },
+              "requires_selection": true,
+              "input_key": "A",
+              "display_order": 7,
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "NW",
+              "command": {
+                "id": "UG_ASSEMBLIES_NAVIGATOR",
+                "name": "Assembly Navigator"
+              },
+              "input_key": "Q",
+              "display_order": 8,
+              "enabled": true,
+              "icon_hint": "assembly"
+            }
+          ]
+        },
+        {
+          "id": "selection_filters",
+          "label": "Selection Filters",
+          "commands": [
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body"
+              },
+              "input_key": "W",
+              "display_order": 81,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select bodies first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face"
+              },
+              "input_key": "E",
+              "display_order": 82,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select faces first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge"
+              },
+              "input_key": "D",
+              "display_order": 83,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select edges first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature"
+              },
+              "input_key": "C",
+              "display_order": 84,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select features first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component"
+              },
+              "input_key": "X",
+              "display_order": 85,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select components first",
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_RESET",
+                "name": "Reset Selection"
+              },
+              "input_key": "Z",
+              "display_order": 86,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Reset selection filters",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "input_key": "A",
+              "display_order": 87,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select all selectable objects",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "input_key": "Q",
+              "display_order": 88,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Clear current selection",
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        },
+        {
+          "id": "special_workflows",
+          "label": "Special Workflows",
+          "slot_semantics": {},
+          "commands": [
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "W",
+              "icon_hint": "feature",
+              "display_order": 89,
+              "command": {
+                "id": "UG_APP_MODELING",
+                "name": "Switch to Modeling"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Return to Modeling application."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "E",
+              "icon_hint": "sheet_metal",
+              "display_order": 90,
+              "command": {
+                "id": "UG_APP_SBSM",
+                "name": "Switch to Sheet Metal"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Open Sheet Metal application when current context is not Sketch."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "D",
+              "icon_hint": "wave",
+              "display_order": 91,
+              "command": {
+                "id": "UG_ASSY_WAVE_LINKER",
+                "name": "WAVE Geometry Linker"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Create associative WAVE geometry links."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "C",
+              "icon_hint": "wave",
+              "display_order": 92,
+              "command": {
+                "id": "UG_ASSY_WAVE_ASSOC_MANAGER",
+                "name": "WAVE Associativity Manager"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Review and repair WAVE associativity."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "X",
+              "icon_hint": "layer",
+              "display_order": 93,
+              "command": {
+                "id": "UG_LAYER_SETTINGS",
+                "name": "Layer Settings"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Open layer settings."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "Z",
+              "icon_hint": "layer",
+              "display_order": 94,
+              "command": {
+                "id": "UG_LAYER_MOVE",
+                "name": "Move to Layer"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Move selected objects to another layer."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "A",
+              "icon_hint": "material",
+              "display_order": 95,
+              "command": {
+                "id": "UG_MATERIAL_ASSIGN",
+                "name": "Assign Material"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Assign physical material to selected geometry."
+            },
+            {
+              "slot": "",
+              "submenu_key": "2",
+              "submenu_label": "Special",
+              "input_key": "Q",
+              "icon_hint": "material",
+              "display_order": 96,
+              "command": {
+                "id": "UG_MATERIAL_LIBRARY_MANAGER",
+                "name": "Material Library Manager"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Open material library manager."
+            },
+            {
+              "slot": "",
+              "submenu_key": "3",
+              "submenu_label": "WAVE Tools",
+              "input_key": "W",
+              "icon_hint": "wave",
+              "display_order": 97,
+              "command": {
+                "id": "UG_ASSY_WAVE_INTERFACE_LINKER",
+                "name": "WAVE Interface Linker"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Create WAVE interface links."
+            },
+            {
+              "slot": "",
+              "submenu_key": "3",
+              "submenu_label": "WAVE Tools",
+              "input_key": "E",
+              "icon_hint": "wave",
+              "display_order": 98,
+              "command": {
+                "id": "UG_ASSY_WAVE_PART_NAVIGATOR",
+                "name": "WAVE Part Navigator"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Open WAVE part navigator."
+            },
+            {
+              "slot": "",
+              "submenu_key": "3",
+              "submenu_label": "WAVE Tools",
+              "input_key": "D",
+              "icon_hint": "wave",
+              "display_order": 99,
+              "command": {
+                "id": "UG_ASSY_WAVE_GRAPH_BROWSER",
+                "name": "WAVE Graph Browser"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Inspect WAVE graph relationships."
+            },
+            {
+              "slot": "",
+              "submenu_key": "3",
+              "submenu_label": "WAVE Tools",
+              "input_key": "C",
+              "icon_hint": "wave",
+              "display_order": 79,
+              "command": {
+                "id": "UG_ASSY_WAVE_LOAD_DATA",
+                "name": "Load WAVE Data"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Load/update WAVE data."
+            },
+            {
+              "slot": "",
+              "submenu_key": "4",
+              "submenu_label": "Layer Tools",
+              "input_key": "W",
+              "icon_hint": "layer",
+              "display_order": 75,
+              "command": {
+                "id": "UG_LAYER_VIEW",
+                "name": "Layer Visible in View"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Control visible layers in the current view."
+            },
+            {
+              "slot": "",
+              "submenu_key": "4",
+              "submenu_label": "Layer Tools",
+              "input_key": "E",
+              "icon_hint": "layer",
+              "display_order": 76,
+              "command": {
+                "id": "UG_LAYER_CATEGORY",
+                "name": "Layer Category"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Edit layer categories."
+            },
+            {
+              "slot": "",
+              "submenu_key": "4",
+              "submenu_label": "Layer Tools",
+              "input_key": "D",
+              "icon_hint": "layer",
+              "display_order": 77,
+              "command": {
+                "id": "UG_LAYER_COPY",
+                "name": "Copy to Layer"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Copy selected objects to another layer."
+            },
+            {
+              "slot": "",
+              "submenu_key": "4",
+              "submenu_label": "Layer Tools",
+              "input_key": "C",
+              "icon_hint": "layer",
+              "display_order": 78,
+              "command": {
+                "id": "UG_INFO_OTHER_LAYERS",
+                "name": "Layer Information"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Inspect object and layer information."
+            },
+            {
+              "slot": "",
+              "submenu_key": "5",
+              "submenu_label": "Material Display",
+              "input_key": "W",
+              "icon_hint": "material",
+              "display_order": 71,
+              "command": {
+                "id": "UG_VIEW_PALETTE_SYSTEM_MATERIALS",
+                "name": "System Materials Palette"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Open system material palette."
+            },
+            {
+              "slot": "",
+              "submenu_key": "5",
+              "submenu_label": "Material Display",
+              "input_key": "E",
+              "icon_hint": "material",
+              "display_order": 72,
+              "command": {
+                "id": "UG_VIEW_PALETTE_MATERIALS_IN_PART",
+                "name": "Part Materials Palette"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Open materials currently stored in the part."
+            },
+            {
+              "slot": "",
+              "submenu_key": "5",
+              "submenu_label": "Material Display",
+              "input_key": "D",
+              "icon_hint": "material",
+              "display_order": 73,
+              "command": {
+                "id": "UG_DISPLAY_APPEARANCE_VISUAL_MATERIAL",
+                "name": "Visual Material Display"
+              },
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Toggle visual material display."
+            },
+            {
+              "slot": "",
+              "submenu_key": "5",
+              "submenu_label": "Material Display",
+              "input_key": "C",
+              "icon_hint": "material",
+              "display_order": 74,
+              "command": {
+                "id": "UG_VIEW_SHED_MATERIAL_OVERRIDE_DEASSIGN",
+                "name": "Deassign Visual Material"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": true,
+              "fallback": "",
+              "notes": "Remove visual material override from selected objects."
+            },
+            {
+              "slot": "",
+              "submenu_key": "6",
+              "submenu_label": "Sheet Metal Tools",
+              "input_key": "W",
+              "icon_hint": "sheet_metal",
+              "display_order": 67,
+              "command": {
+                "id": "UG_SBSM_SHEETMETAL_FROM_SOLID_FEATURE",
+                "name": "Sheet Metal from Solid"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Convert solid body workflow into Sheet Metal."
+            },
+            {
+              "slot": "",
+              "submenu_key": "6",
+              "submenu_label": "Sheet Metal Tools",
+              "input_key": "E",
+              "icon_hint": "sheet_metal",
+              "display_order": 68,
+              "command": {
+                "id": "UG_MODELING_SHEET_FEATURE",
+                "name": "Sheet Feature"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Create or edit sheet body feature."
+            },
+            {
+              "slot": "",
+              "submenu_key": "6",
+              "submenu_label": "Sheet Metal Tools",
+              "input_key": "D",
+              "icon_hint": "sheet_metal",
+              "display_order": 69,
+              "command": {
+                "id": "UG_MODELING_FF_EXTEND_SHEET",
+                "name": "Extend Sheet"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Extend sheet geometry."
+            },
+            {
+              "slot": "",
+              "submenu_key": "6",
+              "submenu_label": "Sheet Metal Tools",
+              "input_key": "C",
+              "icon_hint": "inspect",
+              "display_order": 70,
+              "command": {
+                "id": "UG_INFO_ANALYSIS_SHEET_BOUNDARY",
+                "name": "Sheet Boundary Analysis"
+              },
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Inspect sheet boundary conditions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "drafting",
+      "label": "Drafting",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_DRAFTING"
+      ],
+      "switch_command": {
+        "id": "UG_APP_DRAFTING",
+        "name": "Drafting"
+      },
+      "leader_prefix": "D",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "N",
+              "command": {
+                "id": "UG_DRAFTING_BASE_VIEW",
+                "name": "Base View"
+              },
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "icon_hint": "view"
+            },
+            {
+              "slot": "NE",
+              "command": {
+                "id": "UG_DRAFTING_PROJECTED_VIEW",
+                "name": "Projected View"
+              },
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "icon_hint": "view"
+            },
+            {
+              "slot": "E",
+              "command": {
+                "id": "UG_DRAFTING_SECTION_VIEW",
+                "name": "Section View"
+              },
+              "input_key": "D",
+              "display_order": 3,
+              "enabled": true,
+              "icon_hint": "view"
+            },
+            {
+              "slot": "SE",
+              "command": {
+                "id": "UG_DRAFTING_DETAIL_VIEW",
+                "name": "Detail View"
+              },
+              "input_key": "C",
+              "display_order": 4,
+              "enabled": true,
+              "icon_hint": "view"
+            },
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_DRAFTING_UPDATE_VIEWS",
+                "name": "Update Views"
+              },
+              "input_key": "X",
+              "display_order": 5,
+              "enabled": true,
+              "icon_hint": "view"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_DRAFTING_VIEW_STYLE",
+                "name": "View Style"
+              },
+              "requires_selection": true,
+              "input_key": "Z",
+              "display_order": 6,
+              "enabled": true,
+              "icon_hint": "view"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_DRAFTING_PARTS_LIST",
+                "name": "Parts List"
+              },
+              "input_key": "A",
+              "display_order": 7,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NW",
+              "command": {
+                "id": "UG_DRAFTING_RAPID_DIMENSION",
+                "name": "Rapid Dimension"
+              },
+              "input_key": "Q",
+              "display_order": 8,
+              "enabled": true,
+              "icon_hint": "command"
+            }
+          ]
+        },
+        {
+          "id": "selection_filters",
+          "label": "Selection Filters",
+          "commands": [
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body"
+              },
+              "input_key": "W",
+              "display_order": 81,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select bodies first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face"
+              },
+              "input_key": "E",
+              "display_order": 82,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select faces first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge"
+              },
+              "input_key": "D",
+              "display_order": 83,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select edges first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature"
+              },
+              "input_key": "C",
+              "display_order": 84,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select features first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component"
+              },
+              "input_key": "X",
+              "display_order": 85,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select components first",
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_RESET",
+                "name": "Reset Selection"
+              },
+              "input_key": "Z",
+              "display_order": 86,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Reset selection filters",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "input_key": "A",
+              "display_order": 87,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select all selectable objects",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "input_key": "Q",
+              "display_order": 88,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Clear current selection",
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pmi",
+      "label": "PMI",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_PMI"
+      ],
+      "switch_command": {
+        "id": "UG_APP_PMI",
+        "name": "PMI"
+      },
+      "leader_prefix": "P",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "N",
+              "command": {
+                "id": "UG_PMI_RAPID_DIMENSION",
+                "name": "Rapid Dimension"
+              },
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NE",
+              "command": {
+                "id": "UG_PMI_DATUM_FEATURE_SYMBOL",
+                "name": "Datum Feature Symbol"
+              },
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "E",
+              "command": {
+                "id": "UG_PMI_FEATURE_CONTROL_FRAME",
+                "name": "Feature Control Frame"
+              },
+              "input_key": "D",
+              "display_order": 3,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SE",
+              "command": {
+                "id": "UG_PMI_SURFACE_FINISH",
+                "name": "Surface Finish Symbol"
+              },
+              "input_key": "C",
+              "display_order": 4,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_PMI_NOTE",
+                "name": "PMI Note"
+              },
+              "input_key": "X",
+              "display_order": 5,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_PMI_EDIT",
+                "name": "Edit PMI"
+              },
+              "requires_selection": true,
+              "input_key": "Z",
+              "display_order": 6,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_PMI_MODEL_VIEW",
+                "name": "Model View"
+              },
+              "input_key": "A",
+              "display_order": 7,
+              "enabled": true,
+              "icon_hint": "view"
+            },
+            {
+              "slot": "NW",
+              "command": {
+                "id": "UG_PMI_VALIDATE",
+                "name": "Validate PMI"
+              },
+              "input_key": "Q",
+              "display_order": 8,
+              "enabled": true,
+              "icon_hint": "command"
+            }
+          ]
+        },
+        {
+          "id": "selection_filters",
+          "label": "Selection Filters",
+          "commands": [
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body"
+              },
+              "input_key": "W",
+              "display_order": 81,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select bodies first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face"
+              },
+              "input_key": "E",
+              "display_order": 82,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select faces first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge"
+              },
+              "input_key": "D",
+              "display_order": 83,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select edges first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature"
+              },
+              "input_key": "C",
+              "display_order": 84,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select features first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component"
+              },
+              "input_key": "X",
+              "display_order": 85,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select components first",
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_RESET",
+                "name": "Reset Selection"
+              },
+              "input_key": "Z",
+              "display_order": 86,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Reset selection filters",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "input_key": "A",
+              "display_order": 87,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select all selectable objects",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "input_key": "Q",
+              "display_order": 88,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Clear current selection",
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "surface",
+      "label": "Surface",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_MODELING",
+        "UG_APP_STUDIO"
+      ],
+      "switch_command": {
+        "id": "UG_APP_MODELING",
+        "name": "Surface Modeling"
+      },
+      "leader_prefix": "U",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "N",
+              "command": {
+                "id": "UG_MODELING_THROUGH_CURVES_FEATURE",
+                "name": "Through Curves"
+              },
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NE",
+              "command": {
+                "id": "UG_MODELING_SWEPT_FEATURE",
+                "name": "Swept"
+              },
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "E",
+              "command": {
+                "id": "UG_MODELING_STUDIO_SURFACE_FEATURE",
+                "name": "Studio Surface"
+              },
+              "input_key": "D",
+              "display_order": 3,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SE",
+              "command": {
+                "id": "UG_MODELING_TRIM_SHEET_FEATURE",
+                "name": "Trim Sheet"
+              },
+              "requires_selection": true,
+              "input_key": "C",
+              "display_order": 4,
+              "enabled": true,
+              "icon_hint": "sheet_metal"
+            },
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_MODELING_SEW_FEATURE",
+                "name": "Sew"
+              },
+              "requires_selection": true,
+              "input_key": "X",
+              "display_order": 5,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_MODELING_UNTRIM_FEATURE",
+                "name": "Untrim"
+              },
+              "requires_selection": true,
+              "input_key": "Z",
+              "display_order": 6,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_MODELING_EXTRACT_GEOMETRY",
+                "name": "Extract Geometry"
+              },
+              "requires_selection": true,
+              "input_key": "A",
+              "display_order": 7,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NW",
+              "command": {
+                "id": "UG_ANALYSIS_FACE_CURVATURE",
+                "name": "Face Curvature"
+              },
+              "requires_selection": true,
+              "input_key": "Q",
+              "display_order": 8,
+              "enabled": true,
+              "icon_hint": "inspect"
+            }
+          ]
+        },
+        {
+          "id": "selection_filters",
+          "label": "Selection Filters",
+          "commands": [
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body"
+              },
+              "input_key": "W",
+              "display_order": 81,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select bodies first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face"
+              },
+              "input_key": "E",
+              "display_order": 82,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select faces first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge"
+              },
+              "input_key": "D",
+              "display_order": 83,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select edges first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature"
+              },
+              "input_key": "C",
+              "display_order": 84,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select features first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component"
+              },
+              "input_key": "X",
+              "display_order": 85,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select components first",
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_RESET",
+                "name": "Reset Selection"
+              },
+              "input_key": "Z",
+              "display_order": 86,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Reset selection filters",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "input_key": "A",
+              "display_order": 87,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select all selectable objects",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "input_key": "Q",
+              "display_order": 88,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Clear current selection",
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sheet_metal",
+      "label": "Sheet Metal",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_SHEETMETAL"
+      ],
+      "switch_command": {
+        "id": "UG_APP_SHEETMETAL",
+        "name": "Sheet Metal"
+      },
+      "leader_prefix": "H",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "N",
+              "command": {
+                "id": "UG_SHEET_METAL_BASE_TAB",
+                "name": "Base Tab"
+              },
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "icon_hint": "sheet_metal"
+            },
+            {
+              "slot": "NE",
+              "command": {
+                "id": "UG_SHEET_METAL_FLANGE",
+                "name": "Flange"
+              },
+              "requires_selection": true,
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "icon_hint": "sheet_metal"
+            },
+            {
+              "slot": "E",
+              "command": {
+                "id": "UG_SHEET_METAL_CONTOUR_FLANGE",
+                "name": "Contour Flange"
+              },
+              "input_key": "D",
+              "display_order": 3,
+              "enabled": true,
+              "icon_hint": "sheet_metal"
+            },
+            {
+              "slot": "SE",
+              "command": {
+                "id": "UG_SHEET_METAL_BEND",
+                "name": "Bend"
+              },
+              "requires_selection": true,
+              "input_key": "C",
+              "display_order": 4,
+              "enabled": true,
+              "icon_hint": "sheet_metal"
+            },
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_SHEET_METAL_UNBEND",
+                "name": "Unbend"
+              },
+              "requires_selection": true,
+              "input_key": "X",
+              "display_order": 5,
+              "enabled": true,
+              "icon_hint": "sheet_metal"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_SHEET_METAL_REBEND",
+                "name": "Rebend"
+              },
+              "requires_selection": true,
+              "input_key": "Z",
+              "display_order": 6,
+              "enabled": true,
+              "icon_hint": "sheet_metal"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_SHEET_METAL_FLAT_PATTERN",
+                "name": "Flat Pattern"
+              },
+              "input_key": "A",
+              "display_order": 7,
+              "enabled": true,
+              "icon_hint": "sheet_metal"
+            },
+            {
+              "slot": "NW",
+              "command": {
+                "id": "UG_SHEET_METAL_VALIDATE",
+                "name": "Sheet Metal Preferences"
+              },
+              "input_key": "Q",
+              "display_order": 8,
+              "enabled": true,
+              "icon_hint": "sheet_metal"
+            }
+          ]
+        },
+        {
+          "id": "selection_filters",
+          "label": "Selection Filters",
+          "commands": [
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body"
+              },
+              "input_key": "W",
+              "display_order": 81,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select bodies first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face"
+              },
+              "input_key": "E",
+              "display_order": 82,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select faces first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge"
+              },
+              "input_key": "D",
+              "display_order": 83,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select edges first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature"
+              },
+              "input_key": "C",
+              "display_order": 84,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select features first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component"
+              },
+              "input_key": "X",
+              "display_order": 85,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select components first",
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_RESET",
+                "name": "Reset Selection"
+              },
+              "input_key": "Z",
+              "display_order": 86,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Reset selection filters",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "input_key": "A",
+              "display_order": 87,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select all selectable objects",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "input_key": "Q",
+              "display_order": 88,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Clear current selection",
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "manufacturing",
+      "label": "CAM / Manufacturing",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_MANUFACTURING"
+      ],
+      "switch_command": {
+        "id": "UG_APP_MANUFACTURING",
+        "name": "Manufacturing"
+      },
+      "leader_prefix": "C",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "N",
+              "command": {
+                "id": "UG_CAM_CREATE_OPERATION",
+                "name": "Create Operation"
+              },
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NE",
+              "command": {
+                "id": "UG_CAM_CREATE_TOOL",
+                "name": "Create Tool"
+              },
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "E",
+              "command": {
+                "id": "UG_CAM_GENERATE_TOOL_PATH",
+                "name": "Generate Tool Path"
+              },
+              "requires_selection": true,
+              "input_key": "D",
+              "display_order": 3,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SE",
+              "command": {
+                "id": "UG_CAM_VERIFY_TOOL_PATH",
+                "name": "Verify Tool Path"
+              },
+              "requires_selection": true,
+              "input_key": "C",
+              "display_order": 4,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_CAM_POSTPROCESS",
+                "name": "Postprocess"
+              },
+              "requires_selection": true,
+              "destructive": true,
+              "confirm_before_execute": true,
+              "input_key": "X",
+              "display_order": 5,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_CAM_DELETE_OPERATION",
+                "name": "Delete Operation"
+              },
+              "requires_selection": true,
+              "destructive": true,
+              "confirm_before_execute": true,
+              "input_key": "Z",
+              "display_order": 6,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_CAM_OPERATION_NAVIGATOR",
+                "name": "Operation Navigator"
+              },
+              "input_key": "A",
+              "display_order": 7,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NW",
+              "command": {
+                "id": "UG_CAM_INFORMATION",
+                "name": "Tool Path Information"
+              },
+              "requires_selection": true,
+              "input_key": "Q",
+              "display_order": 8,
+              "enabled": true,
+              "icon_hint": "inspect"
+            }
+          ]
+        },
+        {
+          "id": "selection_filters",
+          "label": "Selection Filters",
+          "commands": [
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body"
+              },
+              "input_key": "W",
+              "display_order": 81,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select bodies first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face"
+              },
+              "input_key": "E",
+              "display_order": 82,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select faces first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge"
+              },
+              "input_key": "D",
+              "display_order": 83,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select edges first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature"
+              },
+              "input_key": "C",
+              "display_order": 84,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select features first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component"
+              },
+              "input_key": "X",
+              "display_order": 85,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select components first",
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_RESET",
+                "name": "Reset Selection"
+              },
+              "input_key": "Z",
+              "display_order": 86,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Reset selection filters",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "input_key": "A",
+              "display_order": 87,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select all selectable objects",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "input_key": "Q",
+              "display_order": 88,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Clear current selection",
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "simulation",
+      "label": "CAE / Simulation",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_SFEM",
+        "UG_APP_DESFEM"
+      ],
+      "switch_command": {
+        "id": "UG_APP_SFEM",
+        "name": "Simulation"
+      },
+      "leader_prefix": "X",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "N",
+              "command": {
+                "id": "UG_SIM_CREATE_SOLUTION",
+                "name": "Create Solution"
+              },
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NE",
+              "command": {
+                "id": "UG_SIM_CREATE_LOAD",
+                "name": "Create Load"
+              },
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "E",
+              "command": {
+                "id": "UG_SIM_CREATE_CONSTRAINT",
+                "name": "Create Constraint"
+              },
+              "input_key": "D",
+              "display_order": 3,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SE",
+              "command": {
+                "id": "UG_SIM_MESH",
+                "name": "Mesh"
+              },
+              "requires_selection": true,
+              "input_key": "C",
+              "display_order": 4,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_SIM_SOLVE",
+                "name": "Solve"
+              },
+              "requires_selection": true,
+              "destructive": true,
+              "confirm_before_execute": true,
+              "input_key": "X",
+              "display_order": 5,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_SIM_DELETE",
+                "name": "Delete Simulation Object"
+              },
+              "requires_selection": true,
+              "destructive": true,
+              "confirm_before_execute": true,
+              "input_key": "Z",
+              "display_order": 6,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_SIM_NAVIGATOR",
+                "name": "Simulation Navigator"
+              },
+              "input_key": "A",
+              "display_order": 7,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NW",
+              "command": {
+                "id": "UG_SIM_RESULTS",
+                "name": "Results"
+              },
+              "input_key": "Q",
+              "display_order": 8,
+              "enabled": true,
+              "icon_hint": "command"
+            }
+          ]
+        },
+        {
+          "id": "selection_filters",
+          "label": "Selection Filters",
+          "commands": [
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body"
+              },
+              "input_key": "W",
+              "display_order": 81,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select bodies first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face"
+              },
+              "input_key": "E",
+              "display_order": 82,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select faces first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge"
+              },
+              "input_key": "D",
+              "display_order": 83,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select edges first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature"
+              },
+              "input_key": "C",
+              "display_order": 84,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select features first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component"
+              },
+              "input_key": "X",
+              "display_order": 85,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select components first",
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_RESET",
+                "name": "Reset Selection"
+              },
+              "input_key": "Z",
+              "display_order": 86,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Reset selection filters",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "input_key": "A",
+              "display_order": 87,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select all selectable objects",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "input_key": "Q",
+              "display_order": 88,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Clear current selection",
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "routing",
+      "label": "Routing",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_ROUTING"
+      ],
+      "switch_command": {
+        "id": "UG_APP_ROUTING",
+        "name": "Routing"
+      },
+      "leader_prefix": "G",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "N",
+              "command": {
+                "id": "UG_ROUTE_CREATE_ROUTE",
+                "name": "Create Route"
+              },
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NE",
+              "command": {
+                "id": "UG_ROUTE_PLACE_PART",
+                "name": "Place Part"
+              },
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "E",
+              "command": {
+                "id": "UG_ROUTE_ADD_STOCK",
+                "name": "Add Stock"
+              },
+              "requires_selection": true,
+              "input_key": "D",
+              "display_order": 3,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SE",
+              "command": {
+                "id": "UG_ROUTE_EDIT_ROUTE",
+                "name": "Edit Route"
+              },
+              "requires_selection": true,
+              "input_key": "C",
+              "display_order": 4,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_ROUTE_DELETE",
+                "name": "Delete Route Object"
+              },
+              "requires_selection": true,
+              "destructive": true,
+              "confirm_before_execute": true,
+              "input_key": "X",
+              "display_order": 5,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_ROUTE_REMOVE_PART",
+                "name": "Remove Part"
+              },
+              "requires_selection": true,
+              "destructive": true,
+              "confirm_before_execute": true,
+              "input_key": "Z",
+              "display_order": 6,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_ROUTE_NAVIGATOR",
+                "name": "Routing Navigator"
+              },
+              "input_key": "A",
+              "display_order": 7,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NW",
+              "command": {
+                "id": "UG_ROUTE_VALIDATE",
+                "name": "Validate Route"
+              },
+              "input_key": "Q",
+              "display_order": 8,
+              "enabled": true,
+              "icon_hint": "command"
+            }
+          ]
+        },
+        {
+          "id": "selection_filters",
+          "label": "Selection Filters",
+          "commands": [
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body"
+              },
+              "input_key": "W",
+              "display_order": 81,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select bodies first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face"
+              },
+              "input_key": "E",
+              "display_order": 82,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select faces first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge"
+              },
+              "input_key": "D",
+              "display_order": 83,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select edges first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature"
+              },
+              "input_key": "C",
+              "display_order": 84,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select features first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component"
+              },
+              "input_key": "X",
+              "display_order": 85,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select components first",
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_RESET",
+                "name": "Reset Selection"
+              },
+              "input_key": "Z",
+              "display_order": 86,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Reset selection filters",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "input_key": "A",
+              "display_order": 87,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select all selectable objects",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "input_key": "Q",
+              "display_order": 88,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Clear current selection",
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mold",
+      "label": "Mold / Tooling",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_MOLDWIZARD"
+      ],
+      "switch_command": {
+        "id": "UG_APP_MOLDWIZARD",
+        "name": "Mold Wizard"
+      },
+      "leader_prefix": "O",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "N",
+              "command": {
+                "id": "UG_MOLD_INITIALIZE_PROJECT",
+                "name": "Initialize Project"
+              },
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NE",
+              "command": {
+                "id": "UG_MOLD_PARTING",
+                "name": "Parting"
+              },
+              "requires_selection": true,
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "E",
+              "command": {
+                "id": "UG_MOLD_MOLD_BASE",
+                "name": "Mold Base"
+              },
+              "input_key": "D",
+              "display_order": 3,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SE",
+              "command": {
+                "id": "UG_MOLD_GATE",
+                "name": "Gate"
+              },
+              "requires_selection": true,
+              "input_key": "C",
+              "display_order": 4,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_MOLD_COOLING",
+                "name": "Cooling"
+              },
+              "input_key": "X",
+              "display_order": 5,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_MOLD_EJECTOR",
+                "name": "Ejector"
+              },
+              "input_key": "Z",
+              "display_order": 6,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_MOLD_LIBRARY",
+                "name": "Mold Library"
+              },
+              "input_key": "A",
+              "display_order": 7,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NW",
+              "command": {
+                "id": "UG_MOLD_VALIDATE",
+                "name": "Validate Mold Design"
+              },
+              "input_key": "Q",
+              "display_order": 8,
+              "enabled": true,
+              "icon_hint": "command"
+            }
+          ]
+        },
+        {
+          "id": "selection_filters",
+          "label": "Selection Filters",
+          "commands": [
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body"
+              },
+              "input_key": "W",
+              "display_order": 81,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select bodies first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face"
+              },
+              "input_key": "E",
+              "display_order": 82,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select faces first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge"
+              },
+              "input_key": "D",
+              "display_order": 83,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select edges first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature"
+              },
+              "input_key": "C",
+              "display_order": 84,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select features first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component"
+              },
+              "input_key": "X",
+              "display_order": 85,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select components first",
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_RESET",
+                "name": "Reset Selection"
+              },
+              "input_key": "Z",
+              "display_order": 86,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Reset selection filters",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "input_key": "A",
+              "display_order": 87,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select all selectable objects",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "input_key": "Q",
+              "display_order": 88,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Clear current selection",
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reuse",
+      "label": "Reuse / Templates",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_MODELING"
+      ],
+      "switch_command": {
+        "id": "UG_NAVIGATOR_REUSE_LIBRARY",
+        "name": "Reuse Library"
+      },
+      "leader_prefix": "R",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "N",
+              "command": {
+                "id": "UG_EXPRESSIONS",
+                "name": "Expressions"
+              },
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NE",
+              "command": {
+                "id": "UG_MODELING_WAVE_LINKER",
+                "name": "WAVE Geometry Linker"
+              },
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "icon_hint": "wave"
+            },
+            {
+              "slot": "E",
+              "command": {
+                "id": "UG_NAVIGATOR_REUSE_LIBRARY",
+                "name": "Reuse Library"
+              },
+              "input_key": "D",
+              "display_order": 3,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SE",
+              "command": {
+                "id": "UG_CREATE_FEATURE_TEMPLATE",
+                "name": "Create Feature Template"
+              },
+              "requires_selection": true,
+              "input_key": "C",
+              "display_order": 4,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_REPLACE_FEATURE_TEMPLATE",
+                "name": "Replace Feature Template"
+              },
+              "requires_selection": true,
+              "destructive": true,
+              "confirm_before_execute": true,
+              "input_key": "X",
+              "display_order": 5,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_NAVIGATOR_PART",
+                "name": "Part Navigator"
+              },
+              "input_key": "Z",
+              "display_order": 6,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_PARAMETER_TABLE",
+                "name": "Parameter Table"
+              },
+              "input_key": "A",
+              "display_order": 7,
+              "enabled": true,
+              "icon_hint": "command"
+            },
+            {
+              "slot": "NW",
+              "command": {
+                "id": "UG_HELP_COMMAND_FINDER",
+                "name": "Command Finder"
+              },
+              "input_key": "Q",
+              "display_order": 8,
+              "enabled": true,
+              "icon_hint": "command"
+            }
+          ]
+        },
+        {
+          "id": "selection_filters",
+          "label": "Selection Filters",
+          "commands": [
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body"
+              },
+              "input_key": "W",
+              "display_order": 81,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select bodies first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face"
+              },
+              "input_key": "E",
+              "display_order": 82,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select faces first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge"
+              },
+              "input_key": "D",
+              "display_order": 83,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select edges first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature"
+              },
+              "input_key": "C",
+              "display_order": 84,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select features first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component"
+              },
+              "input_key": "X",
+              "display_order": 85,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select components first",
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_RESET",
+                "name": "Reset Selection"
+              },
+              "input_key": "Z",
+              "display_order": 86,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Reset selection filters",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "input_key": "A",
+              "display_order": 87,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select all selectable objects",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "input_key": "Q",
+              "display_order": 88,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Clear current selection",
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "inspect_view",
+      "label": "Inspect / View",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_GATEWAY",
+        "UG_APP_MODELING"
+      ],
+      "switch_command": {
+        "id": "UG_APP_GATEWAY",
+        "name": "Inspect and View"
+      },
+      "leader_prefix": "V",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "N",
+              "command": {
+                "id": "UG_VIEW_FIT",
+                "name": "Fit"
+              },
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "icon_hint": "view"
+            },
+            {
+              "slot": "NE",
+              "command": {
+                "id": "UG_VIEW_POPUP_ORIENT_TFRTRI",
+                "name": "Trimetric"
+              },
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "icon_hint": "view"
+            },
+            {
+              "slot": "E",
+              "command": {
+                "id": "UG_INFO_GEOMETRIC_MEASUREMENT",
+                "name": "Measure"
+              },
+              "requires_selection": true,
+              "input_key": "D",
+              "display_order": 3,
+              "enabled": true,
+              "icon_hint": "inspect"
+            },
+            {
+              "slot": "SE",
+              "command": {
+                "id": "UG_INFO_OBJECT",
+                "name": "Object Information"
+              },
+              "requires_selection": true,
+              "input_key": "C",
+              "display_order": 4,
+              "enabled": true,
+              "icon_hint": "inspect"
+            },
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_EDIT_BLANK_SELECTED",
+                "name": "Hide Selected"
+              },
+              "requires_selection": true,
+              "input_key": "X",
+              "display_order": 5,
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_EDIT_MD_SHOWHIDE_ALL",
+                "name": "Show and Hide"
+              },
+              "requires_selection": true,
+              "input_key": "Z",
+              "display_order": 6,
+              "enabled": true,
+              "icon_hint": "view"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_LAYER_SETTINGS",
+                "name": "Layer Settings"
+              },
+              "input_key": "A",
+              "display_order": 7,
+              "enabled": true,
+              "icon_hint": "layer"
+            },
+            {
+              "slot": "NW",
+              "command": {
+                "id": "UG_HELP_COMMAND_FINDER",
+                "name": "Command Finder"
+              },
+              "input_key": "Q",
+              "display_order": 8,
+              "enabled": true,
+              "icon_hint": "command"
+            }
+          ]
+        },
+        {
+          "id": "selection_filters",
+          "label": "Selection Filters",
+          "commands": [
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body"
+              },
+              "input_key": "W",
+              "display_order": 81,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select bodies first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face"
+              },
+              "input_key": "E",
+              "display_order": 82,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select faces first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge"
+              },
+              "input_key": "D",
+              "display_order": 83,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select edges first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature"
+              },
+              "input_key": "C",
+              "display_order": 84,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select features first",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component"
+              },
+              "input_key": "X",
+              "display_order": 85,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select components first",
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_RESET",
+                "name": "Reset Selection"
+              },
+              "input_key": "Z",
+              "display_order": 86,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Reset selection filters",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "input_key": "A",
+              "display_order": 87,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Select all selectable objects",
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "",
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "input_key": "Q",
+              "display_order": 88,
+              "submenu_key": "1",
+              "submenu_label": "Selection Filters",
+              "requires_selection": false,
+              "confirm": false,
+              "notes": "Clear current selection",
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "selection_object",
+      "label": "Selection / Object",
+      "enabled": true,
+      "nx_application_ids": [
+        "UG_APP_GATEWAY",
+        "UG_APP_MODELING"
+      ],
+      "switch_command": {
+        "id": "UG_APP_GATEWAY",
+        "name": "Selection"
+      },
+      "leader_prefix": "F",
+      "command_sets": [
+        {
+          "id": "primary",
+          "label": "Primary",
+          "commands": [
+            {
+              "slot": "N",
+              "command": {
+                "id": "UG_SEL_BODY_PRIORITY",
+                "name": "Body Selection Priority"
+              },
+              "input_key": "W",
+              "display_order": 1,
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "NE",
+              "command": {
+                "id": "UG_SEL_FACE_PRIORITY",
+                "name": "Face Selection Priority"
+              },
+              "input_key": "E",
+              "display_order": 2,
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "E",
+              "command": {
+                "id": "UG_SEL_EDGE_PRIORITY",
+                "name": "Edge Selection Priority"
+              },
+              "input_key": "D",
+              "display_order": 3,
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "SE",
+              "command": {
+                "id": "UG_SEL_FEATURE_PRIORITY",
+                "name": "Feature Selection Priority"
+              },
+              "input_key": "C",
+              "display_order": 4,
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "S",
+              "command": {
+                "id": "UG_SEL_COMPONENT_PRIORITY",
+                "name": "Component Selection Priority"
+              },
+              "input_key": "X",
+              "display_order": 5,
+              "enabled": true,
+              "icon_hint": "assembly"
+            },
+            {
+              "slot": "SW",
+              "command": {
+                "id": "UG_SEL_CURVE_PRIORITY",
+                "name": "Curve Selection Priority"
+              },
+              "input_key": "Z",
+              "display_order": 6,
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "W",
+              "command": {
+                "id": "UG_SEL_DATUM_PRIORITY",
+                "name": "Datum Selection Priority"
+              },
+              "input_key": "A",
+              "display_order": 7,
+              "enabled": true,
+              "icon_hint": "selection"
+            },
+            {
+              "slot": "NW",
+              "command": {
+                "id": "UG_SEL_TYPE_RESET",
+                "name": "Reset Selection Filter"
+              },
+              "input_key": "Q",
+              "display_order": 8,
+              "enabled": true,
+              "icon_hint": "selection"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "workflow_controls": {
+    "accept_ok": {
+      "id": "",
+      "name": "OK",
+      "aliases": [
+        "Accept",
+        "Finish",
+        "Middle Mouse Button"
+      ]
+    },
+    "apply": {
+      "id": "",
+      "name": "Apply",
+      "aliases": []
+    },
+    "cancel": {
+      "id": "",
+      "name": "Cancel",
+      "aliases": [
+        "Deselect"
+      ]
+    },
+    "back_previous_step": {
+      "id": "",
+      "name": "Back",
+      "aliases": [
+        "Previous Step"
+      ]
+    },
+    "confirm_dangerous": true
+  },
+  "performance": {
+    "catalog_cache_enabled": true,
+    "lazy_studio_scan": true,
+    "bridge_watcher": true
+  },
+  "role_deployment": {
+    "enabled": false,
+    "source_mtx": "",
+    "target_directory": "",
+    "target_name": "NX_Adaptive_Modules_2512.6000.mtx",
+    "set_as_default": false,
+    "default_role_env": "UGII_DEFAULT_ROLE"
+  },
+  "leader_key": {
+    "enabled": true,
+    "trigger_key": "CapsLock",
+    "adaptive_module_mode": true,
+    "hud_delay_ms": 120,
+    "first_key_timeout_ms": 4000,
+    "next_key_timeout_ms": 2500,
+    "sticky_mode_on_double_tap": true,
+    "hud_opacity": 0.95,
+    "hook_only_when_nx_active": true
+  }
+}

@@ -40,7 +40,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.
 10. проверяет SHA-256;
 11. удаляет только устаревшие файлы предыдущего package manifest;
 12. выполняет rollback при ошибке;
-13. запускает health-check.
+13. запускает health-check;
+14. автоматически создаёт ярлыки на Рабочем столе (`Siemens NX 2512 (NXKeys).lnk`) и в Главном меню (`NXKeys`).
 
 ## Запуск
 

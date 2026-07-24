@@ -1,200 +1,169 @@
 # NXKeys для Siemens NX 2512
 
-NXKeys — C#-платформа для быстрого и безопасного управления Siemens NX 2512. В новой архитектуре остаются только **12 базовых глобальных сочетаний**, а все рабочие CAD/CAM/CAE-команды вызываются через **адаптивный модульный Leader**.
+**NXKeys** — подсистема контекстного клавиатурного управления (Leader-based hotkey system) для Siemens NX 2512.
 
-```text
-CapsLock → одна клавиша Q/W/E/A/D/Z/X/C
-```
+Система исключает необходимость запоминания сотен разрозненных сочетаний клавиш в CAD/CAM/CAE. Вместо назначения отдельных шорткатов на каждую функцию NXKeys использует простой список команд в 3 колонки: `CapsLock` открывает подсказку активного модуля, а показанная клавиша запускает команду или вложенное подменю через NX Command Bridge. При работе в NX `CapsLock` используется только как trigger и принудительно возвращается в выключенное состояние.
 
-Набор восьми команд автоматически определяется по текущему приложению NX: Sketch, Modeling, Assembly, Drafting, PMI, Surface, Sheet Metal, Manufacturing, Simulation, Routing, Mold, Reuse, Inspect/View или Selection/Object.
+> **Дисклеймер:** NXKeys является сторонним модулем расширения и не относится к продуктам Siemens AG. Доступность и поведение конкретного `BUTTON ID` зависят от текущего контекста NX, роли пользователя, активной лицензии и загруженной детали.
 
-> NXKeys не является продуктом Siemens. Доступность конкретного `BUTTON ID` зависит от сборки NX, лицензии, роли, локализации, открытой детали и текущего выбора.
+---
 
-## Основной принцип
+## Архитектурный принцип
 
-Пользователь не запоминает отдельные сочетания для каждой профессиональной функции и не вводит префикс модуля вручную.
-
-1. `NX2512_CommandBridge` публикует актуальный `context.json`.
-2. `AdaptiveModuleResolver` определяет модуль по `module_id`, `module_label` и `application_id`.
-3. Нажатие `CapsLock` открывает только восемь команд активного модуля.
-4. Нажатие одной клавиши запускает соответствующий `BUTTON ID`.
-5. Guards повторно проверяют контекст перед постановкой запроса в Bridge.
-6. Опасные операции требуют `Enter`.
-
-## Единая клавиатурная сетка
+Вместо прямых глобальных привязок NXKeys разделяет управление на два уровня:
+1. **Системный минимум (12 барьерных сочетаний):** Стандартные операции ОС и файлового ввода-вывода (`Ctrl+S`, `Ctrl+Z`, `Ctrl+C` и т.д.).
+2. **Адаптивный Leader (`CapsLock` + дерево клавиш):** Все профессиональные инструменты CAD/CAM/CAE вызываются через контекстное оверлейное меню. Первый уровень остаётся компактным, а подтипы и фильтры раскрываются вложенными уровнями.
 
 ```text
 ┌─────────────┬─────────────┬─────────────┐
-│ Q · NW      │ W · N       │ E · NE      │
-│ инспекция   │ начало      │ следующий   │
+│      Q      │      W      │      E      │
+│ Инспекция   │  Создание   │  Следующий  │
 ├─────────────┼─────────────┼─────────────┤
-│ A · W       │   МОДУЛЬ    │ D · E       │
-│ структура   │  определяется│ добавить    │
+│      A      │  АКТИВНЫЙ   │      D      │
+│ Структура   │   МОДУЛЬ    │ Добавление  │
 ├─────────────┼─────────────┼─────────────┤
-│ Z · SW      │ X · S       │ C · SE      │
-│ уменьшить   │ завершить   │ преобразовать│
+│      Z      │      X      │      C      │
+│ Уменьшение  │  Удаление   │ Преобразов. │
 └─────────────┴─────────────┴─────────────┘
 ```
 
-| Клавиша | Слот | Устойчивая семантика |
-|---|---|---|
-| `W` | `N` | запуск, создание или открытие основного объекта |
-| `E` | `NE` | следующий основной шаг процесса |
-| `D` | `E` | добавление объекта, материала или зависимости |
-| `C` | `SE` | преобразование или замена |
-| `X` | `S` | завершение, удаление или вторичная обработка |
-| `Z` | `SW` | удаление, уменьшение или ослабление |
-| `A` | `W` | структура, связь или паттерн |
-| `Q` | `NW` | инспекция, измерение или сервисная команда |
+### Назначение клавиш сетки
 
-## Примеры адаптации
+Клавиши 3x3 сетки имеют устойчивую пространственную семантику во всех 14 поддерживаемых модулях:
 
-### Modeling
+| Клавиша | Позиция в сетке | Категория операций | Пример (Modeling) | Пример (Sketch) |
+|---|---|---|---|---|
+| `W` | Верх | Создание основного конструктивного элемента | Sketch | Line |
+| `E` | Верх-Право | Логическое продолжение / основной следующий шаг | Extrude | Rectangle |
+| `D` | Право | Добавление тела, элемента или зависимости | Hole | Circle |
+| `C` | Низ-Право | Преобразование, замена или вращение | Revolve | Arc |
+| `X` | Низ | Удаление, фаски, скругления, завершение | Edge Blend | Trim |
+| `Z` | Низ-Лево | Уменьшение, ослабление или фаска | Chamfer | Extend |
+| `A` | Лево | Массивы, структуры, связи | Pattern Feature | Offset Curve |
+| `Q` | Верх-Лево | Измерения, проверка, сервисный анализ | Mirror Feature | Constraints |
 
-```text
-CapsLock+W  Sketch
-CapsLock+E  Extrude
-CapsLock+D  Hole
-CapsLock+C  Revolve
-CapsLock+X  Edge Blend
-CapsLock+Z  Chamfer
-CapsLock+A  Pattern Feature
-CapsLock+Q  Mirror Feature
-```
+Дополнительная клавиша `1` открывает `Selection Filters` в модулях, где нужно быстро выбрать приоритет выбора: Body, Face, Edge, Feature, Component, Reset, Select All или Deselect All. В Sketch клавиши `W`, `E`, `D`, `C` раскрывают подтипы Line, Rectangle, Circle и Arc, а `Q` открывает Sketch Constraints.
 
-### Sketch
+В Modeling и Assembly добавлены специальные ветки, которые доступны вне Sketch:
 
-```text
-CapsLock+W  Line
-CapsLock+E  Rectangle
-CapsLock+D  Circle
-CapsLock+C  Arc
-CapsLock+X  Trim
-CapsLock+Z  Extend
-CapsLock+A  Offset Curve
-CapsLock+Q  Sketch Checker
-```
-
-### Sheet Metal
-
-```text
-CapsLock+W  Base Tab
-CapsLock+E  Flange
-CapsLock+D  Contour Flange
-CapsLock+C  Bend
-CapsLock+X  Unbend
-CapsLock+Z  Rebend
-CapsLock+A  Flat Pattern
-CapsLock+Q  Sheet Metal Preferences
-```
-
-Полная матрица 14 × 8 доступна в [интерактивной HTML-карте](docs/command-tree.html).
-
-## Управление Leader
-
-| Клавиша | Действие |
+| Ветка | Назначение |
 |---|---|
-| `CapsLock` | открыть набор активного модуля |
-| `Q/W/E/A/D/Z/X/C` | выполнить команду текущего набора |
-| `Space` | поиск только внутри активного модуля |
-| `Enter` | выполнить первый результат поиска или подтвердить опасную команду |
-| `Tab` / `Shift+Tab` | явно запросить следующий/предыдущий модуль NX |
-| `Backspace` | вернуться или закрыть Leader |
-| `Esc` | отменить ввод |
-| двойной `CapsLock` | sticky-режим |
+| `2` | Special: переход в Modeling/Sheet Metal, быстрый WAVE, Layers, Materials |
+| `3` | WAVE Tools: Interface Linker, Part Navigator, Graph Browser, Load Data |
+| `4` | Layer Tools: view/category/copy/info |
+| `5` | Material Display: palettes, visual material display, deassign override |
+| `6` | Sheet Metal Tools: Sheet Metal from Solid, Sheet Feature, Extend Sheet, boundary analysis |
 
-При фактической смене приложения NX открытый Leader автоматически перестраивает набор. Команды другого модуля скрыты и не выполняются.
+Каждая команда в профиле имеет `icon_hint`; HUD и preview настроек показывают компактную NX-подобную пиктограмму рядом с клавишей.
 
-## Базовые сочетания
+*Полное дерево команд доступно в [интерактивной карте](docs/command-tree.html).*
 
-Прямые ускорители ограничены фиксированным системным минимумом:
+---
 
-| Сочетание | Команда |
+## Навигация и управление Leader
+
+| Горячая клавиша | Действие |
 |---|---|
-| `Ctrl+N` | New |
-| `Ctrl+O` | Open |
-| `Ctrl+S` | Save |
-| `Ctrl+Shift+S` | Save As |
-| `Ctrl+Z` | Undo |
-| `Ctrl+Y` | Redo |
-| `Ctrl+X` | Cut |
-| `Ctrl+C` | Copy |
-| `Ctrl+V` | Paste |
-| `Delete` | Delete |
-| `Ctrl+F` | Fit |
-| `F5` | Refresh |
+| `CapsLock` | Открыть оверлей Leader для текущего модуля NX |
+| `Q / W / E / A / D / Z / X / C / 1..6` | Выполнить команду текущего уровня или открыть подменю |
+| `Space` | Быстрый текстовый поиск внутри активного модуля |
+| `Enter` | Выполнить первый результат поиска или подтвердить опасную операцию |
+| `Tab` / `Shift+Tab` | Принудительный запрос следующего / предыдущего модуля NX |
+| `Backspace` / `Esc` | Сбросить ввод / закрыть оверлей |
+| Двойной `CapsLock` | Включить фиксацию оверлея (Sticky mode) |
 
-`BasicShortcutPolicy` запрещает добавлять иные прямые сочетания в канонический профиль. Профессиональные операции должны находиться в `modules[].command_sets[].commands`.
+При фактической смене приложения в NX (например, при переходе из Modeling в Sketch) `NX2512_CommandBridge` публикует новый контекст, и оверлей автоматически перестраивает набор команд. Исполнение команд чужого модуля блокируется.
 
-## Архитектура
+---
+
+## Базовые глобальные шорткаты
+
+Политикой `BasicShortcutPolicy` в системе зафиксирован строгий перечень из 12 базовых сочетаний. Добавление иных прямых шорткатов в глобальный профиль запрещено — все доменные операции NX должны объявляться в структуре модулей `nx2512-pro-hybrid.json`.
+
+| Сочетание | Команда | Сочетание | Команда |
+|---|---|---|---|
+| `Ctrl+N` | New | `Ctrl+X` | Cut |
+| `Ctrl+O` | Open | `Ctrl+C` | Copy |
+| `Ctrl+S` | Save | `Ctrl+V` | Paste |
+| `Ctrl+Shift+S` | Save As | `Delete` | Delete |
+| `Ctrl+Z` | Undo | `Ctrl+F` | Fit |
+| `Ctrl+Y` | Redo | `F5` | Refresh |
+
+---
+
+## Архитектура системы
+
+NXKeys состоит из внешнего сервиса обработки клавиатурных событий (out-of-process) и внутрипроцессного моста для Siemens NX (in-process C# DLL), взаимодействующих через файл-ориентированный IPC-протокол.
 
 ```mermaid
 flowchart LR
-    Hook[Keyboard hook] --> Queue[UI event queue]
-    BridgeContext[Command Bridge context.json] --> Resolver[AdaptiveModuleResolver]
-    Resolver --> Scope[Active module scope]
-    Queue --> DFA[Sequence DFA]
+    Hook[Win32 Keyboard Hook] --> Queue[Event Queue]
+    BridgeContext[NX Bridge context.json] --> Resolver[AdaptiveModuleResolver]
+    Resolver --> Scope[Active Module Scope]
+    Queue --> DFA[DFA Sequence Evaluator]
     Scope --> DFA
     DFA --> HFSM[Leader HFSM]
     HFSM --> Guards[ContextGuardEvaluator]
-    Guards --> Confirm[AwaitingConfirmation]
-    Guards --> Dispatch[Dispatching]
+    Guards -->|Опасная операция| Confirm[AwaitingConfirmation]
+    Guards -->|Безопасно| Dispatch[Command Dispatcher]
     Confirm --> Dispatch
-    Dispatch --> Pending[pending]
-    Pending --> Processing[processing]
-    Processing --> NX[NX BUTTON ID]
-    NX --> Result[completed / failed]
+    Dispatch --> Pending[IPC: pending]
+    Pending --> Processing[IPC: processing]
+    Processing --> NX[NXOpen / UFUN API]
+    NX --> Result[IPC: completed / failed]
     Result --> HFSM
 ```
 
-### Состояния HFSM
+### Состояния конечного автомата (HFSM)
 
-```text
-Idle
-Root
-Prefix
-Search
-AwaitingConfirmation
-Dispatching
-AwaitingResult
-SwitchingModule
-Failed
-```
+* `Idle` — оверлей неактивен, ожидание триггера `CapsLock`.
+* `Root` — оверлей активен, отображается первый уровень команд и подменю текущего модуля.
+* `Prefix` / `Search` — вложенный уровень подменю или режим поиска команд внутри контекста.
+* `AwaitingConfirmation` — подтверждение операций с побочными эффектами (требуется нажатие `Enter`).
+* `Dispatching` / `AwaitingResult` — отправка запроса в CommandBridge и ожидание отклика NX.
+* `SwitchingModule` — обработка смены активного приложения NX.
+* `Failed` — обработка ошибок валидации или исполнения.
 
-Префикс модуля существует только как внутренний токен DFA. Пользователь вводит одну командную клавишу.
+---
 
-## Компоненты
+## Подсистемы и компоненты
 
 | Компонент | Назначение |
 |---|---|
-| `NX2512_HotkeyStudio` | адаптивный Leader, Studio, CLI, deployment и диагностика |
-| `NX2512_ControlCenter` | обзор покрытия, контекста и API-каталога |
-| `NX2512_CommandBridge` | проверка контекста и выполнение точного `BUTTON ID` внутри NX |
-| `NX2512_Catalog_Studio` | извлечение UI/NXOpen/UFUN-каталогов |
-| `NXKeys.Protocol` | общий протокол запросов, результатов и контекста |
-| `NXKeys.StateMachines` | DFA, HFSM, guards и декларативная policy |
-| `NXKeys.StateMachines.Tests` | replay, randomized и safety-инварианты |
+| `NX2512_HotkeyStudio` | Перехват клавиш, оверлей Leader, CLI-управление и служба деплоя |
+| `NX2512_CommandBridge` | Внутрипроцессный плагин NX (C# DLL), экспорт контекста и вызов `BUTTON ID` |
+| `NX2512_ControlCenter` | Панель мониторинга покрытия команд и статуса IPC |
+| `NX2512_Catalog_Studio` | Утилита извлечения и анализа командных идентификаторов NXOpen/UFUN |
+| `NXKeys.Protocol` | Библиотека типов IPC-протокола (`context.json`, `status.json`, команды) |
+| `NXKeys.StateMachines` | Детерминированные автоматы (DFA, HFSM), контекстные валидаторы (Guards) |
+| `NXKeys.StateMachines.Tests` | Инварианты, реплей-сессии и генеративное тестирование |
 
-## Источники истины
+---
 
-```text
-config/nx2512-pro-hybrid.json      схема v3: базовые сочетания и 14 модулей
-config/nx2512-state-machines.json  таймауты, guards и confirmation
-```
+## Конфигурация
 
-Производные `LeaderSequenceItem` не сериализуются: они собираются из модулей при загрузке профиля. Это исключает дублирование и расхождение двух карт команд.
+Источниками истины являются JSON-конфигурации в каталоге `config/`:
 
-## Быстрая установка
+* `config/nx2512-pro-hybrid.json` (Схема v3) — определение 12 базовых шорткатов и 14 модулей.
+* `config/nx2512-state-machines.json` — таймауты IPC, правила подтверждения и контекстные Guards.
 
-Требования:
+*Примечание:* Последовательности Leader (`LeaderSequenceItem`) не сериализуются вручную, а динамически собираются из модулей при загрузке профиля.
 
-- Windows 10/11 x64;
-- Siemens NX / Designcenter NX 2512;
-- .NET 8 SDK x64;
-- `NXOpen.dll` и `NXOpenUI.dll` целевой установки;
-- права записи в `%LOCALAPPDATA%\NXKeys`.
+---
 
-Закройте NX и выполните:
+## Установка и развертывание
+
+### Системные требования
+* Windows 10 / 11 x64
+* Siemens NX / Designcenter NX 2512
+* .NET 8.0 SDK x64
+* Наличие `NXOpen.dll` и `NXOpenUI.dll` в установке NX
+* Права записи в `%LOCALAPPDATA%\NXKeys`
+
+### Инсталляция
+
+1. Закройте Siemens NX.
+2. Запустите скрипт установки из PowerShell:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.ps1 `
@@ -202,108 +171,137 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.
   -NxRoot "C:\Program Files\Siemens\NX2512"
 ```
 
-Запускать NX следует через:
+3. Запускайте NX через сгенерированный командный файл:
 
-```text
+```cmd
 %LOCALAPPDATA%\NXKeys\managed\NX2512.6000\launch-nx2512-with-nxkeys.cmd
 ```
 
-## Managed-пакет
+### Структура управляемого пакета (Managed Package)
+
+Развертывание использует стейджинг, хэширование SHA-256, манифест резервных копий и атомарные операции с поддержкой отката (rollback):
 
 ```text
 %LOCALAPPDATA%\NXKeys\managed\NX2512.6000\
-├─ NX2512_HotkeyStudio.exe
-├─ nx2512-pro-hybrid.json
-├─ nx2512-state-machines.json
-├─ package-manifest.json
-├─ custom_dirs.dat
-├─ launch-nx2512-with-nxkeys.cmd
-├─ resolution-report.md
-├─ control-center\
-└─ custom\
-   ├─ application\
-   │  ├─ NX2512_CommandBridge.dll
-   │  └─ nxkeys_command_bridge.men
-   └─ startup\
-      ├─ nxkeys_generated.men
-      ├─ nxkeys_ribbon.rtb
-      ├─ nxkeys_toolbar.tbr
-      ├─ launch-hotkeystudio-daemon.cmd
-      └─ launch-hotkeystudio-gui.cmd
+├── NX2512_HotkeyStudio.exe
+├── nx2512-pro-hybrid.json
+├── nx2512-state-machines.json
+├── package-manifest.json
+├── custom_dirs.dat
+├── launch-nx2512-with-nxkeys.cmd
+├── resolution-report.md
+├── control-center/
+└── custom/
+    ├── application/
+    │   ├── NX2512_CommandBridge.dll
+    │   └── nxkeys_command_bridge.men
+    └── startup/
+        ├── nxkeys_generated.men
+        ├── nxkeys_ribbon.rtb
+        ├── nxkeys_toolbar.tbr
+        ├── launch-hotkeystudio-daemon.cmd
+        └── launch-hotkeystudio-gui.cmd
 ```
 
-Развёртывание использует staging, SHA-256, backup manifest, атомарную запись, проверку установленного пакета и rollback. Устаревшие управляемые файлы удаляются только по предыдущему package manifest.
+---
 
-## Command Bridge
+## IPC Command Bridge
+
+Обмен данными между службой `HotkeyStudio` и плагином `CommandBridge` осуществляется через файловую очередь:
 
 ```text
 %LOCALAPPDATA%\NXKeys\bridge\
-├─ pending\
-├─ processing\
-├─ completed\
-├─ failed\
-├─ context.json
-└─ status.json
+├── pending/        # Новые запросы на исполнение BUTTON ID
+├── processing/     # Команды, принятые мостом NX
+├── completed/      # Успешно исполненные команды
+├── failed/         # Сбои исполнения и отмененные команды
+├── context.json    # Текущий контекст NX (приложение, выделение, модальные диалоги)
+└── status.json     # Статус работоспособности Bridge
 ```
 
-Перед выполнением Bridge повторно проверяет срок запроса, ревизию контекста, количество выбранных объектов, приложение NX, модальный диалог, модуль и чувствительность `BUTTON ID`. Неопределённо завершившийся запрос получает `interrupted_unknown` и не исполняется повторно.
+Перед исполнением каждого запроса `CommandBridge` повторно проверяет:
+* Срок актуальности запроса и ревизию `context.json`;
+* Активное приложение NX и отсутствие блокирующих модальных окон;
+* Доступность и чувствительность высылаемого `BUTTON ID`.
 
-## C# CLI
+Если статус завершения операции неопределен, запросу присваивается статус `interrupted_unknown`, а повторный автоповтор блокируется.
+
+---
+
+## Управление через C# CLI
+
+Все административные операции доступны через консольный интерфейс `NX2512_HotkeyStudio.exe`:
 
 ```powershell
 $exe = ".\NX2512_HotkeyStudio\dist\NX2512_HotkeyStudio.exe"
 $config = ".\config\nx2512-pro-hybrid.json"
 
+# Валидация JSON-схемы профиля
 & $exe validate --config $config
+
+# Сканирование структуры команд
 & $exe scan --config $config --json
+
+# Поиск BUTTON ID в каталоге
 & $exe catalog --config $config --query "Extrude"
+
+# Проектирование и выполнение плана установки
 & $exe plan --config $config
 & $exe apply --config $config --dry-run
 & $exe apply --config $config --yes
+
+# Диагностика подсистем и IPC Bridge
 & $exe health --config $config
 & $exe bridge-status --config $config
+
+# Резервные копии и восстановление
 & $exe backups --config $config
 & $exe restore --config $config --manifest "...\manifest.json"
+
+# Запуск службы в режиме интеграции с NX
 & $exe launch --config $config -- -nx
 ```
 
-## Проверки
+---
 
-CI должен подтвердить:
+## Проверки и CI/CD
 
-- C#-only дерево;
-- JSON schema v3;
-- ровно 12 базовых сочетаний;
-- ровно 14 модулей и 112 производных команд;
-- уникальные префиксы и восемь слотов каждого модуля;
-- фиксированную сетку `QWE/A·D/ZXC`;
-- отсутствие устаревшей подсистемы меню жестов;
-- DFA/HFSM, guards, confirmation, replay и randomized-инварианты;
-- сборку HotkeyStudio, Control Center и CommandBridge contract;
-- deployment-инварианты;
-- соответствие HTML-карты профилю.
+Автоматические тесты проверяют соблюдение ключевых инвариантов системы:
 
-Локальная проверка:
+* Версию JSON Schema v4 и ровно 12 базовых глобальных сочетаний;
+* Наличие ровно 14 модулей и не менее 112 производных команд;
+* Уникальность префиксов модулей, полных DFA-последовательностей и `input_key` внутри каждого уровня подменю;
+* Детерминированность автоматов (DFA/HFSM), контекстные Guards и safety-инварианты;
+* Автономную сборку проектов HotkeyStudio, ControlCenter и CommandBridge;
+* Корректность развертывания и актуальность документации.
+
+Для выполнения локальной валидации запустите:
 
 ```powershell
 node .\scripts\validate-command-tree.mjs
 ```
 
-## Документация
-
-- [Оглавление](docs/README.md)
-- [Интерактивная карта](docs/command-tree.html)
-- [Конфигурация](docs/CONFIGURATION.md)
-- [Архитектура](docs/ARCHITECTURE.md)
-- [Архитектура автоматов](docs/STATE_MACHINE_ARCHITECTURE.md)
-- [Установка](docs/INSTALLATION.md)
-- [Безопасность](docs/SAFETY_MODEL.md)
-- [Диагностика](docs/TROUBLESHOOTING.md)
+---
 
 ## Ограничение интеграционной проверки
 
-Contract build проверяет форму используемого NXOpen API, но окончательная проверка требует реального Siemens NX 2512 с нужной ролью и лицензией. Перед эксплуатацией destructive-команд проверьте каждый целевой `BUTTON ID` на рабочей станции.
+Сборка проектов проверяет корректность контрактов API NXOpen, однако окончательная проверка доступности команд требует выполнения на реальной рабочей станции с Siemens NX 2512 под соответствующей ролью и лицензией. Перед использованием деструктивных команд убедитесь в корректности их выполнения в вашей среде NX.
+
+---
+
+## Документация
+
+* [Оглавление документации](docs/README.md)
+* [Интерактивная карта команд](docs/command-tree.html)
+* [Конфигурация](docs/CONFIGURATION.md)
+* [Архитектура системы](docs/ARCHITECTURE.md)
+* [Архитектура автоматов](docs/STATE_MACHINE_ARCHITECTURE.md)
+* [Установка](docs/INSTALLATION.md)
+* [Модель безопасности](docs/SAFETY_MODEL.md)
+* [Диагностика и устранение неполадок](docs/TROUBLESHOOTING.md)
+
+---
 
 ## Лицензия
 
-MIT.
+[MIT](LICENSE)

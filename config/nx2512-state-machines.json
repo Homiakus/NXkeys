@@ -42,7 +42,7 @@
       },
       "on_unavailable": { "action": "show_reason", "message": "Выберите рёбра для построения фаски" }
     },
-    "SW": {
+    "SWW": {
       "guards": { "modules": ["sketch"], "require_work_part": true },
       "on_unavailable": { "action": "show_reason", "message": "Команда Line доступна в активном эскизе" }
     },

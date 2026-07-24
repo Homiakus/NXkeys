@@ -40,13 +40,15 @@ namespace NX2512_HotkeyStudio.UI
         private readonly List<Control> pages = new List<Control>();
         private readonly ListView basicList = new ListView();
         private readonly ComboBox moduleBox = new ComboBox();
-        private readonly ListView moduleList = new ListView();
+        private readonly DataGridView moduleGrid = new DataGridView();
+        private readonly CommandListPreviewPanel modulePreview = new CommandListPreviewPanel();
         private readonly RichTextBox contextBox = new RichTextBox();
         private readonly RichTextBox deploymentBox = new RichTextBox();
         private readonly ListView backupList = new ListView();
         private readonly Label engineState = new Label();
         private readonly Button engineButton = new Button();
         private readonly CheckBox dryRun = new CheckBox();
+        private bool refreshingModules;
 
         public HotkeyStudioForm(string initialConfigPath = null, LeaderKeyEngine existingEngine = null)
         {
@@ -174,7 +176,7 @@ namespace NX2512_HotkeyStudio.UI
             metrics.Controls.Add(Metric("Базовые сочетания", config.Keyboard.Count(binding => binding.Enabled).ToString(), accent));
             metrics.Controls.Add(Metric("Модули", config.Modules.Count(module => module.Enabled).ToString(), success));
             metrics.Controls.Add(Metric("Модульные команды", config.LeaderKey.Sequences.Count.ToString(), Color.FromArgb(245, 158, 11)));
-            metrics.Controls.Add(Metric("Схема ввода", "QWE / A·D / ZXC", accent));
+            metrics.Controls.Add(Metric("Схема ввода", "3 колонки", accent));
 
             Panel enginePanel = Card();
             enginePanel.Dock = DockStyle.Fill;
@@ -191,7 +193,7 @@ namespace NX2512_HotkeyStudio.UI
 
             RichTextBox explanation = ReadOnlyBox();
             explanation.Text =
-                "NXKeys сохраняет только базовые глобальные сочетания. Все профессиональные операции вызываются через CapsLock и одну клавишу сетки.\n\n" +
+                "NXKeys сохраняет только базовые глобальные сочетания. Все профессиональные операции вызываются через CapsLock и одну клавишу из списка.\n\n" +
                 "Активный набор определяется по context.json Command Bridge. В Sketch клавиши запускают команды эскиза; в Modeling — моделирование; в Sheet Metal — листовой металл; в Drafting — чертёж и т. д.\n\n" +
                 "Tab / Shift+Tab запрашивают смену приложения NX. Space включает поиск только внутри текущего модуля. Опасные команды требуют Enter.";
 
@@ -230,23 +232,67 @@ namespace NX2512_HotkeyStudio.UI
             moduleBox.BackColor = raised;
             moduleBox.ForeColor = text;
             moduleBox.SelectedIndexChanged += (_, _) => RefreshModuleCommands();
+            Button save = CreateActionButton("Сохранить профиль", success);
+            save.Dock = DockStyle.Right;
+            save.Width = 170;
+            save.Click += (_, _) => SaveConfig();
             var hint = new Label { Dock = DockStyle.Fill, Text = "В runtime этот выбор выполняется автоматически по контексту NX", ForeColor = muted, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(18, 0, 0, 0) };
             bar.Controls.Add(hint);
+            bar.Controls.Add(save);
             bar.Controls.Add(moduleBox);
             bar.Controls.Add(label);
 
-            moduleList.Dock = DockStyle.Fill;
-            StyleList(moduleList);
-            moduleList.Columns.Add("Клавиша", 100);
-            moduleList.Columns.Add("Слот", 90);
-            moduleList.Columns.Add("Команда", 250);
-            moduleList.Columns.Add("BUTTON ID", 330);
-            moduleList.Columns.Add("Контекст", 150);
-            moduleList.Columns.Add("Смысл позиции", 390);
+            var split = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 1, ColumnCount = 2 };
+            split.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62));
+            split.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38));
+            ConfigureModuleGrid();
+            modulePreview.Dock = DockStyle.Fill;
+            modulePreview.BorderStyle = BorderStyle.FixedSingle;
+            split.Controls.Add(moduleGrid, 0, 0);
+            split.Controls.Add(modulePreview, 1, 0);
             layout.Controls.Add(bar, 0, 0);
-            layout.Controls.Add(moduleList, 0, 1);
+            layout.Controls.Add(split, 0, 1);
             page.Controls.Add(layout);
             return page;
+        }
+
+        private void ConfigureModuleGrid()
+        {
+            moduleGrid.Dock = DockStyle.Fill;
+            moduleGrid.AllowUserToAddRows = false;
+            moduleGrid.AllowUserToDeleteRows = false;
+            moduleGrid.MultiSelect = false;
+            moduleGrid.RowHeadersVisible = false;
+            moduleGrid.AutoGenerateColumns = false;
+            moduleGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            moduleGrid.BackgroundColor = surface;
+            moduleGrid.BorderStyle = BorderStyle.FixedSingle;
+            moduleGrid.GridColor = border;
+            moduleGrid.ForeColor = text;
+            moduleGrid.DefaultCellStyle.BackColor = surface;
+            moduleGrid.DefaultCellStyle.ForeColor = text;
+            moduleGrid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(38, 73, 92);
+            moduleGrid.DefaultCellStyle.SelectionForeColor = text;
+            moduleGrid.ColumnHeadersDefaultCellStyle.BackColor = raised;
+            moduleGrid.ColumnHeadersDefaultCellStyle.ForeColor = text;
+            moduleGrid.EnableHeadersVisualStyles = false;
+            moduleGrid.Columns.Clear();
+            moduleGrid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Enabled", HeaderText = "Enabled", Width = 72 });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "SubmenuKey", HeaderText = "Menu Key", Width = 72 });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "SubmenuLabel", HeaderText = "Menu Label", Width = 140 });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Key", HeaderText = "Key", Width = 54 });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Icon", HeaderText = "Icon", Width = 72 });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "CommandName", HeaderText = "Command Name", Width = 180, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "ButtonId", HeaderText = "BUTTON ID", Width = 240 });
+            moduleGrid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "RequiresSelection", HeaderText = "Selection", Width = 78 });
+            moduleGrid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Confirm", HeaderText = "Confirm", Width = 72 });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Notes", HeaderText = "Notes", Width = 210 });
+            moduleGrid.CurrentCellDirtyStateChanged += (_, _) =>
+            {
+                if (moduleGrid.IsCurrentCellDirty) moduleGrid.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            };
+            moduleGrid.CellValueChanged += (_, _) => PersistModuleGrid();
+            moduleGrid.CellEndEdit += (_, _) => PersistModuleGrid();
         }
 
         private Control BuildContextPage()
@@ -421,21 +467,107 @@ namespace NX2512_HotkeyStudio.UI
 
         private void RefreshModuleCommands()
         {
-            moduleList.Items.Clear();
-            string moduleId = (moduleBox.SelectedItem as ModuleChoice)?.Id;
-            ModuleConfig module = config.Modules.FirstOrDefault(value => value.Enabled && value.ID == moduleId);
-            if (module == null) return;
-            foreach (ModuleCommand command in module.CommandSets.Where(set => set?.Commands != null).SelectMany(set => set.Commands))
+            refreshingModules = true;
+            try
             {
-                string key = config.LeaderKey.ResolveInputKey(command.Slot);
-                var item = new ListViewItem(key);
-                item.SubItems.Add(command.Slot);
-                item.SubItems.Add(command.Command?.Name ?? string.Empty);
-                item.SubItems.Add(command.Command?.ID ?? string.Empty);
-                item.SubItems.Add(command.Destructive ? "Enter confirm" : command.RequiresSelection ? "Selection" : "Ready");
-                item.SubItems.Add(ModuleDefaults.SemanticForSlot(command.Slot, command.Notes));
-                moduleList.Items.Add(item);
+                moduleGrid.Rows.Clear();
+                ModuleConfig module = ActiveModule();
+                if (module == null)
+                {
+                    modulePreview.SetCommands(string.Empty, string.Empty, Enumerable.Empty<LeaderSequenceItem>());
+                    return;
+                }
+
+                foreach (ModuleCommand command in ModuleCommands(module))
+                {
+                    int rowIndex = moduleGrid.Rows.Add(
+                        command.Enabled,
+                        command.SubmenuKey,
+                        command.SubmenuLabel,
+                        command.InputKey,
+                        string.IsNullOrWhiteSpace(command.IconHint)
+                            ? CommandIconHints.FromCommand(command.Command?.ID, command.Command?.Name, command.SubmenuKey, command.SubmenuLabel)
+                            : command.IconHint,
+                        command.Command?.Name ?? string.Empty,
+                        command.Command?.ID ?? string.Empty,
+                        command.RequiresSelection,
+                        command.ConfirmBeforeExecute || command.Destructive,
+                        command.Notes ?? string.Empty);
+                    moduleGrid.Rows[rowIndex].Tag = command;
+                }
             }
+            finally
+            {
+                refreshingModules = false;
+            }
+            RefreshModulePreview();
+        }
+
+        private void PersistModuleGrid()
+        {
+            if (refreshingModules) return;
+            ModuleConfig module = ActiveModule();
+            if (module == null) return;
+
+            int order = 1;
+            foreach (DataGridViewRow row in moduleGrid.Rows)
+            {
+                if (row.IsNewRow || row.Tag is not ModuleCommand command) continue;
+                command.Enabled = ReadBool(row, "Enabled");
+                command.SubmenuKey = LeaderKeyConfig.NormalizeInputKey(ReadText(row, "SubmenuKey"));
+                command.SubmenuLabel = ReadText(row, "SubmenuLabel").Trim();
+                command.InputKey = LeaderKeyConfig.NormalizeInputKey(ReadText(row, "Key"));
+                command.IconHint = ReadText(row, "Icon").Trim();
+                command.DisplayOrder = order++;
+                command.Command ??= new CommandRef();
+                command.Command.Name = ReadText(row, "CommandName").Trim();
+                command.Command.ID = ReadText(row, "ButtonId").Trim();
+                command.RequiresSelection = ReadBool(row, "RequiresSelection");
+                command.ConfirmBeforeExecute = ReadBool(row, "Confirm");
+                command.Notes = ReadText(row, "Notes").Trim();
+            }
+            config.LeaderKey.RebuildFromModules(config.Modules);
+            RefreshModulePreview();
+            MarkDirty();
+        }
+
+        private void RefreshModulePreview()
+        {
+            ModuleConfig module = ActiveModule();
+            if (module == null)
+            {
+                modulePreview.SetCommands(string.Empty, string.Empty, Enumerable.Empty<LeaderSequenceItem>());
+                return;
+            }
+            config.LeaderKey.RebuildFromModules(config.Modules);
+            NxBridgeContext bridgeContext = NxCommandBridgeClient.ReadContext();
+            bool bridgeReady = bridgeContext != null &&
+                               bridgeContext.IsFresh &&
+                               string.Equals(bridgeContext.Status, "running", StringComparison.OrdinalIgnoreCase);
+            modulePreview.SetCommands(module.Label, module.ID,
+                config.LeaderKey.Sequences.Where(item => string.Equals(item.ModuleID, module.ID, StringComparison.OrdinalIgnoreCase)),
+                bridgeReady, bridgeContext?.SelectionCount ?? 0, module.LeaderPrefix);
+        }
+
+        private ModuleConfig ActiveModule()
+        {
+            string moduleId = (moduleBox.SelectedItem as ModuleChoice)?.Id;
+            return config.Modules.FirstOrDefault(value => value.Enabled && value.ID == moduleId);
+        }
+
+        private static IEnumerable<ModuleCommand> ModuleCommands(ModuleConfig module) =>
+            (module?.CommandSets ?? Enumerable.Empty<ModuleCommandSet>())
+                .Where(set => set?.Commands != null)
+                .SelectMany(set => set.Commands)
+                .Where(command => command != null)
+                .OrderBy(command => command.DisplayOrder <= 0 ? int.MaxValue : command.DisplayOrder);
+
+        private static string ReadText(DataGridViewRow row, string column) => Convert.ToString(row.Cells[column].Value) ?? string.Empty;
+
+        private static bool ReadBool(DataGridViewRow row, string column)
+        {
+            object value = row.Cells[column].Value;
+            return value is bool boolean ? boolean : bool.TryParse(Convert.ToString(value), out bool parsed) && parsed;
         }
 
         private void RefreshContext()
@@ -447,7 +579,10 @@ namespace NX2512_HotkeyStudio.UI
                 resolved_module = module == null ? null : new { module.ID, module.Label, module.LeaderPrefix },
                 context = bridgeContext,
                 bridge_root = NxCommandBridgeClient.BridgeRoot,
-                adaptive_keys = config.LeaderKey.SlotKeyMap
+                adaptive_keys = config.LeaderKey.Sequences
+                    .GroupBy(item => item.ModuleID)
+                    .ToDictionary(group => group.Key, group => group.OrderBy(item => item.DisplayOrder)
+                        .Select(item => new { item.SubmenuKey, item.SubmenuLabel, item.InputKey, item.IconHint, item.Sequence, command_id = item.Command?.ID, command_name = item.Command?.Name }).ToList())
             };
             contextBox.Text = JsonSerializer.Serialize(snapshot, new JsonSerializerOptions { WriteIndented = true });
         }
@@ -540,9 +675,57 @@ namespace NX2512_HotkeyStudio.UI
 
         private void SaveConfig()
         {
-            config.Save(configPath);
-            dirty = false;
-            status.Text = "Профиль сохранён";
+            try
+            {
+                ValidateEditableCommands();
+                config.Save(configPath);
+                dirty = false;
+                status.Text = "Профиль сохранён";
+                RefreshAll();
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(exception.Message, "NXKeys", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void ValidateEditableCommands()
+        {
+            var reserved = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "CAPSLOCK", "TAB", "SPACE", "ESC", "ESCAPE", "ENTER", "BACKSPACE", "SHIFT", "CTRL", "CONTROL", "ALT"
+            };
+            var problems = new List<string>();
+            foreach (ModuleConfig module in config.Modules.Where(module => module != null && module.Enabled))
+            {
+                var levelKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var sequences = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var rootBranches = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (ModuleCommand command in ModuleCommands(module).Where(command => command.Enabled))
+                {
+                    string submenuKey = LeaderKeyConfig.NormalizeInputKey(command.SubmenuKey);
+                    string key = LeaderKeyConfig.NormalizeInputKey(command.InputKey);
+                    if (!string.IsNullOrWhiteSpace(submenuKey) && reserved.Contains(submenuKey))
+                        problems.Add($"{module.Label}: Menu Key {submenuKey} конфликтует со служебной клавишей");
+                    if (string.IsNullOrWhiteSpace(key)) problems.Add($"{module.Label}: пустая Key");
+                    else if (reserved.Contains(key)) problems.Add($"{module.Label}: Key {key} конфликтует со служебной клавишей");
+                    string rootKey = string.IsNullOrWhiteSpace(submenuKey) ? key : submenuKey;
+                    string branchKind = string.IsNullOrWhiteSpace(submenuKey) ? "command" : "submenu";
+                    if (!string.IsNullOrWhiteSpace(rootKey) && rootBranches.TryGetValue(rootKey, out string existingKind) &&
+                        !string.Equals(existingKind, branchKind, StringComparison.OrdinalIgnoreCase))
+                        problems.Add($"{module.Label}: root key {rootKey} одновременно команда и подменю");
+                    else if (!string.IsNullOrWhiteSpace(rootKey)) rootBranches[rootKey] = branchKind;
+                    if (!string.IsNullOrWhiteSpace(key) &&
+                        !levelKeys.Add((string.IsNullOrWhiteSpace(submenuKey) ? "$root" : submenuKey) + "|" + key))
+                        problems.Add($"{module.Label}: Key {key} повторяется в уровне {(string.IsNullOrWhiteSpace(submenuKey) ? "root" : submenuKey)}");
+                    string sequence = LeaderKeyConfig.NormalizeInputKey(module.LeaderPrefix) + submenuKey + key;
+                    if (!string.IsNullOrWhiteSpace(key) && !sequences.Add(sequence))
+                        problems.Add($"{module.Label}: sequence {sequence} повторяется");
+                    if (string.IsNullOrWhiteSpace(command.Command?.Name)) problems.Add($"{module.Label}: пустое Command Name для {key}");
+                    if (string.IsNullOrWhiteSpace(command.Command?.ID)) problems.Add($"{module.Label}: пустой BUTTON ID для {key}");
+                }
+            }
+            if (problems.Count > 0) throw new InvalidOperationException("Профиль не сохранён:\n- " + string.Join("\n- ", problems));
         }
 
         private void MarkDirty()
@@ -569,10 +752,10 @@ namespace NX2512_HotkeyStudio.UI
             {
                 "Одна клавиатурная сетка автоматически меняется вместе с приложением NX.",
                 "Системный минимум; профессиональные операции вынесены в модульный Leader.",
-                "Просмотр 14 наборов по 8 команд; runtime выбирает набор без ручного префикса.",
+                "Редактирование команд и preview ровно в 3-колоночном виде CapsLock.",
                 "Фактический application_id, module_id, selection и revision.",
                 "План, SHA-256, backup, atomic commit и rollback.",
-                "Сохранение схемы v3 и безопасное восстановление."
+                "Сохранение схемы v4 и безопасное восстановление."
             };
             title.Text = headings[index];
             subtitle.Text = descriptions[index];

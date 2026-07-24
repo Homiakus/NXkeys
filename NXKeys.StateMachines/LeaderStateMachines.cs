@@ -356,6 +356,7 @@ namespace NXKeys.StateMachines
             if (id.StartsWith("UG_APP_", StringComparison.OrdinalIgnoreCase)) return false;
             if (id.StartsWith("UG_VIEW_", StringComparison.OrdinalIgnoreCase)) return false;
             if (id.StartsWith("UG_HELP_", StringComparison.OrdinalIgnoreCase)) return false;
+            if (id.StartsWith("UG_SEL_", StringComparison.OrdinalIgnoreCase)) return false;
             return true;
         }
 

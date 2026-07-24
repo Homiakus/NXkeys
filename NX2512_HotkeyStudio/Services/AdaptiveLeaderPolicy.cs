@@ -103,7 +103,7 @@ namespace NX2512_HotkeyStudio.Services
                 ModuleId = NormalizeModule(item.ModuleID, item.Category),
                 CommandId = item.Command?.ID ?? string.Empty,
                 CommandName = item.Command?.Name ?? string.Empty,
-                SearchText = string.Join(" ", new[] { item.Category, item.Slot, item.InputKey, item.Notes, item.Fallback }),
+                SearchText = string.Join(" ", new[] { item.Category, item.Slot, item.SubmenuKey, item.SubmenuLabel, item.InputKey, item.Notes, item.Fallback }),
                 RequiresSelection = item.RequiresSelection,
                 MinimumSelectionCount = item.RequiresSelection ? 1 : 0,
                 NeedsWorkPart = ContextGuardEvaluator.CommandNeedsWorkPart(item.Command?.ID),

@@ -10,31 +10,31 @@ namespace NXKeys.StateMachines
     public sealed class LeaderTimeoutPolicy
     {
         [JsonPropertyName("root_ms")]
-        public int RootMs { get; set; } = 4000;
+        public int RootMs { get; set; } = 20000;
 
         [JsonPropertyName("prefix_ms")]
-        public int PrefixMs { get; set; } = 2500;
+        public int PrefixMs { get; set; } = 20000;
 
         [JsonPropertyName("search_ms")]
-        public int SearchMs { get; set; } = 5000;
+        public int SearchMs { get; set; } = 20000;
 
         [JsonPropertyName("confirmation_ms")]
-        public int ConfirmationMs { get; set; } = 10000;
+        public int ConfirmationMs { get; set; } = 20000;
 
         [JsonPropertyName("result_ms")]
         public int ResultMs { get; set; } = 20000;
 
         [JsonPropertyName("module_switch_ms")]
-        public int ModuleSwitchMs { get; set; } = 8000;
+        public int ModuleSwitchMs { get; set; } = 20000;
 
         public void Normalize()
         {
-            RootMs = Clamp(RootMs, 500, 60000, 4000);
-            PrefixMs = Clamp(PrefixMs, 500, 60000, 2500);
-            SearchMs = Clamp(SearchMs, 500, 120000, 5000);
-            ConfirmationMs = Clamp(ConfirmationMs, 1000, 120000, 10000);
+            RootMs = Clamp(RootMs, 500, 60000, 20000);
+            PrefixMs = Clamp(PrefixMs, 500, 60000, 20000);
+            SearchMs = Clamp(SearchMs, 500, 120000, 20000);
+            ConfirmationMs = Clamp(ConfirmationMs, 1000, 120000, 20000);
             ResultMs = Clamp(ResultMs, 1000, 120000, 20000);
-            ModuleSwitchMs = Clamp(ModuleSwitchMs, 1000, 60000, 8000);
+            ModuleSwitchMs = Clamp(ModuleSwitchMs, 1000, 60000, 20000);
         }
 
         private static int Clamp(int value, int minimum, int maximum, int fallback)

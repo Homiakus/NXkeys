@@ -38,12 +38,27 @@ namespace NX2512_HotkeyStudio.UI
         private string activeModuleId = "modeling";
         private string activeModuleLabel = "Modeling";
         private bool sticky;
+        private bool bridgeReady;
+        private int selectionCount = -1;
+        private string currentPrefix = string.Empty;
         private string searchFilter;
         private LeaderSequenceItem confirmationItem;
         private float timeoutPct = 1.0f;
         private List<LeaderSequenceItem> commands = new List<LeaderSequenceItem>();
         private readonly Timer fadeTimer;
         private double targetOpacity = 0.95;
+
+        private sealed class DisplayRow
+        {
+            public string Key { get; set; } = string.Empty;
+            public string Name { get; set; } = string.Empty;
+            public string Status { get; set; } = string.Empty;
+            public string Details { get; set; } = string.Empty;
+            public string IconHint { get; set; } = string.Empty;
+            public int DisplayOrder { get; set; }
+            public bool IsMenu { get; set; }
+            public LeaderSequenceItem Item { get; set; }
+        }
 
         public LeaderHudForm()
         {
@@ -52,7 +67,7 @@ namespace NX2512_HotkeyStudio.UI
             ShowInTaskbar = false;
             TopMost = true;
             DoubleBuffered = true;
-            Size = new Size(690, 500);
+            Size = new Size(900, 480);
             BackColor = backColor;
             ForeColor = textColor;
             Opacity = 0;
@@ -87,13 +102,17 @@ namespace NX2512_HotkeyStudio.UI
         }
 
         public void DisplayHud(string triggerKey, bool isSticky, List<LeaderSequenceItem> moduleCommands,
-            double opacity = 0.95, string moduleLabel = "Modeling", string moduleId = "modeling")
+            double opacity = 0.95, string moduleLabel = "Modeling", string moduleId = "modeling",
+            bool isBridgeReady = false, int currentSelectionCount = -1, string prefix = "")
         {
             triggerKeyName = string.IsNullOrWhiteSpace(triggerKey) ? "Leader" : triggerKey;
             sticky = isSticky;
             activeModuleId = string.IsNullOrWhiteSpace(moduleId) ? "unknown" : moduleId;
             activeModuleLabel = string.IsNullOrWhiteSpace(moduleLabel) ? activeModuleId : moduleLabel;
-            commands = (moduleCommands ?? new List<LeaderSequenceItem>()).Where(item => item != null && item.Enabled).ToList();
+            commands = OrderedCommands(moduleCommands);
+            bridgeReady = isBridgeReady;
+            selectionCount = currentSelectionCount;
+            currentPrefix = prefix ?? string.Empty;
             searchFilter = null;
             confirmationItem = null;
             timeoutPct = 1.0f;
@@ -105,25 +124,33 @@ namespace NX2512_HotkeyStudio.UI
         }
 
         public void UpdateState(string currentBuffer, List<LeaderSequenceItem> matches, bool isSticky,
-            string moduleLabel = null, string moduleId = null)
+            string moduleLabel = null, string moduleId = null, bool isBridgeReady = false, int currentSelectionCount = -1,
+            string prefix = "")
         {
             sticky = isSticky;
             if (!string.IsNullOrWhiteSpace(moduleId)) activeModuleId = moduleId;
             if (!string.IsNullOrWhiteSpace(moduleLabel)) activeModuleLabel = moduleLabel;
-            commands = (matches ?? new List<LeaderSequenceItem>()).Where(item => item != null && item.Enabled).ToList();
+            commands = OrderedCommands(matches);
+            bridgeReady = isBridgeReady;
+            selectionCount = currentSelectionCount;
+            currentPrefix = prefix ?? string.Empty;
             searchFilter = null;
             confirmationItem = null;
             timeoutPct = 1.0f;
             Invalidate();
         }
 
-        public void SetSearchMode(string query, List<LeaderSequenceItem> matches, string moduleLabel = null, string moduleId = null)
+        public void SetSearchMode(string query, List<LeaderSequenceItem> matches, string moduleLabel = null, string moduleId = null,
+            bool isBridgeReady = false, int currentSelectionCount = -1, string prefix = "")
         {
             searchFilter = query ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(moduleId)) activeModuleId = moduleId;
             if (!string.IsNullOrWhiteSpace(moduleLabel)) activeModuleLabel = moduleLabel;
             confirmationItem = null;
-            commands = matches ?? new List<LeaderSequenceItem>();
+            commands = OrderedCommands(matches);
+            bridgeReady = isBridgeReady;
+            selectionCount = currentSelectionCount;
+            currentPrefix = prefix ?? string.Empty;
             Invalidate();
         }
 
@@ -176,7 +203,7 @@ namespace NX2512_HotkeyStudio.UI
             DrawHeader(graphics);
             if (confirmationItem != null) DrawConfirmation(graphics);
             else if (searchFilter != null) DrawSearch(graphics);
-            else DrawModuleGrid(graphics);
+            else DrawCommandList(graphics);
             DrawFooter(graphics);
         }
 
@@ -186,7 +213,7 @@ namespace NX2512_HotkeyStudio.UI
             using (SolidBrush brush = new SolidBrush(cardColor)) graphics.FillRectangle(brush, header);
             using (Pen pen = new Pen(borderColor)) graphics.DrawLine(pen, 1, header.Bottom, Width - 2, header.Bottom);
             using (Font title = new Font("Segoe UI Semibold", 12f))
-            using (SolidBrush accent = new SolidBrush(accentColor)) graphics.DrawString("NX ADAPTIVE LEADER", title, accent, 18, 12);
+            using (SolidBrush accent = new SolidBrush(accentColor)) graphics.DrawString("NXKEYS COMMAND LIST", title, accent, 18, 12);
             using (Font moduleFont = new Font("Segoe UI Semibold", 13f))
             using (SolidBrush text = new SolidBrush(textColor)) graphics.DrawString(activeModuleLabel, moduleFont, text, 18, 36);
             using (Font idFont = new Font("Consolas", 8.5f))
@@ -200,43 +227,35 @@ namespace NX2512_HotkeyStudio.UI
             }
         }
 
-        private void DrawModuleGrid(Graphics graphics)
+        private void DrawCommandList(Graphics graphics)
         {
             using (Font hint = new Font("Segoe UI", 9.5f))
             using (SolidBrush muted = new SolidBrush(mutedColor))
-                graphics.DrawString($"{triggerKeyName} → одна клавиша · набор автоматически выбран по модулю NX", hint, muted, 18, 82);
+                graphics.DrawString($"{triggerKeyName} → показанная клавиша · Tab модуль · Space поиск", hint, muted, 18, 82);
 
-            var positions = new Dictionary<string, Rectangle>(StringComparer.OrdinalIgnoreCase)
+            int columnCount = 3;
+            int gutter = 12;
+            int left = 18;
+            int top = 112;
+            int bottom = Height - 48;
+            int columnWidth = (Width - left * 2 - gutter * (columnCount - 1)) / columnCount;
+            int rowHeight = 78;
+            int rowsPerColumn = Math.Max(1, (bottom - top) / (rowHeight + 10));
+            List<DisplayRow> visible = BuildDisplayRows(commands, currentPrefix).Take(columnCount * rowsPerColumn).ToList();
+            for (int index = 0; index < visible.Count; index++)
             {
-                ["Q"] = new Rectangle(24, 116, 200, 90), ["W"] = new Rectangle(245, 116, 200, 90),
-                ["E"] = new Rectangle(466, 116, 200, 90), ["A"] = new Rectangle(24, 222, 200, 90),
-                ["D"] = new Rectangle(466, 222, 200, 90), ["Z"] = new Rectangle(24, 328, 200, 90),
-                ["X"] = new Rectangle(245, 328, 200, 90), ["C"] = new Rectangle(466, 328, 200, 90)
-            };
-            foreach (KeyValuePair<string, Rectangle> position in positions)
-            {
-                LeaderSequenceItem item = commands.FirstOrDefault(command => string.Equals(command.InputKey, position.Key, StringComparison.OrdinalIgnoreCase));
-                DrawCommandCard(graphics, position.Value, position.Key, item);
+                int column = index / rowsPerColumn;
+                int row = index % rowsPerColumn;
+                Rectangle rectangle = new Rectangle(left + column * (columnWidth + gutter), top + row * (rowHeight + 10), columnWidth, rowHeight);
+                DrawCommandRow(graphics, rectangle, visible[index]);
             }
-
-            Rectangle center = new Rectangle(245, 222, 200, 90);
-            using (GraphicsPath path = Rounded(center, 12))
-            using (SolidBrush brush = new SolidBrush(Color.FromArgb(20, accentColor.R, accentColor.G, accentColor.B)))
-            using (Pen pen = new Pen(accentColor, 1.5f))
-            {
-                graphics.FillPath(brush, path);
-                graphics.DrawPath(pen, path);
-            }
-            using (Font font = new Font("Segoe UI Semibold", 11f))
-            using (SolidBrush text = new SolidBrush(textColor))
-                DrawCentered(graphics, "ТЕКУЩИЙ МОДУЛЬ\n" + activeModuleLabel, font, text, center);
         }
 
-        private void DrawCommandCard(Graphics graphics, Rectangle rectangle, string key, LeaderSequenceItem item)
+        private void DrawCommandRow(Graphics graphics, Rectangle rectangle, DisplayRow row)
         {
             using (GraphicsPath path = Rounded(rectangle, 11))
             using (SolidBrush brush = new SolidBrush(cardColor))
-            using (Pen pen = new Pen(item?.Destructive == true ? dangerColor : borderColor, 1.2f))
+            using (Pen pen = new Pen(row?.Item?.Destructive == true ? dangerColor : borderColor, 1.2f))
             {
                 graphics.FillPath(brush, path);
                 graphics.DrawPath(pen, path);
@@ -244,20 +263,23 @@ namespace NX2512_HotkeyStudio.UI
             Rectangle keyBox = new Rectangle(rectangle.Left + 10, rectangle.Top + 10, 34, 34);
             using (SolidBrush brush = new SolidBrush(keyColor)) graphics.FillRectangle(brush, keyBox);
             using (Font keyFont = new Font("Consolas", 13f, FontStyle.Bold))
-            using (SolidBrush text = new SolidBrush(accentColor)) DrawCentered(graphics, key, keyFont, text, keyBox);
-            string name = item?.Command?.Name ?? "Не назначено";
+            using (SolidBrush text = new SolidBrush(accentColor)) DrawCentered(graphics, row?.Key ?? "?", keyFont, text, keyBox);
+            Rectangle iconBox = new Rectangle(rectangle.Left + 50, rectangle.Top + 12, 30, 30);
+            CadIconPainter.Draw(graphics, iconBox, row?.IconHint, row?.Item?.Command?.ID, row?.Name);
+            string name = row?.Name ?? "Не назначено";
             using (Font nameFont = new Font("Segoe UI Semibold", 9.5f))
-            using (SolidBrush text = new SolidBrush(item == null ? mutedColor : textColor))
-                graphics.DrawString(Truncate(name, 25), nameFont, text, rectangle.Left + 52, rectangle.Top + 10);
-            string flags = item == null ? string.Empty :
-                (item.RequiresSelection ? "выбор " : string.Empty) +
-                (item.Destructive || item.ConfirmBeforeExecute ? "Enter" : string.Empty);
+            using (SolidBrush text = new SolidBrush(row == null ? mutedColor : textColor))
+                graphics.DrawString(Truncate(name, 22), nameFont, text, rectangle.Left + 88, rectangle.Top + 8);
+            string status = row?.Status ?? string.Empty;
             using (Font small = new Font("Segoe UI", 8f))
-            using (SolidBrush muted = new SolidBrush(string.IsNullOrWhiteSpace(flags) ? mutedColor : warningColor))
+            using (SolidBrush statusBrush = new SolidBrush(StatusColor(status)))
             {
-                graphics.DrawString("Слот " + (item?.Slot ?? string.Empty), small, muted, rectangle.Left + 52, rectangle.Top + 38);
-                graphics.DrawString(flags, small, muted, rectangle.Left + 12, rectangle.Bottom - 25);
+                graphics.DrawString(status, small, statusBrush, rectangle.Left + 88, rectangle.Top + 34);
             }
+            using (Font idFont = new Font("Consolas", 7.8f))
+            using (SolidBrush muted = new SolidBrush(mutedColor))
+                graphics.DrawString(Truncate(row?.Details ?? string.Empty, 34), idFont, muted,
+                    new Rectangle(rectangle.Left + 10, rectangle.Bottom - 23, rectangle.Width - 20, 16));
         }
 
         private void DrawSearch(Graphics graphics)
@@ -279,6 +301,109 @@ namespace NX2512_HotkeyStudio.UI
             using (SolidBrush muted = new SolidBrush(mutedColor))
                 graphics.DrawString("Enter — первый результат · Backspace — удалить символ · Esc — закрыть", hint, muted, 18, Height - 52);
         }
+
+        private List<DisplayRow> BuildDisplayRows(IEnumerable<LeaderSequenceItem> items, string prefix)
+        {
+            List<string> prefixTokens = Tokenize(prefix);
+            var groups = new Dictionary<string, List<LeaderSequenceItem>>(StringComparer.OrdinalIgnoreCase);
+            foreach (LeaderSequenceItem item in OrderedCommands(items))
+            {
+                List<string> tokens = Tokenize(item.Sequence);
+                if (tokens.Count <= prefixTokens.Count || !StartsWith(tokens, prefixTokens)) continue;
+                string key = tokens[prefixTokens.Count];
+                if (!groups.TryGetValue(key, out List<LeaderSequenceItem> group))
+                {
+                    group = new List<LeaderSequenceItem>();
+                    groups[key] = group;
+                }
+                group.Add(item);
+            }
+
+            return groups.Select(pair => BuildDisplayRow(pair.Key, pair.Value, prefixTokens.Count))
+                .OrderBy(row => row.DisplayOrder <= 0 ? int.MaxValue : row.DisplayOrder)
+                .ThenBy(row => row.Key, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private DisplayRow BuildDisplayRow(string key, List<LeaderSequenceItem> group, int prefixDepth)
+        {
+            LeaderSequenceItem first = group.OrderBy(item => item.DisplayOrder <= 0 ? int.MaxValue : item.DisplayOrder)
+                .ThenBy(item => item.InputKey, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault();
+            bool terminal = group.Count == 1 && Tokenize(first?.Sequence).Count == prefixDepth + 1;
+            if (terminal)
+            {
+                return new DisplayRow
+                {
+                    Key = key,
+                    Name = first?.Command?.Name ?? "Не назначено",
+                    Status = StatusFor(first),
+                    Details = first?.Command?.ID ?? string.Empty,
+                    IconHint = first?.IconHint ?? string.Empty,
+                    DisplayOrder = first?.DisplayOrder ?? 0,
+                    Item = first
+                };
+            }
+
+            return new DisplayRow
+            {
+                Key = key,
+                Name = MenuLabelFor(key, group),
+                Status = "Открыть",
+                Details = group.Count + " команд",
+                IconHint = first?.IconHint ?? "menu",
+                DisplayOrder = first?.DisplayOrder ?? 0,
+                IsMenu = true,
+                Item = first
+            };
+        }
+
+        private static string MenuLabelFor(string key, List<LeaderSequenceItem> group)
+        {
+            string label = group.Select(item => item.SubmenuLabel)
+                .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+            if (!string.IsNullOrWhiteSpace(label)) return label + " >";
+            return "Подменю " + key + " >";
+        }
+
+        private string StatusFor(LeaderSequenceItem item)
+        {
+            if (item == null) return string.Empty;
+            if (!bridgeReady) return "Bridge не загружен";
+            if (item.RequiresSelection && selectionCount <= 0) return "Нужен выбор";
+            if (item.Destructive || item.ConfirmBeforeExecute) return "Enter";
+            return "Готово";
+        }
+
+        private Color StatusColor(string status)
+        {
+            if (string.Equals(status, "Готово", StringComparison.OrdinalIgnoreCase)) return stickyColor;
+            if (string.Equals(status, "Bridge не загружен", StringComparison.OrdinalIgnoreCase)) return dangerColor;
+            return warningColor;
+        }
+
+        private static List<string> Tokenize(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return new List<string>();
+            return value.Where(char.IsLetterOrDigit)
+                .Select(character => char.ToUpperInvariant(character).ToString())
+                .ToList();
+        }
+
+        private static bool StartsWith(IReadOnlyList<string> value, IReadOnlyList<string> prefix)
+        {
+            if (prefix.Count > value.Count) return false;
+            for (int index = 0; index < prefix.Count; index++)
+                if (!string.Equals(value[index], prefix[index], StringComparison.OrdinalIgnoreCase)) return false;
+            return true;
+        }
+
+        private static List<LeaderSequenceItem> OrderedCommands(IEnumerable<LeaderSequenceItem> values) =>
+            (values ?? Enumerable.Empty<LeaderSequenceItem>())
+                .Where(item => item != null && item.Enabled)
+                .OrderBy(item => item.DisplayOrder <= 0 ? int.MaxValue : item.DisplayOrder)
+                .ThenBy(item => item.InputKey, StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
         private void DrawConfirmation(Graphics graphics)
         {

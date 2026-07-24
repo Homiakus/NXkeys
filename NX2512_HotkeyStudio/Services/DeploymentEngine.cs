@@ -54,6 +54,7 @@ namespace NX2512_HotkeyStudio.Services
                 plan.Resolutions,
                 plan.Conflicts,
                 config.Deployment.ClearDetectedConflicts,
+                config.Modules,
                 Path.Combine(startup, "launch-hotkeystudio-daemon.cmd"),
                 Path.Combine(startup, "launch-hotkeystudio-gui.cmd"));
             plan.ResolutionReport = BuildResolutionReport(config, plan.Resolutions, plan.Conflicts);
@@ -90,6 +91,7 @@ namespace NX2512_HotkeyStudio.Services
                 config.ApplyDefaults();
                 config.Validate();
                 string managedRoot = Path.GetFullPath(config.Deployment.ManagedRoot);
+                NxRuntimeService.StopNxKeysProcesses(managedRoot);
                 string customRoot = Path.Combine(managedRoot, "custom");
                 string startup = Path.Combine(customRoot, "startup");
                 string application = Path.Combine(customRoot, "application");
@@ -193,6 +195,8 @@ namespace NX2512_HotkeyStudio.Services
                 Encoding.UTF8.GetBytes(MenuScriptWriter.Normalize(BuildCommandBridgeMenuFile(config.Deployment.MenuScriptVersion), MenuVersion)), true);
             AddOrReplace(files, Path.Combine(startup, "nxkeys_ribbon.rtb"),
                 Encoding.UTF8.GetBytes(MenuScriptWriter.Normalize(BuildRibbonTabFile(), ToolbarVersion)), true);
+            AddOrReplace(files, Path.Combine(application, "profiles", "All", "rbn_nxkeys.rtb"),
+                Encoding.UTF8.GetBytes(MenuScriptWriter.Normalize(BuildRibbonTabFile(), ToolbarVersion)), true);
             AddOrReplace(files, Path.Combine(startup, "nxkeys_toolbar.tbr"),
                 Encoding.UTF8.GetBytes(MenuScriptWriter.Normalize(BuildToolbarFile(), ToolbarVersion)), true);
             AddOrReplace(files, Path.Combine(managedRoot, "resolution-report.md"), Encoding.UTF8.GetBytes(plan.ResolutionReport), false);
@@ -208,6 +212,7 @@ namespace NX2512_HotkeyStudio.Services
                 ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bridge")
                 : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "custom", "application");
             CollectArtifacts(files, bridgeSource, application, true);
+            CollectArtifacts(files, bridgeSource, startup, true);
             CollectArtifacts(files, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "control-center"), Path.Combine(managedRoot, "control-center"), false);
             CollectArtifacts(files, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "catalog-studio"), Path.Combine(managedRoot, "catalog-studio"), false);
             return files;
@@ -245,8 +250,6 @@ namespace NX2512_HotkeyStudio.Services
                 throw new FileNotFoundException("Staging не содержит NX2512_HotkeyStudio.exe.");
             if (!files.Any(file => Path.GetFullPath(file.Destination).Equals(bridge, StringComparison.OrdinalIgnoreCase)))
                 throw new FileNotFoundException("Staging не содержит NX2512_CommandBridge.dll.");
-            if (files.Any(file => file.Destination.IndexOf(Path.Combine("custom", "startup", "NX2512_CommandBridge.dll"), StringComparison.OrdinalIgnoreCase) >= 0))
-                throw new InvalidOperationException("CommandBridge нельзя устанавливать в custom/startup.");
         }
 
         private static PackageManifest LoadPackageManifest(string path)
@@ -332,11 +335,11 @@ namespace NX2512_HotkeyStudio.Services
         private static string BuildDaemonLauncherCmd(string root) =>
             "@echo off\r\nstart \"\" \"" + Path.Combine(root, "NX2512_HotkeyStudio.exe") + "\" --ensure-background --config \"" + Path.Combine(root, "nx2512-pro-hybrid.json") + "\"\r\n";
         private static string BuildCommandBridgeMenuFile(int version) =>
-            "! NXKeys Command Bridge\r\nVERSION " + MenuScriptDefaults.NormalizeVersion(version) + "\r\nAPPLICATION_BUTTON NXKEYS_COMMAND_BRIDGE\r\nLABEL NXKeys Command Bridge\r\nLIBRARIES NX2512_CommandBridge\r\n";
+            "! NXKeys Command Bridge\r\nVERSION " + MenuScriptDefaults.NormalizeVersion(version) + "\r\nBUTTON UG_NXKEYS_START_BRIDGE\r\nLABEL Start NXKeys Bridge\r\nTOOLBAR_LABEL NXKeys Bridge\r\nMESSAGE Starts NXKeys Command Bridge.\r\nBITMAP finished_flag\r\nACTIONS NX2512_CommandBridge.dll\r\n";
         private static string BuildRibbonTabFile() =>
-            "! NXKeys launch ribbon\r\nVERSION " + ToolbarVersion + "\r\nRIBBON_STYLE\r\nRIBBON_TAB NXKEYS_TAB\r\nLABEL NXKeys\r\nBUTTON UG_NXKEYS_START_DAEMON\r\nBUTTON UG_NXKEYS_OPEN_STUDIO\r\nEND_OF_RIBBON_TAB\r\n";
+            "! NXKeys launch ribbon\r\nTITLE NXKeys\r\nVERSION " + ToolbarVersion + "\r\nBEGIN_GROUP NXKEYS_RBN_GROUP\r\nLABEL NXKeys\r\nBITMAP finished_flag\r\n    BUTTON UG_NXKEYS_START_BRIDGE\r\n    BUTTON UG_NXKEYS_START_DAEMON\r\n    BUTTON UG_NXKEYS_OPEN_STUDIO\r\nEND_GROUP\r\n";
         private static string BuildToolbarFile() =>
-            "! NXKeys launch toolbar\r\nVERSION " + ToolbarVersion + "\r\nTOOLBAR NXKEYS_TOOLBAR\r\nLABEL NXKeys\r\nBUTTON UG_NXKEYS_START_DAEMON\r\nBUTTON UG_NXKEYS_OPEN_STUDIO\r\nEND_OF_TOOLBAR\r\n";
+            "! NXKeys launch toolbar\r\nTITLE NXKeys Toolbar\r\nVERSION " + ToolbarVersion + "\r\nTOOLBAR NXKEYS_TOOLBAR\r\nLABEL NXKeys\r\nBUTTON UG_NXKEYS_START_BRIDGE\r\nBUTTON UG_NXKEYS_START_DAEMON\r\nBUTTON UG_NXKEYS_OPEN_STUDIO\r\nEND_OF_TOOLBAR\r\n";
 
         private static void AddOrReplace(List<DeploymentFile> files, string destination, byte[] content, bool required)
         {

@@ -124,11 +124,19 @@ namespace NX2512_HotkeyStudio.Services
         private static NxBridgeContext RequireFreshContext()
         {
             NxBridgeContext context = ReadContext();
-            if (context == null || !context.IsFresh)
-                throw new InvalidOperationException("NX Command Bridge context is missing or stale.");
+            if (context == null)
+                throw new InvalidOperationException("NXKeys Bridge не загружен: в NX нажмите Start NXKeys Bridge, затем повторите команду.");
+            if (!context.IsFresh)
+                throw new InvalidOperationException("NXKeys Bridge context устарел: в NX нажмите Start NXKeys Bridge. Возраст context: " + ContextAgeText(context) + ".");
             if (!string.Equals(context.Status, "running", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("NX Command Bridge is not ready: " + context.Status);
+                throw new InvalidOperationException("NXKeys Bridge не готов: " + context.Status + ". В NX нажмите Start NXKeys Bridge.");
             return context;
+        }
+
+        private static string ContextAgeText(NxBridgeContext context)
+        {
+            if (context == null || !DateTimeOffset.TryParse(context.UpdatedUtc, out DateTimeOffset updated)) return "неизвестен";
+            return Math.Max(0, (DateTimeOffset.UtcNow - updated.ToUniversalTime()).TotalSeconds).ToString("0.0") + "s";
         }
 
         private static NxCommandRequest CreateRequest(

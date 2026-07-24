@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NX2512_HotkeyStudio.Models;
 
@@ -13,6 +14,7 @@ namespace NX2512_HotkeyStudio.Services
             List<ResolutionResult> resolutions,
             Dictionary<string, List<ConflictItem>> conflicts,
             bool clearConflicts,
+            IEnumerable<ModuleConfig> modules = null,
             string daemonCmdPath = "",
             string guiCmdPath = "")
         {
@@ -34,41 +36,36 @@ namespace NX2512_HotkeyStudio.Services
             sb.AppendLine("END_OF_AFTER");
             sb.AppendLine();
             sb.AppendLine("MENU UG_NXKEYS_CASCADE");
-            sb.AppendLine("    APPLICATION_BUTTON NXKEYS_COMMAND_BRIDGE");
-            sb.AppendLine("    LABEL NXKeys Direct Command Bridge");
-            sb.AppendLine("    LIBRARIES NX2512_CommandBridge");
-            sb.AppendLine("    MENU_FILES nxkeys_command_bridge.men");
+            AppendBridgeButton(sb);
             sb.AppendLine();
             sb.AppendLine("    BUTTON UG_NXKEYS_START_DAEMON");
-            sb.AppendLine("    LABEL ⚡ Включить Leader Key");
+            sb.AppendLine("    LABEL Включить Leader Key");
             sb.AppendLine($"    ACTIONS SYSTEM \"{daemonCmd}\"");
             sb.AppendLine();
             sb.AppendLine("    BUTTON UG_NXKEYS_OPEN_STUDIO");
-            sb.AppendLine("    LABEL ⚙️ Настройки NXKeys Studio...");
+            sb.AppendLine("    LABEL Настройки NXKeys Studio...");
             sb.AppendLine($"    ACTIONS SYSTEM \"{guiCmd}\"");
+            AppendSelectionFilterCascadeButton(sb, modules);
             sb.AppendLine("END_OF_MENU");
             sb.AppendLine();
             sb.AppendLine("MENU UG_TOOLBOX");
             sb.AppendLine("    SEPARATOR");
-            sb.AppendLine("    APPLICATION_BUTTON NXKEYS_COMMAND_BRIDGE");
-            sb.AppendLine("    LABEL NXKeys Direct Command Bridge");
-            sb.AppendLine("    LIBRARIES NX2512_CommandBridge");
-            sb.AppendLine("    MENU_FILES nxkeys_command_bridge.men");
+            AppendBridgeButton(sb);
             sb.AppendLine();
             sb.AppendLine("    BUTTON UG_NXKEYS_START_DAEMON");
-            sb.AppendLine("    LABEL ⚡ Включить Leader Key");
+            sb.AppendLine("    LABEL Включить Leader Key");
             sb.AppendLine($"    ACTIONS SYSTEM \"{daemonCmd}\"");
             sb.AppendLine();
             sb.AppendLine("    BUTTON UG_NXKEYS_OPEN_STUDIO");
-            sb.AppendLine("    LABEL ⚙️ Настройки NXKeys Studio...");
+            sb.AppendLine("    LABEL Настройки NXKeys Studio...");
             sb.AppendLine($"    ACTIONS SYSTEM \"{guiCmd}\"");
+            AppendSelectionFilterCascadeButton(sb, modules);
             sb.AppendLine("END_OF_MENU");
             sb.AppendLine();
+            AppendSelectionFilterMenu(sb, modules);
+
             sb.AppendLine("MENU UG_APPLICATION");
-            sb.AppendLine("    APPLICATION_BUTTON NXKEYS_COMMAND_BRIDGE");
-            sb.AppendLine("    LABEL NXKeys Direct Command Bridge");
-            sb.AppendLine("    LIBRARIES NX2512_CommandBridge");
-            sb.AppendLine("    MENU_FILES nxkeys_command_bridge.men");
+            AppendBridgeButton(sb);
             sb.AppendLine("END_OF_MENU");
             sb.AppendLine();
             sb.AppendLine("MODIFY");
@@ -116,10 +113,61 @@ namespace NX2512_HotkeyStudio.Services
             return sb.ToString();
         }
 
+        private static void AppendBridgeButton(StringBuilder sb)
+        {
+            sb.AppendLine("    BUTTON UG_NXKEYS_START_BRIDGE");
+            sb.AppendLine("    LABEL Start NXKeys Bridge");
+            sb.AppendLine("    TOOLBAR_LABEL NXKeys Bridge");
+            sb.AppendLine("    MESSAGE Starts NXKeys Command Bridge.");
+            sb.AppendLine("    BITMAP finished_flag");
+            sb.AppendLine("    ACTIONS NX2512_CommandBridge.dll");
+        }
+
+        private static void AppendSelectionFilterCascadeButton(StringBuilder sb, IEnumerable<ModuleConfig> modules)
+        {
+            if (!SelectionFilterCommands(modules).Any()) return;
+            sb.AppendLine();
+            sb.AppendLine("    CASCADE_BUTTON UG_NXKEYS_SELECTION_FILTERS");
+            sb.AppendLine("    LABEL Фильтры выбора геометрии");
+        }
+
+        private static void AppendSelectionFilterMenu(StringBuilder sb, IEnumerable<ModuleConfig> modules)
+        {
+            List<ModuleCommand> filters = SelectionFilterCommands(modules).ToList();
+            if (filters.Count == 0) return;
+
+            sb.AppendLine("MENU UG_NXKEYS_SELECTION_FILTERS");
+            foreach (ModuleCommand filter in filters)
+            {
+                string buttonId = filter.Command?.ID?.Trim();
+                if (string.IsNullOrWhiteSpace(buttonId)) continue;
+                sb.AppendLine();
+                sb.AppendLine("    BUTTON " + buttonId);
+                if (!string.IsNullOrWhiteSpace(filter.Command?.Name))
+                    sb.AppendLine("    LABEL " + SanitizeLabel(filter.Command.Name));
+            }
+            sb.AppendLine("END_OF_MENU");
+            sb.AppendLine();
+        }
+
+        private static IEnumerable<ModuleCommand> SelectionFilterCommands(IEnumerable<ModuleConfig> modules)
+        {
+            return (modules ?? Enumerable.Empty<ModuleConfig>())
+                .Where(module => module != null &&
+                                 module.Enabled &&
+                                 string.Equals(module.ID, "selection_object", StringComparison.OrdinalIgnoreCase))
+                .SelectMany(module => module.CommandSets ?? Enumerable.Empty<ModuleCommandSet>())
+                .Where(set => set?.Commands != null)
+                .SelectMany(set => set.Commands)
+                .Where(command => command?.Command != null && !string.IsNullOrWhiteSpace(command.Command.ID));
+        }
+
         private static string SanitizeComment(string val)
         {
             if (string.IsNullOrWhiteSpace(val)) return string.Empty;
             return val.Replace("\r", " ").Replace("\n", " ").Trim();
         }
+
+        private static string SanitizeLabel(string val) => SanitizeComment(val).Replace("\"", "'");
     }
 }

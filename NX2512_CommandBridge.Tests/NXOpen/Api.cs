@@ -27,7 +27,9 @@ namespace NXOpen
     {
         public enum LibraryUnloadOption
         {
-            AtTermination = 1
+            Immediately = 0,
+            AtTermination = 1,
+            Explicitly = 2
         }
 
         public ListingWindow ListingWindow { get; } = new ListingWindow();

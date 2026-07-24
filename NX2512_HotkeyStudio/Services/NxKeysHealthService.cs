@@ -16,6 +16,7 @@ namespace NX2512_HotkeyStudio.Services
             "nxkeys_generated.men",
             "nxkeys_command_bridge.men",
             "nxkeys_ribbon.rtb",
+            "rbn_nxkeys.rtb",
             "nxkeys_toolbar.tbr"
         };
 
@@ -24,6 +25,7 @@ namespace NX2512_HotkeyStudio.Services
             if (config == null) throw new ArgumentNullException(nameof(config));
             config.ApplyDefaults();
             var report = new NxKeysHealthReport { ManagedRoot = config.Deployment.ManagedRoot };
+            ReadEnvironmentState(config, report);
 
             report.MenuFiles = FindNxKeysMenuFiles(config.Deployment.ManagedRoot);
             report.StaleFiles = report.MenuFiles.Where(file => !file.IsExpectedVersion).ToList();
@@ -37,6 +39,55 @@ namespace NX2512_HotkeyStudio.Services
             }
             ReadManagedPackageState(config, report);
             return report;
+        }
+
+        private static void ReadEnvironmentState(Config config, NxKeysHealthReport report)
+        {
+            string expected = Path.GetFullPath(Path.Combine(config.Deployment.ManagedRoot, "custom_dirs.dat"));
+            report.ExpectedCustomDirsFile = expected;
+
+            foreach (EnvironmentVariableTarget target in new[]
+            {
+                EnvironmentVariableTarget.Process,
+                EnvironmentVariableTarget.User,
+                EnvironmentVariableTarget.Machine
+            })
+            {
+                string value = Environment.GetEnvironmentVariable("UGII_CUSTOM_DIRECTORY_FILE", target);
+                if (string.IsNullOrWhiteSpace(value)) continue;
+
+                string expanded = Config.ExpandPath(value.Trim().Trim('"'));
+                report.EnvironmentCustomDirsFiles[target.ToString()] = expanded;
+                if (!CustomDirsReferencesExpectedRoot(expanded, expected))
+                {
+                    report.EnvironmentWarnings.Add(
+                        $"UGII_CUSTOM_DIRECTORY_FILE[{target}] points to {expanded}, expected {expected}");
+                }
+            }
+        }
+
+        private static bool CustomDirsReferencesExpectedRoot(string customDirsPath, string expectedCustomDirsPath)
+        {
+            string expanded = Path.GetFullPath(customDirsPath);
+            string expected = Path.GetFullPath(expectedCustomDirsPath);
+            if (string.Equals(expanded, expected, StringComparison.OrdinalIgnoreCase)) return true;
+            if (!File.Exists(expanded)) return false;
+
+            string managedRoot = Path.GetFullPath(Path.GetDirectoryName(expected) ?? string.Empty);
+            string expectedRoot = Path.Combine(managedRoot, "custom");
+            foreach (string line in File.ReadLines(expanded))
+            {
+                string candidate = (line ?? string.Empty).Trim().Trim('"');
+                if (candidate.Length == 0 || candidate.StartsWith("#", StringComparison.Ordinal)) continue;
+                try
+                {
+                    string full = Path.GetFullPath(Config.ExpandPath(candidate)).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    string root = expectedRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    if (string.Equals(full, root, StringComparison.OrdinalIgnoreCase)) return true;
+                }
+                catch { }
+            }
+            return false;
         }
 
         private static List<NxKeysMenuFileStatus> FindNxKeysMenuFiles(string managedRoot)
@@ -74,11 +125,44 @@ namespace NX2512_HotkeyStudio.Services
         private static void ReadBridgeState(NxKeysHealthReport report)
         {
             string root = NxCommandBridgeClient.BridgeRoot;
-            report.BridgeLoaded = IsLiveBridgeStatus(Path.Combine(root, "status.json"));
+            string statusPath = Path.Combine(root, "status.json");
+            string contextPath = NxCommandBridgeClient.ContextPath;
+            report.BridgeStatusPath = statusPath;
+            report.BridgeContextPath = contextPath;
+            report.BridgeLoaded = IsLiveBridgeStatus(statusPath);
+            report.BridgeContextAgeSeconds = ContextAgeSeconds(contextPath);
+            report.BridgeLogPath = ReadBridgeLogPath(statusPath);
+            if (string.IsNullOrWhiteSpace(report.BridgeLogPath))
+                report.BridgeLogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys", "logs", "nx-command-bridge.log");
+            report.LastBridgeLogLines = Tail(report.BridgeLogPath, 8);
             report.PendingCount = CountFiles(Path.Combine(root, "pending"), "*.json");
             report.CompletedCount = CountFiles(Path.Combine(root, "completed"), "*.json");
             report.FailedCount = CountFiles(Path.Combine(root, "failed"), "*.json");
             report.LastFailures = RecentResultLines(Path.Combine(root, "failed"), 6);
+        }
+
+        private static double ContextAgeSeconds(string contextPath)
+        {
+            if (!File.Exists(contextPath)) return -1;
+            NxBridgeContext context = NxCommandBridgeClient.ReadContext();
+            if (context != null && DateTimeOffset.TryParse(context.UpdatedUtc, out DateTimeOffset updated))
+                return Math.Max(0, (DateTimeOffset.UtcNow - updated.ToUniversalTime()).TotalSeconds);
+            return Math.Max(0, (DateTime.UtcNow - File.GetLastWriteTimeUtc(contextPath)).TotalSeconds);
+        }
+
+        private static string ReadBridgeLogPath(string statusPath)
+        {
+            if (!File.Exists(statusPath)) return string.Empty;
+            try
+            {
+                using (JsonDocument document = JsonDocument.Parse(File.ReadAllText(statusPath)))
+                {
+                    return document.RootElement.TryGetProperty("log_path", out JsonElement logPath)
+                        ? Config.ExpandPath(logPath.GetString() ?? string.Empty)
+                        : string.Empty;
+                }
+            }
+            catch { return string.Empty; }
         }
 
         private static bool IsLiveBridgeStatus(string statusPath)
@@ -160,6 +244,16 @@ namespace NX2512_HotkeyStudio.Services
         {
             try { return File.ReadLines(path).FirstOrDefault() ?? string.Empty; }
             catch { return string.Empty; }
+        }
+
+        private static List<string> Tail(string path, int count)
+        {
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return new List<string>();
+            try
+            {
+                return File.ReadLines(path).Reverse().Take(count).Reverse().ToList();
+            }
+            catch { return new List<string>(); }
         }
     }
 }

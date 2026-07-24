@@ -73,8 +73,8 @@ namespace NX2512_HotkeyStudio
 
             activeConfigPath = ResolveConfigPath(GetArgValue(args, "--config"));
             Config config = Config.Load(activeConfigPath);
-            if (config.SchemaVersion != 3 || !config.LeaderKey.AdaptiveModuleMode)
-                throw new InvalidOperationException("NXKeys требует канонический адаптивный профиль schema v3.");
+            if (config.SchemaVersion != Config.CurrentSchemaVersion || !config.LeaderKey.AdaptiveModuleMode)
+                throw new InvalidOperationException("NXKeys требует канонический адаптивный профиль schema v4.");
 
             uiInvoker = new Control();
             uiInvoker.CreateControl();
@@ -156,6 +156,11 @@ namespace NX2512_HotkeyStudio
                         break;
                     case "health":
                         PrintHealth(NxKeysHealthService.Check(config));
+                        break;
+                    case "export-icons":
+                    case "icons":
+                        CadIconPainter.ExportAllIcons(128);
+                        Console.WriteLine("[OK] Все 27 иконок сгенерированы в assets/icons и Resources/Icons!");
                         break;
                     default:
                         throw new ArgumentException("Неизвестная команда: " + command);
@@ -269,6 +274,16 @@ namespace NX2512_HotkeyStudio
                               (File.Exists(NxCommandBridgeClient.ContextPath)
                                   ? NxCommandBridgeClient.ContextPath
                                   : "нет"));
+            NxBridgeContext context = NxCommandBridgeClient.ReadContext();
+            if (context != null)
+            {
+                string age = DateTimeOffset.TryParse(context.UpdatedUtc, out DateTimeOffset updated)
+                    ? Math.Max(0, (DateTimeOffset.UtcNow - updated.ToUniversalTime()).TotalSeconds).ToString("0.0") + "s"
+                    : "unknown";
+                Console.WriteLine("Context age: " + age);
+                Console.WriteLine("Context module: " + context.ModuleId + " / " + context.ModuleLabel);
+                Console.WriteLine("Context status: " + context.Status);
+            }
             foreach (string directory in new[] { "pending", "processing", "completed", "failed" })
             {
                 string path = Path.Combine(root, directory);
@@ -280,10 +295,22 @@ namespace NX2512_HotkeyStudio
         private static void PrintHealth(NxKeysHealthReport report)
         {
             Console.WriteLine("Managed root: " + report.ManagedRoot);
+            Console.WriteLine("Expected custom dirs: " + report.ExpectedCustomDirsFile);
+            foreach (var pair in report.EnvironmentCustomDirsFiles)
+                Console.WriteLine("UGII_CUSTOM_DIRECTORY_FILE[" + pair.Key + "]: " + pair.Value);
+            foreach (string warning in report.EnvironmentWarnings)
+                Console.WriteLine("Environment warning: " + warning);
             Console.WriteLine("NX запущен: " + (report.NxRunning ? "да" : "нет"));
             foreach (string process in report.NxProcesses) Console.WriteLine("  " + process);
             Console.WriteLine("MenuScript versions: " + (report.MenuScriptVersionOk ? "OK" : "ERROR"));
             Console.WriteLine("Bridge loaded: " + (report.BridgeLoaded ? "да" : "нет"));
+            Console.WriteLine("Bridge status: " + (File.Exists(report.BridgeStatusPath) ? report.BridgeStatusPath : "нет"));
+            Console.WriteLine("Bridge context: " + (File.Exists(report.BridgeContextPath) ? report.BridgeContextPath : "нет"));
+            Console.WriteLine("Context age: " + (report.BridgeContextAgeSeconds >= 0 ? report.BridgeContextAgeSeconds.ToString("0.0") + "s" : "нет"));
+            Console.WriteLine("Bridge log: " + (File.Exists(report.BridgeLogPath) ? report.BridgeLogPath : "нет"));
+            foreach (string line in report.LastBridgeLogLines) Console.WriteLine("  log: " + line);
+            Console.WriteLine("Bridge queue: pending=" + report.PendingCount + ", completed=" + report.CompletedCount + ", failed=" + report.FailedCount);
+            foreach (string failure in report.LastFailures) Console.WriteLine("  failed: " + failure);
             Console.WriteLine("Managed package: " + (report.ManagedPackageOk ? "OK" : "ERROR"));
             foreach (string missing in report.MissingManagedFiles) Console.WriteLine("Отсутствует: " + missing);
             foreach (string mismatch in report.HashMismatches) Console.WriteLine("SHA mismatch: " + mismatch);
@@ -303,7 +330,7 @@ namespace NX2512_HotkeyStudio
                 if (File.Exists(expanded)) return Path.GetFullPath(expanded);
             }
             throw new FileNotFoundException(
-                "Канонический профиль NXKeys schema v3 не найден. Передайте --config с существующим nx2512-pro-hybrid.json.");
+                "Канонический профиль NXKeys schema v4 не найден. Передайте --config с существующим nx2512-pro-hybrid.json.");
         }
 
         private static void SetupTrayIcon()
@@ -384,7 +411,7 @@ namespace NX2512_HotkeyStudio
             return new[]
             {
                 "validate", "scan", "catalog", "plan", "apply", "launch", "leader",
-                "backups", "restore", "bridge-status", "health"
+                "backups", "restore", "bridge-status", "health", "export-icons", "icons"
             }.Contains(command);
         }
 
