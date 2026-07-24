@@ -177,12 +177,16 @@ namespace NX2512_HotkeyStudio.UI
             {
                 if (module == null || !module.Enabled) continue;
                 Add(module.SwitchCommand, "menu", module.ID);
+
                 IEnumerable<ModuleCommand> commands = module.CommandSets?
                     .Where(set => set?.Commands != null)
                     .SelectMany(set => set.Commands)
                     .Where(command => command != null && command.Enabled)
                     ?? Enumerable.Empty<ModuleCommand>();
                 foreach (ModuleCommand command in commands) Add(command.Command, command.IconHint, module.ID);
+
+                foreach (ModuleCommand command in module.SelectionPriorities ?? Enumerable.Empty<ModuleCommand>())
+                    if (command != null && command.Enabled) Add(command.Command, command.IconHint, module.ID);
             }
 
             if (config.WorkflowControls != null)
@@ -205,25 +209,38 @@ namespace NX2512_HotkeyStudio.UI
             string value = string.Join(" ", commandId ?? string.Empty, commandName ?? string.Empty).ToUpperInvariant();
             bool Has(params string[] words) => words.Any(word => value.Contains(word, StringComparison.Ordinal));
 
-            if (Has("DELETE", "REMOVE", "DESELECT", "UNSUPPRESS", "CANCEL")) return new ActionBadge { Text = "×", Color = Danger };
-            if (Has("ADD", "CREATE", "NEW", "INSERT", "ASSIGN")) return new ActionBadge { Text = "+", Color = Success };
-            if (Has("MOVE", "TRANSLATE", "POSITION", "PAN")) return new ActionBadge { IsMove = true, Color = Gold };
-            if (Has("REPLACE", "REFRESH", "RELOAD", "UPDATE", "REGENERATE", "REDO")) return new ActionBadge { IsRefresh = true, Color = Gold };
-            if (Has("OPEN", "IMPORT")) return new ActionBadge { IsArrow = true, Color = Success };
-            if (Has("EXPORT", "SAVE_AS", "PUBLISH")) return new ActionBadge { IsArrow = true, Color = Gold, Text = "out" };
-            if (Has("COPY", "DUPLICATE")) return new ActionBadge { Text = "2", Color = Gold };
+            // Positive restoration must be checked before SUPPRESS/HIDE substring matches.
+            if (Has("UNSUPPRESS", "UNHIDE", "RESTORE", "REATTACH", "RESUME"))
+                return new ActionBadge { Text = "+", Color = Success };
+            if (Has("DELETE", "REMOVE", "DESELECT", "CANCEL", "DISCARD"))
+                return new ActionBadge { Text = "×", Color = Danger };
+            if (Has("ADD", "CREATE", "NEW", "INSERT", "ASSIGN", "ATTACH"))
+                return new ActionBadge { Text = "+", Color = Success };
+            if (Has("MOVE", "TRANSLATE", "POSITION", "PAN", "REPOSITION"))
+                return new ActionBadge { IsMove = true, Color = Gold };
+            if (Has("REPLACE", "REFRESH", "RELOAD", "UPDATE", "REGENERATE", "REDO", "RECOMPUTE"))
+                return new ActionBadge { IsRefresh = true, Color = Gold };
+            if (Has("SAVE_AS", "EXPORT", "PUBLISH", "WRITE"))
+                return new ActionBadge { IsArrow = true, Color = Gold, Text = "out" };
+            if (Has("OPEN", "IMPORT", "READ"))
+                return new ActionBadge { IsArrow = true, Color = Success };
+            if (Has("SAVE")) return new ActionBadge { Text = "S", Color = Success };
+            if (Has("UNDO", "BACK", "PREVIOUS")) return new ActionBadge { Text = "↶", Color = Gold };
+            if (Has("CUT")) return new ActionBadge { Text = "✂", Color = Gold };
+            if (Has("PASTE")) return new ActionBadge { Text = "P", Color = Success };
+            if (Has("COPY", "DUPLICATE", "CLONE")) return new ActionBadge { Text = "2", Color = Gold };
             if (Has("MIRROR")) return new ActionBadge { Text = "M", Color = Gold };
             if (Has("PATTERN", "ARRAY")) return new ActionBadge { Text = "4", Color = Gold };
-            if (Has("MEASURE", "ANALYSIS", "INFO")) return new ActionBadge { Text = "i", Color = Gold };
-            if (Has("GENERATE", "SOLVE", "RUN")) return new ActionBadge { Text = "▶", Color = Success };
-            if (Has("VERIFY", "CHECK", "VALIDATE", "ACCEPT", "APPLY", "OK")) return new ActionBadge { Text = "✓", Color = Success };
-            if (Has("HIDE", "SUPPRESS")) return new ActionBadge { Text = "−", Color = Danger };
-            if (Has("SHOW", "UNHIDE")) return new ActionBadge { Text = "+", Color = Success };
-            if (Has("EDIT", "MODIFY", "RENAME")) return new ActionBadge { Text = "E", Color = Gold };
+            if (Has("MEASURE", "ANALYSIS", "INFO", "INSPECT")) return new ActionBadge { Text = "i", Color = Gold };
+            if (Has("GENERATE", "SOLVE", "RUN", "EXECUTE", "PLAY")) return new ActionBadge { Text = "▶", Color = Success };
+            if (Has("VERIFY", "CHECK", "VALIDATE", "ACCEPT", "APPLY", " OK")) return new ActionBadge { Text = "✓", Color = Success };
+            if (Has("SHOW", "DISPLAY", "REVEAL")) return new ActionBadge { Text = "+", Color = Success };
+            if (Has("HIDE", "SUPPRESS", "DISABLE")) return new ActionBadge { Text = "−", Color = Danger };
+            if (Has("EDIT", "MODIFY", "RENAME", "CHANGE")) return new ActionBadge { Text = "E", Color = Gold };
             if (Has("FIT", "ZOOM")) return new ActionBadge { Text = "↗", Color = Gold };
             if (Has("ROTATE", "REVOLVE")) return new ActionBadge { Text = "↻", Color = Gold };
             if (Has("SELECT_ALL")) return new ActionBadge { Text = "A", Color = Success };
-            if (Has("RESET")) return new ActionBadge { IsRefresh = true, Color = Gold };
+            if (Has("RESET", "DEFAULT")) return new ActionBadge { IsRefresh = true, Color = Gold };
             return null;
         }
 
