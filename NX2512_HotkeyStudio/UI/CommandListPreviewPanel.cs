@@ -107,7 +107,7 @@ namespace NX2512_HotkeyStudio.UI
                 DrawCentered(graphics, row.Key, keyFont, keyBrush, keyBox);
 
             Rectangle iconBox = new Rectangle(rectangle.Left + 43, rectangle.Top + 11, 26, 26);
-            CadIconPainter.Draw(graphics, iconBox, row.IconHint, row.Item?.Command?.ID, row.Name);
+            OperationThumbnailRenderer.Draw(graphics, iconBox, row.IconHint, row.Item?.Command?.ID, row.Name);
 
             using (Font nameFont = new Font("Segoe UI Semibold", 8.7f))
             using (SolidBrush nameBrush = new SolidBrush(text))

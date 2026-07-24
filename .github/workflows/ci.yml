@@ -138,7 +138,7 @@ jobs:
           foreach ($required in @('ProcessingDirectory','RecoverInterruptedRequests','ValidateExpectedContext','interrupted_unknown')) {
             if ($bridge -notmatch $required) { throw "Bridge reliability element is missing: $required" }
           }
-          if ($profile -notmatch '"schema_version"\s*:\s*3') { throw 'Canonical profile must use schema version 3.' }
+          if ($profile -notmatch '"schema_version"\s*:\s*4') { throw 'Canonical profile must use schema version 4.' }
           if ($profile -match '"radials"') { throw 'Removed menu collection must not return to the canonical profile.' }
 
       - name: Validate deployment invariants
