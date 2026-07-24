@@ -265,7 +265,7 @@ namespace NX2512_HotkeyStudio.UI
             using (Font keyFont = new Font("Consolas", 13f, FontStyle.Bold))
             using (SolidBrush text = new SolidBrush(accentColor)) DrawCentered(graphics, row?.Key ?? "?", keyFont, text, keyBox);
             Rectangle iconBox = new Rectangle(rectangle.Left + 50, rectangle.Top + 12, 30, 30);
-            CadIconPainter.Draw(graphics, iconBox, row?.IconHint, row?.Item?.Command?.ID, row?.Name);
+            OperationThumbnailRenderer.Draw(graphics, iconBox, row?.IconHint, row?.Item?.Command?.ID, row?.Name);
             string name = row?.Name ?? "Не назначено";
             using (Font nameFont = new Font("Segoe UI Semibold", 9.5f))
             using (SolidBrush text = new SolidBrush(row == null ? mutedColor : textColor))
