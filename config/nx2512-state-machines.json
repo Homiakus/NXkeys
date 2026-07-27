@@ -2,7 +2,7 @@
   "schema_version": 1,
   "timeouts": {
     "root_ms": 4000,
-    "prefix_ms": 4000,
+    "prefix_ms": 2500,
     "search_ms": 7000,
     "confirmation_ms": 10000,
     "result_ms": 20000,
