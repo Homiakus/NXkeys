@@ -14,10 +14,12 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: github-pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -43,8 +45,8 @@ jobs:
           cp config/nx2512-pro-hybrid.json _site/config/
           cp config/nx2512-state-machines.json _site/config/
 
-          # command-tree.html lives in docs/ in the repository, but becomes
-          # index.html at the root of the Pages artifact.
+          # command-tree.html is stored under docs/ in the repository, but is
+          # published as index.html at the root of the Pages site.
           sed -i 's#\.\./config/#./config/#g' _site/index.html
 
           touch _site/.nojekyll
@@ -55,8 +57,12 @@ jobs:
           grep -q './config/nx2512-pro-hybrid.json' _site/index.html
           grep -q './config/nx2512-state-machines.json' _site/index.html
 
+      - name: Configure GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v6
+
       - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
@@ -65,18 +71,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
 
-    permissions:
-      pages: write
-      id-token: write
-
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
