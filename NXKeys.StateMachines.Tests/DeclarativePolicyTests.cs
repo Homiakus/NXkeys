@@ -16,30 +16,30 @@ namespace NXKeys.StateMachines.Tests
             Require(!string.IsNullOrWhiteSpace(profile.SourcePath), "Декларативный профиль не найден в output.");
 
             var evaluator = new ContextGuardEvaluator(profile);
-            SequenceDefinition edgeBlend = Command("MX", "modeling");
+            SequenceDefinition edgeBlend = Command("MEEB", "modeling");
             edgeBlend.RequiresSelection = true;
 
             GuardResult faceResult = evaluator.Evaluate(edgeBlend, Context("modeling", "NXOpen.Face"), true);
-            Require(!faceResult.Allowed, "MX не должен выполняться при выборе только Face.");
+            Require(!faceResult.Allowed, "MEEB не должен выполняться при выборе только Face.");
             Require(faceResult.Reason.Contains("рёбер", StringComparison.OrdinalIgnoreCase), "Не применено сообщение выбора рёбер.");
 
             GuardResult edgeResult = evaluator.Evaluate(edgeBlend, Context("modeling", "NXOpen.Edge"), true);
-            Require(edgeResult.Allowed, "MX должен выполняться при выборе Edge.");
+            Require(edgeResult.Allowed, "MEEB должен выполняться при выборе Edge.");
 
-            SequenceDefinition sketchLine = Command("SW", "sketch");
+            SequenceDefinition sketchLine = Command("SCGL2", "sketch");
             GuardResult wrongModule = evaluator.Evaluate(sketchLine, Context("modeling", "NXOpen.Body"), true);
             Require(!wrongModule.Allowed, "Команда Sketch не должна выполняться в Modeling.");
             Require(!wrongModule.RequiresModuleSwitch, "Адаптивная команда не должна самовольно переключать модуль.");
 
-            SequenceDefinition destructive = Command("AX", "assembly");
+            SequenceDefinition destructive = Command("AECR", "assembly");
             ResolvedCommandBehavior destructiveBehavior = profile.Resolve(destructive);
-            Require(destructiveBehavior.ConfirmationRequired, "AX должен требовать подтверждение из JSON.");
+            Require(destructiveBehavior.ConfirmationRequired, "AECR должен требовать подтверждение из JSON.");
 
             NxContextSnapshot lowConfidence = Context("modeling", "NXOpen.Edge");
             lowConfidence.ContextConfidence = 20;
             Require(!evaluator.Evaluate(edgeBlend, lowConfidence, true).Allowed, "Низкая достоверность контекста должна блокировать команду.");
 
-            Console.WriteLine("[OK] Адаптивные guards, типы выбора и подтверждения.");
+            Console.WriteLine("[OK] Мнемонические guards, типы выбора и подтверждения.");
         }
 
         private static SequenceDefinition Command(string sequence, string module) => new SequenceDefinition
