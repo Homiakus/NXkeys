@@ -18,7 +18,7 @@ const requiredShortcuts = new Map([
   ["CTRL+X", "UG_EDIT_CUT"], ["CTRL+C", "UG_EDIT_COPY"],
   ["CTRL+V", "UG_EDIT_PASTE"], ["DELETE", "UG_EDIT_DELETE"],
   ["CTRL+F", "UG_VIEW_FIT"], ["F5", "UG_VIEW_REFRESH"]
-]);
+].map(([shortcut, command]) => [normalize(shortcut), command]));
 const removedFeaturePattern = /radial[\s_-]*(menu|plan|editor|item)|радиальн\w*\s+меню/i;
 
 function parseKnownPaths(source) {
