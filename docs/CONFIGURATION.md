@@ -1,18 +1,18 @@
-# Конфигурация NXKeys — schema v3
+# Конфигурация NXKeys — runtime schema v5
 
-Канонический профиль:
+Канонический профиль команд:
 
 ```text
 config/nx2512-pro-hybrid.json
 ```
 
-Он содержит только базовые глобальные сочетания, модули и параметры адаптивного Leader. Производные последовательности не хранятся в JSON.
+Профиль schema v4 полностью совместим: при загрузке NXKeys автоматически присваивает командам многоуровневые мнемонические пути и переводит модель в runtime schema v5. После сохранения через Studio новые поля записываются в JSON явно.
 
 ## Верхний уровень
 
 ```json
 {
-  "schema_version": 3,
+  "schema_version": 5,
   "profile": {},
   "scan": {},
   "deployment": {},
@@ -27,7 +27,7 @@ config/nx2512-pro-hybrid.json
 
 ## Базовые сочетания
 
-Секция `keyboard` обязана содержать ровно 12 включённых привязок:
+Секция `keyboard` содержит ровно 12 прямых привязок:
 
 ```text
 Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+Shift+S,
@@ -35,128 +35,146 @@ Ctrl+Z, Ctrl+Y, Ctrl+X, Ctrl+C, Ctrl+V,
 Delete, Ctrl+F, F5
 ```
 
-Каждая запись требует точный `command.id`. `BasicShortcutPolicy` отклоняет дополнительное прямое сочетание, пропущенную обязательную привязку, дубликат или неправильный `BUTTON ID`.
+Все профессиональные команды NX вызываются через Leader.
 
-Пример:
+## Мнемоническая команда
 
 ```json
 {
-  "shortcut": "Ctrl+S",
   "command": {
-    "id": "UG_FILE_SAVE_PART",
-    "name": "Save"
+    "id": "UG_MODELING_EXTRUDED_FEATURE",
+    "name": "Extrude"
   },
-  "scope": "Global",
-  "enabled": true,
-  "notes": "Сохранить рабочую деталь"
+  "path": ["C", "F", "E"],
+  "path_labels": ["Create", "Feature", "Extrude"],
+  "aliases": [
+    ["C", "E"]
+  ],
+  "search_aliases": [
+    "extrude",
+    "вытянуть",
+    "выдавливание"
+  ],
+  "requires_selection": false,
+  "destructive": false,
+  "confirm_before_execute": false,
+  "icon_hint": "feature",
+  "display_order": 2
 }
 ```
+
+### `path`
+
+Канонический путь после `CapsLock`. Пользователь не вводит внутренний префикс модуля.
+
+```text
+CapsLock → C → F → E
+```
+
+Внутренний DFA получает:
+
+```text
+M C F E
+```
+
+где `M` — внутренний префикс Modeling.
+
+### `path_labels`
+
+Подписи уровней HUD. Количество подписей должно совпадать с количеством токенов пути.
+
+### `aliases`
+
+Дополнительные быстрые пути к той же команде. Alias автоматически удаляется, если:
+
+- совпадает с другим путём;
+- является префиксом другой команды;
+- другая команда является его префиксом;
+- совпадает с каноническим путём.
+
+### `search_aliases`
+
+Слова для полнотекстового поиска: русские и английские названия, профессиональные сокращения и пользовательские термины.
+
+## Автоматическая миграция
+
+При загрузке старого профиля:
+
+1. заполняются legacy-поля `input_key` и `display_order`;
+2. для известных `BUTTON ID` применяется точное сопоставление;
+3. для остальных команд определяется действие;
+4. определяется объект команды;
+5. выбирается значимая буква операции;
+6. разрешаются коллизии внутри активного модуля;
+7. конфликтующие aliases удаляются;
+8. строятся последовательности DFA;
+9. schema переводится в версию 5.
+
+Точные правила находятся в:
+
+```text
+NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs
+```
+
+## Корневые категории
+
+| Клавиша | Категория |
+|---|---|
+| `C` | Create |
+| `E` | Edit |
+| `T` | Transform |
+| `X` | Remove |
+| `P` | Process |
+| `I` | Inspect |
+| `V` | View |
+| `S` | Select |
+| `A` | Annotate |
+| `M` | Manage |
+| `F` | File |
+| `G` | Go |
+| `U` | Utilities |
+| `H` | Help |
 
 ## Модули
 
-Каждый элемент `modules` описывает самостоятельное приложение или контекст NX:
+Каждый модуль сохраняет собственный внутренний `leader_prefix`. Он нужен DFA и не вводится пользователем.
 
 ```json
 {
-  "id": "sheet_metal",
-  "label": "Sheet Metal",
+  "id": "manufacturing",
+  "label": "CAM / Manufacturing",
   "enabled": true,
-  "nx_application_ids": ["UG_APP_SHEETMETAL"],
-  "switch_command": {
-    "id": "UG_APP_SHEETMETAL",
-    "name": "Sheet Metal"
-  },
-  "leader_prefix": "H",
-  "command_sets": [
-    {
-      "id": "primary",
-      "label": "Primary",
-      "commands": []
-    }
-  ]
+  "nx_application_ids": ["UG_APP_MANUFACTURING"],
+  "leader_prefix": "C",
+  "command_sets": []
 }
 ```
 
-Требования:
+Одинаковый пользовательский путь разрешается в разных модулях, поскольку активный модуль выбирается автоматически. Внутри одного модуля пути должны быть уникальны и не могут быть префиксами друг друга.
 
-- уникальный `id`;
-- уникальный внутренний `leader_prefix`;
-- ровно восемь команд;
-- слоты `N`, `NE`, `E`, `SE`, `S`, `SW`, `W`, `NW` без повторов;
-- точный `command.id` каждой команды;
-- контекстные флаги хранятся у команды.
+## Полное покрытие NX 2512
 
-Пример команды:
+Полный состав команд зависит от:
 
-```json
-{
-  "slot": "S",
-  "command": {
-    "id": "UG_ASSEMBLIES_REPLACE_COMPONENT",
-    "name": "Replace Component"
-  },
-  "requires_selection": true,
-  "destructive": true,
-  "confirm_before_execute": true
-}
-```
+- установленной роли NX;
+- приобретённых лицензий;
+- локализации;
+- пользовательских MenuScript-расширений;
+- доступных приложений.
 
-## Адаптивный Leader
+Поэтому полный профиль строится из фактического каталога установки. `NX2512_Catalog_Studio` извлекает UI-команды и `BUTTON ID`. Каждая найденная команда получает:
 
-```json
-{
-  "leader_key": {
-    "enabled": true,
-    "trigger_key": "CapsLock",
-    "adaptive_module_mode": true,
-    "hud_delay_ms": 120,
-    "first_key_timeout_ms": 4000,
-    "next_key_timeout_ms": 2500,
-    "sticky_mode_on_double_tap": true,
-    "hud_opacity": 0.95,
-    "hook_only_when_nx_active": true,
-    "slot_key_map": {
-      "N": "W",
-      "NE": "E",
-      "E": "D",
-      "SE": "C",
-      "S": "X",
-      "SW": "Z",
-      "W": "A",
-      "NW": "Q"
-    }
-  }
-}
-```
+- точный канонический путь;
+- поисковые псевдонимы;
+- модульную область;
+- guards;
+- статус доступности.
 
-`adaptive_module_mode` всегда должен быть `true`. Клавиши сетки обязаны быть уникальными.
+Команда без реального `BUTTON ID` не добавляется как исполняемая.
 
-Внутренний DFA получает последовательность `<leader_prefix><input_key>`. Например, `MX` — позиция `S` модуля Modeling. Пользователь нажимает только `CapsLock+X`.
+## Guards и подтверждение
 
-## Производные последовательности
-
-После загрузки `LeaderKeyConfig.RebuildFromModules()` создаёт `LeaderSequenceItem` для каждой модульной команды:
-
-```text
-ModuleConfig + ModuleCommand + slot_key_map → LeaderSequenceItem
-```
-
-Поля `Sequences` и `RuntimeModules` имеют `[JsonIgnore]`. Поэтому JSON не содержит вторую копию карты.
-
-## Определение активного модуля
-
-`AdaptiveModuleResolver` проверяет по порядку:
-
-1. нормализованный `context.module_id`;
-2. `context.module_label`;
-3. известное сопоставление `application_id`;
-4. `modules[].nx_application_ids`.
-
-Если контекст отсутствует или устарел, Leader не активируется.
-
-## Guards и таймауты
-
-Отдельный файл:
+Файл:
 
 ```text
 config/nx2512-state-machines.json
@@ -164,38 +182,56 @@ config/nx2512-state-machines.json
 
 задаёт:
 
-- таймауты состояний;
+- таймауты;
 - допустимые модули;
-- наличие work/display part;
-- минимальную достоверность;
-- количество и типы выбранных объектов;
+- наличие Work/Display Part;
+- минимальную достоверность контекста;
+- типы и количество выбранных объектов;
 - обязательное подтверждение;
-- сообщение недоступности.
+- сообщения недоступности.
 
-Адаптивная команда другого модуля блокируется. Автоматическая скрытая смена приложения не используется; `Tab` инициирует явный переход.
+Политики используют новые канонические последовательности, включая внутренний префикс модуля.
 
-## Deployment
+Пример:
 
-Рекомендуемый режим:
-
-```json
-{
-  "deployment": {
-    "mode": "managed-wrapper",
-    "managed_root": "%LOCALAPPDATA%\\NXKeys\\managed\\NX2512.6000",
-    "backup_root": "%LOCALAPPDATA%\\NXKeys\\backups",
-    "require_nx_stopped": true,
-    "atomic_writes": true,
-    "dry_run": true
-  }
-}
+```text
+M E E B
 ```
 
-Для `existing-custom-dirs` путь `existing_custom_dirs_file` задаётся явно.
+означает:
+
+```text
+Modeling → Edit → Edge → Blend
+```
+
+## Реализация модели
+
+Старый `Models/ConfigModels.cs` сохранён в репозитории как reference-источник schema v4, но исключён из компиляции HotkeyStudio. Runtime schema v5 разнесена по отдельным файлам:
+
+```text
+ConfigRuntimeV5.cs
+BaseConfigTypesV5.cs
+ModuleConfigTypesV5.cs
+RuntimeSettingsTypesV5.cs
+LeaderConfigV5.cs
+CommandMetadataV5.cs
+```
+
+Так миграция остаётся обратимо проверяемой, а новые поля не смешиваются с legacy-моделью.
 
 ## Проверка
 
 ```powershell
-NX2512_HotkeyStudio.exe validate --config .\config\nx2512-pro-hybrid.json
 node .\scripts\validate-command-tree.mjs
 ```
+
+Валидатор проверяет:
+
+- 12 базовых сочетаний;
+- 14 модулей;
+- наличие точных `BUTTON ID`;
+- точные мнемонические сопоставления;
+- соответствие policy новым последовательностям;
+- наличие runtime schema v5;
+- исключение legacy-модели из компиляции;
+- целостность интерактивной карты.
