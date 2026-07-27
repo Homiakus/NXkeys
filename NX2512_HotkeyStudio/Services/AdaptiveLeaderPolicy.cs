@@ -47,7 +47,7 @@ namespace NX2512_HotkeyStudio.Services
             }
 
             GuardResult guard = GuardEvaluator.Evaluate(ToDefinition(item), context, false);
-            result.Score = 160;
+            result.Score = item.IsAlias ? 168 : 160;
             if (!guard.Allowed)
             {
                 result.CanExecute = false;
@@ -96,14 +96,23 @@ namespace NX2512_HotkeyStudio.Services
         public static SequenceDefinition ToDefinition(LeaderSequenceItem item)
         {
             if (item == null) return null;
+            string labels = string.Join(" ", item.PathLabels ?? new List<string>());
+            string aliases = string.Join(" ", item.SearchAliases ?? new List<string>());
+            string path = string.Join(" ", item.Path ?? new List<string>());
+            string policySequence = string.IsNullOrWhiteSpace(item.CanonicalSequence) ? item.Sequence : item.CanonicalSequence;
             return new SequenceDefinition
             {
-                Id = NormalizeSequence(item.Sequence),
+                Id = NormalizeSequence(policySequence),
                 Sequence = item.Sequence ?? string.Empty,
                 ModuleId = NormalizeModule(item.ModuleID, item.Category),
                 CommandId = item.Command?.ID ?? string.Empty,
                 CommandName = item.Command?.Name ?? string.Empty,
-                SearchText = string.Join(" ", new[] { item.Category, item.Slot, item.SubmenuKey, item.SubmenuLabel, item.InputKey, item.Notes, item.Fallback }),
+                SearchText = string.Join(" ", new[]
+                {
+                    item.Category, item.Slot, item.SubmenuKey, item.SubmenuLabel, item.InputKey,
+                    path, labels, aliases, item.Notes, item.Fallback,
+                    item.IsAlias ? "alias быстрый путь" : "canonical канонический путь"
+                }),
                 RequiresSelection = item.RequiresSelection,
                 MinimumSelectionCount = item.RequiresSelection ? 1 : 0,
                 NeedsWorkPart = ContextGuardEvaluator.CommandNeedsWorkPart(item.Command?.ID),

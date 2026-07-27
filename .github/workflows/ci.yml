@@ -112,7 +112,17 @@ jobs:
       - name: Validate adaptive state and protocol invariants
         shell: pwsh
         run: |
-          $models = Get-Content .\NX2512_HotkeyStudio\Models\ConfigModels.cs -Raw
+          $modelFiles = @(
+            '.\NX2512_HotkeyStudio\Models\ConfigRuntimeV5.cs',
+            '.\NX2512_HotkeyStudio\Models\BaseConfigTypesV5.cs',
+            '.\NX2512_HotkeyStudio\Models\ModuleConfigTypesV5.cs',
+            '.\NX2512_HotkeyStudio\Models\RuntimeSettingsTypesV5.cs',
+            '.\NX2512_HotkeyStudio\Models\LeaderConfigV5.cs',
+            '.\NX2512_HotkeyStudio\Models\CommandMetadataV5.cs',
+            '.\NX2512_HotkeyStudio\Models\MnemonicPathGenerator.cs'
+          )
+          $models = ($modelFiles | ForEach-Object { Get-Content $_ -Raw }) -join "`n"
+          $project = Get-Content .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -Raw
           $resolver = Get-Content .\NX2512_HotkeyStudio\Services\AdaptiveModuleResolver.cs -Raw
           $leader = Get-Content .\NX2512_HotkeyStudio\Services\LeaderKeyEngine.cs -Raw
           $machine = Get-Content .\NXKeys.StateMachines\LeaderStateMachines.cs -Raw
@@ -120,9 +130,10 @@ jobs:
           $bridge = Get-Content .\NX2512_CommandBridge\Program.cs -Raw
           $profile = Get-Content .\config\nx2512-pro-hybrid.json -Raw
 
-          foreach ($required in @('BasicShortcutPolicy','AdaptiveModuleMode','SlotKeyMap','RebuildFromModules','JsonIgnore')) {
-            if ($models -notmatch $required) { throw "Missing adaptive config element: $required" }
+          foreach ($required in @('BasicShortcutPolicy','CurrentSchemaVersion = 5','MnemonicPathGenerator.Apply','PathLabels','SearchAliases','RebuildFromModules','JsonIgnore')) {
+            if ($models -notmatch [regex]::Escape($required)) { throw "Missing mnemonic config element: $required" }
           }
+          if ($project -notmatch 'Compile Remove="Models\\ConfigModels\.cs"') { throw 'Legacy ConfigModels.cs must be excluded from HotkeyStudio compilation.' }
           foreach ($required in @('ModuleId','ModuleLabel','ApplicationId','NXApplicationIDs','ApplicationFallbacks')) {
             if ($resolver -notmatch $required) { throw "Missing module resolution element: $required" }
           }
@@ -138,7 +149,7 @@ jobs:
           foreach ($required in @('ProcessingDirectory','RecoverInterruptedRequests','ValidateExpectedContext','interrupted_unknown')) {
             if ($bridge -notmatch $required) { throw "Bridge reliability element is missing: $required" }
           }
-          if ($profile -notmatch '"schema_version"\s*:\s*3') { throw 'Canonical profile must use schema version 3.' }
+          if ($profile -notmatch '"schema_version"\s*:\s*(4|5)') { throw 'Canonical source profile must use schema version 4 or 5.' }
           if ($profile -match '"radials"') { throw 'Removed menu collection must not return to the canonical profile.' }
 
       - name: Validate deployment invariants

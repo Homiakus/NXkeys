@@ -1,0 +1,49 @@
+name: Mnemonic Command Language
+
+on:
+  push:
+    branches:
+      - agent/mnemonic-command-language
+  pull_request:
+    paths:
+      - 'NX2512_HotkeyStudio/**'
+      - 'NXKeys.StateMachines/**'
+      - 'NXKeys.StateMachines.Tests/**'
+      - 'config/**'
+      - 'scripts/validate-command-tree.mjs'
+      - 'docs/**'
+      - '.github/workflows/mnemonic-command-language.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Validate mnemonic profile
+        shell: pwsh
+        run: node .\scripts\validate-command-tree.mjs
+
+      - name: Build HotkeyStudio
+        shell: pwsh
+        run: dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release --nologo
+
+      - name: Run state-machine tests
+        shell: pwsh
+        run: dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
