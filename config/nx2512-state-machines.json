@@ -2,8 +2,8 @@
   "schema_version": 1,
   "timeouts": {
     "root_ms": 4000,
-    "prefix_ms": 2500,
-    "search_ms": 5000,
+    "prefix_ms": 4000,
+    "search_ms": 7000,
     "confirmation_ms": 10000,
     "result_ms": 20000,
     "module_switch_ms": 8000
@@ -25,7 +25,7 @@
     "search_scope": "active_module"
   },
   "commands": {
-    "MX": {
+    "MEEB": {
       "guards": {
         "modules": ["modeling"],
         "require_work_part": true,
@@ -34,7 +34,7 @@
       },
       "on_unavailable": { "action": "show_reason", "message": "Выберите одно или несколько рёбер" }
     },
-    "MZ": {
+    "MEEC": {
       "guards": {
         "modules": ["modeling"],
         "require_work_part": true,
@@ -42,15 +42,15 @@
       },
       "on_unavailable": { "action": "show_reason", "message": "Выберите рёбра для построения фаски" }
     },
-    "SWW": {
+    "SCGL2": {
       "guards": { "modules": ["sketch"], "require_work_part": true },
       "on_unavailable": { "action": "show_reason", "message": "Команда Line доступна в активном эскизе" }
     },
-    "DW": {
+    "DCVB": {
       "guards": { "modules": ["drafting"], "require_work_part": true },
       "on_unavailable": { "action": "show_reason", "message": "Команда Base View доступна в Drafting" }
     },
-    "AX": {
+    "AECR": {
       "guards": {
         "modules": ["assembly"],
         "require_work_part": true,
@@ -59,7 +59,7 @@
       "confirmation": "required",
       "on_unavailable": { "action": "show_reason", "message": "Выберите компонент для замены" }
     },
-    "AZ": {
+    "AXCR": {
       "guards": {
         "modules": ["assembly"],
         "require_work_part": true,
@@ -68,12 +68,12 @@
       "confirmation": "required",
       "on_unavailable": { "action": "show_reason", "message": "Выберите компонент для удаления" }
     },
-    "CX": { "guards": { "modules": ["manufacturing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
-    "CZ": { "guards": { "modules": ["manufacturing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
-    "XX": { "guards": { "modules": ["simulation"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
-    "XZ": { "guards": { "modules": ["simulation"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
-    "GX": { "guards": { "modules": ["routing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
-    "GZ": { "guards": { "modules": ["routing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
-    "RX": { "guards": { "modules": ["reuse"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" }
+    "CPOP": { "guards": { "modules": ["manufacturing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
+    "CXOD": { "guards": { "modules": ["manufacturing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
+    "XPNS": { "guards": { "modules": ["simulation"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
+    "XXND": { "guards": { "modules": ["simulation"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
+    "GXRD": { "guards": { "modules": ["routing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
+    "GXRP": { "guards": { "modules": ["routing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
+    "RETF": { "guards": { "modules": ["reuse"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" }
   }
 }
