@@ -99,9 +99,10 @@ namespace NX2512_HotkeyStudio.Services
             string labels = string.Join(" ", item.PathLabels ?? new List<string>());
             string aliases = string.Join(" ", item.SearchAliases ?? new List<string>());
             string path = string.Join(" ", item.Path ?? new List<string>());
+            string policySequence = string.IsNullOrWhiteSpace(item.CanonicalSequence) ? item.Sequence : item.CanonicalSequence;
             return new SequenceDefinition
             {
-                Id = NormalizeSequence(item.Sequence),
+                Id = NormalizeSequence(policySequence),
                 Sequence = item.Sequence ?? string.Empty,
                 ModuleId = NormalizeModule(item.ModuleID, item.Category),
                 CommandId = item.Command?.ID ?? string.Empty,
