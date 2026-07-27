@@ -20,6 +20,12 @@
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
 
+  <!-- ConfigModels.cs is retained as the schema-v4 reference source. Runtime compilation uses
+       the split schema-v5 model files so migration remains reviewable and conflicts are isolated. -->
+  <ItemGroup>
+    <Compile Remove="Models\ConfigModels.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Include="..\NXKeys.Protocol\NxProtocol.cs" Link="Protocol\NxProtocol.cs" />
     <Compile Include="..\NXKeys.StateMachines\LeaderBehaviorProfile.cs" Link="StateMachines\LeaderBehaviorProfile.cs" />
