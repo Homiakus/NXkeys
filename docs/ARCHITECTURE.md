@@ -2,207 +2,106 @@
 
 ## Цель
 
-NXKeys предоставляет устойчивый клавиатурный слой для Siemens NX 2512:
+Главная конфигурация NXKeys предоставляет доступ ко всем **885 командам-намерениям K3–K5** через контекстный мнемонический язык, сохраняя 12 прямых системных shortcuts и безопасный Command Bridge.
 
-- 12 системных действий остаются прямыми сочетаниями;
-- профессиональные команды вызываются через контекстный Leader;
-- базовый профиль содержит проверенные ручные команды;
-- полная карта содержит 1169 намерений в 32 разделах;
-- исполняемые `BUTTON ID` разрешаются из каталога конкретной установки NX.
-
-## Поток данных
-
-```mermaid
-flowchart LR
-    Catalog[1169 command intents] --> Compiler[Full map compiler]
-    NxCatalog[06_ui_commands_buttons.csv] --> Compiler
-    BaseProfile[Base profile] --> Compiler
-    Compiler --> ActiveProfile[Generated source profile schema 4]
-
-    Keyboard[Win32 keyboard hook] --> EventQueue[WinForms event queue]
-    BridgeContext[context.json] --> Resolver[AdaptiveModuleResolver]
-    ActiveProfile --> Resolver
-    Resolver --> DFA[Prefix-free sequence DFA]
-    EventQueue --> DFA
-    DFA --> HFSM[Leader HFSM]
-    HFSM --> Guards[ContextGuardEvaluator]
-    Guards --> IPC[pending request]
-    IPC --> Bridge[NX2512 CommandBridge]
-    Bridge --> NX[Siemens NX]
-    NX --> Result[completed / failed]
-    Result --> HFSM
-```
-
-## Профили и источники данных
-
-### Базовый профиль
-
-`config/nx2512-pro-hybrid.json` содержит:
-
-- 12 базовых ускорителей;
-- 14 модулей;
-- curated primary-команды;
-- известные `BUTTON ID`;
-- ручные пути и aliases;
-- deployment и Leader settings.
-
-### Полная карта
-
-`config/full-command-map/` содержит 1169 намерений команд. Каждое намерение имеет стабильный ID, раздел, группу, `K1–K5`, русское/английское имя, целевой модуль и path hint.
-
-`scripts/compile-full-command-map.mjs` объединяет базовый профиль, полный слой намерений, runtime probe и экспорт Catalog Studio. Результат:
+## Слои данных
 
 ```text
-config/nx2512-pro-full.generated.json
-docs/generated/full-command-resolution.md
+Полный каталог 1169 K1–K5
+        ↓ фильтр K3–K5
+885 намерений главного scope
+        ↓ resolver + каталог установленной NX
+existing / resolved / ambiguous / unresolved
+        ↓
+main generated profile
+        ↓ runtime migration schema 5
+DFA / HFSM / HUD / Command Bridge
 ```
 
-Команда без надёжного реального ID остаётся отключённой.
+Bootstrap `config/nx2512-pro-hybrid.json` задаёт проверенную архитектурную основу. Компилятор переносит её safety-параметры в главный generated profile, добавляет K3–K5 и удаляет команды, не связанные с выбранным scope.
 
-## Runtime schema
-
-Профиль на диске сохраняется как source schema 4. HotkeyStudio мигрирует его в runtime schema 5 и строит:
-
-- канонические `path`;
-- `path_labels`;
-- безопасные aliases;
-- `search_aliases`;
-- `action`;
-- `selection_type`;
-- производные `LeaderSequenceItem`.
-
-Производные последовательности не являются отдельным редактируемым источником истины.
-
-## Адаптивное разрешение модуля
-
-`AdaptiveModuleResolver` использует:
-
-1. `module_id` Bridge;
-2. `module_label`;
-3. `application_id`;
-4. `nx_application_ids` профиля;
-5. ручное переключение `Tab`/`Shift+Tab` как контролируемый fallback.
-
-При устаревшем или недостоверном контексте набор не активируется. При смене приложения открытый HUD перестраивается.
-
-## Многоуровневый DFA
-
-Внутренняя последовательность состоит из префикса модуля и 2–5 токенов пользовательского пути.
+## Поток исполнения
 
 ```text
-Пользователь: CapsLock → C → F → E
-Внутри DFA:  M → C → F → E
+Keyboard hook
+  → UI event queue
+  → active NX context
+  → AdaptiveModuleResolver
+  → prefix-free SequenceAutomaton
+  → LeaderStateMachine
+  → ContextGuardEvaluator
+  → atomic IPC request
+  → NX2512_CommandBridge
+  → NX BUTTON ID / selection filter
+  → result
 ```
 
-Пути внутри каждого модуля:
+## Компоненты
 
-- уникальны после нормализации;
-- не являются префиксами других путей;
-- могут иметь безопасные aliases;
-- могут повторяться в другом модуле, потому что scope задаёт активный контекст.
+| Компонент | Ответственность |
+|---|---|
+| `config/full-command-map/` | все 1169 исходных намерений и частоты K1–K5 |
+| `compile-main-command-map.mjs` | выбор K3–K5, разрешение IDs, построение путей и отчёта |
+| `nx2512-pro-main.generated.json` | главный профиль 885 намерений конкретной установки |
+| HotkeyStudio | загрузка профиля, HUD, Leader runtime, CLI и deployment |
+| AdaptiveModuleResolver | выбор одного из 14 модулей по контексту NX |
+| StateMachines | DFA, HFSM, guards, подтверждение и timeouts |
+| Protocol | IPC schema 3 |
+| CommandBridge | контекст, очередь, global selection filters и UI command invocation |
+| Control Center | обзор scope, статусов и доступности |
+| Catalog Studio | экспорт реальных UI IDs и API crosswalk |
 
-Legacy primary-grid `QWE/A·D/ZXC` остаётся слоем быстрых aliases, но модуль больше не ограничен восемью командами.
+## Модули и пути
 
-## HFSM
+Пользователь вводит 2–5 токенов после `CapsLock`. Внутренний module prefix добавляется движком. Пути уникальны и prefix-free внутри активного модуля.
 
-```text
-Idle
-  → Root
-  → Prefix
-  → Search
-  → AwaitingConfirmation
-  → Dispatching
-  → AwaitingResult
-  → Idle | Root(sticky) | Failed
-```
+Количество строк в generated profile может превышать 885 из-за дублирования глобальных команд по модулям. Архитектурная метрика покрытия — 885 уникальных `catalog_refs`, а не число сериализованных строк.
 
-`SwitchingModule` используется только для явной смены приложения. Keyboard hook помещает события в очередь; бизнес-состояние меняется последовательно в UI event loop.
+## Разрешение IDs
 
-## Guards
+Resolver объединяет:
 
-До dispatch проверяются:
+1. точные IDs bootstrap;
+2. `06_ui_commands_buttons.csv`;
+3. runtime probe;
+4. названия и synonyms;
+5. module-aware scoring.
 
-- свежесть, revision и confidence контекста;
-- текущий модуль и приложение;
-- interaction state и modal dialog;
-- Work Part и Display Part;
-- selection count и selected types;
-- `selection_type`;
-- destructive confirmation;
-- срок действия запроса.
+Только `existing` и надёжные `resolved` становятся исполняемыми. `ambiguous` и `unresolved` сохраняются в дереве для поиска и отчётности, но отключены.
 
-Bridge повторяет критические проверки перед вызовом NX.
-
-## Selection routing
-
-Обычная команда:
-
-```text
-action = execute_command
-```
-
-Selection-фильтр:
-
-```text
-action = set_selection_filter
-selection_filter = edge | face | body | component | ...
-```
-
-`UG_SEL_*` используются для трассировки, но не вызываются как обычные menu buttons. Bridge применяет `NXOpen.Select.FilterMember`.
-
-## IPC и очередь
+## Надёжность IPC
 
 ```text
 pending → processing → completed | failed
 ```
 
-Гарантии:
-
-- атомарная запись и claim;
-- уникальный `request_id`;
-- request expiry;
-- at-most-once для потенциально разрушительных операций;
-- `interrupted_unknown` без автоматического повтора;
-- общий protocol schema 3.
+Request атомарно захватывается Bridge. После возможного прерывания он получает `interrupted_unknown` и не повторяется автоматически. Это защищает от повторного выполнения destructive-команд.
 
 ## Deployment
 
 ```text
-validate
-→ plan
+compile main K3–K5
+→ validate
+→ build
 → staging
-→ SHA-256 verification
+→ SHA-256
 → backup
 → atomic commit
-→ package manifest
-→ health check
+→ package-manifest.json
+→ health-check
 → rollback on failure
 ```
 
-Пакет подключается через отдельный `UGII_CUSTOM_DIRECTORY_FILE`, не изменяет системные файлы Siemens, глобальный `PATH` и `UGII_USER_DIR`.
+Launcher задаёт отдельный `UGII_CUSTOM_DIRECTORY_FILE` и не подменяет глобальные `PATH` или `UGII_USER_DIR`.
 
-## Границы компонентов
+## Инварианты CI
 
-| Компонент | Ответственность |
-|---|---|
-| `NX2512_HotkeyStudio` | Profile runtime, HUD, Leader, CLI и deployment |
-| `MnemonicPathGenerator` | Пути известных и базовых команд |
-| Full-map compiler | 1169 намерений, каталог NX и отчёт разрешения |
-| `AdaptiveModuleResolver` | Выбор активного модуля |
-| `NXKeys.StateMachines` | DFA, HFSM, guards и policy |
-| `NXKeys.Protocol` | Общие JSON DTO schema 3 |
-| `NX2512_CommandBridge` | Контекст, selection filters и NX UI invocation |
-| `NX2512_ControlCenter` | Наблюдение, поиск и диагностика |
-| `NX2512_Catalog_Studio` | Каталог UI/NXOpen/UFUN и crosswalk |
-
-## Инварианты
-
-- ровно 12 прямых системных сочетаний;
-- 14 контекстных модулей базового профиля;
-- 1169 исходных намерений и 32 раздела полной карты;
-- включённая команда всегда имеет точный `BUTTON ID`;
-- пути и aliases внутри модуля prefix-free;
-- команда другого модуля не исполняется скрытно;
-- destructive-команда не минует подтверждение;
-- неизвестно завершившийся запрос не повторяется;
-- deployment изменяет только управляемые файлы.
+- 1169 исходных намерений и точное распределение K1–K5;
+- главный scope — ровно 885 K3–K5;
+- отсутствие K1–K2 в main;
+- 14 модулей и 12 direct shortcuts;
+- prefix-free paths и aliases;
+- enabled command всегда имеет ID;
+- runtime schema 5 и protocol schema 3;
+- DFA/HFSM и destructive confirmation;
+- сборка HotkeyStudio, Control Center и Bridge contract.
