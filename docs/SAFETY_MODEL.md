@@ -1,83 +1,44 @@
 # Модель безопасности NXKeys
 
-## Принцип минимального глобального вмешательства
+## Область главного профиля
 
-NXKeys устанавливает только 12 прямых системных ускорителей. Все профессиональные операции проходят через контекстный Leader. Это уменьшает конфликты с ролями NX и не делает контекстно-зависимые команды глобальными.
+Главный профиль включает все 885 намерений K3–K5. K1–K2 исключены из стандартного runtime не из-за запрета, а чтобы основной интерфейс соответствовал заданному рабочему охвату и не перегружался низкоприоритетными функциями.
 
-Полная карта из 1169 намерений не означает автоматическое включение 1169 кнопок. Команда активируется только при наличии надёжного точного `BUTTON ID` из каталога конкретной установки.
+## Запрет выдуманных IDs
 
-## Контекстный scope
+Иерархический каталог задаёт функцию и путь, но не гарантирует `BUTTON ID`. Поэтому:
 
-Команда видима и исполняема только в допустимом модуле, определённом из свежего Bridge context.
+- `existing` — доверенный точный ID;
+- `resolved` — надёжно найденный ID;
+- `ambiguous` — отключён;
+- `unresolved` — отключён.
 
-Leader не активирует рабочий набор, если:
+`ambiguous` и `unresolved` остаются видимыми в отчёте и поисковой карте, но не могут создать IPC-запрос на выполнение.
 
-- `context.json` отсутствует;
-- контекст устарел;
-- Bridge не имеет `status=running`;
-- приложение не сопоставлено с профилем;
-- confidence ниже policy;
-- активен блокирующий modal dialog.
+## Контекстные guards
 
-Скрытая автоматическая смена приложения запрещена. Явный `Tab`/`Shift+Tab` подтверждается новым `application_id`, `module_id` и revision.
+Перед dispatch проверяются:
 
-## Разрешение `BUTTON ID`
-
-Компилятор полной карты использует базовый профиль, runtime probe и `06_ui_commands_buttons.csv`.
-
-Статусы:
-
-- `existing` — точный ID уже известен;
-- `resolved` — найден надёжный кандидат;
-- `ambiguous` — кандидаты слишком близки, команда отключена;
-- `unresolved` — подходящего кандидата нет, команда отключена.
-
-Инвариант: включённая команда не может иметь пустой или выдуманный `command.id`.
-
-## Guards
-
-До dispatch проверяются:
-
-- protocol schema и request expiry;
-- module/application;
-- context freshness, revision и confidence;
+- свежесть и confidence контекста;
+- активный module/application;
+- Work Part и Display Part;
 - modal dialog и active command;
-- Work Part / Display Part;
 - selection count и selected types;
-- `selection_type`;
+- action и selection filter;
+- точный command ID;
 - destructive/confirmation policy.
 
-Bridge повторяет критические проверки перед фактическим вызовом NX.
+Bridge повторно проверяет ревизию, приложение, выбор и срок действия request.
 
-## Selection safety
+## Selection-фильтры
 
-`UG_SEL_*` маршрутизируются как:
-
-```text
-action = set_selection_filter
-```
-
-Bridge применяет global NXOpen selection filters. Псевдокнопка не запускается как обычная команда меню.
-
-`requires_selection` не означает обязательный preselection для каждой интерактивной команды. Жёсткий минимум задаёт policy. Это позволяет открыть штатный NX dialog и выполнить выбор внутри него без ложной блокировки.
+`UG_SEL_*` используют `action: set_selection_filter`. Bridge применяет global selection members NXOpen вместо попытки запустить псевдокнопку как обычную команду.
 
 ## Подтверждение
 
-`destructive=true` или `confirm_before_execute=true` переводят HFSM в `AwaitingConfirmation`. Только `Enter` создаёт запрос с `confirmation_accepted=true`.
+`destructive=true` или `confirm_before_execute=true` переводит HFSM в `AwaitingConfirmation`. Только `Enter` создаёт request с `confirmation_accepted=true`.
 
-Типовые опасные операции:
-
-- Replace/Remove Component;
-- Delete Operation;
-- Postprocess;
-- Solve/Delete Simulation Object;
-- Delete/Remove Route Object;
-- Replace Feature Template;
-- удаление тел, элементов, граней и импортированных данных.
-
-Флаг определяется базовым профилем, full-map heuristics и policy, но перед production-применением должен быть проверен на целевой роли.
-
-## Надёжная очередь
+## Очередь
 
 ```text
 pending → processing → completed | failed
@@ -85,56 +46,36 @@ pending → processing → completed | failed
 
 Гарантии:
 
-- атомарная запись запроса;
-- атомарный claim;
-- уникальный `request_id`;
-- ограниченный срок действия;
-- проверка expected context;
+- атомарная запись и claim;
+- уникальный request ID;
+- expiration;
 - отсутствие автоматического повтора после возможного исполнения;
-- `interrupted_unknown` после прерывания NX;
-- отдельный result JSON.
+- `interrupted_unknown` после аварийного завершения NX;
+- отдельный result-файл.
 
-## Deployment safety
+## Deployment
 
-NXKeys не должен:
+NXKeys:
 
-- изменять системные файлы Siemens;
-- записывать конфигурацию во все найденные профили;
-- менять глобальный `PATH`;
-- подменять `UGII_USER_DIR`;
-- редактировать бинарный `.mtx`;
-- удалять файл, отсутствующий в предыдущем package manifest;
-- выполнять commit до проверки staging SHA-256;
-- оставлять частично установленный пакет без rollback.
+- не редактирует системные файлы Siemens;
+- не подменяет глобальный `PATH` и `UGII_USER_DIR`;
+- не изменяет бинарный `.mtx` без явной настройки;
+- проверяет staging SHA-256;
+- ведёт `package-manifest.json`;
+- удаляет только ранее управляемые файлы;
+- выполняет rollback при ошибке.
 
-CommandBridge и MenuScript размещаются только внутри управляемого package layout. Допустимые копии определяет `package-manifest.json`; наличие artifact в `custom/application` или управляемом `custom/startup` не считается ошибкой само по себе. Ошибка — неконтролируемая ручная копия вне manifest или несколько конфликтующих версий.
+## Проверка главного scope
 
-## Конфигурационные инварианты
+CI отклоняет профиль, если:
 
-- source profile `schema_version` — 3 или 4;
-- runtime model — schema 5;
-- IPC — schema 3;
-- ровно 12 базовых прямых сочетаний;
-- 14 активных модулей базового профиля;
-- 1169 намерений и 32 раздела полной карты;
-- `K1–K5` для каждой записи полного каталога;
-- уникальные внутренние module prefixes;
-- prefix-free canonical paths и aliases внутри модуля;
-- точный `BUTTON ID` каждой включённой команды;
-- производные Leader-последовательности строятся из modules и не являются отдельным источником истины.
+- `selected_intents` не равно 885;
+- `selected_frequencies` отличается от K3/K4/K5;
+- отсутствует хотя бы один K3–K5 `catalog_ref`;
+- присутствует K1/K2 reference;
+- enabled-команда не имеет ID;
+- путь конфликтует с другим путём или alias.
 
-## Production checklist
+## Граница доказательности
 
-1. Выполнить `validate-full-command-map.mjs`.
-2. Скомпилировать профиль из каталога конкретной NX.
-3. Просмотреть `full-command-resolution.md`.
-4. Выполнить deployment dry-run.
-5. Проверить package manifest и backup.
-6. Тестировать сначала `existing` и `resolved` безопасные команды.
-7. Проверить selection filters.
-8. Проверить destructive-команды на копии данных.
-9. Зафиксировать runtime probe для целевой роли и лицензии.
-
-## Ограничения
-
-CI проверяет структуру, контракты и тестовые NXOpen stubs. Он не подтверждает лицензию, чувствительность каждой кнопки, корректность корпоративного постпроцессора или поведение каждой UI-команды внутри конкретной NX.
+CI подтверждает структуру, код и NXOpen contract stubs. Фактическая чувствительность команды и лицензия проверяются только в целевой Siemens NX. Перед production обязательно изучите `main-profile-resolution.md` и протестируйте destructive-команды на копии данных.
