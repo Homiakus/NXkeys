@@ -16,6 +16,7 @@ const normalizePath = value => (Array.isArray(value) ? value : String(value ?? '
 const keyOf = value => normalizePath(value).join('');
 const isConflict = (left, right) => left.startsWith(right) || right.startsWith(left);
 const unescapeField = value => String(value ?? '').replace(/\\t/g, '\t').replace(/\\n/g, '\n').replace(/\\\\/g, '\\');
+const readText = relative => fs.readFileSync(path.join(root, relative), 'utf8').replace(/^\uFEFF/, '');
 
 function loadIntents() {
   const names = fs.readdirSync(intentsDir).sort((a, b) => a.localeCompare(b));
@@ -49,6 +50,36 @@ function loadIntents() {
     source_module: fields[index.source_module], group: fields[index.group],
     name_en: fields[index.name_en], name_ru: fields[index.name_ru], path: normalizePath(fields[index.path]), file
   }));
+}
+
+function validateDocumentation() {
+  const required = {
+    'README.md': ['1169', '32 раздел', 'install-full-command-profile.ps1', 'source profile schema 4', 'runtime schema v5'],
+    'FULL_COMMAND_MAP.md': ['1169', '32 раздел', 'Node.js 20+', '06_ui_commands_buttons.csv', 'ambiguous', 'unresolved'],
+    'docs/README.md': ['1169', 'source schema 4', 'runtime schema 5', 'IPC', 'Исторические аудиты'],
+    'docs/CONFIGURATION.md': ['full_command_catalog', 'catalog_refs', 'resolution_status', 'schema_version: 4', 'runtime schema 5'],
+    'docs/INSTALLATION.md': ['Node.js 20+', 'install-full-command-profile.ps1', 'CompileOnly', 'full-command-resolution.md'],
+    'docs/ARCHITECTURE.md': ['1169', 'prefix-free', 'Legacy primary-grid', 'protocol schema 3'],
+    'docs/STATE_MACHINE_ARCHITECTURE.md': ['2–5', 'M → E → E → B', '1169', 'set_selection_filter'],
+    'docs/SAFETY_MODEL.md': ['1169', 'ambiguous', 'source profile `schema_version` — 3 или 4', 'package-manifest.json'],
+    'docs/api.md': ['Protocol schema:', '"command_id"', '"schema_version": 3', 'expected_application_id'],
+    'docs/TROUBLESHOOTING.md': ['1169', '06_ui_commands_buttons.csv', 'full-command-resolution.md', 'package-manifest.json'],
+    'docs/NX_PRO_HYBRID_SOURCE_SPEC.md': ['1169', 'Legacy primary-grid', 'не ограничивают количество команд'],
+    'NX2512_ControlCenter/README.md': ['nx2512-pro-full.generated.json', 'existing', 'resolved', 'ambiguous', 'unresolved']
+  };
+  for (const [relative, markers] of Object.entries(required)) {
+    const content = readText(relative);
+    for (const marker of markers) if (!content.includes(marker)) fail(`${relative} is missing current documentation marker: ${marker}`);
+  }
+
+  const operationalDocs = Object.keys(required).map(readText).join('\n');
+  for (const obsolete of [
+    '277 команд',
+    'Ровно восемь команд.',
+    'восемь LeaderSequenceItem',
+    'Bridge DLL отсутствует в `custom\\startup`',
+    'каждый модуль содержит восемь уникальных слотов'
+  ]) if (operationalDocs.includes(obsolete)) fail(`Operational documentation contains obsolete statement: ${obsolete}`);
 }
 
 try {
@@ -85,6 +116,8 @@ try {
       }
     }
   }
+
+  validateDocumentation();
 
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'nxkeys-full-map-'));
   const output = path.join(tempRoot, 'profile.json');
@@ -140,7 +173,7 @@ try {
   }
   fs.rmSync(tempRoot, { recursive: true, force: true });
 
-  if (!failed) console.log(`[full-command-map] OK: ${intents.length} intents, 32 sections, prefix-free paths, generated profile validated.`);
+  if (!failed) console.log(`[full-command-map] OK: ${intents.length} intents, 32 sections, prefix-free paths, generated profile and documentation validated.`);
 } catch (error) {
   fail(error?.stack || error?.message || String(error));
 }
