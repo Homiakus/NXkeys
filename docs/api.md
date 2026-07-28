@@ -1,134 +1,184 @@
-# NXKeys IPC API & File Queue Specification
+# NXKeys IPC API and File Queue
 
-**Version:** 3.0  
-**Protocol Format:** JSON (UTF-8)  
-**IPC Queue Location:** `%LOCALAPPDATA%\NXKeys\bridge`  
+**Protocol schema:** 3  
+**Encoding:** JSON UTF-8  
+**IPC root:** `%LOCALAPPDATA%\NXKeys\bridge`
 
----
+Источник истины: `NXKeys.Protocol/NxProtocol.cs`.
 
-## 1. Overview
-
-Communication between the out-of-process daemon (`NX2512_HotkeyStudio.exe`) and the in-process Siemens NX plugin (`NX2512_CommandBridge.dll`) is mediated via atomic file operations in a shared IPC directory.
+## Каталоги
 
 ```text
 %LOCALAPPDATA%\NXKeys\bridge\
-├── pending/        # Request files written by Hotkey Studio (e.g., req_1721800000000_a1b2.json)
-├── processing/     # Requests currently being executed by CommandBridge
-├── completed/      # Successfully completed request results
-├── failed/         # Failed request results with diagnostic error details
-├── context.json    # Active Siemens NX context published by CommandBridge
-└── status.json     # CommandBridge health and heartbeat metrics
+├── pending\       запросы HotkeyStudio
+├── processing\    атомарно захваченные запросы
+├── completed\     успешно завершённые запросы и результаты
+├── failed\        отклонённые, ошибочные и interrupted_unknown
+├── context.json   текущий контекст NX
+└── status.json    heartbeat и диагностический статус Bridge
 ```
 
----
+## `NxCommandRequest`
 
-## 2. IPC Request Format (`pending/*.json`)
-
-Written by `NX2512_HotkeyStudio` when a user triggers a Leader Key command.
+Пример обычной команды:
 
 ```json
 {
-  "request_id": "req_1721800000000_a1b2",
-  "created_utc": "2026-07-24T07:30:00.0000000Z",
-  "expires_utc": "2026-07-24T07:30:05.0000000Z",
-  "module_id": "MOD_MODELING",
-  "button_id": "UG_MODELING_EXTRUDE",
-  "action_name": "Extrude",
+  "schema_version": 3,
+  "request_id": "20260728-001",
   "action": "execute_command",
+  "command_id": "UG_MODELING_EXTRUDED_FEATURE",
+  "command_name": "Extrude",
+  "sequence": "M C F E",
+  "module_id": "modeling",
+  "target_application_id": "",
+  "selection_filter": "",
+  "created_utc": "2026-07-28T19:30:00Z",
+  "expires_utc": "2026-07-28T19:30:15Z",
+  "source_process_id": 1234,
+  "expected_context_revision": 42,
+  "expected_selection_count": -1,
+  "expected_application_id": "UG_APP_MODELING",
+  "destructive": false,
+  "confirmation_accepted": false
+}
+```
+
+### Поля запроса
+
+| Поле | Тип | Назначение |
+|---|---|---|
+| `schema_version` | integer | Должно быть `3`. |
+| `request_id` | string | Уникальный идентификатор запроса. |
+| `action` | string | `execute_command`, `set_selection_filter`, `switch_module` или диагностическое действие Bridge. |
+| `command_id` | string | Точный NX `BUTTON ID`; обязателен кроме допустимого `switch_module`. |
+| `command_name` | string | Читаемое имя. |
+| `sequence` | string | Нормализованная внутренняя последовательность, включая module prefix. |
+| `module_id` | string | Ожидаемый runtime module. |
+| `target_application_id` | string | Целевое приложение для `switch_module`. |
+| `selection_filter` | string | Тип global selection filter. |
+| `created_utc` | ISO-8601 string | Время создания. |
+| `expires_utc` | ISO-8601 string | Срок действия; default lifetime в коде — 15 секунд. |
+| `source_process_id` | integer | PID процесса-источника. |
+| `expected_context_revision` | integer | Ожидаемая revision контекста. |
+| `expected_selection_count` | integer | Ожидаемое число выбранных объектов; `-1` означает «не проверять/неизвестно». |
+| `expected_application_id` | string | Ожидаемое активное приложение NX. |
+| `destructive` | boolean | Потенциально разрушительная операция. |
+| `confirmation_accepted` | boolean | Явное подтверждение пользователя. |
+
+## Действия
+
+### `execute_command`
+
+Bridge проверяет контекст и вызывает точный `command_id` через NX MenuBar/DialogTester. Если задан `selection_filter`, фильтр применяется перед вызовом команды.
+
+### `set_selection_filter`
+
+```json
+{
+  "schema_version": 3,
+  "request_id": "20260728-filter-edge",
+  "action": "set_selection_filter",
+  "command_id": "UG_SEL_EDGE_PRIORITY",
+  "command_name": "Edge",
+  "sequence": "F S E",
+  "module_id": "selection_object",
   "selection_filter": "edge",
-  "expected_context_revision": 14,
-  "expected_selection_count": 0,
-  "confirmation_accepted": true
+  "created_utc": "2026-07-28T19:30:00Z",
+  "expires_utc": "2026-07-28T19:30:15Z",
+  "expected_context_revision": 42,
+  "expected_selection_count": -1,
+  "destructive": false,
+  "confirmation_accepted": false
 }
 ```
 
-### Field Definitions
+Допустимые значения:
 
-| Field | Type | Description | Mandatory | Validation Rules |
-|---|---|---|---|---|
-| `request_id` | String | Unique request identifier | Yes | Non-empty alphanumeric string |
-| `created_utc` | String (ISO-8601) | UTC timestamp of creation | Yes | Must be valid ISO-8601 timestamp |
-| `expires_utc` | String (ISO-8601) | Request expiration time | Yes | Expiration timeout (default: 5000 ms) |
-| `module_id` | String | Active module ID | Yes | Must match registered module ID |
-| `button_id` | String | Target Siemens NX `BUTTON ID` | Yes | Non-empty string matching menu command |
-| `action_name` | String | Human-readable action name | Yes | Informational label |
-| `action` | String | Bridge execution mode | No | `execute_command` or `set_selection_filter`; defaults to `execute_command` |
-| `selection_filter` | String | Selection filter requested by HotkeyStudio | No | `none`, `all`, `reset`, `edge`, `face`, `body`, `component`, `curve`, `datum`, `feature`, `operation` |
-| `expected_context_revision` | Integer | Expected context revision counter | Yes | Must match `context.json` revision |
-| `expected_selection_count` | Integer | Minimum required object selection | No | Default `0` |
-| `confirmation_accepted` | Boolean | Confirmation flag for destructive ops | Yes | `true` if operation required & accepted |
-
-### Selection Filter Requests
-
-For `action: "set_selection_filter"`, `button_id` remains the original NX `UG_SEL_*` command for traceability, but CommandBridge does not call it as a menu button. It normalizes `selection_filter`, applies the matching NXOpen global filter members, and clears/resets global selection state for `reset` and `all`.
-
-For `action: "execute_command"`, `selection_filter` is optional. When present, CommandBridge applies the filter first and then invokes the requested `BUTTON ID`, so commands such as Edge Blend and Edge Chamfer can open their native NX selection workflow instead of being blocked by HotkeyStudio preselection rules.
-
----
-
-## 3. IPC Response Formats (`completed/*.json` / `failed/*.json`)
-
-Written by `NX2512_CommandBridge` upon operation completion or failure.
-
-```json
-{
-  "request_id": "req_1721800000000_a1b2",
-  "status": "completed",
-  "button_id": "UG_MODELING_EXTRUDE",
-  "duration_ms": 12,
-  "executed_utc": "2026-07-24T07:30:00.0120000Z",
-  "error_message": null,
-  "interrupted_unknown": false
-}
+```text
+none, all, reset, edge, face, body, component,
+curve, datum, feature, operation
 ```
 
-If execution fails or is interrupted:
+`command_id` сохраняется для трассировки. Bridge не обязан запускать `UG_SEL_*` как menu button: он применяет `NXOpen.Select.FilterMember`.
+
+### `switch_module`
+
+Для смены приложения требуется `target_application_id` либо подходящий `command_id`. HFSM завершает switch только после нового контекста с подтверждённым приложением/модулем.
+
+## Валидация запроса
+
+`NxCommandRequest.Validate()` проверяет:
+
+- protocol schema 3;
+- непустой `request_id`;
+- непустой `action`;
+- обязательный `command_id` для обычного действия;
+- target application для switch;
+- filter или command ID для `set_selection_filter`;
+- expiry;
+- явное подтверждение destructive-запроса.
+
+## `NxContextSnapshot`
 
 ```json
 {
-  "request_id": "req_1721800000000_a1b2",
-  "status": "failed",
-  "button_id": "UG_MODELING_EXTRUDE",
-  "duration_ms": 5000,
-  "executed_utc": "2026-07-24T07:30:05.0000000Z",
-  "error_message": "Request expired prior to execution in NX",
-  "interrupted_unknown": true
-}
-```
-
----
-
-## 4. Context Export Format (`context.json`)
-
-Continuously updated by `NX2512_CommandBridge` when the Siemens NX active application or selection state changes.
-
-```json
-{
-  "revision": 14,
-  "timestamp_utc": "2026-07-24T07:30:00.0000000Z",
+  "schema_version": 3,
+  "revision": 42,
+  "status": "running",
   "application_id": "UG_APP_MODELING",
-  "module_id": "MOD_MODELING",
-  "selection_count": 0,
-  "active_part_name": "model1.prt",
-  "has_active_part": true,
-  "is_modal_dialog_open": false,
-  "bridge_version": "2.0.0"
+  "module_id": "modeling",
+  "module_label": "Modeling",
+  "selection_count": 2,
+  "selection_state": "known",
+  "selected_types": ["Edge"],
+  "work_part_available": true,
+  "display_part_available": true,
+  "modal_dialog_active": false,
+  "active_command_id": "",
+  "context_confidence": 100,
+  "updated_utc": "2026-07-28T19:30:00Z",
+  "last_request_id": "20260728-001",
+  "last_result": "executed",
+  "last_message": "OK"
 }
 ```
 
----
+### Семантика
 
-## 5. Bridge Status Format (`status.json`)
+- `selection_count = -1` — число неизвестно, не ноль;
+- `selection_state` описывает достоверность выбора;
+- `revision` меняется при семантическом изменении;
+- `updated_utc` используется для freshness;
+- default freshness в protocol — 3 секунды;
+- UI-компоненты могут использовать более мягкий порог отображения, но dispatch обязан соблюдать policy.
 
-Heartbeat and diagnostic status written by `NX2512_CommandBridge`.
+## `NxCommandResult`
 
 ```json
 {
-  "bridge_active": true,
-  "heartbeat_utc": "2026-07-24T07:30:00.0000000Z",
-  "processed_requests_count": 42,
-  "failed_requests_count": 0,
-  "nx_process_id": 12344,
-  "nx_version": "2512.6000"
+  "schema_version": 3,
+  "request_id": "20260728-001",
+  "status": "executed",
+  "message": "OK",
+  "context_revision": 42,
+  "completed_utc": "2026-07-28T19:30:01Z"
 }
 ```
+
+Успешными считаются статусы `executed` и `completed`. Ошибки, reject и `interrupted_unknown` сопровождаются диагностическим `message`.
+
+## Queue semantics
+
+1. HotkeyStudio атомарно создаёт запрос в `pending`.
+2. Bridge перемещает его в `processing`.
+3. После выполнения создаётся result JSON.
+4. Запрос архивируется в `completed` или `failed`.
+5. Повторный `request_id` не выполняется повторно.
+6. Незавершённый запрос после сбоя NX получает `interrupted_unknown`.
+
+Это обеспечивает at-most-once поведение для потенциально разрушительных действий.
+
+## Совместимость с полной картой
+
+Поля `frequency`, `catalog_refs`, `resolution_status` и `resolution_candidates` относятся к profile layer и в IPC не передаются. Bridge получает только точный исполняемый `command_id`, action, context expectations и safety flags.
