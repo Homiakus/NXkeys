@@ -1,21 +1,39 @@
-name: Full Command Map
+name: Main K3-K5 Profile
 
 on:
   push:
     paths:
       - 'config/full-command-map/**'
       - 'scripts/compile-full-command-map.mjs'
-      - 'scripts/validate-full-command-map.mjs'
+      - 'scripts/compile-main-command-map.mjs'
+      - 'scripts/validate-main-command-map.mjs'
+      - 'install-main-profile.ps1'
+      - 'install-full-command-profile.ps1'
+      - 'install-nx-ribbon-buttons.ps1'
+      - 'NX2512_HotkeyStudio/build.ps1'
       - 'NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs'
       - 'config/nx2512-pro-hybrid.json'
+      - 'README.md'
+      - 'FULL_COMMAND_MAP.md'
+      - 'docs/**'
+      - 'NX2512_ControlCenter/README.md'
       - '.github/workflows/full-command-map.yml'
   pull_request:
     paths:
       - 'config/full-command-map/**'
       - 'scripts/compile-full-command-map.mjs'
-      - 'scripts/validate-full-command-map.mjs'
+      - 'scripts/compile-main-command-map.mjs'
+      - 'scripts/validate-main-command-map.mjs'
+      - 'install-main-profile.ps1'
+      - 'install-full-command-profile.ps1'
+      - 'install-nx-ribbon-buttons.ps1'
+      - 'NX2512_HotkeyStudio/build.ps1'
       - 'NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs'
       - 'config/nx2512-pro-hybrid.json'
+      - 'README.md'
+      - 'FULL_COMMAND_MAP.md'
+      - 'docs/**'
+      - 'NX2512_ControlCenter/README.md'
       - '.github/workflows/full-command-map.yml'
   workflow_dispatch:
 
@@ -30,5 +48,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Validate 1169-command map
-        run: node scripts/validate-full-command-map.mjs
+      - name: Validate main K3-K5 profile and optional K1-K5 export
+        run: node scripts/validate-main-command-map.mjs
