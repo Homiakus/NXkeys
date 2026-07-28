@@ -86,8 +86,11 @@ function validateGeneratedProfile(profile, expectedIntents, expectedFrequencies,
   const seenRefs = new Set();
   let commandCount = 0;
   let enabledCount = 0;
-  for (const module of (profile.modules ?? []).filter(item => item && item.enabled !== false)) {
+  let supportCount = 0;
+  const enabledModules = (profile.modules ?? []).filter(item => item && item.enabled !== false);
+  for (const module of enabledModules) {
     const rows = (module.command_sets ?? []).flatMap(set => set.commands ?? []);
+    if (!rows.length) fail(`Enabled module has no commands: ${module.id}.`);
     commandCount += rows.length;
     const allPaths = [];
     for (const command of rows) {
@@ -100,15 +103,26 @@ function validateGeneratedProfile(profile, expectedIntents, expectedFrequencies,
         const aliasKey = keyOf(alias);
         if (aliasKey) allPaths.push({ key: aliasKey, kind: 'alias', name: command.command?.name });
       }
-      const refs = [...(command.catalog_refs ?? [])];
+
       const fallback = String(command.fallback ?? '');
+      const refs = [...(command.catalog_refs ?? [])];
       if (fallback.startsWith('catalog:')) refs.push(fallback.slice('catalog:'.length));
-      for (const reference of refs) {
-        seenRefs.add(reference);
-        if (!allowedRefs.has(reference)) fail(`Profile contains intent outside selected frequency scope: ${reference}.`);
+      if (command.profile_support === true) {
+        supportCount += 1;
+        if (module.id !== 'selection_object') fail(`Support command is outside selection_object: ${module.id}/${command.command?.name}.`);
+        if (command.action !== 'set_selection_filter') fail(`Support command has invalid action: ${module.id}/${command.command?.name}.`);
+        if (!/^UG_SEL_/i.test(String(command.command?.id ?? ''))) fail(`Support command has invalid ID: ${module.id}/${command.command?.name}.`);
+        if (refs.length) fail(`Support command must not claim catalog coverage: ${module.id}/${command.command?.name}.`);
+        if (command.frequency !== 'support') fail(`Support command has invalid frequency marker: ${module.id}/${command.command?.name}.`);
+      } else {
+        for (const reference of refs) {
+          seenRefs.add(reference);
+          if (!allowedRefs.has(reference)) fail(`Profile contains intent outside selected frequency scope: ${reference}.`);
+        }
+        if (!expectedFrequencies.includes(command.frequency))
+          fail(`Profile row has frequency outside scope: ${module.id}/${command.command?.name}/${command.frequency}.`);
+        if (!refs.length) fail(`Non-support profile row has no catalog reference: ${module.id}/${command.command?.name}.`);
       }
-      if (!expectedFrequencies.includes(command.frequency))
-        fail(`Profile row has frequency outside scope: ${module.id}/${command.command?.name}/${command.frequency}.`);
       if (command.enabled !== false && !command.command?.id)
         fail(`Enabled command has no BUTTON ID: ${module.id}/${command.command?.name}.`);
       if (fallback.startsWith('catalog:') && !command.resolution_status)
@@ -126,6 +140,8 @@ function validateGeneratedProfile(profile, expectedIntents, expectedFrequencies,
   if (seenRefs.size !== expectedIntents) fail(`Generated profile covers ${seenRefs.size} unique intents, expected ${expectedIntents}.`);
   if (commandCount < expectedIntents) fail(`Generated profile contains only ${commandCount} rows for ${expectedIntents} intents.`);
   if (enabledCount < 1) fail('Generated profile has no executable command rows.');
+  if (supportCount < 1) fail('Generated profile has no runtime selection support commands.');
+  if (metadata.support_commands !== supportCount) fail(`Metadata reports ${metadata.support_commands} support commands, actual ${supportCount}.`);
 }
 
 function validateDocumentation() {
@@ -196,7 +212,7 @@ try {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   }
 
-  if (!failed) console.log(`[main-command-map] OK: 1169 source intents; main K3-K5 profile covers ${EXPECTED_MAIN_INTENTS} intents; optional all-frequency profile validated.`);
+  if (!failed) console.log(`[main-command-map] OK: 1169 source intents; main K3-K5 profile covers ${EXPECTED_MAIN_INTENTS} intents; selection support and optional all-frequency profile validated.`);
 } catch (error) {
   fail(error?.stack || error?.message || String(error));
 }
