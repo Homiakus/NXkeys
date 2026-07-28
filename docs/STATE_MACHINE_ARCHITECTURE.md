@@ -2,16 +2,16 @@
 
 ## Назначение
 
-Контекстные сочетания NXKeys реализованы четырьмя согласованными слоями:
+Контекстный ввод NXKeys реализован четырьмя слоями:
 
-1. `SequenceAutomaton` — детерминированный автомат распознавания клавишных последовательностей.
-2. `LeaderStateMachine` — иерархический автомат пользовательского взаимодействия.
-3. `ContextGuardEvaluator` — единая проверка контекста Siemens NX перед dispatch.
-4. `LeaderBehaviorProfile` — декларативные guards, fallback-действия и таймауты состояний.
+1. `SequenceAutomaton` — DFA для prefix-free последовательностей.
+2. `LeaderStateMachine` — HFSM пользовательского взаимодействия.
+3. `ContextGuardEvaluator` — единая проверка контекста NX.
+4. `LeaderBehaviorProfile` — декларативные guards, fallback и таймауты.
 
-Windows keyboard hook не выполняет команды и не изменяет бизнес-состояние напрямую. Он только формирует события, которые последовательно обрабатываются WinForms event loop.
+Keyboard hook не выполняет команды напрямую. Он помещает события в WinForms queue, поэтому переходы состояния выполняются последовательно.
 
-## Состояния Leader
+## Состояния HFSM
 
 ```text
 Idle
@@ -25,26 +25,46 @@ SwitchingModule
 Failed
 ```
 
-Ключевые инварианты:
+Инварианты:
 
-- выполнение команды возможно только из `Dispatching`;
+- dispatch возможен только из `Dispatching`;
 - destructive-команда проходит через `AwaitingConfirmation`;
-- смена модуля считается завершённой только после нового `context.json` с целевым `module_id`;
-- `Esc`, потеря фокуса NX и остановка движка всегда приводят в `Idle`;
-- non-sticky тайм-аут всегда освобождает keyboard capture;
-- ошибка записи запроса немедленно завершает `Dispatching` и освобождает автомат;
-- завершение запроса переводит автомат в `Idle` или `Root` для sticky-режима.
+- `Esc`, потеря фокуса NX и остановка движка возвращают `Idle`;
+- ошибка записи запроса освобождает keyboard capture;
+- результат переводит HFSM в `Idle` или `Root` sticky-режима;
+- смена модуля считается завершённой только после нового подтверждённого контекста.
 
 ## DFA последовательностей
 
-При запуске профиль компилируется в trie/DFA. Компилятор отклоняет:
+При загрузке runtime schema 5 компилируется trie/DFA. Последовательность содержит:
 
-- пустые последовательности;
+```text
+<внутренний префикс модуля> + <2–5 токенов пользовательского пути>
+```
+
+Пример:
+
+```text
+Пользователь: CapsLock → E → E → B
+DFA:          M → E → E → B
+Команда:      Modeling → Edit → Edge → Blend
+```
+
+Компилятор отклоняет:
+
+- пустые пути;
 - дубликаты после нормализации;
-- узлы, которые одновременно являются командой и префиксом более длинной команды;
-- команды без достижимого терминального состояния.
+- команду, которая одновременно является терминалом и префиксом;
+- конфликтующий alias;
+- недостижимый терминал.
 
-Каждый ввод имеет один однозначный переход. Поиск команд является отдельным состоянием HFSM и не изменяет DFA.
+Одинаковый пользовательский путь допустим в разных модулях, потому что внутренний префикс различается.
+
+## Связь с полной картой
+
+Полная карта содержит 1169 намерений. `scripts/compile-full-command-map.mjs` заранее резервирует prefix-free пути внутри каждого модуля, а runtime `MnemonicPathGenerator` повторно нормализует профиль и защищает legacy-команды/aliases.
+
+Восемь клавиш legacy-grid относятся только к быстрым primary aliases. DFA поддерживает многоуровневое дерево и не ограничивает модуль восемью командами.
 
 ## Декларативная policy
 
@@ -54,45 +74,23 @@ Failed
 config/nx2512-state-machines.json
 ```
 
-автоматически включается в `dotnet publish` и устанавливаемый managed-пакет. Альтернативный путь можно задать через:
+Policy задаёт:
 
-```text
-NXKEYS_STATE_MACHINE_CONFIG
-```
-
-Policy содержит отдельные таймауты:
-
-```json
-{
-  "timeouts": {
-    "root_ms": 4000,
-    "prefix_ms": 2500,
-    "search_ms": 5000,
-    "confirmation_ms": 10000,
-    "result_ms": 20000,
-    "module_switch_ms": 8000
-  }
-}
-```
-
-Для каждой нормализованной последовательности можно определить:
-
+- таймауты состояний;
 - допустимые модули;
-- допустимые состояния Bridge;
-- допустимое состояние взаимодействия: `idle`, `modal_dialog`, `command_active`;
-- минимальную достоверность контекста;
-- необходимость work/display part;
-- минимальное и максимальное число выбранных объектов;
-- `types_any` и `types_all` для выбранных NXOpen-типов;
-- обязательное подтверждение;
-- формальное действие `on_unavailable`.
+- interaction state;
+- Work/Display Part;
+- минимальный confidence;
+- selection count и selected types;
+- подтверждение;
+- `on_unavailable`.
 
-Пример:
+Пример актуального многоуровневого ключа:
 
 ```json
 {
   "commands": {
-    "MB": {
+    "MEEB": {
       "guards": {
         "modules": ["modeling"],
         "require_work_part": true,
@@ -106,31 +104,24 @@ Policy содержит отдельные таймауты:
         "action": "show_reason",
         "message": "Выберите одно или несколько рёбер"
       }
-    },
-    "DB": {
-      "guards": {
-        "modules": ["drafting"]
-      },
-      "on_unavailable": {
-        "action": "switch_module",
-        "target_module": "drafting",
-        "retry_once": true
-      }
     }
   }
 }
 ```
 
-`switch_module` не меняет локальный модуль немедленно. HFSM переходит в `SwitchingModule` и продолжает команду только после подтверждённого `context.module_id`.
+Policy может использовать `switch_module`, но локальный модуль не меняется заранее. HFSM ждёт новый `context.module_id` и revision.
 
 ## Контекст NX
 
-Bridge публикует `NxContextSnapshot`:
+Bridge публикует `NxContextSnapshot` protocol schema 3:
 
 ```text
+schema_version
 revision
+status
 application_id
 module_id
+module_label
 selection_count
 selection_state
 selected_types
@@ -140,24 +131,38 @@ modal_dialog_active
 active_command_id
 context_confidence
 updated_utc
+last_request_id
+last_result
+last_message
 ```
 
-`revision` изменяется только при семантическом изменении контекста. Обновление времени само по себе не увеличивает revision.
+`revision` изменяется при семантическом изменении контекста. Простое обновление heartbeat не должно создавать ложную ревизию.
 
-Перед постановкой команды в очередь клиент проверяет свежесть контекста. Перед фактическим выполнением Bridge повторно проверяет:
+## Проверки перед выполнением
 
-- срок действия запроса;
+Клиент проверяет свежесть контекста и policy. Bridge повторно проверяет:
+
+- protocol schema;
+- request expiry;
 - `expected_context_revision`;
 - `expected_selection_count`;
-- `action` и `selection_filter`;
 - `expected_application_id`;
-- отсутствие модального диалога;
-- соответствие модуля;
+- active module;
+- modal dialog;
+- destructive confirmation;
 - наличие и чувствительность NX `BUTTON ID`.
 
-`requires_selection` в профиле больше не означает безусловную блокировку до запуска команды. Для интерактивных NX-команд это описание ожидаемого workflow и `selection_type`; команда может открыться с пустым выбором, если policy не требует preselect. Жёсткая блокировка остаётся только там, где policy задаёт положительный `expected_selection_count` или операция реально действует над уже выбранными объектами.
+`requires_selection` описывает ожидаемый workflow, но не всегда требует preselection. Жёсткий минимум задаётся policy или конкретной опасной операцией.
 
-Selection-фильтры проходят отдельным действием `set_selection_filter`. В этом режиме DFA/HFSM выбирает команду как обычно, но Bridge применяет глобальные фильтры NXOpen (`edge`, `face`, `body`, `component`, `curve`, `datum`, `feature`, `operation`, `all`, `reset`) вместо вызова `UG_SEL_*` через меню.
+## Selection filters
+
+```text
+action = set_selection_filter
+selection_filter = none | all | reset | edge | face | body |
+                   component | curve | datum | feature | operation
+```
+
+Bridge применяет global `NXOpen.Select.FilterMember` и не вызывает `UG_SEL_*` как обычную кнопку меню.
 
 ## Надёжная очередь
 
@@ -169,40 +174,31 @@ processing
 completed | failed
 ```
 
-Файл сначала атомарно перемещается из `pending` в `processing`. После результата создаётся `<request_id>.result.json`, затем архивируется исходный запрос.
+После выполнения создаётся result JSON. Если NX завершился во время `processing`, запрос переводится в `interrupted_unknown` и не повторяется автоматически. Повторный `request_id` не исполняется.
 
-Если NX аварийно завершился во время `processing`, запрос не воспроизводится автоматически. При следующем запуске он получает результат `interrupted_unknown` и переносится в `failed`. Это обеспечивает at-most-once поведение для потенциально разрушительных команд.
+## Протокол
 
-Повторный `request_id` не исполняется: Bridge использует существующий результат.
+Общий source-файл:
 
-## Общий протокол
+```text
+NXKeys.Protocol/NxProtocol.cs
+```
 
-Файл `NXKeys.Protocol/NxProtocol.cs` подключается как shared source в HotkeyStudio и CommandBridge. Это обеспечивает единственную модель snake_case JSON без дополнительной runtime-DLL внутри NX.
-
-Текущая версия протокола: `schema_version = 3`.
+Текущая версия IPC: `schema_version = 3`.
 
 ## Проверки CI
 
 CI выполняет:
 
-- компиляцию и запуск DFA/HFSM-инвариантов;
-- deterministic replay одного event log;
-- randomized-проверку 20 000 переходов;
-- проверку запрета обхода confirmation;
-- проверку типизированных selection guards;
-- проверку fallback `switch_module`;
-- проверку загрузки декларативных таймаутов;
-- проверку snake_case round-trip;
-- проверку expiry;
-- проверку destructive confirmation;
-- сборку HotkeyStudio и Control Center;
-- проверку наличия policy JSON в publish output;
-- компиляцию CommandBridge против минимального NXOpen contract stub;
-- статическую проверку отсутствия старых неявных флагов;
-- проверку queue/context/deployment-инвариантов.
+- компиляцию DFA/HFSM-инвариантов;
+- deterministic replay;
+- randomized transitions;
+- запрет обхода confirmation;
+- typed selection guards;
+- `switch_module` fallback;
+- expiry и at-most-once queue semantics;
+- snake_case round-trip protocol schema 3;
+- проверку 1169 intent paths и конфликтов префиксов;
+- сборку HotkeyStudio, Control Center и CommandBridge contract.
 
-Contract stubs используются только в CI. Поставляемый Bridge по-прежнему собирается против DLL конкретной установленной версии Siemens NX 2512.
-
-## Границы проверки
-
-Contract build подтверждает компилируемость и ожидаемую форму используемого NXOpen API, но не заменяет интеграционный тест внутри реального NX. Перед эксплуатацией destructive-команд необходимо проверить Bridge на целевой сборке NX, роли и лицензии.
+Contract stubs подтверждают форму используемого API, но не заменяют интеграционный тест внутри лицензированной NX.
