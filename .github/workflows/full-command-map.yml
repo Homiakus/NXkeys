@@ -1,0 +1,34 @@
+name: Full Command Map
+
+on:
+  push:
+    paths:
+      - 'config/full-command-map/**'
+      - 'scripts/compile-full-command-map.mjs'
+      - 'scripts/validate-full-command-map.mjs'
+      - 'NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs'
+      - 'config/nx2512-pro-hybrid.json'
+      - '.github/workflows/full-command-map.yml'
+  pull_request:
+    paths:
+      - 'config/full-command-map/**'
+      - 'scripts/compile-full-command-map.mjs'
+      - 'scripts/validate-full-command-map.mjs'
+      - 'NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs'
+      - 'config/nx2512-pro-hybrid.json'
+      - '.github/workflows/full-command-map.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate 1169-command map
+        run: node scripts/validate-full-command-map.mjs
