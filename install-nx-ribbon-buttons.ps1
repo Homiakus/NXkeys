@@ -1,8 +1,10 @@
 [CmdletBinding()]
 param(
     [string]$ConfigPath,
+    [string]$CatalogDir,
     [string]$NxRoot,
     [string]$NxOpenDll,
+    [switch]$AllFrequencies,
     [switch]$Clean,
     [switch]$NoBuild,
     [switch]$AllowRunningNX,
@@ -16,15 +18,51 @@ Set-Location $ScriptDir
 
 function Write-Step([string]$Text) { Write-Host "`n==> $Text" -ForegroundColor Cyan }
 
-function Resolve-Config([string]$Requested) {
-    $candidate = if ([string]::IsNullOrWhiteSpace($Requested)) {
-        Join-Path $ScriptDir 'config\nx2512-pro-hybrid.json'
-    } else {
-        [Environment]::ExpandEnvironmentVariables($Requested)
+function Assert-Node20 {
+    $node = Get-Command node -ErrorAction SilentlyContinue
+    if (-not $node) { throw 'Node.js 20+ не найден. Он требуется для главного профиля K3–K5.' }
+    $major = [int]((& $node.Source --version).TrimStart('v').Split('.')[0])
+    if ($major -lt 20) { throw "Требуется Node.js 20+, обнаружена версия $(& $node.Source --version)." }
+    return $node.Source
+}
+
+function Resolve-Catalog([string]$Requested) {
+    if ([string]::IsNullOrWhiteSpace($Requested)) { return '' }
+    $expanded = [Environment]::ExpandEnvironmentVariables($Requested)
+    if (-not (Test-Path -LiteralPath $expanded -PathType Container)) { throw "Каталог NX2512_Catalog_Studio не найден: $expanded" }
+    $resolved = (Resolve-Path -LiteralPath $expanded).Path
+    if (-not (Test-Path -LiteralPath (Join-Path $resolved '06_ui_commands_buttons.csv') -PathType Leaf)) {
+        throw "В каталоге отсутствует 06_ui_commands_buttons.csv: $resolved"
     }
-    if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
-        throw "Канонический профиль NXKeys не найден: $candidate"
+    return $resolved
+}
+
+function Resolve-Config([string]$Requested, [string]$ResolvedCatalog, [switch]$UseAllFrequencies) {
+    if (-not [string]::IsNullOrWhiteSpace($Requested)) {
+        $candidate = [Environment]::ExpandEnvironmentVariables($Requested)
+        if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { throw "Профиль NXKeys не найден: $candidate" }
+        return (Resolve-Path -LiteralPath $candidate).Path
     }
+
+    $node = Assert-Node20
+    $fileName = if ($UseAllFrequencies) { 'nx2512-pro-all.generated.json' } else { 'nx2512-pro-main.generated.json' }
+    $reportName = if ($UseAllFrequencies) { 'all-frequency-resolution.md' } else { 'main-profile-resolution.md' }
+    $candidate = Join-Path $ScriptDir (Join-Path 'config' $fileName)
+    $report = Join-Path $ScriptDir (Join-Path 'docs\generated' $reportName)
+    $compileArgs = @(
+        (Join-Path $ScriptDir 'scripts\compile-main-command-map.mjs'),
+        '--profile', (Join-Path $ScriptDir 'config\nx2512-pro-hybrid.json'),
+        '--intents', (Join-Path $ScriptDir 'config\full-command-map'),
+        '--probe', (Join-Path $ScriptDir 'docs\audit\runtime-command-probe-2026-07-28.json'),
+        '--out', $candidate,
+        '--report', $report
+    )
+    if (-not [string]::IsNullOrWhiteSpace($ResolvedCatalog)) { $compileArgs += @('--catalog-dir', $ResolvedCatalog) }
+    if ($UseAllFrequencies) { $compileArgs += '--all-frequencies' }
+
+    Write-Step $(if ($UseAllFrequencies) { 'Компиляция совместимого профиля K1–K5' } else { 'Компиляция главного профиля K3–K5 (885 намерений)' })
+    & $node @compileArgs
+    if ($LASTEXITCODE -ne 0) { throw 'Не удалось скомпилировать профиль NXKeys.' }
     return (Resolve-Path -LiteralPath $candidate).Path
 }
 
@@ -106,15 +144,21 @@ function Repair-UserUgiiCustomDirs([string]$ManagedRoot) {
     }
 }
 
-$config = Resolve-Config $ConfigPath
+$catalog = Resolve-Catalog $CatalogDir
+$config = Resolve-Config -Requested $ConfigPath -ResolvedCatalog $catalog -UseAllFrequencies:$AllFrequencies
 $configJson = Get-Content -LiteralPath $config -Raw -Encoding UTF8 | ConvertFrom-Json
 $schemaVersion = [int]$configJson.schema_version
 if ($schemaVersion -lt 3 -or $schemaVersion -gt 4) { throw 'Для установки требуется schema_version=3 или 4.' }
 if ($configJson.leader_key.adaptive_module_mode -ne $true) { throw 'Для установки требуется adaptive_module_mode=true.' }
+if ($configJson.full_command_catalog) {
+    $scope = @($configJson.full_command_catalog.selected_frequencies) -join ', '
+    $selected = [int]$configJson.full_command_catalog.selected_intents
+    Write-Host "Главный профиль: $scope; намерений: $selected" -ForegroundColor Green
+}
 
-Write-Step 'Проверка 12 базовых сочетаний и адаптивных модулей'
+Write-Step 'Проверка 12 базовых сочетаний, 14 модулей и покрытия K3–K5'
 & node (Join-Path $ScriptDir 'scripts\validate-command-tree.mjs')
-if ($LASTEXITCODE -ne 0) { throw 'Канонический профиль не прошёл структурную проверку.' }
+if ($LASTEXITCODE -ne 0) { throw 'Главный профиль не прошёл структурную проверку.' }
 
 $managedRoot = [Environment]::ExpandEnvironmentVariables([string]$configJson.deployment.managed_root)
 if ([string]::IsNullOrWhiteSpace($managedRoot)) { throw 'deployment.managed_root отсутствует в профиле.' }
@@ -173,7 +217,9 @@ $controlDist = Join-Path $ScriptDir 'NX2512_ControlCenter\dist'
 if (-not $NoBuild) {
     $psExe = if (Get-Command pwsh -ErrorAction SilentlyContinue) { (Get-Command pwsh).Source } else { 'powershell' }
     Write-Step 'Сборка адаптивного HotkeyStudio'
-    $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $hotkeyProject 'build.ps1'))
+    $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $hotkeyProject 'build.ps1'), '-ProfilePath', $config)
+    if (-not [string]::IsNullOrWhiteSpace($catalog)) { $args += @('-CatalogDir', $catalog) }
+    if ($AllFrequencies) { $args += '-AllFrequencies' }
     if ($Clean) { $args += '-Clean' }
     & $psExe @args
     if ($LASTEXITCODE -ne 0) { throw "Сборка HotkeyStudio завершилась с кодом $LASTEXITCODE." }
@@ -233,17 +279,15 @@ try {
         $desktopDir = [Environment]::GetFolderPath('Desktop')
         if (Test-Path -LiteralPath $desktopDir) {
             $desktopShortcut = Join-Path $desktopDir 'Siemens NX 2512 (NXKeys).lnk'
-            New-WindowsShortcut -ShortcutPath $desktopShortcut -TargetPath $launcherCmd -WorkingDirectory $managedRoot -Description 'Запуск Siemens NX 2512 с подсистемой NXKeys'
+            New-WindowsShortcut -ShortcutPath $desktopShortcut -TargetPath $launcherCmd -WorkingDirectory $managedRoot -Description 'Запуск Siemens NX 2512 с главным профилем NXKeys K3–K5'
         }
 
         $startMenuPrograms = [Environment]::GetFolderPath('Programs')
         if (Test-Path -LiteralPath $startMenuPrograms) {
             $nxkeysFolder = Join-Path $startMenuPrograms 'NXKeys'
-            if (-not (Test-Path -LiteralPath $nxkeysFolder)) {
-                New-Item -ItemType Directory -Force -Path $nxkeysFolder | Out-Null
-            }
+            if (-not (Test-Path -LiteralPath $nxkeysFolder)) { New-Item -ItemType Directory -Force -Path $nxkeysFolder | Out-Null }
             $startMenuShortcut = Join-Path $nxkeysFolder 'Siemens NX 2512 (NXKeys).lnk'
-            New-WindowsShortcut -ShortcutPath $startMenuShortcut -TargetPath $launcherCmd -WorkingDirectory $managedRoot -Description 'Запуск Siemens NX 2512 с подсистемой NXKeys'
+            New-WindowsShortcut -ShortcutPath $startMenuShortcut -TargetPath $launcherCmd -WorkingDirectory $managedRoot -Description 'Запуск Siemens NX 2512 с главным профилем NXKeys K3–K5'
 
             if (Test-Path -LiteralPath $controlCenterExe) {
                 $controlShortcut = Join-Path $nxkeysFolder 'NXKeys Control Center.lnk'
@@ -255,8 +299,9 @@ try {
     Write-Step 'Согласование UGII_CUSTOM_DIRECTORY_FILE со старой кастомизацией'
     Repair-UserUgiiCustomDirs $managedRoot
 
-    Write-Host "`nNXKeys Adaptive Modules установлен успешно." -ForegroundColor Green
+    Write-Host "`nNXKeys Main K3–K5 Profile установлен успешно." -ForegroundColor Green
     Write-Host "Managed root: $managedRoot"
+    Write-Host "Главный профиль K3–K5 установлен как: $(Join-Path $managedRoot 'nx2512-pro-hybrid.json')" -ForegroundColor Green
     Write-Host "Запуск NX: $(Join-Path $managedRoot 'launch-nx2512-with-nxkeys.cmd')" -ForegroundColor Yellow
 }
 finally {
