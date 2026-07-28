@@ -54,10 +54,10 @@ function loadIntents() {
 
 function validateDocumentation() {
   const required = {
-    'README.md': ['1169', '32 раздел', 'install-full-command-profile.ps1', 'source profile schema 4', 'runtime schema v5'],
+    'README.md': ['1169', '32 раздел', 'install-full-command-profile.ps1', '`schema_version: 4`', 'runtime schema v5'],
     'FULL_COMMAND_MAP.md': ['1169', '32 раздел', 'Node.js 20+', '06_ui_commands_buttons.csv', 'ambiguous', 'unresolved'],
     'docs/README.md': ['1169', 'source schema 4', 'runtime schema 5', 'IPC', 'Исторические аудиты'],
-    'docs/CONFIGURATION.md': ['full_command_catalog', 'catalog_refs', 'resolution_status', 'schema_version: 4', 'runtime schema 5'],
+    'docs/CONFIGURATION.md': ['full_command_catalog', 'catalog_refs', 'resolution_status', '"schema_version": 4', 'runtime schema 5'],
     'docs/INSTALLATION.md': ['Node.js 20+', 'install-full-command-profile.ps1', 'CompileOnly', 'full-command-resolution.md'],
     'docs/ARCHITECTURE.md': ['1169', 'prefix-free', 'Legacy primary-grid', 'protocol schema 3'],
     'docs/STATE_MACHINE_ARCHITECTURE.md': ['2–5', 'M → E → E → B', '1169', 'set_selection_filter'],
