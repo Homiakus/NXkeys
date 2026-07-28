@@ -2,15 +2,22 @@
 
 ## 1. Цель
 
-NXKeys использует клавиатурный язык:
+NXKeys использует язык намерений:
 
 ```text
 CapsLock → действие → объект → команда → вариант
 ```
 
-Пользователь запоминает намерение, а не положение команды на ленте NX.
+Пользователь запоминает смысл операции, а не позицию кнопки на ленте NX.
 
-## 2. Корневой алфавит
+Язык обслуживает:
+
+- базовый curated-профиль;
+- 14 контекстных модулей;
+- полную карту из 1169 намерений в 32 разделах;
+- безопасные короткие aliases для частых команд.
+
+## 2. Корневой алфавит действий
 
 | Клавиша | Смысл |
 |---|---|
@@ -29,36 +36,69 @@ CapsLock → действие → объект → команда → вариа
 | `U` | Utilities — выражения, журналы, настройки |
 | `H` | Help — справка, поиск, диагностика |
 
-Значение первой буквы не меняется между модулями.
+Смысл первой буквы не меняется между модулями.
 
 ## 3. Основные объекты
 
 | Клавиша | Объект |
 |---|---|
-| `A` | Annotation |
+| `A` | Annotation / Additive |
 | `B` | Body / Base |
 | `C` | Component |
 | `D` | Dimension / Datum |
 | `E` | Edge |
-| `F` | Feature |
+| `F` | Feature / Frame |
 | `G` | Geometry / Curve |
 | `H` | Sheet Metal |
+| `I` | Inspection |
+| `J` | Fixture |
 | `K` | Constraint |
-| `L` | Layer |
+| `L` | Layout / Layer |
 | `M` | Material / Mold |
 | `N` | Simulation |
 | `O` | CAM Operation |
-| `P` | Part |
+| `P` | Part / Data |
+| `Q` | Quality |
 | `R` | Routing |
-| `S` | Sketch |
+| `S` | Sketch / Selection |
 | `T` | Tool / Template |
 | `U` | Surface |
 | `V` | View |
 | `W` | WAVE |
-| `Y` | Assembly |
+| `Y` | Assembly / Ship |
 | `Z` | Other |
 
-## 4. Modeling
+## 4. Контекст модуля
+
+Пользователь не вводит module prefix. Его добавляет движок:
+
+```text
+Пользователь: CapsLock → C → F → E
+Внутри DFA:  M → C → F → E
+```
+
+`M` здесь означает Modeling. Такой же пользовательский путь может существовать в другом модуле и вести к другой контекстной команде.
+
+## 5. Длина и структура пути
+
+Канонический путь содержит 2–5 буквенно-цифровых токенов:
+
+```text
+действие → объект → команда → вариант → подвариант
+```
+
+Правила:
+
+1. Путь должен читаться как намерение.
+2. Внутри модуля путь уникален.
+3. Ни один путь не является префиксом другого.
+4. Alias не может затенять команду или submenu.
+5. Известные ручные пути имеют приоритет над сгенерированными.
+6. Частота `K5`/`K4` учитывается при проектировании коротких путей, но не отменяет правила безопасности.
+
+## 6. Curated-примеры
+
+### Modeling
 
 ```text
 C S K  Create Sketch
@@ -71,60 +111,33 @@ T F P  Transform Feature Pattern    alias T P
 T F M  Transform Feature Mirror     alias T M
 ```
 
-## 5. Sketch
+### Sketch
 
 ```text
-C G L  Create Geometry Line
-C G R  Create Geometry Rectangle
-C G C  Create Geometry Circle
-C G A  Create Geometry Arc
-E G T  Edit Geometry Trim
-E G E  Edit Geometry Extend
-T G O  Transform Geometry Offset
-```
-
-Подтипы:
-
-```text
-C G L 2  Line by Two Points
-C G L M  Line from Midpoint
-C G R 2  Rectangle by Two Points
-C G R C  Rectangle from Center
+C G L    Line
+C G R    Rectangle
+C G C    Circle
+C G A    Arc
+E G T    Trim
+E G E    Extend
+T G O    Offset Curve
 C G R 3  Rectangle by Three Points
-C G C C  Circle from Center
-C G C 3  Circle by Three Points
-C G A 3  Arc by Three Points
-C G A C  Arc from Center
 ```
 
-Ограничения:
-
-```text
-C K C  Coincident
-C K T  Tangent
-C K P  Parallel
-C K N  Perpendicular
-C K H  Horizontal
-C K V  Vertical
-A D R  Rapid Dimension
-A D L  Linear Dimension
-I S C  Sketch Checker
-```
-
-## 6. Assembly
+### Assembly
 
 ```text
 C C A  Add Component
 C C N  Create New Component
 T C M  Move Component
-C K A  Assembly Constraint
+C K A  Assembly Constraints
 E C R  Replace Component
 X C R  Remove Component
 T C P  Pattern Component
 M N A  Assembly Navigator
 ```
 
-## 7. Drafting и PMI
+### Drafting / PMI
 
 ```text
 C V B  Base View
@@ -132,55 +145,12 @@ C V P  Projected View
 C V S  Section View
 C V D  Detail View
 P V U  Update Views
-E V S  View Style
-A P L  Parts List
 A D R  Rapid Dimension
-```
-
-PMI:
-
-```text
-A D R  Rapid Dimension
-A G D  Datum Feature Symbol
 A G F  Feature Control Frame
 A S F  Surface Finish
-A N P  PMI Note
-E A P  Edit PMI
-V M P  PMI Model View
-I A V  Validate PMI
 ```
 
-## 8. Surface и Sheet Metal
-
-```text
-C U T  Through Curves
-C U S  Swept
-C U D  Studio Surface
-E U T  Trim Sheet
-E U S  Sew
-E U U  Untrim
-C G E  Extract Geometry
-I U C  Face Curvature
-```
-
-Sheet Metal:
-
-```text
-C H B  Base Tab
-C H F  Flange
-C H C  Contour Flange
-E H B  Bend
-T H U  Unbend
-T H R  Rebend
-P H F  Flat Pattern
-I H V  Validate Sheet Metal
-T H C  Sheet Metal from Solid
-C H S  Sheet Feature
-E H E  Extend Sheet
-I H B  Sheet Boundary Analysis
-```
-
-## 9. Manufacturing
+### Manufacturing
 
 ```text
 C O O  Create Operation
@@ -190,72 +160,9 @@ P O V  Verify Tool Path
 P O P  Postprocess
 X O D  Delete Operation
 M N O  Operation Navigator
-I O T  Tool Path Information
 ```
 
-## 10. Simulation
-
-```text
-C N S  Create Solution
-C N L  Create Load
-C N C  Create Constraint
-P N M  Mesh
-P N S  Solve
-X N D  Delete Simulation Object
-M N S  Simulation Navigator
-I N R  Results
-```
-
-## 11. Routing
-
-```text
-C R R  Create Route
-C R P  Place Part
-C R S  Add Stock
-E R R  Edit Route
-X R D  Delete Route Object
-X R P  Remove Part
-M N R  Routing Navigator
-I R V  Validate Route
-```
-
-## 12. Mold и Reuse
-
-```text
-C M I  Initialize Mold Project
-C M P  Parting
-C M B  Mold Base
-C M G  Gate
-C M C  Cooling
-C M E  Ejector
-M L M  Mold Library
-I M V  Validate Mold
-```
-
-Reuse:
-
-```text
-U E X  Expressions
-M L R  Reuse Library
-C T F  Create Feature Template
-E T F  Replace Feature Template
-M N P  Part Navigator
-M P T  Parameter Table
-H C F  Command Finder
-```
-
-## 13. View, Inspect и Selection
-
-```text
-V F T  Fit                       alias V F
-V T R  Trimetric
-I M G  Geometric Measurement     alias I M
-I O B  Object Information
-V H S  Hide Selected
-V S H  Show and Hide
-```
-
-Selection:
+### Selection
 
 ```text
 S B  Body
@@ -270,50 +177,46 @@ S A  Select All
 S N  Select None
 ```
 
-## 14. WAVE, Layers и Materials
+## 7. Полная карта 1169 команд
 
-```text
-M W L  WAVE Geometry Linker
-M W I  WAVE Interface Linker
-M W A  WAVE Associativity Manager
-M W G  WAVE Graph Browser
-M W D  Load WAVE Data
-```
+Исходные намерения находятся в `config/full-command-map/`. Для каждого сохранены:
 
-```text
-M L S  Layer Settings
-M L V  Visible Layers
-M L A  Layer Category
-M L C  Copy to Layer
-M L M  Move to Layer
-I L I  Layer Information
-```
+- стабильный `intent_id`;
+- исходный раздел и группа;
+- `K1–K5`;
+- английское и русское имя;
+- runtime module;
+- path hint.
 
-```text
-M M A  Assign Material
-M M L  Material Library
-M M S  System Materials
-M M P  Part Materials
-V M V  Visual Material Display
-X M V  Remove Visual Override
-```
+`scripts/compile-full-command-map.mjs`:
 
-## 15. Полное покрытие каталога
+1. загружает базовый профиль;
+2. загружает 1169 намерений;
+3. читает каталог `BUTTON ID` конкретной NX;
+4. сохраняет известные ручные пути;
+5. разрешает новые команды;
+6. резервирует prefix-free путь внутри модуля;
+7. удаляет конфликтующие aliases;
+8. отключает ambiguous/unresolved-команды;
+9. создаёт отчёт разрешения.
 
-Список команд NX зависит от лицензий, роли и пользовательских расширений. Поэтому неизвестные заранее команды получают путь автоматически.
+Полная карта не ограничивается восемью командами на модуль. Legacy-grid `QWE/A·D/ZXC` используется как слой быстрых primary aliases.
 
-Алгоритм:
+## 8. Частота использования
 
-1. извлечь точный `BUTTON ID` и название;
-2. определить действие;
-3. определить объект;
-4. выбрать значимую букву команды;
-5. проверить уникальность внутри модуля;
-6. изменить последнюю или объектную букву при коллизии;
-7. удалить alias, создающий конфликт префиксов;
-8. добавить название и `BUTTON ID` в поиск.
+| Коэффициент | Интерпретация | Рекомендуемый доступ |
+|---|---|---|
+| `K5` | многократно в течение часа | короткий curated path или alias |
+| `K4` | обычно ежедневно | короткий путь 2–3 токена |
+| `K3` | несколько раз в неделю / на этапе | обычный путь 3–4 токена |
+| `K2` | специализированная функция | путь 3–5 токенов или поиск |
+| `K1` | редкая административная функция | поиск, полный путь, отдельный scope |
 
-Примеры классификации:
+`Kч` — экспертная оценка, а не официальная телеметрия Siemens.
+
+## 9. Автоматическая классификация
+
+Типовые признаки действия:
 
 ```text
 CREATE / NEW / ADD          → C
@@ -327,49 +230,62 @@ SELECT                      → S
 NAVIGATOR / LAYER / LIBRARY → M
 ```
 
-## 16. Безопасность и выбор
+Объект определяется по имени, `BUTTON ID`, модулю и группе. При коллизии меняется командный токен, затем объектный токен, затем используется детерминированный резервный суффикс.
 
-`requires_selection` означает, что команда работает с объектами NX и имеет `selection_type`, но не всегда требует предварительно выбранный объект. Интерактивные команды запускают собственный диалог NX и могут сначала включить нужный фильтр выбора.
+## 10. Aliases
 
-Жёсткая блокировка до запуска применяется только к командам, где policy задаёт минимальный preselection count или где операция опасно действует над уже выбранными объектами. Разрушительные команды по-прежнему требуют `Enter`.
+Alias — дополнительный путь к той же команде.
 
-Selection-фильтры выбираются отдельным действием:
+Он принимается только если:
+
+- не равен каноническому пути;
+- не совпадает с другой командой;
+- не является префиксом другой команды;
+- другой путь не является его префиксом.
+
+Primary-команды сохраняют one-key legacy alias, когда это не создаёт конфликт.
+
+## 11. Безопасность и выбор
+
+`requires_selection` описывает expected workflow, но не всегда блокирует команду до preselection. Жёсткое требование задаётся policy.
+
+Selection-фильтры используют:
 
 ```text
 action: set_selection_filter
-selection_type: edge | face | body | component | curve | datum | feature | operation | all | reset
+selection_type: edge | face | body | component | curve |
+                datum | feature | operation | all | reset | none
 ```
 
-Такие команды не вызывают `UG_SEL_*` как обычную кнопку меню. CommandBridge применяет NXOpen global selection filter, после чего следующая команда NX получает правильный режим выбора.
+Bridge применяет global NXOpen filter members, а не запускает `UG_SEL_*` как обычные menu buttons.
 
-Политики для критичных операций перенесены на новые последовательности:
+Разрушительные команды требуют `Enter`.
 
-```text
-M E E B  Modeling Edge Blend
-M E E C  Modeling Edge Chamfer
-A E C R  Assembly Replace Component
-A X C R  Assembly Remove Component
-C P O P  CAM Postprocess
-C X O D  CAM Delete Operation
-X P N S  Simulation Solve
-X X N D  Simulation Delete
-G X R D  Routing Delete
-G X R P  Routing Remove Part
-R E T F  Reuse Replace Template
-```
+## 12. Поиск
 
-## 17. Поиск
-
-`CapsLock → Space` выполняет поиск по:
+`CapsLock → Space` ищет по:
 
 - имени команды;
 - `BUTTON ID`;
-- русским и английским aliases;
-- каноническому пути;
-- подписям уровней;
+- русскому и английскому названию;
+- aliases;
+- каноническому пути и labels;
 - модулю;
-- истории использования.
+- разделу и группе полного каталога;
+- частоте;
+- локальной истории использования.
 
-## 18. Совместимость
+## 13. Совместимость
 
-Старые поля `slot`, `submenu_key` и `input_key` остаются читаемыми. При загрузке им автоматически назначаются новые `path`, `path_labels`, `aliases` и `search_aliases`.
+Legacy-поля `slot`, `submenu_key` и `input_key` остаются читаемыми. Runtime schema 5 назначает `path`, `path_labels`, `aliases`, `search_aliases`, `action` и `selection_type`.
+
+Исходный JSON сохраняется как schema 4 для совместимости установщика. IPC использует отдельную schema 3.
+
+## 14. Проверка
+
+```powershell
+node .\scripts\validate-command-tree.mjs
+node .\scripts\validate-full-command-map.mjs
+```
+
+Проверяются известные пути, 1169 намерений, 32 раздела, `K1–K5`, уникальность, prefix-free свойства и запрет включённых команд без точного ID.
