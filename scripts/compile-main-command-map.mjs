@@ -71,6 +71,12 @@ function allCommands(profile) {
     (set.commands ?? []).map(command => ({ module, set, command }))));
 }
 
+function isSelectionSupport(module, command) {
+  return module?.id === 'selection_object' &&
+    command?.action === 'set_selection_filter' &&
+    /^UG_SEL_/i.test(String(command?.command?.id ?? ''));
+}
+
 const intents = loadIntents(intentsDir);
 if (intents.length !== 1169) throw new Error(`Expected 1169 source intents, got ${intents.length}.`);
 const counts = Object.fromEntries(allLevels.map(level => [level, intents.filter(intent => intent.frequency === level).length]));
@@ -99,11 +105,27 @@ try {
         const fallbackRef = fallback.startsWith('catalog:') ? fallback.slice('catalog:'.length) : '';
         const refs = originalRefs.filter(ref => selectedIds.has(ref));
         if (fallbackRef && selectedIds.has(fallbackRef) && !refs.includes(fallbackRef)) refs.push(fallbackRef);
-        if (!refs.length) return false;
-        command.catalog_refs = refs;
-        command.frequency = refs.map(ref => frequencyById.get(ref)).filter(Boolean)
-          .sort((a, b) => Number(b.slice(1)) - Number(a.slice(1)))[0] ?? command.frequency;
-        return true;
+        if (refs.length) {
+          command.catalog_refs = refs;
+          command.frequency = refs.map(ref => frequencyById.get(ref)).filter(Boolean)
+            .sort((a, b) => Number(b.slice(1)) - Number(a.slice(1)))[0] ?? command.frequency;
+          delete command.profile_support;
+          return true;
+        }
+
+        // Selection filters are runtime infrastructure rather than catalog coverage. Keeping them
+        // preserves all 14 adaptive modules without adding K1/K2 intent references to the main profile.
+        if (isSelectionSupport(module, command)) {
+          command.catalog_refs = [];
+          command.profile_support = true;
+          command.frequency = 'support';
+          command.resolution_status = 'existing';
+          command.resolution_candidates = [];
+          if (fallback.startsWith('catalog:')) delete command.fallback;
+          command.notes = ['Runtime selection infrastructure', command.notes].filter(Boolean).join(' | ');
+          return true;
+        }
+        return false;
       });
     }
     module.command_sets = (module.command_sets ?? []).filter(set => (set.commands ?? []).length > 0);
@@ -114,12 +136,14 @@ try {
   const isMain = selected.length === 3 && ['K3', 'K4', 'K5'].every(level => selected.includes(level));
   profile.profile.name = isMain ? 'NXKeys NX 2512 — Main K3–K5 Profile' : `NXKeys NX 2512 — ${selected.join(' + ')} Profile`;
   profile.profile.description = `Operational profile for ${selected.join(', ')}: ${selectedIntents.length} of 1169 NX 2512 command intents.`;
+  const supportCommands = allCommands(profile).filter(row => row.command.profile_support === true).length;
   profile.full_command_catalog = {
     schema_version: 2,
     source_intents: intents.length,
     selected_intents: selectedIntents.length,
     selected_frequencies: selected,
     frequency_counts: counts,
+    support_commands: supportCommands,
     generated_utc: new Date().toISOString(),
     catalog_items: profile.full_command_catalog?.catalog_items ?? 0,
     global_commands_duplicated: profile.full_command_catalog?.global_commands_duplicated !== false,
@@ -133,7 +157,9 @@ try {
 
   for (const module of (profile.modules ?? []).filter(item => item && item.enabled !== false)) {
     const paths = [];
-    for (const { command } of allCommands({ modules: [module] })) {
+    const moduleRows = allCommands({ modules: [module] });
+    if (!moduleRows.length) throw new Error(`Enabled module has no commands: ${module.id}`);
+    for (const { command } of moduleRows) {
       const canonical = keyOf(command.path);
       if (!canonical) throw new Error(`Empty path: ${module.id}/${command.command?.name}`);
       paths.push({ key: canonical, name: command.command?.name, kind: 'path' });
@@ -164,6 +190,7 @@ try {
     `- Source intents: **${intents.length}**`,
     `- Selected frequencies: **${selected.join(', ')}**`,
     `- Selected unique intents: **${selectedIntents.length}**`,
+    `- Runtime support commands: **${supportCommands}**`,
     `- Generated module rows: **${rows.length}**`,
     `- Enabled rows: **${rows.filter(row => row.command.enabled !== false).length}**`,
     `- Existing rows: **${statusCounts.existing ?? 0}**`,
@@ -184,7 +211,7 @@ try {
   fs.writeFileSync(report, markdown, 'utf8');
 
   console.log(`[main-command-map] Source: ${intents.length}; selected ${selected.join(',')}: ${selectedIntents.length}.`);
-  console.log(`[main-command-map] Rows: ${rows.length}; enabled: ${rows.filter(row => row.command.enabled !== false).length}.`);
+  console.log(`[main-command-map] Rows: ${rows.length}; enabled: ${rows.filter(row => row.command.enabled !== false).length}; support: ${supportCommands}.`);
   console.log(`[main-command-map] Profile: ${output}`);
   console.log(`[main-command-map] Report: ${report}`);
 } finally {
