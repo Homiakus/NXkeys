@@ -1,11 +1,13 @@
 # NXKeys
 
 [![CI](https://github.com/Homiakus/NXkeys/actions/workflows/ci.yml/badge.svg)](https://github.com/Homiakus/NXkeys/actions/workflows/ci.yml)
+[![Mnemonic Command Language](https://github.com/Homiakus/NXkeys/actions/workflows/mnemonic-command-language.yml/badge.svg)](https://github.com/Homiakus/NXkeys/actions/workflows/mnemonic-command-language.yml)
+[![Full Command Map](https://github.com/Homiakus/NXkeys/actions/workflows/full-command-map.yml/badge.svg)](https://github.com/Homiakus/NXkeys/actions/workflows/full-command-map.yml)
 [![Command Map](https://github.com/Homiakus/NXkeys/actions/workflows/pages.yml/badge.svg)](https://github.com/Homiakus/NXkeys/actions/workflows/pages.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/)
 
-Клавиатурное управление Siemens NX 2512 через последовательности команд.
+NXKeys — клавиатурный слой управления Siemens NX / Designcenter NX 2512. Команды вызываются через контекстный мнемонический язык, а не через сотни конфликтующих глобальных ускорителей.
 
 ```text
 CapsLock → действие → объект → команда → вариант
@@ -17,31 +19,37 @@ CapsLock → действие → объект → команда → вариа
 CapsLock → C → F → E    Create → Feature → Extrude
 CapsLock → T → F → M    Transform → Feature → Mirror
 CapsLock → M → L → C    Manage → Layer → Copy
-CapsLock → P → O → G    Process → Operation → Generate Toolpath
+CapsLock → P → O → G    Process → Operation → Generate Tool Path
 CapsLock → S → F        Select → Face
 ```
 
 **Интерактивная карта:** https://homiakus.github.io/NXkeys/
 
-> NXKeys — сторонний проект. Доступность команд зависит от роли, лицензии, локализации и активного приложения Siemens NX.
+> NXKeys — сторонний проект. Реальная доступность команд определяется установленной сборкой NX 2512, лицензиями, ролью, локализацией и корпоративными MenuScript-расширениями.
 
-## Как это работает
+## Текущее покрытие
 
-`CapsLock` открывает HUD для текущего приложения NX. Дальнейшие клавиши образуют путь к команде. Внутренний префикс модуля добавляется автоматически.
+В репозитории используются два согласованных слоя:
 
-HUD показывает доступные продолжения в **3 колонки**. Команды другого модуля не выполняются.
+| Слой | Назначение |
+|---|---|
+| `config/nx2512-pro-hybrid.json` | Проверенный базовый профиль: 12 прямых системных сочетаний, 14 контекстных модулей, ручные `BUTTON ID`, aliases и safety-policy. |
+| `config/full-command-map/` | Полный каталог из **1169 намерений команд** в **32 разделах**, с частотой `K1–K5`, русскими/английскими названиями и заранее рассчитанными мнемоническими путями. |
+| `config/nx2512-pro-full.generated.json` | Генерируемый профиль конкретной установки NX. В Git не является универсальным источником истины, потому что разрешённые `BUTTON ID` зависят от локального каталога NX. |
 
-Часто используемые команды могут иметь короткие пути:
+Для каждой из 1169 функций путь существует всегда. Исполняемой команда становится только после надёжного разрешения в реальный `BUTTON ID`. Неоднозначные и отсутствующие команды остаются в профиле отключёнными и попадают в отчёт — выдуманные ID не создаются.
 
-```text
-C F E    Extrude
-C E      короткий путь к Extrude
+Подробности: [FULL_COMMAND_MAP.md](FULL_COMMAND_MAP.md).
 
-E E B    Edge Blend
-E B      короткий путь к Edge Blend
-```
+## Как работает ввод
 
-Короткий и полный путь вызывают одну команду и используют одинаковые проверки безопасности.
+1. `CapsLock` открывает HUD активного приложения NX.
+2. Первая клавиша задаёт действие: Create, Edit, Transform, Process и т.д.
+3. Следующая клавиша задаёт объект: Feature, Body, Surface, Operation, Tool и т.д.
+4. Последующие клавиши уточняют команду и вариант.
+5. Внутренний префикс модуля добавляется движком автоматически и пользователем не вводится.
+
+HUD показывает допустимые продолжения в **3 колонки**. Пути внутри каждого активного модуля уникальны и не являются префиксами других команд. Частые проверенные команды могут иметь безопасный короткий alias.
 
 ## Управление
 
@@ -51,16 +59,16 @@ E B      короткий путь к Edge Blend
 | Буква или цифра | Перейти по ветви или выполнить команду |
 | `Space` | Поиск по командам активного модуля |
 | `Enter` | Выполнить найденную команду или подтвердить опасную операцию |
-| `Backspace` | Сбросить текущий ввод |
+| `Backspace` | Сбросить текущий путь |
 | `Esc` | Закрыть HUD |
-| `Tab` / `Shift+Tab` | Переключить модуль вручную |
+| `Tab` / `Shift+Tab` | Явно переключить модуль |
 | Двойной `CapsLock` | Закрепить HUD |
 
-Поиск учитывает название, `BUTTON ID`, путь, модуль и поисковые псевдонимы.
+Поиск учитывает имя, `BUTTON ID`, русский и английский aliases, модуль, раздел каталога, путь и частоту использования.
 
-## Мнемонические категории
+## Мнемонический алфавит
 
-Первая клавиша задаёт действие:
+Первая клавиша — действие:
 
 | Клавиша | Категория | Значение |
 |---|---|---|
@@ -83,21 +91,23 @@ E B      короткий путь к Edge Blend
 
 | Клавиша | Объект | Клавиша | Объект |
 |---|---|---|---|
-| `A` | Annotation | `B` | Body / Base |
+| `A` | Annotation / Additive | `B` | Body / Base |
 | `C` | Component | `D` | Dimension / Datum |
-| `E` | Edge | `F` | Feature |
+| `E` | Edge | `F` | Feature / Frame |
 | `G` | Geometry / Curve | `H` | Sheet Metal |
-| `K` | Constraint | `L` | Layer |
+| `I` | Inspection | `J` | Fixture |
+| `K` | Constraint | `L` | Layout / Layer |
 | `M` | Material / Mold | `N` | Simulation |
-| `O` | CAM Operation | `P` | Part |
-| `R` | Routing | `S` | Sketch |
-| `T` | Tool / Template | `U` | Surface |
-| `V` | View | `W` | WAVE |
-| `Y` | Assembly | `Z` | Other |
+| `O` | CAM Operation | `P` | Part / Data |
+| `Q` | Quality | `R` | Routing |
+| `S` | Sketch / Selection | `T` | Tool / Template |
+| `U` | Surface | `V` | View |
+| `W` | WAVE | `Y` | Assembly / Ship |
+| `Z` | Other |  |  |
 
-Полный список путей: [docs/MNEMONIC_COMMAND_LANGUAGE.md](docs/MNEMONIC_COMMAND_LANGUAGE.md).
+Полная грамматика: [docs/MNEMONIC_COMMAND_LANGUAGE.md](docs/MNEMONIC_COMMAND_LANGUAGE.md).
 
-## Поддерживаемые модули
+## Контекстные модули
 
 ```text
 modeling       sketch          assembly       drafting
@@ -106,46 +116,39 @@ simulation     routing         mold           reuse
 inspect_view   selection_object
 ```
 
-Command Bridge передаёт приложению NXKeys:
-
-- активное приложение NX;
-- наличие Work Part и Display Part;
-- типы и количество выбранных объектов;
-- наличие модального окна;
-- ревизию контекста;
-- состояние последней команды.
-
-По этим данным выбирается профиль текущего модуля.
+Command Bridge публикует активное приложение, модуль, Work/Display Part, выбранные типы и количество объектов, модальное состояние, ревизию контекста и результат последней команды. По этим данным выбирается текущий набор.
 
 ## Безопасность
 
-Перед выполнением команды проверяются:
+Перед dispatch проверяются:
 
-- актуальность контекста;
-- активный модуль;
-- наличие рабочей и отображаемой детали;
-- отсутствие блокирующего диалога;
+- свежесть и достоверность контекста;
+- активный модуль и приложение;
+- Work Part и Display Part;
+- модальный диалог и активная команда NX;
 - типы и количество выбранных объектов;
-- доступность `BUTTON ID`;
-- необходимость подтверждения.
+- доступность точного `BUTTON ID`;
+- destructive-флаг и подтверждение.
 
-Команды с `requires_selection` не выполняются без подходящего выбора. Разрушительные операции требуют `Enter`.
+`UG_SEL_*` не запускаются как обычные псевдокнопки. Действие `set_selection_filter` применяет глобальные фильтры NXOpen. Разрушительные операции требуют `Enter`. Запрос с неизвестным результатом получает `interrupted_unknown` и автоматически не повторяется.
 
-Если результат запроса нельзя определить, команда получает состояние `interrupted_unknown` и не повторяется автоматически.
+## Требования
 
-## Установка
+### Базовый профиль
 
-### Требования
-
-- Windows 10 или Windows 11 x64;
+- Windows 10/11 x64;
 - Siemens NX или Designcenter NX 2512;
 - .NET 8 SDK x64;
-- `NXOpen.dll` и `NXOpenUI.dll` из установки NX;
+- `NXOpen.dll` и `NXOpenUI.dll` целевой установки;
 - права записи в `%LOCALAPPDATA%\NXKeys`.
 
-### Развёртывание
+### Полная карта 1169 команд
 
-Закройте Siemens NX и выполните в PowerShell из корня репозитория:
+Дополнительно требуется Node.js 20+ и экспорт `NX2512_Catalog_Studio`, содержащий `06_ui_commands_buttons.csv`.
+
+## Установка базового профиля
+
+Закройте Siemens NX и выполните:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.ps1 `
@@ -161,29 +164,41 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.
   -NxRoot "C:\Program Files\Siemens\DesigncenterNX2512"
 ```
 
-Запуск:
+## Установка полного профиля
 
-```cmd
+```powershell
+.\install-full-command-profile.ps1 `
+  -CatalogDir "D:\NX2512_Catalog_Output" `
+  -NxRoot "C:\Program Files\Siemens\NX2512" `
+  -Clean
+```
+
+Только компиляция и отчёт без установки:
+
+```powershell
+.\install-full-command-profile.ps1 `
+  -CatalogDir "D:\NX2512_Catalog_Output" `
+  -CompileOnly
+```
+
+Результаты:
+
+```text
+config/nx2512-pro-full.generated.json
+docs/generated/full-command-resolution.md
+```
+
+## Запуск
+
+```text
 %LOCALAPPDATA%\NXKeys\managed\NX2512.6000\launch-nx2512-with-nxkeys.cmd
 ```
 
-Установщик собирает проекты, создаёт управляемый пакет и сохраняет резервную копию изменяемых файлов.
+Managed launcher задаёт отдельный `UGII_CUSTOM_DIRECTORY_FILE`, не подменяет глобальный `PATH` и не изменяет `UGII_USER_DIR`.
 
-## Конфигурация
+## Конфигурация и версии schema
 
-Основной профиль:
-
-```text
-config/nx2512-pro-hybrid.json
-```
-
-Правила автоматов и проверки безопасности:
-
-```text
-config/nx2512-state-machines.json
-```
-
-Исходный профиль schema v4 читается без ручной конвертации. При загрузке NXKeys создаёт runtime schema v5 с полями:
+Исходный базовый и сгенерированный профили сохраняются как `schema_version: 4` для совместимости установщика. При загрузке HotkeyStudio мигрирует модель в runtime schema v5 и добавляет/нормализует:
 
 ```text
 path
@@ -194,14 +209,7 @@ action
 selection_type
 ```
 
-Известные `BUTTON ID` получают заданные пути. Для остальных команд путь строится по действию, объекту и названию. Коллизии и конфликтующие префиксы устраняются при загрузке.
-
-После аудита сочетаний 2026-07-28 профиль явно различает обычные NX-команды и команды выбора:
-
-- `action: "execute_command"` отправляет `BUTTON ID` в `InvokeMenuButtonAction`;
-- `action: "set_selection_filter"` включает глобальный selection-фильтр NXOpen без запуска псевдокнопки `UG_SEL_*`;
-- `selection_type` задаёт ожидаемый тип выбора (`edge`, `face`, `body`, `component`, `curve`, `datum`, `feature`, `operation`, `all`, `reset`, `none`);
-- primary-команды сохраняют быстрый one-key alias, а вложенные группы сохраняют submenu alias.
+Полный профиль дополнительно содержит `full_command_catalog`, `catalog_refs`, `frequency`, `resolution_status` и кандидатов разрешения.
 
 Подробности: [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
 
@@ -209,14 +217,14 @@ selection_type
 
 ```mermaid
 flowchart LR
-    Keyboard[Win32 keyboard hook] --> Queue[Event queue]
-    Context[Command Bridge context] --> Resolver[Module resolver]
-    Resolver --> DFA[Sequence DFA]
+    Keyboard[Win32 keyboard hook] --> Queue[UI event queue]
+    Context[Command Bridge context] --> Resolver[Adaptive module resolver]
+    Resolver --> DFA[Prefix-free sequence DFA]
     Queue --> DFA
-    DFA --> HFSM[Leader state machine]
+    DFA --> HFSM[Leader HFSM]
     HFSM --> Guards[Context guards]
     Guards --> Dispatch[Command dispatcher]
-    Dispatch --> IPC[File IPC]
+    Dispatch --> IPC[Atomic file IPC]
     IPC --> Bridge[NX Command Bridge]
     Bridge --> NX[Siemens NX]
     NX --> Result[Result]
@@ -225,25 +233,12 @@ flowchart LR
 
 | Компонент | Назначение |
 |---|---|
-| `NX2512_HotkeyStudio` | Перехват клавиш, HUD, CLI и установка |
-| `NX2512_CommandBridge` | Плагин NX для получения контекста и запуска `BUTTON ID` |
-| `NX2512_ControlCenter` | Состояние системы и диагностика |
-| `NX2512_Catalog_Studio` | Извлечение команд NXOpen, UFUN и MenuScript |
-| `NXKeys.Protocol` | Типы файлового IPC |
-| `NXKeys.StateMachines` | DFA, HFSM и проверки контекста |
-| `NXKeys.StateMachines.Tests` | Тесты автоматов и правил безопасности |
-
-IPC-каталог:
-
-```text
-%LOCALAPPDATA%\NXKeys\bridge\
-├── pending\
-├── processing\
-├── completed\
-├── failed\
-├── context.json
-└── status.json
-```
+| `NX2512_HotkeyStudio` | Перехват клавиш, HUD, CLI, runtime и deployment |
+| `NX2512_CommandBridge` | Контекст NX, selection-фильтры и вызов `BUTTON ID` |
+| `NX2512_ControlCenter` | Состояние, поиск, покрытие и диагностика |
+| `NX2512_Catalog_Studio` | Извлечение UI-команд, NXOpen, UFUN и crosswalk |
+| `NXKeys.Protocol` | Общие типы IPC schema 3 |
+| `NXKeys.StateMachines` | DFA, HFSM, guards и policy |
 
 ## CLI
 
@@ -265,59 +260,32 @@ $config = ".\config\nx2512-pro-hybrid.json"
 
 ## Проверка
 
-Проверка профиля и карты:
-
 ```powershell
 node .\scripts\validate-command-tree.mjs
-```
-
-Сборка HotkeyStudio:
-
-```powershell
+node .\scripts\validate-full-command-map.mjs
+dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
 dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64
 ```
 
-Тесты автоматов:
-
-```powershell
-dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
-```
-
-CI проверяет:
-
-- 12 базовых глобальных сочетаний;
-- 14 модулей;
-- уникальность путей;
-- отсутствие конфликтов префиксов;
-- наличие aliases, `action` и `selection_type`;
-- маршрутизацию `UG_SEL_*` через `set_selection_filter`;
-- DFA, HFSM и правила подтверждения;
-- сборку HotkeyStudio, Control Center и Command Bridge;
-- целостность профилей, IPC и документации.
+CI проверяет базовые сочетания, 14 модулей, 1169 намерений и 32 раздела, prefix-free пути, schema migration, selection filters, DFA/HFSM, IPC, сборку приложений и Command Bridge contract.
 
 ## Документация
 
-- [Интерактивная карта](https://homiakus.github.io/NXkeys/)
+- [Полная карта 1169 команд](FULL_COMMAND_MAP.md)
+- [Оглавление документации](docs/README.md)
 - [Мнемонический язык](docs/MNEMONIC_COMMAND_LANGUAGE.md)
-- [Аудит сочетаний и selection-фильтров](docs/audit/11-shortcut-selection-audit.md)
 - [Конфигурация](docs/CONFIGURATION.md)
+- [Установка](docs/INSTALLATION.md)
 - [Архитектура](docs/ARCHITECTURE.md)
 - [Автоматы](docs/STATE_MACHINE_ARCHITECTURE.md)
 - [Безопасность](docs/SAFETY_MODEL.md)
-- [Установка](docs/INSTALLATION.md)
+- [IPC API](docs/api.md)
 - [Диагностика](docs/TROUBLESHOOTING.md)
+- [Control Center](NX2512_ControlCenter/README.md)
 
 ## Ограничения
 
-CI проверяет код и контракты NXOpen по тестовым заглушкам. Реальная доступность `BUTTON ID` проверяется только в установленном Siemens NX 2512 с нужной ролью и лицензией.
-
-Перед рабочим применением:
-
-1. выполните `apply --dry-run`;
-2. проверьте `resolution-report.md`;
-3. протестируйте команды на копии детали;
-4. отдельно проверьте команды с подтверждением;
-5. сохраните manifest резервной копии.
+CI подтверждает структуру, код и NXOpen contract stubs, но не наличие лицензии и чувствительность каждой UI-команды в конкретной NX. Перед рабочим применением выполните dry-run, изучите `resolution-report.md`, протестируйте команды на копии детали и отдельно проверьте destructive-операции.
 
 ## Лицензия
 

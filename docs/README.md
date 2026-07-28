@@ -1,29 +1,56 @@
 # Документация NXKeys
 
-Документация относится к мнемонической адаптивной архитектуре NXKeys для Siemens NX 2512:
+Документация описывает актуальную архитектуру NXKeys для Siemens NX / Designcenter NX 2512.
 
-- 12 фиксированных базовых сочетаний Windows/NX;
-- 14 контекстных модулей;
-- многоуровневый язык `CapsLock → действие → объект → команда → вариант`;
-- канонические пути и короткие экспертные aliases;
-- явные `action` и `selection_type` для команд с выбором;
-- selection-фильтры NXOpen для `UG_SEL_*` вместо запуска их как обычных кнопок;
-- автоматическое назначение пути всем командам фактического каталога NX;
-- автоматический выбор набора по контексту Command Bridge;
-- DFA/HFSM, guards, подтверждение и транзакционная очередь.
+## Актуальная модель проекта
+
+NXKeys состоит из двух уровней покрытия:
+
+- **базовый проверенный профиль** `config/nx2512-pro-hybrid.json`: 12 прямых системных сочетаний, 14 контекстных модулей, ручные `BUTTON ID`, aliases и safety-policy;
+- **полная карта** `config/full-command-map/`: 1169 намерений команд в 32 разделах с частотой `K1–K5`, русскими/английскими именами и prefix-free путями.
+
+Полный исполняемый профиль строится локально из каталога конкретной установки NX. Команда без надёжно разрешённого `BUTTON ID` остаётся в карте, но отключается и попадает в отчёт.
 
 ## Рекомендуемый порядок чтения
 
-1. [Корневой README](../README.md) — назначение и быстрый старт.
-2. [Мнемонический язык](MNEMONIC_COMMAND_LANGUAGE.md) — грамматика, ветки и правила полного покрытия.
-3. [Интерактивная карта](command-tree.html) — карта модулей, фильтры выбора, aliases, live-probe и путь исполнения.
-4. [Конфигурация](CONFIGURATION.md) — профиль и миграция schema v4 → v5.
-5. [Архитектура](ARCHITECTURE.md) — взаимодействие компонентов.
-6. [Архитектура автоматов](STATE_MACHINE_ARCHITECTURE.md) — DFA, HFSM, guards и очередь.
-7. [Установка](INSTALLATION.md) — сборка и managed deployment.
-8. [Модель безопасности](SAFETY_MODEL.md) — обязательные инварианты.
-9. [Диагностика](TROUBLESHOOTING.md) — поиск неисправностей.
-10. [Спецификация профиля](NX_PRO_HYBRID_SOURCE_SPEC.md) — контекстные модули и покрытие.
+1. [Корневой README](../README.md) — назначение, быстрый старт и текущие цифры.
+2. [Полная карта 1169 команд](../FULL_COMMAND_MAP.md) — компиляция полного профиля и модель разрешения `BUTTON ID`.
+3. [Установка](INSTALLATION.md) — базовый и полный сценарии deployment.
+4. [Мнемонический язык](MNEMONIC_COMMAND_LANGUAGE.md) — грамматика путей и правила конфликтов.
+5. [Конфигурация](CONFIGURATION.md) — source schema 4, runtime schema 5 и поля полного каталога.
+6. [Архитектура](ARCHITECTURE.md) — компоненты и поток данных.
+7. [Архитектура автоматов](STATE_MACHINE_ARCHITECTURE.md) — DFA, HFSM, guards и queue semantics.
+8. [Модель безопасности](SAFETY_MODEL.md) — подтверждение, контекст и deployment-инварианты.
+9. [IPC API](api.md) — фактические JSON-контракты protocol schema 3.
+10. [Диагностика](TROUBLESHOOTING.md) — ошибки установки, Bridge и разрешения команд.
+11. [Control Center](../NX2512_ControlCenter/README.md) — обзор, покрытие и API Explorer.
+12. [Спецификация профиля](NX_PRO_HYBRID_SOURCE_SPEC.md) — базовый слой и его связь с полной картой.
+
+## Источники истины
+
+| Данные | Источник |
+|---|---|
+| Базовый профиль | `config/nx2512-pro-hybrid.json` |
+| Полные 1169 намерений | `config/full-command-map/nx2512-full-command-map.json.gz.b64.part1–part3` |
+| Компилятор полного профиля | `scripts/compile-full-command-map.mjs` |
+| Структурная проверка полной карты | `scripts/validate-full-command-map.mjs` |
+| Мнемонические правила известных ID | `NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs` |
+| Runtime schema | `NX2512_HotkeyStudio/Models/*V5.cs` |
+| Safety-policy | `config/nx2512-state-machines.json` |
+| IPC-контракт | `NXKeys.Protocol/NxProtocol.cs` |
+| Каталог конкретной NX | `NX2512_Catalog_Studio`, прежде всего `06_ui_commands_buttons.csv` |
+| Runtime-проверка команд | `docs/audit/runtime-command-probe-2026-07-28.json` и новые локальные probe-отчёты |
+
+## Версии schema
+
+Не смешивайте версии разных уровней:
+
+| Уровень | Версия | Пояснение |
+|---|---:|---|
+| Исходный профиль | `schema_version: 4` | Формат базового и сгенерированного JSON, принимаемый установщиком. |
+| Runtime-модель HotkeyStudio | `5` | После загрузки добавляет/нормализует `path`, `aliases`, `action`, `selection_type` и другие поля. |
+| IPC между HotkeyStudio и Bridge | `3` | Контракт `NxCommandRequest`, `NxContextSnapshot`, `NxCommandResult`. |
+| Метаданные полного каталога | `full_command_catalog.schema_version: 1` | Служебная информация о генерации полного профиля. |
 
 ## Мнемоническая грамматика
 
@@ -46,71 +73,71 @@ U Utilities   H Help
 C F E  Create Feature Extrude
 T F M  Transform Feature Mirror
 M L C  Manage Layer Copy
-P O G  Process Operation Generate Toolpath
+P O G  Process Operation Generate Tool Path
 S F    Select Face
 ```
 
-При загрузке старого профиля `schema_version: 4` приложение назначает всем командам канонические пути, удаляет конфликтующие aliases, выводит `action` и `selection_type`, затем работает как runtime schema v5. Исходный JSON можно сохранить через Studio — тогда новые поля будут записаны явно.
+Внутренний префикс активного модуля добавляется движком автоматически. Пользователь вводит только путь после `CapsLock`.
 
 ## Интерактивная карта
 
-Из корня репозитория выполните:
+Из корня репозитория:
 
 ```powershell
 py -m http.server 8080
 ```
 
-Затем откройте:
+Откройте:
 
 ```text
 http://localhost:8080/docs/command-tree.html
 ```
 
-Страница читает:
+Статическая карта отображает базовый профиль и policy. Полный профиль конкретной установки можно исследовать через сгенерированный JSON, отчёт разрешения и Control Center.
 
-```text
-config/nx2512-pro-hybrid.json
-config/nx2512-state-machines.json
-docs/audit/runtime-command-probe-2026-07-28.json
+## Сборка полного профиля
+
+```powershell
+.\install-full-command-profile.ps1 `
+  -CatalogDir "D:\NX2512_Catalog_Output" `
+  -CompileOnly
 ```
 
-При открытии через `file://` JSON можно загрузить кнопками или перетащить в браузер. На странице доступны фильтры по типу действия, типу выбора и наличию alias, а вкладка **Команды и выбор** показывает `BUTTON ID`, путь, aliases, `action`, `selection_type` и последний probe-статус.
-
-## Источники истины
-
-Статический профиль хранит команды и точные `BUTTON ID`:
+Результаты:
 
 ```text
-config/nx2512-pro-hybrid.json
+config/nx2512-pro-full.generated.json
+docs/generated/full-command-resolution.md
 ```
-
-Правила назначения мнемонических путей находятся в:
-
-```text
-NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs
-```
-
-Политики безопасности и таймауты:
-
-```text
-config/nx2512-state-machines.json
-```
-
-Полный каталог конкретной установки формирует `NX2512_Catalog_Studio`. Команды, для которых нет точного ручного правила, получают детерминированный путь автоматически. Неизвестный или отсутствующий `BUTTON ID` не подменяется выдуманным значением.
 
 ## Проверка
 
 ```powershell
 node .\scripts\validate-command-tree.mjs
+node .\scripts\validate-full-command-map.mjs
+dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
 ```
 
-Валидатор проверяет базовые сочетания, 14 модулей, точные сопоставления `BUTTON ID → mnemonic path`, политики безопасности, runtime schema v5 и HTML-карту.
+Валидаторы проверяют:
 
-После аудита сочетаний валидатор также проверяет, что primary-команды имеют one-key aliases, команды `UG_SEL_*` идут через `set_selection_filter`, все selection-aware команды имеют `selection_type`, а IPC-протокол содержит поле `selection_filter`.
+- 12 базовых прямых сочетаний;
+- 14 контекстных модулей;
+- 1169 исходных намерений и 32 раздела;
+- диапазон `K1–K5`;
+- уникальность и prefix-free пути;
+- отсутствие включённых команд без точного `BUTTON ID`;
+- schema migration, aliases, `action` и `selection_type`;
+- selection-filter routing;
+- DFA/HFSM, IPC и документационные инварианты.
 
-## Статусы
+## Статусы команд
 
-- **реализовано** — функция присутствует в коде и проходит статическую проверку;
-- **зависит от NX** — результат зависит от роли, лицензии, локализации или контекста;
-- **кандидатное сопоставление** — UI/API-аналог требует проверки;
-- **интеграционно проверено** — команда подтверждена внутри целевой сборки NX.
+- **existing** — точный ID уже присутствовал в базовом профиле;
+- **resolved** — ID надёжно найден в каталоге конкретной установки;
+- **ambiguous** — несколько кандидатов имеют близкие оценки, команда отключена;
+- **unresolved** — надёжного кандидата нет, команда отключена;
+- **runtime verified** — команда дополнительно подтверждена внутри целевой NX.
+
+## Исторические аудиты
+
+Файлы `docs/audit/00-*`…`11-*` фиксируют состояние проекта на дату соответствующего аудита. Они полезны для трассируемости, но не заменяют актуальные README, конфигурацию и исходный код. При расхождении приоритет имеют источники истины из таблицы выше.

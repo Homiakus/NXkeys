@@ -1,56 +1,78 @@
 # NXKeys Adaptive Control Center
 
-`NX2512_ControlCenter` — русскоязычный центр обзора и настройки NXKeys для Siemens NX 2512.
+`NX2512_ControlCenter` — центр обзора, поиска и диагностики NXKeys для Siemens NX 2512.
 
-Он дополняет `NX2512_HotkeyStudio`, но не заменяет полный редактор профиля и механизм развёртывания.
+Он дополняет HotkeyStudio, но не заменяет компилятор полной карты, deployment engine и редактор JSON-профиля.
+
+## Поддерживаемые профили
+
+Control Center может открыть:
+
+```text
+config/nx2512-pro-hybrid.json          базовый профиль
+config/nx2512-pro-full.generated.json  полный профиль конкретной установки
+```
+
+Полный профиль создаётся из 1169 намерений и локального каталога NX. Число включённых команд зависит от разрешённых `BUTTON ID`.
 
 ## Возможности
 
-- загрузка JSON-профиля NXKeys;
-- отображение версии NX и количества Leader-последовательностей;
-- расчёт доли включённых последовательностей с непустым `BUTTON ID`;
-- отображение состояния NX Command Bridge: `ONLINE`, `STALE` или `OFFLINE`;
-- просмотр активного модуля, последнего результата Bridge и доступных полей контекста;
-- контекстное ранжирование Leader-команд;
-- объяснение причин временной недоступности команды;
+- загрузка source profile schema 3–4 с runtime migration в schema 5;
+- отображение версии NX, модулей и Leader-последовательностей;
+- обзор команд с точным `BUTTON ID`;
+- отображение Bridge: `ONLINE`, `STALE`, `OFFLINE`;
+- активный модуль, selection, Work Part и последний результат;
+- контекстное ранжирование команд;
+- объяснение недоступности по guards;
 - изменение trigger и таймаутов Leader;
-- включение перехвата только при активном окне NX;
 - запуск HotkeyStudio и фонового Leader Engine;
-- поиск по экспортам Catalog Studio;
-- поддержка простых русских запросов.
+- локальный поиск по Catalog Studio;
+- русские поисковые запросы.
 
-## Вкладки
-
-### Обзор
+## Вкладка «Обзор»
 
 Показывает:
 
-- путь к профилю;
-- целевую версию NX;
-- число включённых последовательностей;
-- количество точных `BUTTON ID`;
-- активный модуль;
-- количество выбранных объектов, когда Bridge публикует это поле;
-- наличие рабочей детали, когда Bridge публикует это поле;
-- последний результат и сообщение Bridge.
+- путь к активному профилю;
+- имя и версию NX;
+- число модулей и последовательностей;
+- количество строк с непустым `BUTTON ID`;
+- активный module/application;
+- selection count и selected types;
+- Work/Display Part;
+- состояние и последний результат Bridge.
 
-### Adaptive Leader
+Для полного профиля число строк может быть значительно больше 1169 из-за curated-команд и опционального дублирования глобальных намерений во все модули.
+
+## Вкладка «Adaptive Leader»
 
 Список содержит:
 
-- последовательность;
-- модуль;
+- путь;
+- module scope;
 - имя команды;
-- `BUTTON ID`;
-- контекстное состояние.
+- точный `BUTTON ID`;
+- состояние контекста;
+- destructive/selection признаки.
 
-Ранжирование выполняет `AdaptiveLeaderPolicy`. Оно учитывает модуль, общие слои, требование выбора, модальное окно, рабочую деталь, разрушительность и локальную историю использования.
+`AdaptiveLeaderPolicy` учитывает активный модуль, общие слои, selection, modal dialog, Work Part, destructive flag и локальную историю.
 
-В текущей версии Control Center **просматривает и ранжирует** команды. Непосредственное выполнение последовательностей выполняют Leader Engine HotkeyStudio и Command Bridge.
+Control Center просматривает и ранжирует команды. Выполнение выполняют Leader Engine и CommandBridge.
 
-### NX API Explorer
+## Статусы полной карты
 
-Загружаются файлы:
+Если профиль содержит метаданные компилятора, учитывайте:
+
+- `existing` — ID известен из базового профиля;
+- `resolved` — ID найден в локальном каталоге;
+- `ambiguous` — команда отключена;
+- `unresolved` — команда отключена.
+
+Control Center не должен интерпретировать непустое имя как доказательство исполняемости. Критерий — `enabled`, точный `command.id`, runtime guards и проверка Bridge.
+
+## NX API Explorer
+
+Поддерживаемые файлы Catalog Studio:
 
 ```text
 04_nxopen_members.csv
@@ -60,7 +82,7 @@
 08_ui_command_api_candidates.csv
 ```
 
-Примеры запросов:
+Примеры:
 
 ```text
 Как через NXOpen создать выдавливание?
@@ -70,11 +92,9 @@ edge blend builder
 UG_FILE_SAVE_PART
 ```
 
-Русские слова расширяются небольшим встроенным словарём. Поиск выполняется локально по токенам и возвращает до 200 кандидатов.
+Результат — поисковая подсказка, а не доказательство эквивалентности UI-команды и API-вызова.
 
-> Результат API Explorer является поисковой подсказкой. Он не доказывает эквивалентность UI-команды конкретному NXOpen/UFUN-вызову.
-
-### Настройки
+## Настройки
 
 Поддерживаются:
 
@@ -84,7 +104,7 @@ UG_FILE_SAVE_PART
 - `hook_only_when_nx_active`;
 - путь к API-каталогу.
 
-После сохранения изменяется указанный JSON-профиль.
+После сохранения изменяется указанный профиль. Перед редактированием сгенерированного полного профиля сохраните его копию: повторная компиляция может перезаписать файл.
 
 ## Сборка
 
@@ -93,8 +113,6 @@ dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj `
   -c Release `
   -p:Platform=x64
 ```
-
-Публикация:
 
 ```powershell
 dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj `
@@ -113,107 +131,85 @@ dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj `
   --config .\config\nx2512-pro-hybrid.json
 ```
 
-Путь по умолчанию вычисляется относительно исполняемого файла:
-
-```text
-config\nx2512-pro-hybrid.json
-```
-
-Поэтому для предсказуемого запуска рекомендуется всегда передавать `--config` явно.
-
-## Подключение API-каталога
-
-### Параметр
+Полный профиль:
 
 ```powershell
 .\dist\control-center\NX2512_ControlCenter.exe `
-  --config .\config\nx2512-pro-hybrid.json `
-  --catalog "D:\NX2512_Full_Function_API_Catalog_YYYYMMDD_HHMMSS"
+  --config .\config\nx2512-pro-full.generated.json `
+  --catalog "D:\NX2512_Catalog_Output"
 ```
 
-### Переменная окружения
+Переменная окружения каталога:
 
 ```powershell
-$env:NXKEYS_CATALOG_DIR = "D:\NX2512_Full_Function_API_Catalog_YYYYMMDD_HHMMSS"
+$env:NXKEYS_CATALOG_DIR = "D:\NX2512_Catalog_Output"
 ```
 
-### Автоматическое обнаружение
-
-Control Center ищет последний подходящий каталог внутри:
-
-```text
-%LOCALAPPDATA%\NXKeys\catalog
-```
-
-Каталог считается подходящим, если содержит `04_nxopen_members.csv` или `06_ui_commands_buttons.csv`.
+Auto-discovery проверяет `%LOCALAPPDATA%\NXKeys\catalog` и ищет каталог с `04_nxopen_members.csv` или `06_ui_commands_buttons.csv`.
 
 ## Связь с HotkeyStudio
 
-Для кнопок запуска Control Center ищет:
+Control Center ищет `NX2512_HotkeyStudio.exe` рядом со своей папкой и в родительском managed root.
+
+Стандартная структура:
 
 ```text
-NX2512_HotkeyStudio.exe
-```
-
-рядом со своим исполняемым файлом либо на ожидаемом соседнем уровне. Глобальный поиск по Windows не выполняется.
-
-Рекомендуемая структура ручной установки:
-
-```text
-NXKeys-ControlCenter\
-├─ NX2512_ControlCenter.exe
+managed-root\
 ├─ NX2512_HotkeyStudio.exe
-├─ зависимости обоих приложений
-└─ config\
-   └─ nx2512-pro-hybrid.json
+├─ nx2512-pro-hybrid.json
+└─ control-center\
+   └─ NX2512_ControlCenter.exe
 ```
 
-## Метрики покрытия
+## Метрика покрытия
 
-Текущая карточка покрытия вычисляет:
+Базовая карточка вычисляет долю включённых последовательностей с непустым ID. Она не проверяет:
 
-```text
-включённые Leader-последовательности с непустым BUTTON ID
-────────────────────────────────────────────────────────── × 100%
-все включённые Leader-последовательности
-```
-
-Эта метрика не проверяет:
-
-- наличие кнопки в фактической установке NX;
-- доступность лицензии;
+- наличие кнопки в фактической NX;
+- лицензию;
 - чувствительность команды;
 - успешное runtime-выполнение;
-- охват всего пользовательского workflow.
+- семантическую правильность auto-resolution;
+- полноту пользовательского workflow.
 
-Для строгой оценки дополнительно нужны каталог целевой установки и результаты выполнения Bridge.
+Для строгой оценки используйте:
+
+```text
+docs/generated/full-command-resolution.md
+runtime probe
+completed/failed Bridge results
+```
 
 ## Контекст Bridge
 
-Control Center считает контекст свежим, если `updated_utc` моложе примерно 10 секунд.
+Protocol schema 3 использует:
 
-`selection_count: -1` или отсутствие поля означает неизвестный выбор, а не ноль выбранных объектов.
+```text
+revision, status, application_id, module_id, module_label,
+selection_count, selection_state, selected_types,
+work_part_available, display_part_available,
+modal_dialog_active, active_command_id,
+context_confidence, updated_utc, last_result
+```
 
-Клиентская модель поддерживает расширенные поля, однако фактически доступные данные зависят от установленной версии `NX2512_CommandBridge.dll`.
+`selection_count = -1` означает неизвестное значение.
 
-## Локальная статистика Leader
-
-`AdaptiveLeaderPolicy` поддерживает статистику использования в:
+## Локальная статистика
 
 ```text
 %LOCALAPPDATA%\NXKeys\leader-usage.json
 ```
 
-Файл является локальным runtime-состоянием и не должен добавляться в Git.
+Это runtime-состояние, его не следует добавлять в Git.
 
 ## Ограничения
 
-- интерфейс рассчитан на Windows x64;
-- минимальный размер окна — 760×560;
-- поиск API не анализирует семантику кода;
-- Control Center не редактирует полное дерево последовательностей;
+- Windows x64;
 - Control Center не применяет MenuScript;
-- Control Center не заменяет health-check и backup/restore HotkeyStudio;
-- прямое выполнение выбранной строки списка в текущем интерфейсе отсутствует.
+- не редактирует полное дерево путей как специализированный IDE;
+- не заменяет full-map compiler;
+- не заменяет health, backup/restore и runtime probe;
+- API Explorer не выполняет семантический анализ кода;
+- production-готовность команды подтверждается только в целевой NX.
 
 Общая документация: [../docs/README.md](../docs/README.md).
