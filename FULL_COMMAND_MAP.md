@@ -1,237 +1,159 @@
-# Полная карта команд Siemens NX 2512
+# Главный профиль K3–K5 и полный каталог NX 2512
 
-NXKeys содержит полный слой из **1169 намерений команд** в **32 разделах**. Компилятор превращает этот слой в безопасный профиль конкретной установки Siemens NX 2512.
+Исходный каталог NXKeys содержит **1169 функций** Siemens NX 2512 в **32 разделах**. Рабочий профиль по умолчанию намеренно ограничен приоритетными уровнями **K3–K5**:
 
-## Почему используется компиляция
+| Уровень | Количество |
+|---|---:|
+| `K5` | 69 |
+| `K4` | 371 |
+| `K3` | 445 |
+| **Главный профиль** | **885** |
+| `K2` | 280 |
+| `K1` | 4 |
+| **Полный источник** | **1169** |
 
-Иерархический список задаёт:
+## Политика профилей
 
-- функцию;
-- раздел и группу;
-- английское и русское название;
-- частоту `K1–K5`;
-- целевой модуль;
-- удобный мнемонический путь.
-
-Но список не содержит гарантированных `BUTTON ID`. Их состав зависит от:
-
-- сборки NX;
-- лицензий;
-- активной роли;
-- локализации;
-- Teamcenter/Managed Mode;
-- корпоративных MenuScript-расширений.
-
-Поэтому карта разделена на два слоя:
-
-1. **Intent layer:** все 1169 функций всегда присутствуют и имеют путь.
-2. **Executable layer:** точные ID разрешаются по каталогу конкретной NX; ambiguous/unresolved-команды отключаются.
+- **Главный профиль:** K3–K5, 885 команд-намерений. Используется при обычной сборке, установке, поиске и работе HUD.
+- **K1–K2:** остаются в версионируемом источнике, но не входят в основной runtime.
+- **Полный экспорт K1–K5:** доступен только явной опцией `--all-frequencies` для аудита и специальных рабочих мест.
 
 ## Файлы
 
 ```text
 config/full-command-map/
-├── nx2512-full-command-map.json.gz.b64.part1
-├── nx2512-full-command-map.json.gz.b64.part2
-└── nx2512-full-command-map.json.gz.b64.part3
+  nx2512-full-command-map.json.gz.b64.part1
+  nx2512-full-command-map.json.gz.b64.part2
+  nx2512-full-command-map.json.gz.b64.part3
 
-scripts/compile-full-command-map.mjs
-scripts/validate-full-command-map.mjs
-install-full-command-profile.ps1
+config/nx2512-pro-hybrid.json             bootstrap-профиль
+config/nx2512-pro-main.generated.json     главный K3–K5
+config/nx2512-pro-all.generated.json      необязательный K1–K5
+
+docs/generated/main-profile-resolution.md
+docs/generated/all-frequency-resolution.md
 ```
 
-Снимок хранится в трёх частях только для удобства GitHub API. Компилятор объединяет, распаковывает и проверяет их автоматически.
+Bootstrap-профиль содержит проверенные IDs, базовые сочетания, структуру 14 модулей и safety-policy. Компилятор использует его как доверенный справочник, затем удаляет команды вне выбранного частотного scope.
 
-## Состав записи
+## Что хранится для каждой функции
 
-Для каждой команды сохранены:
+- `intent_id`;
+- исходный индекс раздела `0–31`;
+- `runtime_module`;
+- `frequency` (`K1–K5`);
+- исходный модуль и группа;
+- английское и русское название;
+- канонический путь длиной 2–5 клавиш.
 
-```text
-intent_id
-source_index
-runtime_module
-frequency
-source_module
-group
-name_en
-name_ru
-path
-```
+Составные названия сохраняются без повреждения: `DXF/DWG`, `Zoom In/Out`, `Select Similar Faces/Edges`, `Arc/Circle`.
 
-Составные имена сохраняются без повреждения: `DXF/DWG`, `Zoom In/Out`, `Arc/Circle`, `Faces/Edges` и подобные.
+## Компиляция главного профиля
 
-## Требования
-
-- Node.js 20+;
-- базовый профиль `config/nx2512-pro-hybrid.json`;
-- экспорт `NX2512_Catalog_Studio`;
-- `06_ui_commands_buttons.csv`;
-- для установки — .NET 8 SDK и NXOpen DLL целевой NX.
-
-## Быстрый запуск
+Рекомендуемый способ:
 
 ```powershell
-.\install-full-command-profile.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
-  -NxRoot "C:\Program Files\Siemens\NX2512" `
-  -Clean
-```
-
-Только компиляция:
-
-```powershell
-.\install-full-command-profile.ps1 `
+.\install-main-profile.ps1 `
   -CatalogDir "D:\NX2512_Catalog_Output" `
   -CompileOnly
 ```
 
-Результаты:
-
-```text
-config/nx2512-pro-full.generated.json
-docs/generated/full-command-resolution.md
-```
-
-## Ручная компиляция
+Ручной вызов:
 
 ```powershell
-node .\scripts\compile-full-command-map.mjs `
+node .\scripts\compile-main-command-map.mjs `
   --profile .\config\nx2512-pro-hybrid.json `
   --intents .\config\full-command-map `
   --catalog-dir "D:\NX2512_Catalog_Output" `
-  --probe .\docs\audit\runtime-command-probe-2026-07-28.json `
-  --out .\config\nx2512-pro-full.generated.json `
-  --report .\docs\generated\full-command-resolution.md
+  --out .\config\nx2512-pro-main.generated.json `
+  --report .\docs\generated\main-profile-resolution.md
 ```
 
-Опции:
+По умолчанию компилятор выбирает `K3,K4,K5`. Явная форма:
 
-| Опция | Назначение |
-|---|---|
-| `--profile` | Базовый профиль и известные IDs. |
-| `--intents` | Каталог 1169 намерений. |
-| `--catalog-dir` | Экспорт конкретной NX. |
-| `--probe` | Дополнительные runtime evidence. |
-| `--out` | Сгенерированный JSON. |
-| `--report` | Markdown-отчёт разрешения. |
-| `--no-global-duplication` | Не дублировать общие команды во все активные модули. |
-
-## Алгоритм разрешения
-
-1. Загружается базовый профиль.
-2. Из базового профиля извлекаются известные точные IDs и curated paths.
-3. Загружается `06_ui_commands_buttons.csv`.
-4. При наличии загружается runtime probe.
-5. Для каждой intent-записи рассчитываются кандидаты по имени, aliases и module affinity.
-6. Слабые и близкие результаты получают `unresolved`/`ambiguous`.
-7. Надёжный результат получает точный ID.
-8. Curated-команда обогащается `catalog_refs`.
-9. Новая команда добавляется в целевой module command set.
-10. Внутри каждого модуля резервируется prefix-free canonical path.
-11. Конфликтующие aliases удаляются.
-12. Формируется JSON и отчёт.
-
-## Статусы
-
-| Статус | Значение | Enabled |
-|---|---|---|
-| `existing` | Точный ID уже присутствовал в базовом профиле. | Да |
-| `resolved` | Найден надёжный ID в каталоге. | Да |
-| `ambiguous` | Несколько близких кандидатов. | Нет |
-| `unresolved` | Надёжного кандидата нет. | Нет |
-
-Включённая строка без точного `command.id` запрещена валидатором.
-
-## Политика путей
-
-```text
-CapsLock → действие → объект → команда → вариант
+```powershell
+node .\scripts\compile-main-command-map.mjs --frequencies K3,K4,K5
 ```
 
-Канонический путь:
+## Полный совместимый экспорт
 
-- содержит 2–5 токенов;
-- использует стабильный action root;
-- по возможности использует смысловой object token;
-- уникален внутри модуля;
-- не является префиксом другой команды;
-- сохраняет curated path для известных IDs;
-- может иметь alias только без конфликтов.
+```powershell
+node .\scripts\compile-main-command-map.mjs `
+  --all-frequencies `
+  --out .\config\nx2512-pro-all.generated.json `
+  --report .\docs\generated\all-frequency-resolution.md
+```
 
-## Частота
-
-| K | Смысл |
-|---|---|
-| `K5` | многократно в течение часа |
-| `K4` | обычно ежедневно |
-| `K3` | несколько раз в неделю или на этапе |
-| `K2` | специализированная/периодическая |
-| `K1` | редкая административная |
-
-Это экспертная оценка, а не телеметрия Siemens.
-
-## Глобальные команды
-
-По умолчанию общие намерения Gateway/File/View/Measure/Teamcenter и административных областей дублируются в активные модули. Это позволяет вызвать их без ручного переключения HUD.
+Либо:
 
 ```powershell
 .\install-full-command-profile.ps1 `
   -CatalogDir "D:\NX2512_Catalog_Output" `
-  -NoGlobalDuplication `
   -CompileOnly
 ```
 
-используется для более компактного профиля.
+## Разрешение BUTTON ID
 
-## Версии schema
+Файл `06_ui_commands_buttons.csv` формируется `NX2512_Catalog_Studio` на целевой установке NX. Компилятор объединяет:
 
-- generated source profile: `schema_version: 4`;
-- HotkeyStudio runtime model: schema 5;
-- IPC: schema 3;
-- `full_command_catalog.schema_version`: 1.
+1. IDs и названия из каталога установки;
+2. проверенные команды bootstrap-профиля;
+3. runtime probe;
+4. ручные мнемонические правила `MnemonicPathGenerator.cs`.
+
+Статусы:
+
+- `existing` — точная команда уже была в bootstrap-профиле;
+- `resolved` — найдено надёжное соответствие в каталоге;
+- `ambiguous` — несколько близких кандидатов;
+- `unresolved` — надёжного ID нет.
+
+`ambiguous` и `unresolved` сохраняются с путём и поисковыми данными, но имеют `enabled: false`.
+
+## Метаданные главного профиля
+
+```json
+{
+  "full_command_catalog": {
+    "schema_version": 2,
+    "source_intents": 1169,
+    "selected_intents": 885,
+    "selected_frequencies": ["K3", "K4", "K5"],
+    "frequency_counts": {
+      "K1": 4,
+      "K2": 280,
+      "K3": 445,
+      "K4": 371,
+      "K5": 69
+    }
+  }
+}
+```
+
+## Политика путей
+
+- пути prefix-free внутри каждого активного модуля;
+- длина 2–5 алфавитно-цифровых токенов;
+- структура `действие → объект → команда → вариант`;
+- проверенные пути по `BUTTON ID` имеют приоритет;
+- короткий alias сохраняется только без конфликтов;
+- глобальные функции по умолчанию дублируются в активные модули;
+- `--no-global-duplication` оставляет их в специализированном scope.
 
 ## Проверка
 
 ```powershell
-node .\scripts\validate-full-command-map.mjs
+node .\scripts\validate-main-command-map.mjs
 ```
 
-Валидатор подтверждает:
+Валидатор проверяет:
 
-- ровно 1169 intent records;
-- наличие всех 32 разделов;
-- корректность `K1–K5`;
-- уникальность `intent_id`;
-- сохранение имён и составных разделителей;
-- 2–5 токенов пути;
-- отсутствие duplicate/prefix conflicts;
-- сохранение каждой intent-записи в test-generated profile;
-- отсутствие включённых команд без точного ID.
-
-Дополнительно стандартный CI проверяет baseline profile, runtime schema migration, DFA/HFSM, selection routing, IPC и сборку.
-
-## Отчёт разрешения
-
-`docs/generated/full-command-resolution.md` содержит:
-
-- число доступных catalog entries;
-- enriched existing commands;
-- добавленные строки;
-- общее и enabled-количество;
-- resolved/existing/ambiguous/unresolved;
-- лучшие кандидаты для проблемных записей.
-
-Этот отчёт следует сохранять вместе с версией NX, ролью и лицензиями при production-проверке.
-
-## Ограничения
-
-Статическая компиляция не доказывает чувствительность кнопки и семантическую эквивалентность в рабочем контексте. Перед эксплуатацией:
-
-1. выполните dry-run;
-2. изучите отчёт;
-3. тестируйте сначала `existing` и `resolved` безопасные команды;
-4. проверьте selection filters;
-5. destructive-команды тестируйте на копии данных;
-6. сформируйте runtime probe целевой установки.
-
-См. также [README.md](README.md), [docs/CONFIGURATION.md](docs/CONFIGURATION.md) и [docs/INSTALLATION.md](docs/INSTALLATION.md).
+- 1169 исходных функций и 32 раздела;
+- точные количества: K1=4, K2=280, K3=445, K4=371, K5=69;
+- ровно 885 уникальных intent в главном K3–K5 профиле;
+- отсутствие K1–K2 в главном профиле;
+- сохранение всех выбранных `catalog_refs`;
+- prefix-free пути и aliases;
+- отсутствие включённых команд без точного ID;
+- возможность отдельной компиляции всех K1–K5;
+- актуальность README и эксплуатационной документации.
