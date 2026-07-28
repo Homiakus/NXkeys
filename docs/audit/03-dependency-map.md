@@ -40,7 +40,7 @@ graph TD
 
 ## 3. Configuration & Script Dependencies
 
-* `config/nx2512-pro-hybrid.json` (JSON Schema v3): Canonical profile declaring 12 basic shortcuts and 14 adaptive modules.
+* `config/nx2512-pro-hybrid.json` (runtime schema v5): Canonical profile declaring 12 basic shortcuts, 14 adaptive modules, command aliases, action routing, and selection intent metadata.
 * `config/nx2512-state-machines.json`: Declarative state machine behavior parameters (IPC timeouts, retry limits, confirmation rules).
-* `scripts/validate-command-tree.mjs`: Node.js script validating JSON structure, key slot uniqueness (`QWE/A·D/ZXC`), and 112 command definitions.
+* `scripts/validate-command-tree.mjs`: Node.js script validating JSON structure, key slot uniqueness (`QWE/A·D/ZXC`), 277 command definitions, aliases, selection filters, protocol fields, and interactive documentation integrity.
 * `install-nx-ribbon-buttons.ps1`: PowerShell installation script executing transactional deployment via `DeploymentEngine`.

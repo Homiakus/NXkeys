@@ -28,7 +28,7 @@ Requirement -> UI / Entry Point -> Frontend / Leader Hook -> IPC Protocol -> Com
 | **F-009** | Adaptive Control Center | GUI Application | `ControlCenterForm` | `status.json`, `context.json` | Visual Status Display | `NxBridgeStatus` | `ci.yml (Build Control Center)` | `WORKING` |
 | **F-010** | NX Catalog Studio | Utility GUI | `CatalogStudioForm` | None | Reflection over `NXOpen.dll` | `08_ui_command_api_candidates.csv` | `CatalogStudio.csproj` compilation | `BROKEN` |
 | **F-011** | C# CLI Management | Command Line | `Program.Main()` | `nx2512-pro-hybrid.json` | Execution of CLI verb | `ConfigModels.cs` | `ci.yml (Validate profile CLI)` | `WORKING` |
-| **F-012** | Command Tree Schema Check | `validate-command-tree.mjs` | Node.js Runtime | `config/*.json` | Profile AST inspection | JSON Schema v3 | `validate-command-tree.mjs` | `WORKING` |
+| **F-012** | Command Tree Schema Check | `validate-command-tree.mjs` | Node.js Runtime | `config/*.json` | Profile AST inspection | Runtime schema v5 | `validate-command-tree.mjs` | `WORKING` |
 
 ---
 

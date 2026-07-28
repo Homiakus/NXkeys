@@ -114,7 +114,7 @@ namespace NX2512_HotkeyStudio.Services
                     item.IsAlias ? "alias быстрый путь" : "canonical канонический путь"
                 }),
                 RequiresSelection = item.RequiresSelection,
-                MinimumSelectionCount = item.RequiresSelection ? 1 : 0,
+                MinimumSelectionCount = PreselectRequired(item) ? 1 : 0,
                 NeedsWorkPart = ContextGuardEvaluator.CommandNeedsWorkPart(item.Command?.ID),
                 Destructive = item.Destructive,
                 ConfirmBeforeExecute = item.ConfirmBeforeExecute || item.Destructive,
@@ -134,6 +134,18 @@ namespace NX2512_HotkeyStudio.Services
                 .Where(char.IsLetterOrDigit)
                 .Select(char.ToUpperInvariant)
                 .ToArray());
+        }
+
+        private static bool PreselectRequired(LeaderSequenceItem item)
+        {
+            string id = item?.Command?.ID ?? string.Empty;
+            if (id.StartsWith("UG_SEL_", StringComparison.OrdinalIgnoreCase)) return false;
+            if (id.IndexOf("BLANK_SELECTED", StringComparison.OrdinalIgnoreCase) >= 0) return true;
+            if (id.IndexOf("SHOWHIDE_ALL", StringComparison.OrdinalIgnoreCase) >= 0) return true;
+            if (id.IndexOf("DELETE", StringComparison.OrdinalIgnoreCase) >= 0) return item?.Destructive == true;
+            if (id.IndexOf("REMOVE", StringComparison.OrdinalIgnoreCase) >= 0) return item?.Destructive == true;
+            if (id.IndexOf("REPLACE", StringComparison.OrdinalIgnoreCase) >= 0) return item?.Destructive == true;
+            return false;
         }
     }
 

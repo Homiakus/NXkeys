@@ -10,8 +10,8 @@
 | Test Level | Target Component | Test Runner / Command | Passed Tests | Status |
 |---|---|---|---|---|
 | **Unit / Invariants** | State Machine DFA/HFSM (`NXKeys.StateMachines`) | `dotnet run --project .\NXKeys.StateMachines.Tests` | 17 invariants | **PASS** |
-| **Profile Validation** | JSON Schema v3 Profile (`config/nx2512-pro-hybrid.json`) | `node .\scripts\validate-command-tree.mjs` | 112 commands, 14 modules | **PASS** |
-| **CLI Contract Validation** | Hotkey Studio CLI (`NX2512_HotkeyStudio.exe`) | `NX2512_HotkeyStudio.exe validate --config ...` | Schema v3 check | **PASS** |
+| **Profile Validation** | Runtime schema v5 profile (`config/nx2512-pro-hybrid.json`) | `node .\scripts\validate-command-tree.mjs` | 277 commands, 14 modules, aliases, selection filters | **PASS** |
+| **CLI Contract Validation** | Hotkey Studio CLI (`NX2512_HotkeyStudio.exe`) | `NX2512_HotkeyStudio.exe validate --config ...` | Runtime schema v5 check | **PASS** |
 | **Contract Assembly Stubs** | NXOpen / NXOpenUI C# Contract Stubs | `dotnet build .\NX2512_CommandBridge.Tests\NXOpenUI` | Stubs compiled clean | **PASS** |
 | **Component Build** | All C# Projects (`HotkeyStudio`, `CommandBridge`, `ControlCenter`, `CatalogStudio`) | `dotnet build` (Release x64) | 4 assemblies compiled clean | **PASS** |
 

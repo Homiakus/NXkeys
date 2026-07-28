@@ -19,6 +19,7 @@ namespace NXKeys.StateMachines.Tests
             Run("Тайм-аут возвращает Idle", TimeoutReturnsIdle);
             Run("Разрушительная команда требует Enter", DestructiveCommandRequiresConfirmation);
             Run("Команда с выбором блокируется без выбора", SelectionGuardBlocks);
+            Run("Команда с выбором может запускать NX selection workflow", SelectionWorkflowCommandStartsWithoutPreselection);
             Run("Устаревший контекст блокирует выполнение", StaleContextBlocks);
             Run("Явная смена модуля подтверждается новым контекстом", ManualModuleSwitchWaitsForContext);
             Run("Команда другого модуля не переключает NX скрыто", CrossModuleCommandIsRejected);
@@ -101,12 +102,26 @@ namespace NXKeys.StateMachines.Tests
         {
             SequenceDefinition command = Command("SB", "modeling");
             command.RequiresSelection = true;
+            command.MinimumSelectionCount = 1;
             LeaderStateMachine machine = CreateMachine(command);
             machine.Activate(false, Context("modeling", 0));
             machine.InputToken("S");
             LeaderTransition transition = machine.InputToken("B");
             Assert(transition.Action == LeaderActionKind.Rejected, "Команда должна быть отклонена без выбора.");
             Assert(machine.State == LeaderState.Idle, "После отказа non-sticky должен вернуться Idle.");
+        }
+
+        private static void SelectionWorkflowCommandStartsWithoutPreselection()
+        {
+            SequenceDefinition command = Command("SF", "modeling");
+            command.RequiresSelection = true;
+            command.MinimumSelectionCount = 0;
+            LeaderStateMachine machine = CreateMachine(command);
+            machine.Activate(false, Context("modeling", 0));
+            machine.InputToken("S");
+            LeaderTransition transition = machine.InputToken("F");
+            Assert(transition.Action == LeaderActionKind.ExecuteCommand, "NX-команда выбора должна стартовать и сама запросить объект.");
+            Assert(machine.State == LeaderState.Dispatching, "Команда выбора должна перейти в Dispatching.");
         }
 
         private static void StaleContextBlocks()

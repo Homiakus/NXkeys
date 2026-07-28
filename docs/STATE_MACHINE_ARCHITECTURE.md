@@ -149,10 +149,15 @@ updated_utc
 - срок действия запроса;
 - `expected_context_revision`;
 - `expected_selection_count`;
+- `action` и `selection_filter`;
 - `expected_application_id`;
 - отсутствие модального диалога;
 - соответствие модуля;
 - наличие и чувствительность NX `BUTTON ID`.
+
+`requires_selection` в профиле больше не означает безусловную блокировку до запуска команды. Для интерактивных NX-команд это описание ожидаемого workflow и `selection_type`; команда может открыться с пустым выбором, если policy не требует preselect. Жёсткая блокировка остаётся только там, где policy задаёт положительный `expected_selection_count` или операция реально действует над уже выбранными объектами.
+
+Selection-фильтры проходят отдельным действием `set_selection_filter`. В этом режиме DFA/HFSM выбирает команду как обычно, но Bridge применяет глобальные фильтры NXOpen (`edge`, `face`, `body`, `component`, `curve`, `datum`, `feature`, `operation`, `all`, `reset`) вместо вызова `UG_SEL_*` через меню.
 
 ## Надёжная очередь
 

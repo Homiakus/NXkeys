@@ -46,7 +46,7 @@ All 11 mandated audit documentation artifacts are fully populated and updated in
 
 ## 4. Test Verification Summary
 
-* **Node.js Command Tree Validation:** PASS (`[adaptive-profile] OK: 12 basic shortcuts, 14 modules, 112 module commands, 8 adaptive keys.`)
+* **Node.js Command Tree Validation:** PASS (`[mnemonic-profile] OK: 12 basic shortcuts, 14 modules, 277 commands, 151 exact mnemonic mappings, schema v5 runtime.`)
 * **State Machines & Invariant Test Suite:** PASS (17 invariants passed)
 * **Contract Stub Compilation:** PASS
 * **C# Solution Build (Release x64):** PASS (0 Errors, 0 Warnings)

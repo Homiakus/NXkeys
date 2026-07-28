@@ -206,7 +206,13 @@
               "input_key": "W",
               "display_order": 1,
               "enabled": true,
-              "icon_hint": "sketch"
+              "icon_hint": "sketch",
+              "aliases": [
+                [
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NE",
@@ -217,7 +223,14 @@
               "input_key": "E",
               "display_order": 2,
               "enabled": true,
-              "icon_hint": "feature"
+              "icon_hint": "feature",
+              "aliases": [
+                [
+                  "E"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "feature"
             },
             {
               "slot": "E",
@@ -228,7 +241,14 @@
               "input_key": "D",
               "display_order": 3,
               "enabled": true,
-              "icon_hint": "feature"
+              "icon_hint": "feature",
+              "aliases": [
+                [
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "feature"
             },
             {
               "slot": "SE",
@@ -239,7 +259,14 @@
               "input_key": "C",
               "display_order": 4,
               "enabled": true,
-              "icon_hint": "feature"
+              "icon_hint": "feature",
+              "aliases": [
+                [
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "feature"
             },
             {
               "slot": "S",
@@ -251,7 +278,14 @@
               "input_key": "X",
               "display_order": 5,
               "enabled": true,
-              "icon_hint": "feature"
+              "icon_hint": "feature",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "edge"
             },
             {
               "slot": "SW",
@@ -263,7 +297,14 @@
               "input_key": "Z",
               "display_order": 6,
               "enabled": true,
-              "icon_hint": "feature"
+              "icon_hint": "feature",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "feature"
             },
             {
               "slot": "W",
@@ -275,7 +316,14 @@
               "input_key": "A",
               "display_order": 7,
               "enabled": true,
-              "icon_hint": "pattern"
+              "icon_hint": "pattern",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "feature"
             },
             {
               "slot": "NW",
@@ -287,7 +335,14 @@
               "input_key": "Q",
               "display_order": 8,
               "enabled": true,
-              "icon_hint": "pattern"
+              "icon_hint": "pattern",
+              "aliases": [
+                [
+                  "Q"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "feature"
             }
           ]
         },
@@ -309,7 +364,15 @@
               "confirm": false,
               "notes": "Select bodies first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -325,7 +388,15 @@
               "confirm": false,
               "notes": "Select faces first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -341,7 +412,15 @@
               "confirm": false,
               "notes": "Select edges first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "",
@@ -357,7 +436,15 @@
               "confirm": false,
               "notes": "Select features first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "",
@@ -373,7 +460,15 @@
               "confirm": false,
               "notes": "Select components first",
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "1",
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "",
@@ -389,7 +484,15 @@
               "confirm": false,
               "notes": "Reset selection filters",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             },
             {
               "slot": "",
@@ -405,7 +508,15 @@
               "confirm": false,
               "notes": "Select all selectable objects",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -421,7 +532,15 @@
               "confirm": false,
               "notes": "Clear current selection",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "none"
             }
           ]
         },
@@ -446,7 +565,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Return to Modeling application."
+              "notes": "Return to Modeling application.",
+              "aliases": [
+                [
+                  "2",
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -464,7 +590,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Open Sheet Metal application when current context is not Sketch."
+              "notes": "Open Sheet Metal application when current context is not Sketch.",
+              "aliases": [
+                [
+                  "2",
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -482,7 +615,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Create associative WAVE geometry links."
+              "notes": "Create associative WAVE geometry links.",
+              "aliases": [
+                [
+                  "2",
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -500,7 +641,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Review and repair WAVE associativity."
+              "notes": "Review and repair WAVE associativity.",
+              "aliases": [
+                [
+                  "2",
+                  "C"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -518,7 +666,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Open layer settings."
+              "notes": "Open layer settings.",
+              "aliases": [
+                [
+                  "2",
+                  "X"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -536,7 +691,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Move selected objects to another layer."
+              "notes": "Move selected objects to another layer.",
+              "aliases": [
+                [
+                  "2",
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -554,7 +717,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Assign physical material to selected geometry."
+              "notes": "Assign physical material to selected geometry.",
+              "aliases": [
+                [
+                  "2",
+                  "A"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -572,7 +743,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Open material library manager."
+              "notes": "Open material library manager.",
+              "aliases": [
+                [
+                  "2",
+                  "Q"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -590,7 +768,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Create WAVE interface links."
+              "notes": "Create WAVE interface links.",
+              "aliases": [
+                [
+                  "3",
+                  "W"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -608,7 +794,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Open WAVE part navigator."
+              "notes": "Open WAVE part navigator.",
+              "aliases": [
+                [
+                  "3",
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -626,7 +819,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Inspect WAVE graph relationships."
+              "notes": "Inspect WAVE graph relationships.",
+              "aliases": [
+                [
+                  "3",
+                  "D"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -644,7 +844,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Load/update WAVE data."
+              "notes": "Load/update WAVE data.",
+              "aliases": [
+                [
+                  "3",
+                  "C"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -662,7 +869,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Control visible layers in the current view."
+              "notes": "Control visible layers in the current view.",
+              "aliases": [
+                [
+                  "4",
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -680,7 +894,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Edit layer categories."
+              "notes": "Edit layer categories.",
+              "aliases": [
+                [
+                  "4",
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -698,7 +919,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Copy selected objects to another layer."
+              "notes": "Copy selected objects to another layer.",
+              "aliases": [
+                [
+                  "4",
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -716,7 +945,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Inspect object and layer information."
+              "notes": "Inspect object and layer information.",
+              "aliases": [
+                [
+                  "4",
+                  "C"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -734,7 +970,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Open system material palette."
+              "notes": "Open system material palette.",
+              "aliases": [
+                [
+                  "5",
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -752,7 +995,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Open materials currently stored in the part."
+              "notes": "Open materials currently stored in the part.",
+              "aliases": [
+                [
+                  "5",
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -770,7 +1020,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Toggle visual material display."
+              "notes": "Toggle visual material display.",
+              "aliases": [
+                [
+                  "5",
+                  "D"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -788,7 +1045,15 @@
               "destructive": false,
               "confirm_before_execute": true,
               "fallback": "",
-              "notes": "Remove visual material override from selected objects."
+              "notes": "Remove visual material override from selected objects.",
+              "aliases": [
+                [
+                  "5",
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -806,7 +1071,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Convert solid body workflow into Sheet Metal."
+              "notes": "Convert solid body workflow into Sheet Metal.",
+              "aliases": [
+                [
+                  "6",
+                  "W"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -824,7 +1097,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Create or edit sheet body feature."
+              "notes": "Create or edit sheet body feature.",
+              "aliases": [
+                [
+                  "6",
+                  "E"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -842,7 +1123,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Extend sheet geometry."
+              "notes": "Extend sheet geometry.",
+              "aliases": [
+                [
+                  "6",
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -860,7 +1149,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Inspect sheet boundary conditions."
+              "notes": "Inspect sheet boundary conditions.",
+              "aliases": [
+                [
+                  "6",
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "face"
             }
           ]
         }
@@ -894,7 +1191,14 @@
               "input_key": "X",
               "display_order": 40,
               "enabled": true,
-              "icon_hint": "sketch"
+              "icon_hint": "sketch",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "SW",
@@ -906,7 +1210,14 @@
               "input_key": "Z",
               "display_order": 41,
               "enabled": true,
-              "icon_hint": "sketch"
+              "icon_hint": "sketch",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "W",
@@ -918,7 +1229,14 @@
               "input_key": "A",
               "display_order": 42,
               "enabled": true,
-              "icon_hint": "sketch"
+              "icon_hint": "sketch",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "curve"
             },
             {
               "slot": "",
@@ -933,7 +1251,18 @@
               "display_order": 1,
               "enabled": true,
               "notes": "Line submenu",
-              "icon_hint": "sketch"
+              "icon_hint": "sketch",
+              "aliases": [
+                [
+                  "W"
+                ],
+                [
+                  "W",
+                  "W"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "curve"
             },
             {
               "slot": "",
@@ -948,7 +1277,18 @@
               "display_order": 2,
               "enabled": true,
               "notes": "Line submenu",
-              "icon_hint": "sketch"
+              "icon_hint": "sketch",
+              "aliases": [
+                [
+                  "E"
+                ],
+                [
+                  "W",
+                  "E"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "curve"
             },
             {
               "slot": "",
@@ -963,7 +1303,17 @@
               "display_order": 3,
               "enabled": true,
               "notes": "Rectangle submenu",
-              "icon_hint": "sketch"
+              "icon_hint": "sketch",
+              "aliases": [
+                [
+                  "W"
+                ],
+                [
+                  "E",
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -978,7 +1328,17 @@
               "display_order": 4,
               "enabled": true,
               "notes": "Rectangle submenu",
-              "icon_hint": "sketch"
+              "icon_hint": "sketch",
+              "aliases": [
+                [
+                  "E"
+                ],
+                [
+                  "E",
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -993,7 +1353,17 @@
               "display_order": 5,
               "enabled": true,
               "notes": "Rectangle submenu",
-              "icon_hint": "sketch"
+              "icon_hint": "sketch",
+              "aliases": [
+                [
+                  "D"
+                ],
+                [
+                  "E",
+                  "D"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1008,7 +1378,18 @@
               "display_order": 6,
               "enabled": true,
               "notes": "Circle submenu",
-              "icon_hint": "sketch"
+              "icon_hint": "sketch",
+              "aliases": [
+                [
+                  "W"
+                ],
+                [
+                  "D",
+                  "W"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "curve"
             },
             {
               "slot": "",
@@ -1023,7 +1404,18 @@
               "display_order": 7,
               "enabled": true,
               "notes": "Circle submenu",
-              "icon_hint": "sketch"
+              "icon_hint": "sketch",
+              "aliases": [
+                [
+                  "E"
+                ],
+                [
+                  "D",
+                  "E"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "curve"
             },
             {
               "slot": "",
@@ -1038,7 +1430,18 @@
               "display_order": 8,
               "enabled": true,
               "notes": "Arc submenu",
-              "icon_hint": "sketch"
+              "icon_hint": "sketch",
+              "aliases": [
+                [
+                  "W"
+                ],
+                [
+                  "C",
+                  "W"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "curve"
             },
             {
               "slot": "",
@@ -1053,7 +1456,18 @@
               "display_order": 9,
               "enabled": true,
               "notes": "Arc submenu",
-              "icon_hint": "sketch"
+              "icon_hint": "sketch",
+              "aliases": [
+                [
+                  "E"
+                ],
+                [
+                  "C",
+                  "E"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "curve"
             },
             {
               "slot": "",
@@ -1068,7 +1482,17 @@
               "display_order": 10,
               "enabled": true,
               "notes": "Constraints submenu",
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "W"
+                ],
+                [
+                  "Q",
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1083,7 +1507,18 @@
               "display_order": 11,
               "enabled": true,
               "notes": "Constraints submenu",
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "E"
+                ],
+                [
+                  "Q",
+                  "E"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "curve"
             },
             {
               "slot": "",
@@ -1098,7 +1533,18 @@
               "display_order": 12,
               "enabled": true,
               "notes": "Constraints submenu",
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "D"
+                ],
+                [
+                  "Q",
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -1113,7 +1559,18 @@
               "display_order": 13,
               "enabled": true,
               "notes": "Constraints submenu",
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "C"
+                ],
+                [
+                  "Q",
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -1128,7 +1585,18 @@
               "display_order": 14,
               "enabled": true,
               "notes": "Constraints submenu",
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "X"
+                ],
+                [
+                  "Q",
+                  "X"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -1143,7 +1611,18 @@
               "display_order": 15,
               "enabled": true,
               "notes": "Constraints submenu",
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "Z"
+                ],
+                [
+                  "Q",
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -1158,7 +1637,18 @@
               "display_order": 16,
               "enabled": true,
               "notes": "Constraints submenu",
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "A"
+                ],
+                [
+                  "Q",
+                  "A"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -1173,7 +1663,18 @@
               "display_order": 17,
               "enabled": true,
               "notes": "Constraints submenu",
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "Q"
+                ],
+                [
+                  "Q",
+                  "Q"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -1188,7 +1689,17 @@
               "display_order": 18,
               "enabled": true,
               "notes": "Constraints submenu",
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "S"
+                ],
+                [
+                  "Q",
+                  "S"
+                ]
+              ],
+              "action": "execute_command"
             }
           ]
         },
@@ -1210,7 +1721,15 @@
               "confirm": false,
               "notes": "Select bodies first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -1226,7 +1745,15 @@
               "confirm": false,
               "notes": "Select faces first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -1242,7 +1769,15 @@
               "confirm": false,
               "notes": "Select edges first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "",
@@ -1258,7 +1793,15 @@
               "confirm": false,
               "notes": "Select features first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "",
@@ -1274,7 +1817,15 @@
               "confirm": false,
               "notes": "Select components first",
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "1",
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "",
@@ -1290,7 +1841,15 @@
               "confirm": false,
               "notes": "Reset selection filters",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             },
             {
               "slot": "",
@@ -1306,7 +1865,15 @@
               "confirm": false,
               "notes": "Select all selectable objects",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -1322,7 +1889,15 @@
               "confirm": false,
               "notes": "Clear current selection",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "none"
             }
           ]
         }
@@ -1354,7 +1929,14 @@
               "input_key": "W",
               "display_order": 1,
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "W"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "component"
             },
             {
               "slot": "NE",
@@ -1365,7 +1947,14 @@
               "input_key": "E",
               "display_order": 2,
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "E"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "component"
             },
             {
               "slot": "E",
@@ -1377,7 +1966,14 @@
               "input_key": "D",
               "display_order": 3,
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "component"
             },
             {
               "slot": "SE",
@@ -1389,7 +1985,14 @@
               "input_key": "C",
               "display_order": 4,
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "component"
             },
             {
               "slot": "S",
@@ -1403,7 +2006,14 @@
               "input_key": "X",
               "display_order": 5,
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "component"
             },
             {
               "slot": "SW",
@@ -1417,7 +2027,14 @@
               "input_key": "Z",
               "display_order": 6,
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "component"
             },
             {
               "slot": "W",
@@ -1429,7 +2046,14 @@
               "input_key": "A",
               "display_order": 7,
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "component"
             },
             {
               "slot": "NW",
@@ -1440,7 +2064,14 @@
               "input_key": "Q",
               "display_order": 8,
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "Q"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "component"
             }
           ]
         },
@@ -1462,7 +2093,15 @@
               "confirm": false,
               "notes": "Select bodies first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -1478,7 +2117,15 @@
               "confirm": false,
               "notes": "Select faces first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -1494,7 +2141,15 @@
               "confirm": false,
               "notes": "Select edges first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "",
@@ -1510,7 +2165,15 @@
               "confirm": false,
               "notes": "Select features first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "",
@@ -1526,7 +2189,15 @@
               "confirm": false,
               "notes": "Select components first",
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "1",
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "",
@@ -1542,7 +2213,15 @@
               "confirm": false,
               "notes": "Reset selection filters",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             },
             {
               "slot": "",
@@ -1558,7 +2237,15 @@
               "confirm": false,
               "notes": "Select all selectable objects",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -1574,7 +2261,15 @@
               "confirm": false,
               "notes": "Clear current selection",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "none"
             }
           ]
         },
@@ -1599,7 +2294,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Return to Modeling application."
+              "notes": "Return to Modeling application.",
+              "aliases": [
+                [
+                  "2",
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1617,7 +2319,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Open Sheet Metal application when current context is not Sketch."
+              "notes": "Open Sheet Metal application when current context is not Sketch.",
+              "aliases": [
+                [
+                  "2",
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1635,7 +2344,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Create associative WAVE geometry links."
+              "notes": "Create associative WAVE geometry links.",
+              "aliases": [
+                [
+                  "2",
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -1653,7 +2370,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Review and repair WAVE associativity."
+              "notes": "Review and repair WAVE associativity.",
+              "aliases": [
+                [
+                  "2",
+                  "C"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1671,7 +2395,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Open layer settings."
+              "notes": "Open layer settings.",
+              "aliases": [
+                [
+                  "2",
+                  "X"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1689,7 +2420,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Move selected objects to another layer."
+              "notes": "Move selected objects to another layer.",
+              "aliases": [
+                [
+                  "2",
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -1707,7 +2446,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Assign physical material to selected geometry."
+              "notes": "Assign physical material to selected geometry.",
+              "aliases": [
+                [
+                  "2",
+                  "A"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -1725,7 +2472,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Open material library manager."
+              "notes": "Open material library manager.",
+              "aliases": [
+                [
+                  "2",
+                  "Q"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1743,7 +2497,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Create WAVE interface links."
+              "notes": "Create WAVE interface links.",
+              "aliases": [
+                [
+                  "3",
+                  "W"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -1761,7 +2523,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Open WAVE part navigator."
+              "notes": "Open WAVE part navigator.",
+              "aliases": [
+                [
+                  "3",
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1779,7 +2548,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Inspect WAVE graph relationships."
+              "notes": "Inspect WAVE graph relationships.",
+              "aliases": [
+                [
+                  "3",
+                  "D"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1797,7 +2573,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Load/update WAVE data."
+              "notes": "Load/update WAVE data.",
+              "aliases": [
+                [
+                  "3",
+                  "C"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1815,7 +2598,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Control visible layers in the current view."
+              "notes": "Control visible layers in the current view.",
+              "aliases": [
+                [
+                  "4",
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1833,7 +2623,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Edit layer categories."
+              "notes": "Edit layer categories.",
+              "aliases": [
+                [
+                  "4",
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1851,7 +2648,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Copy selected objects to another layer."
+              "notes": "Copy selected objects to another layer.",
+              "aliases": [
+                [
+                  "4",
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -1869,7 +2674,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Inspect object and layer information."
+              "notes": "Inspect object and layer information.",
+              "aliases": [
+                [
+                  "4",
+                  "C"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1887,7 +2699,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Open system material palette."
+              "notes": "Open system material palette.",
+              "aliases": [
+                [
+                  "5",
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1905,7 +2724,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Open materials currently stored in the part."
+              "notes": "Open materials currently stored in the part.",
+              "aliases": [
+                [
+                  "5",
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1923,7 +2749,14 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Toggle visual material display."
+              "notes": "Toggle visual material display.",
+              "aliases": [
+                [
+                  "5",
+                  "D"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "",
@@ -1941,7 +2774,15 @@
               "destructive": false,
               "confirm_before_execute": true,
               "fallback": "",
-              "notes": "Remove visual material override from selected objects."
+              "notes": "Remove visual material override from selected objects.",
+              "aliases": [
+                [
+                  "5",
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -1959,7 +2800,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Convert solid body workflow into Sheet Metal."
+              "notes": "Convert solid body workflow into Sheet Metal.",
+              "aliases": [
+                [
+                  "6",
+                  "W"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -1977,7 +2826,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Create or edit sheet body feature."
+              "notes": "Create or edit sheet body feature.",
+              "aliases": [
+                [
+                  "6",
+                  "E"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -1995,7 +2852,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Extend sheet geometry."
+              "notes": "Extend sheet geometry.",
+              "aliases": [
+                [
+                  "6",
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -2013,7 +2878,15 @@
               "destructive": false,
               "confirm_before_execute": false,
               "fallback": "",
-              "notes": "Inspect sheet boundary conditions."
+              "notes": "Inspect sheet boundary conditions.",
+              "aliases": [
+                [
+                  "6",
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "face"
             }
           ]
         }
@@ -2045,7 +2918,13 @@
               "input_key": "W",
               "display_order": 1,
               "enabled": true,
-              "icon_hint": "view"
+              "icon_hint": "view",
+              "aliases": [
+                [
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NE",
@@ -2056,7 +2935,13 @@
               "input_key": "E",
               "display_order": 2,
               "enabled": true,
-              "icon_hint": "view"
+              "icon_hint": "view",
+              "aliases": [
+                [
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "E",
@@ -2067,7 +2952,13 @@
               "input_key": "D",
               "display_order": 3,
               "enabled": true,
-              "icon_hint": "view"
+              "icon_hint": "view",
+              "aliases": [
+                [
+                  "D"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "SE",
@@ -2078,7 +2969,13 @@
               "input_key": "C",
               "display_order": 4,
               "enabled": true,
-              "icon_hint": "view"
+              "icon_hint": "view",
+              "aliases": [
+                [
+                  "C"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "S",
@@ -2089,7 +2986,13 @@
               "input_key": "X",
               "display_order": 5,
               "enabled": true,
-              "icon_hint": "view"
+              "icon_hint": "view",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "SW",
@@ -2101,7 +3004,14 @@
               "input_key": "Z",
               "display_order": 6,
               "enabled": true,
-              "icon_hint": "view"
+              "icon_hint": "view",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "W",
@@ -2112,7 +3022,13 @@
               "input_key": "A",
               "display_order": 7,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NW",
@@ -2123,7 +3039,13 @@
               "input_key": "Q",
               "display_order": 8,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Q"
+                ]
+              ],
+              "action": "execute_command"
             }
           ]
         },
@@ -2145,7 +3067,15 @@
               "confirm": false,
               "notes": "Select bodies first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -2161,7 +3091,15 @@
               "confirm": false,
               "notes": "Select faces first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -2177,7 +3115,15 @@
               "confirm": false,
               "notes": "Select edges first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "",
@@ -2193,7 +3139,15 @@
               "confirm": false,
               "notes": "Select features first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "",
@@ -2209,7 +3163,15 @@
               "confirm": false,
               "notes": "Select components first",
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "1",
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "",
@@ -2225,7 +3187,15 @@
               "confirm": false,
               "notes": "Reset selection filters",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             },
             {
               "slot": "",
@@ -2241,7 +3211,15 @@
               "confirm": false,
               "notes": "Select all selectable objects",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -2257,7 +3235,15 @@
               "confirm": false,
               "notes": "Clear current selection",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "none"
             }
           ]
         }
@@ -2289,7 +3275,13 @@
               "input_key": "W",
               "display_order": 1,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NE",
@@ -2300,7 +3292,14 @@
               "input_key": "E",
               "display_order": 2,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "E"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "datum"
             },
             {
               "slot": "E",
@@ -2311,7 +3310,14 @@
               "input_key": "D",
               "display_order": 3,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "feature"
             },
             {
               "slot": "SE",
@@ -2322,7 +3328,14 @@
               "input_key": "C",
               "display_order": 4,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "face"
             },
             {
               "slot": "S",
@@ -2333,7 +3346,13 @@
               "input_key": "X",
               "display_order": 5,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "SW",
@@ -2345,7 +3364,14 @@
               "input_key": "Z",
               "display_order": 6,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "W",
@@ -2356,7 +3382,13 @@
               "input_key": "A",
               "display_order": 7,
               "enabled": true,
-              "icon_hint": "view"
+              "icon_hint": "view",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NW",
@@ -2367,7 +3399,13 @@
               "input_key": "Q",
               "display_order": 8,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Q"
+                ]
+              ],
+              "action": "execute_command"
             }
           ]
         },
@@ -2389,7 +3427,15 @@
               "confirm": false,
               "notes": "Select bodies first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -2405,7 +3451,15 @@
               "confirm": false,
               "notes": "Select faces first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -2421,7 +3475,15 @@
               "confirm": false,
               "notes": "Select edges first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "",
@@ -2437,7 +3499,15 @@
               "confirm": false,
               "notes": "Select features first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "",
@@ -2453,7 +3523,15 @@
               "confirm": false,
               "notes": "Select components first",
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "1",
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "",
@@ -2469,7 +3547,15 @@
               "confirm": false,
               "notes": "Reset selection filters",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             },
             {
               "slot": "",
@@ -2485,7 +3571,15 @@
               "confirm": false,
               "notes": "Select all selectable objects",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -2501,7 +3595,15 @@
               "confirm": false,
               "notes": "Clear current selection",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "none"
             }
           ]
         }
@@ -2534,7 +3636,14 @@
               "input_key": "W",
               "display_order": 1,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "W"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "curve"
             },
             {
               "slot": "NE",
@@ -2545,7 +3654,14 @@
               "input_key": "E",
               "display_order": 2,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "E"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "feature"
             },
             {
               "slot": "E",
@@ -2556,7 +3672,14 @@
               "input_key": "D",
               "display_order": 3,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "face"
             },
             {
               "slot": "SE",
@@ -2568,7 +3691,14 @@
               "input_key": "C",
               "display_order": 4,
               "enabled": true,
-              "icon_hint": "sheet_metal"
+              "icon_hint": "sheet_metal",
+              "aliases": [
+                [
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "feature"
             },
             {
               "slot": "S",
@@ -2580,7 +3710,14 @@
               "input_key": "X",
               "display_order": 5,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "feature"
             },
             {
               "slot": "SW",
@@ -2592,7 +3729,14 @@
               "input_key": "Z",
               "display_order": 6,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "feature"
             },
             {
               "slot": "W",
@@ -2604,7 +3748,14 @@
               "input_key": "A",
               "display_order": 7,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "NW",
@@ -2616,7 +3767,14 @@
               "input_key": "Q",
               "display_order": 8,
               "enabled": true,
-              "icon_hint": "inspect"
+              "icon_hint": "inspect",
+              "aliases": [
+                [
+                  "Q"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "face"
             }
           ]
         },
@@ -2638,7 +3796,15 @@
               "confirm": false,
               "notes": "Select bodies first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -2654,7 +3820,15 @@
               "confirm": false,
               "notes": "Select faces first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -2670,7 +3844,15 @@
               "confirm": false,
               "notes": "Select edges first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "",
@@ -2686,7 +3868,15 @@
               "confirm": false,
               "notes": "Select features first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "",
@@ -2702,7 +3892,15 @@
               "confirm": false,
               "notes": "Select components first",
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "1",
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "",
@@ -2718,7 +3916,15 @@
               "confirm": false,
               "notes": "Reset selection filters",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             },
             {
               "slot": "",
@@ -2734,7 +3940,15 @@
               "confirm": false,
               "notes": "Select all selectable objects",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -2750,7 +3964,15 @@
               "confirm": false,
               "notes": "Clear current selection",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "none"
             }
           ]
         }
@@ -2782,7 +4004,14 @@
               "input_key": "W",
               "display_order": 1,
               "enabled": true,
-              "icon_hint": "sheet_metal"
+              "icon_hint": "sheet_metal",
+              "aliases": [
+                [
+                  "W"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "body"
             },
             {
               "slot": "NE",
@@ -2794,7 +4023,14 @@
               "input_key": "E",
               "display_order": 2,
               "enabled": true,
-              "icon_hint": "sheet_metal"
+              "icon_hint": "sheet_metal",
+              "aliases": [
+                [
+                  "E"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "body"
             },
             {
               "slot": "E",
@@ -2805,7 +4041,14 @@
               "input_key": "D",
               "display_order": 3,
               "enabled": true,
-              "icon_hint": "sheet_metal"
+              "icon_hint": "sheet_metal",
+              "aliases": [
+                [
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "body"
             },
             {
               "slot": "SE",
@@ -2817,7 +4060,14 @@
               "input_key": "C",
               "display_order": 4,
               "enabled": true,
-              "icon_hint": "sheet_metal"
+              "icon_hint": "sheet_metal",
+              "aliases": [
+                [
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "body"
             },
             {
               "slot": "S",
@@ -2829,7 +4079,14 @@
               "input_key": "X",
               "display_order": 5,
               "enabled": true,
-              "icon_hint": "sheet_metal"
+              "icon_hint": "sheet_metal",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "body"
             },
             {
               "slot": "SW",
@@ -2841,7 +4098,14 @@
               "input_key": "Z",
               "display_order": 6,
               "enabled": true,
-              "icon_hint": "sheet_metal"
+              "icon_hint": "sheet_metal",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "body"
             },
             {
               "slot": "W",
@@ -2852,7 +4116,14 @@
               "input_key": "A",
               "display_order": 7,
               "enabled": true,
-              "icon_hint": "sheet_metal"
+              "icon_hint": "sheet_metal",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "body"
             },
             {
               "slot": "NW",
@@ -2863,7 +4134,14 @@
               "input_key": "Q",
               "display_order": 8,
               "enabled": true,
-              "icon_hint": "sheet_metal"
+              "icon_hint": "sheet_metal",
+              "aliases": [
+                [
+                  "Q"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "body"
             }
           ]
         },
@@ -2885,7 +4163,15 @@
               "confirm": false,
               "notes": "Select bodies first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -2901,7 +4187,15 @@
               "confirm": false,
               "notes": "Select faces first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -2917,7 +4211,15 @@
               "confirm": false,
               "notes": "Select edges first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "",
@@ -2933,7 +4235,15 @@
               "confirm": false,
               "notes": "Select features first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "",
@@ -2949,7 +4259,15 @@
               "confirm": false,
               "notes": "Select components first",
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "1",
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "",
@@ -2965,7 +4283,15 @@
               "confirm": false,
               "notes": "Reset selection filters",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             },
             {
               "slot": "",
@@ -2981,7 +4307,15 @@
               "confirm": false,
               "notes": "Select all selectable objects",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -2997,7 +4331,15 @@
               "confirm": false,
               "notes": "Clear current selection",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "none"
             }
           ]
         }
@@ -3029,7 +4371,14 @@
               "input_key": "W",
               "display_order": 1,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "W"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "operation"
             },
             {
               "slot": "NE",
@@ -3040,7 +4389,14 @@
               "input_key": "E",
               "display_order": 2,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "E"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "operation"
             },
             {
               "slot": "E",
@@ -3052,7 +4408,14 @@
               "input_key": "D",
               "display_order": 3,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "operation"
             },
             {
               "slot": "SE",
@@ -3064,7 +4427,14 @@
               "input_key": "C",
               "display_order": 4,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "operation"
             },
             {
               "slot": "S",
@@ -3078,7 +4448,14 @@
               "input_key": "X",
               "display_order": 5,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "operation"
             },
             {
               "slot": "SW",
@@ -3092,7 +4469,14 @@
               "input_key": "Z",
               "display_order": 6,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "operation"
             },
             {
               "slot": "W",
@@ -3103,7 +4487,14 @@
               "input_key": "A",
               "display_order": 7,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "operation"
             },
             {
               "slot": "NW",
@@ -3115,7 +4506,14 @@
               "input_key": "Q",
               "display_order": 8,
               "enabled": true,
-              "icon_hint": "inspect"
+              "icon_hint": "inspect",
+              "aliases": [
+                [
+                  "Q"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "operation"
             }
           ]
         },
@@ -3137,7 +4535,15 @@
               "confirm": false,
               "notes": "Select bodies first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -3153,7 +4559,15 @@
               "confirm": false,
               "notes": "Select faces first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -3169,7 +4583,15 @@
               "confirm": false,
               "notes": "Select edges first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "",
@@ -3185,7 +4607,15 @@
               "confirm": false,
               "notes": "Select features first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "",
@@ -3201,7 +4631,15 @@
               "confirm": false,
               "notes": "Select components first",
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "1",
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "",
@@ -3217,7 +4655,15 @@
               "confirm": false,
               "notes": "Reset selection filters",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             },
             {
               "slot": "",
@@ -3233,7 +4679,15 @@
               "confirm": false,
               "notes": "Select all selectable objects",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -3249,7 +4703,15 @@
               "confirm": false,
               "notes": "Clear current selection",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "none"
             }
           ]
         }
@@ -3282,7 +4744,13 @@
               "input_key": "W",
               "display_order": 1,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NE",
@@ -3293,7 +4761,13 @@
               "input_key": "E",
               "display_order": 2,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "E",
@@ -3304,7 +4778,13 @@
               "input_key": "D",
               "display_order": 3,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "D"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "SE",
@@ -3316,7 +4796,14 @@
               "input_key": "C",
               "display_order": 4,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "S",
@@ -3330,7 +4817,14 @@
               "input_key": "X",
               "display_order": 5,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "SW",
@@ -3344,7 +4838,14 @@
               "input_key": "Z",
               "display_order": 6,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "W",
@@ -3355,7 +4856,13 @@
               "input_key": "A",
               "display_order": 7,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NW",
@@ -3366,7 +4873,13 @@
               "input_key": "Q",
               "display_order": 8,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Q"
+                ]
+              ],
+              "action": "execute_command"
             }
           ]
         },
@@ -3388,7 +4901,15 @@
               "confirm": false,
               "notes": "Select bodies first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -3404,7 +4925,15 @@
               "confirm": false,
               "notes": "Select faces first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -3420,7 +4949,15 @@
               "confirm": false,
               "notes": "Select edges first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "",
@@ -3436,7 +4973,15 @@
               "confirm": false,
               "notes": "Select features first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "",
@@ -3452,7 +4997,15 @@
               "confirm": false,
               "notes": "Select components first",
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "1",
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "",
@@ -3468,7 +5021,15 @@
               "confirm": false,
               "notes": "Reset selection filters",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             },
             {
               "slot": "",
@@ -3484,7 +5045,15 @@
               "confirm": false,
               "notes": "Select all selectable objects",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -3500,7 +5069,15 @@
               "confirm": false,
               "notes": "Clear current selection",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "none"
             }
           ]
         }
@@ -3532,7 +5109,13 @@
               "input_key": "W",
               "display_order": 1,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NE",
@@ -3543,7 +5126,13 @@
               "input_key": "E",
               "display_order": 2,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "E",
@@ -3555,7 +5144,14 @@
               "input_key": "D",
               "display_order": 3,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "SE",
@@ -3567,7 +5163,14 @@
               "input_key": "C",
               "display_order": 4,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "S",
@@ -3581,7 +5184,14 @@
               "input_key": "X",
               "display_order": 5,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "SW",
@@ -3595,7 +5205,14 @@
               "input_key": "Z",
               "display_order": 6,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "W",
@@ -3606,7 +5223,13 @@
               "input_key": "A",
               "display_order": 7,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NW",
@@ -3617,7 +5240,13 @@
               "input_key": "Q",
               "display_order": 8,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Q"
+                ]
+              ],
+              "action": "execute_command"
             }
           ]
         },
@@ -3639,7 +5268,15 @@
               "confirm": false,
               "notes": "Select bodies first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -3655,7 +5292,15 @@
               "confirm": false,
               "notes": "Select faces first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -3671,7 +5316,15 @@
               "confirm": false,
               "notes": "Select edges first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "",
@@ -3687,7 +5340,15 @@
               "confirm": false,
               "notes": "Select features first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "",
@@ -3703,7 +5364,15 @@
               "confirm": false,
               "notes": "Select components first",
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "1",
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "",
@@ -3719,7 +5388,15 @@
               "confirm": false,
               "notes": "Reset selection filters",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             },
             {
               "slot": "",
@@ -3735,7 +5412,15 @@
               "confirm": false,
               "notes": "Select all selectable objects",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -3751,7 +5436,15 @@
               "confirm": false,
               "notes": "Clear current selection",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "none"
             }
           ]
         }
@@ -3783,7 +5476,13 @@
               "input_key": "W",
               "display_order": 1,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NE",
@@ -3795,7 +5494,14 @@
               "input_key": "E",
               "display_order": 2,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "E"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "E",
@@ -3806,7 +5512,13 @@
               "input_key": "D",
               "display_order": 3,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "D"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "SE",
@@ -3818,7 +5530,14 @@
               "input_key": "C",
               "display_order": 4,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "S",
@@ -3829,7 +5548,13 @@
               "input_key": "X",
               "display_order": 5,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "SW",
@@ -3840,7 +5565,13 @@
               "input_key": "Z",
               "display_order": 6,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "W",
@@ -3851,7 +5582,13 @@
               "input_key": "A",
               "display_order": 7,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NW",
@@ -3862,7 +5599,13 @@
               "input_key": "Q",
               "display_order": 8,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Q"
+                ]
+              ],
+              "action": "execute_command"
             }
           ]
         },
@@ -3884,7 +5627,15 @@
               "confirm": false,
               "notes": "Select bodies first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -3900,7 +5651,15 @@
               "confirm": false,
               "notes": "Select faces first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -3916,7 +5675,15 @@
               "confirm": false,
               "notes": "Select edges first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "",
@@ -3932,7 +5699,15 @@
               "confirm": false,
               "notes": "Select features first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "",
@@ -3948,7 +5723,15 @@
               "confirm": false,
               "notes": "Select components first",
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "1",
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "",
@@ -3964,7 +5747,15 @@
               "confirm": false,
               "notes": "Reset selection filters",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             },
             {
               "slot": "",
@@ -3980,7 +5771,15 @@
               "confirm": false,
               "notes": "Select all selectable objects",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -3996,7 +5795,15 @@
               "confirm": false,
               "notes": "Clear current selection",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "none"
             }
           ]
         }
@@ -4028,7 +5835,13 @@
               "input_key": "W",
               "display_order": 1,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NE",
@@ -4039,7 +5852,13 @@
               "input_key": "E",
               "display_order": 2,
               "enabled": true,
-              "icon_hint": "wave"
+              "icon_hint": "wave",
+              "aliases": [
+                [
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "E",
@@ -4050,7 +5869,13 @@
               "input_key": "D",
               "display_order": 3,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "D"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "SE",
@@ -4062,7 +5887,14 @@
               "input_key": "C",
               "display_order": 4,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "feature"
             },
             {
               "slot": "S",
@@ -4076,7 +5908,14 @@
               "input_key": "X",
               "display_order": 5,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "feature"
             },
             {
               "slot": "SW",
@@ -4087,7 +5926,13 @@
               "input_key": "Z",
               "display_order": 6,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "W",
@@ -4098,7 +5943,13 @@
               "input_key": "A",
               "display_order": 7,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NW",
@@ -4109,7 +5960,13 @@
               "input_key": "Q",
               "display_order": 8,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Q"
+                ]
+              ],
+              "action": "execute_command"
             }
           ]
         },
@@ -4131,7 +5988,15 @@
               "confirm": false,
               "notes": "Select bodies first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -4147,7 +6012,15 @@
               "confirm": false,
               "notes": "Select faces first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -4163,7 +6036,15 @@
               "confirm": false,
               "notes": "Select edges first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "",
@@ -4179,7 +6060,15 @@
               "confirm": false,
               "notes": "Select features first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "",
@@ -4195,7 +6084,15 @@
               "confirm": false,
               "notes": "Select components first",
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "1",
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "",
@@ -4211,7 +6108,15 @@
               "confirm": false,
               "notes": "Reset selection filters",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             },
             {
               "slot": "",
@@ -4227,7 +6132,15 @@
               "confirm": false,
               "notes": "Select all selectable objects",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -4243,7 +6156,15 @@
               "confirm": false,
               "notes": "Clear current selection",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "none"
             }
           ]
         }
@@ -4276,7 +6197,13 @@
               "input_key": "W",
               "display_order": 1,
               "enabled": true,
-              "icon_hint": "view"
+              "icon_hint": "view",
+              "aliases": [
+                [
+                  "W"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NE",
@@ -4287,7 +6214,13 @@
               "input_key": "E",
               "display_order": 2,
               "enabled": true,
-              "icon_hint": "view"
+              "icon_hint": "view",
+              "aliases": [
+                [
+                  "E"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "E",
@@ -4299,7 +6232,14 @@
               "input_key": "D",
               "display_order": 3,
               "enabled": true,
-              "icon_hint": "inspect"
+              "icon_hint": "inspect",
+              "aliases": [
+                [
+                  "D"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "SE",
@@ -4311,7 +6251,14 @@
               "input_key": "C",
               "display_order": 4,
               "enabled": true,
-              "icon_hint": "inspect"
+              "icon_hint": "inspect",
+              "aliases": [
+                [
+                  "C"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "S",
@@ -4323,7 +6270,14 @@
               "input_key": "X",
               "display_order": 5,
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "SW",
@@ -4335,7 +6289,14 @@
               "input_key": "Z",
               "display_order": 6,
               "enabled": true,
-              "icon_hint": "view"
+              "icon_hint": "view",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "execute_command",
+              "selection_type": "all"
             },
             {
               "slot": "W",
@@ -4346,7 +6307,13 @@
               "input_key": "A",
               "display_order": 7,
               "enabled": true,
-              "icon_hint": "layer"
+              "icon_hint": "layer",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "execute_command"
             },
             {
               "slot": "NW",
@@ -4357,7 +6324,13 @@
               "input_key": "Q",
               "display_order": 8,
               "enabled": true,
-              "icon_hint": "command"
+              "icon_hint": "command",
+              "aliases": [
+                [
+                  "Q"
+                ]
+              ],
+              "action": "execute_command"
             }
           ]
         },
@@ -4379,7 +6352,15 @@
               "confirm": false,
               "notes": "Select bodies first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "",
@@ -4395,7 +6376,15 @@
               "confirm": false,
               "notes": "Select faces first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "",
@@ -4411,7 +6400,15 @@
               "confirm": false,
               "notes": "Select edges first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "",
@@ -4427,7 +6424,15 @@
               "confirm": false,
               "notes": "Select features first",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "",
@@ -4443,7 +6448,15 @@
               "confirm": false,
               "notes": "Select components first",
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "1",
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "",
@@ -4459,7 +6472,15 @@
               "confirm": false,
               "notes": "Reset selection filters",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             },
             {
               "slot": "",
@@ -4475,7 +6496,15 @@
               "confirm": false,
               "notes": "Select all selectable objects",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "all"
             },
             {
               "slot": "",
@@ -4491,7 +6520,15 @@
               "confirm": false,
               "notes": "Clear current selection",
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "1",
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "none"
             }
           ]
         }
@@ -4524,7 +6561,14 @@
               "input_key": "W",
               "display_order": 1,
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "W"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "body"
             },
             {
               "slot": "NE",
@@ -4535,7 +6579,14 @@
               "input_key": "E",
               "display_order": 2,
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "E"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "face"
             },
             {
               "slot": "E",
@@ -4546,7 +6597,14 @@
               "input_key": "D",
               "display_order": 3,
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "D"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "edge"
             },
             {
               "slot": "SE",
@@ -4557,7 +6615,14 @@
               "input_key": "C",
               "display_order": 4,
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "C"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "feature"
             },
             {
               "slot": "S",
@@ -4568,7 +6633,14 @@
               "input_key": "X",
               "display_order": 5,
               "enabled": true,
-              "icon_hint": "assembly"
+              "icon_hint": "assembly",
+              "aliases": [
+                [
+                  "X"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "component"
             },
             {
               "slot": "SW",
@@ -4579,7 +6651,14 @@
               "input_key": "Z",
               "display_order": 6,
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "Z"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "curve"
             },
             {
               "slot": "W",
@@ -4590,7 +6669,14 @@
               "input_key": "A",
               "display_order": 7,
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "A"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "datum"
             },
             {
               "slot": "NW",
@@ -4601,7 +6687,14 @@
               "input_key": "Q",
               "display_order": 8,
               "enabled": true,
-              "icon_hint": "selection"
+              "icon_hint": "selection",
+              "aliases": [
+                [
+                  "Q"
+                ]
+              ],
+              "action": "set_selection_filter",
+              "selection_type": "reset"
             }
           ]
         }

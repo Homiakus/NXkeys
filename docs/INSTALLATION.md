@@ -32,9 +32,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.
 2. собирает HotkeyStudio;
 3. собирает CommandBridge против целевых NXOpen DLL;
 4. публикует Control Center;
-5. валидирует schema v3;
+5. валидирует runtime schema v5;
 6. разрешает только 12 базовых сочетаний;
-7. проверяет 14 модулей и 112 команд;
+7. проверяет 14 модулей, 277 команд, aliases, `action` и `selection_type`;
 8. создаёт staging и backup;
 9. атомарно устанавливает пакет;
 10. проверяет SHA-256;
@@ -73,6 +73,14 @@ Launcher передаёт только `UGII_CUSTOM_DIRECTORY_FILE`, не изм
 
 Повторите установку с `-Clean`. Deployment создаст новый backup, сравнит package manifest и удалит только ранее управляемые устаревшие файлы.
 
+Перед обновлением закройте Siemens NX. Если `ugraf.exe` запущен, Windows может удерживать:
+
+```text
+%LOCALAPPDATA%\NXKeys\managed\NX2512.6000\custom\startup\NX2512_CommandBridge.dll
+```
+
+В этом состоянии профиль и доступные файлы могут обновиться частично, но новый CommandBridge не будет заменён до закрытия NX и повторного применения.
+
 ## Dry-run
 
 ```powershell
@@ -104,3 +112,5 @@ node .\scripts\validate-command-tree.mjs
 ## Production-проверка Bridge
 
 CI компилирует Bridge против контрактных NXOpen assemblies. Перед рабочим применением необходимо собрать его против DLL фактической установки и проверить целевые `BUTTON ID` внутри Siemens NX 2512.
+
+Для selection-фильтров проверяйте не только доступность `BUTTON ID`, но и действие `set_selection_filter`: в живом NX должны применяться глобальные фильтры выбора (`edge`, `face`, `body`, `component` и т.д.), а команды с собственным диалогом выбора должны открываться без обязательного preselection, если policy не требует минимум выбранных объектов.

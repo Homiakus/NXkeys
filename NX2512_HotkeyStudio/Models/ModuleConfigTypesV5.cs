@@ -37,6 +37,8 @@ namespace NX2512_HotkeyStudio.Models
         [JsonPropertyName("icon_hint")] public string IconHint { get; set; } = string.Empty;
         [JsonPropertyName("display_order")] public int DisplayOrder { get; set; }
         [JsonPropertyName("command")] public CommandRef Command { get; set; } = new CommandRef();
+        [JsonPropertyName("action")] public string Action { get; set; } = string.Empty;
+        [JsonPropertyName("selection_type")] public string SelectionType { get; set; } = string.Empty;
         [JsonPropertyName("enabled")] public bool Enabled { get; set; } = true;
         [JsonPropertyName("requires_selection")] public bool RequiresSelection { get; set; }
         [JsonPropertyName("destructive")] public bool Destructive { get; set; }

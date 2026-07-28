@@ -34,6 +34,8 @@ Written by `NX2512_HotkeyStudio` when a user triggers a Leader Key command.
   "module_id": "MOD_MODELING",
   "button_id": "UG_MODELING_EXTRUDE",
   "action_name": "Extrude",
+  "action": "execute_command",
+  "selection_filter": "edge",
   "expected_context_revision": 14,
   "expected_selection_count": 0,
   "confirmation_accepted": true
@@ -50,9 +52,17 @@ Written by `NX2512_HotkeyStudio` when a user triggers a Leader Key command.
 | `module_id` | String | Active module ID | Yes | Must match registered module ID |
 | `button_id` | String | Target Siemens NX `BUTTON ID` | Yes | Non-empty string matching menu command |
 | `action_name` | String | Human-readable action name | Yes | Informational label |
+| `action` | String | Bridge execution mode | No | `execute_command` or `set_selection_filter`; defaults to `execute_command` |
+| `selection_filter` | String | Selection filter requested by HotkeyStudio | No | `none`, `all`, `reset`, `edge`, `face`, `body`, `component`, `curve`, `datum`, `feature`, `operation` |
 | `expected_context_revision` | Integer | Expected context revision counter | Yes | Must match `context.json` revision |
 | `expected_selection_count` | Integer | Minimum required object selection | No | Default `0` |
 | `confirmation_accepted` | Boolean | Confirmation flag for destructive ops | Yes | `true` if operation required & accepted |
+
+### Selection Filter Requests
+
+For `action: "set_selection_filter"`, `button_id` remains the original NX `UG_SEL_*` command for traceability, but CommandBridge does not call it as a menu button. It normalizes `selection_filter`, applies the matching NXOpen global filter members, and clears/resets global selection state for `reset` and `all`.
+
+For `action: "execute_command"`, `selection_filter` is optional. When present, CommandBridge applies the filter first and then invokes the requested `BUTTON ID`, so commands such as Edge Blend and Edge Chamfer can open their native NX selection workflow instead of being blocked by HotkeyStudio preselection rules.
 
 ---
 

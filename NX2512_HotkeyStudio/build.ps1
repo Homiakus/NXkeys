@@ -12,6 +12,7 @@ $BuildDir = Join-Path $ProjectDir 'bin'
 $ObjDir = Join-Path $ProjectDir 'obj'
 $ProfileSource = Join-Path $RepoRoot 'config\nx2512-pro-hybrid.json'
 $PolicySource = Join-Path $RepoRoot 'config\nx2512-state-machines.json'
+$BridgeDistDir = Join-Path $RepoRoot 'NX2512_CommandBridge\dist'
 
 function Assert-DotNet8 {
     $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
@@ -39,6 +40,15 @@ if ($LASTEXITCODE -ne 0) { throw "Сборка завершилась с код�
 
 Copy-Item -LiteralPath $ProfileSource -Destination (Join-Path $DistDir 'nx2512-pro-hybrid.json') -Force
 Copy-Item -LiteralPath $PolicySource -Destination (Join-Path $DistDir 'nx2512-state-machines.json') -Force
+if (Test-Path -LiteralPath (Join-Path $BridgeDistDir 'NX2512_CommandBridge.dll') -PathType Leaf) {
+    $bridgeTarget = Join-Path $DistDir 'custom\application'
+    New-Item -ItemType Directory -Force -Path $bridgeTarget | Out-Null
+    Get-ChildItem -LiteralPath $BridgeDistDir -File | Where-Object {
+        $_.Name -like 'NX2512_CommandBridge*'
+    } | ForEach-Object {
+        Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $bridgeTarget $_.Name) -Force
+    }
+}
 
 $required = @(
     'NX2512_HotkeyStudio.exe',
@@ -46,7 +56,8 @@ $required = @(
     'NX2512_HotkeyStudio.deps.json',
     'NX2512_HotkeyStudio.runtimeconfig.json',
     'nx2512-pro-hybrid.json',
-    'nx2512-state-machines.json'
+    'nx2512-state-machines.json',
+    'custom\application\NX2512_CommandBridge.dll'
 )
 foreach ($name in $required) {
     $path = Join-Path $DistDir $name

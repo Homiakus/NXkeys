@@ -38,6 +38,9 @@ namespace NXKeys.Protocol
         [JsonPropertyName("target_application_id")]
         public string TargetApplicationId { get; set; } = string.Empty;
 
+        [JsonPropertyName("selection_filter")]
+        public string SelectionFilter { get; set; } = string.Empty;
+
         [JsonPropertyName("created_utc")]
         public string CreatedUtc { get; set; } = string.Empty;
 
@@ -86,6 +89,9 @@ namespace NXKeys.Protocol
             if (string.Equals(Action, "switch_module", StringComparison.OrdinalIgnoreCase) &&
                 string.IsNullOrWhiteSpace(TargetApplicationId) && string.IsNullOrWhiteSpace(CommandId))
                 throw new InvalidOperationException("target_application_id is required for switch_module.");
+            if (string.Equals(Action, "set_selection_filter", StringComparison.OrdinalIgnoreCase) &&
+                string.IsNullOrWhiteSpace(SelectionFilter) && string.IsNullOrWhiteSpace(CommandId))
+                throw new InvalidOperationException("selection_filter or command_id is required for set_selection_filter.");
             if (IsExpired)
                 throw new InvalidOperationException("Request has expired.");
             if (Destructive && !ConfirmationAccepted)

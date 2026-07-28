@@ -18,10 +18,10 @@ namespace NXKeys.StateMachines.Tests
             var evaluator = new ContextGuardEvaluator(profile);
             SequenceDefinition edgeBlend = Command("MEEB", "modeling");
             edgeBlend.RequiresSelection = true;
+            edgeBlend.MinimumSelectionCount = 0;
 
-            GuardResult faceResult = evaluator.Evaluate(edgeBlend, Context("modeling", "NXOpen.Face"), true);
-            Require(!faceResult.Allowed, "MEEB не должен выполняться при выборе только Face.");
-            Require(faceResult.Reason.Contains("рёбер", StringComparison.OrdinalIgnoreCase), "Не применено сообщение выбора рёбер.");
+            GuardResult noSelectionResult = evaluator.Evaluate(edgeBlend, Context("modeling", string.Empty, 0), true);
+            Require(noSelectionResult.Allowed, "MEEB должен запускаться без preselection и открыть NX selection workflow.");
 
             GuardResult edgeResult = evaluator.Evaluate(edgeBlend, Context("modeling", "NXOpen.Edge"), true);
             Require(edgeResult.Allowed, "MEEB должен выполняться при выборе Edge.");
@@ -34,6 +34,12 @@ namespace NXKeys.StateMachines.Tests
             SequenceDefinition destructive = Command("AECR", "assembly");
             ResolvedCommandBehavior destructiveBehavior = profile.Resolve(destructive);
             Require(destructiveBehavior.ConfirmationRequired, "AECR должен требовать подтверждение из JSON.");
+
+            SequenceDefinition preselect = Command("HS", "inspect_view");
+            preselect.RequiresSelection = true;
+            preselect.MinimumSelectionCount = 1;
+            GuardResult preselectResult = evaluator.Evaluate(preselect, Context("inspect_view", string.Empty, 0), true);
+            Require(!preselectResult.Allowed, "Команды над уже выбранным объектом должны блокироваться без выбора.");
 
             NxContextSnapshot lowConfidence = Context("modeling", "NXOpen.Edge");
             lowConfidence.ContextConfidence = 20;
@@ -53,7 +59,7 @@ namespace NXKeys.StateMachines.Tests
             Enabled = true
         };
 
-        private static NxContextSnapshot Context(string module, string selectedType)
+        private static NxContextSnapshot Context(string module, string selectedType, int selectionCount = 1)
         {
             var context = new NxContextSnapshot
             {
@@ -63,15 +69,15 @@ namespace NXKeys.StateMachines.Tests
                 ApplicationId = "UG_APP_" + module.ToUpperInvariant(),
                 ModuleId = module,
                 ModuleLabel = module,
-                SelectionCount = 1,
-                SelectionState = "single",
+                SelectionCount = selectionCount,
+                SelectionState = selectionCount < 0 ? "unknown" : selectionCount == 0 ? "none" : selectionCount == 1 ? "single" : "multiple",
                 WorkPartAvailable = true,
                 DisplayPartAvailable = true,
                 ModalDialogActive = false,
                 ContextConfidence = 100,
                 UpdatedUtc = DateTimeOffset.UtcNow.ToString("O")
             };
-            context.SelectedTypes.Add(selectedType);
+            if (!string.IsNullOrWhiteSpace(selectedType)) context.SelectedTypes.Add(selectedType);
             return context;
         }
 

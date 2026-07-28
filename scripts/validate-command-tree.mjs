@@ -48,6 +48,9 @@ try {
   ];
   const modelSource = modelFiles.map(text).join("\n");
   const projectSource = text("NX2512_HotkeyStudio/NX2512_HotkeyStudio.csproj");
+  const protocolSource = text("NXKeys.Protocol/NxProtocol.cs");
+  const bridgeSource = text("NX2512_CommandBridge/Program.cs");
+  const runtimeSource = text("NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs");
   const html = text("docs/command-tree.html");
   const readme = text("README.md");
   const docsReadme = text("docs/README.md");
@@ -94,9 +97,27 @@ try {
     if (rows.length < 8) fail(`Module ${module.id} must contain at least 8 commands, got ${rows.length}.`);
     commandCount += rows.length;
 
-    for (const { item } of rows) {
+    for (const { set, item } of rows) {
       if (!item.command?.id || !item.command?.name) fail(`Module ${module.id} has command without exact id/name.`);
       if (!item.icon_hint) fail(`Module ${module.id}, ${item.command?.id}: icon_hint is required.`);
+      if (set.id === "primary" && item.input_key) {
+        const expectedAlias = normalize(item.input_key);
+        const aliases = (item.aliases ?? []).map(alias => normalize((alias ?? []).join("")));
+        if (!aliases.includes(expectedAlias))
+          fail(`Module ${module.id}, ${item.command?.id}: primary command must keep one-key alias ${expectedAlias}.`);
+      }
+      if (item.command?.id?.startsWith("UG_SEL_")) {
+        if (item.action !== "set_selection_filter")
+          fail(`Module ${module.id}, ${item.command.id}: selection filter command must use set_selection_filter action.`);
+        if (!item.selection_type)
+          fail(`Module ${module.id}, ${item.command.id}: selection filter command must declare selection_type.`);
+        const expectedAlias = normalize(`${item.submenu_key ?? ""}${item.input_key ?? ""}`);
+        const aliases = (item.aliases ?? []).map(alias => normalize((alias ?? []).join("")));
+        if (expectedAlias.length && !aliases.includes(expectedAlias))
+          fail(`Module ${module.id}, ${item.command.id}: selection filter must keep submenu alias ${expectedAlias}.`);
+      }
+      if (item.requires_selection && !item.selection_type)
+        fail(`Module ${module.id}, ${item.command?.id}: requires_selection command must declare selection_type or all.`);
       const known = knownPaths.get(item.command?.id);
       if (!known) continue;
       const key = [prefix, ...known].join("");
@@ -105,6 +126,11 @@ try {
   }
 
   if (commandCount < 112) fail(`Expected at least 112 module commands, got ${commandCount}.`);
+  if (!protocolSource.includes("selection_filter")) fail("Protocol request must carry selection_filter.");
+  if (!bridgeSource.includes("set_selection_filter") || !bridgeSource.includes("SetEnabledGlobalFilterMembers"))
+    fail("CommandBridge must implement direct NXOpen selection filter actions.");
+  if (!runtimeSource.includes("SelectionIntent") || !runtimeSource.includes("AddAlias(command, command.InputKey)"))
+    fail("Runtime config must preserve short aliases and infer selection intent.");
 
   const policyKeys = Object.keys(policy.commands ?? {}).map(normalize);
   const allGeneratedKeys = new Set([...generatedSequences].map(value => value.split("|")[1]));

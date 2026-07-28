@@ -6,6 +6,9 @@ namespace NXOpen
     {
         public int GetNumSelectedObjects() => 0;
         public TaggedObject GetSelectedTaggedObject(int index) => null;
+        public void ClearGlobalSelectionList() { }
+        public void ResetEnabledGlobalFilterMembers() { }
+        public void SetEnabledGlobalFilterMembers(Select.FilterMember[] filterMembers) { }
     }
 
     public sealed class DialogTester
@@ -19,6 +22,29 @@ namespace NXOpen
         public Selection SelectionManager { get; } = new Selection();
         public DialogTester DialogTester { get; } = new DialogTester();
         public static UI GetUI() => new UI();
+    }
+}
+
+namespace NXOpen.Select
+{
+    public enum FilterMember
+    {
+        AllEdges,
+        AllFaces,
+        AllSolidBodies,
+        AllSheetBodies,
+        AllFacetBodies,
+        Component,
+        AllCurves,
+        AllConicCurves,
+        DatumAxis,
+        DatumPlane,
+        CoordinateSystem,
+        AllBasicFeatures,
+        SolidFeature,
+        CurveFeature,
+        DatumPlaneFeature,
+        DatumAxisFeature
     }
 }
 

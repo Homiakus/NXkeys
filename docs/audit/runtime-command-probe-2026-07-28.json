@@ -1,0 +1,1635 @@
+{
+  "context": {
+    "schema_version": 3,
+    "revision": 4199,
+    "status": "running",
+    "application_id": "UG_APP_GATEWAY",
+    "module_id": "inspect_view",
+    "module_label": "Inspect / View",
+    "selection_count": 0,
+    "selection_state": "none",
+    "selected_types": [],
+    "work_part_available": true,
+    "display_part_available": true,
+    "modal_dialog_active": true,
+    "active_command_id": "",
+    "context_confidence": 90,
+    "updated_utc": "2026-07-28T13:28:19.9455385+00:00",
+    "last_request_id": "20260728091436177-66a05defda064d579af180e1f15e3a92",
+    "last_result": "executed",
+    "last_message": "OK"
+  },
+  "count": 161,
+  "results": [
+    {
+      "id": "UG_ANALYSIS_FACE_CURVATURE",
+      "name": "Face Curvature",
+      "schema_version": 3,
+      "request_id": "20260728132819983-062ecf87aedecURVATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:20.0977498+00:00"
+    },
+    {
+      "id": "UG_APP_MODELING",
+      "name": "Switch to Modeling",
+      "schema_version": 3,
+      "request_id": "20260728132820196-f09113964aff3MODELING",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:20.2539086+00:00"
+    },
+    {
+      "id": "UG_APP_SBSM",
+      "name": "Switch to Sheet Metal",
+      "schema_version": 3,
+      "request_id": "20260728132820298-4bb9897a0c5c1GAPPSBSM",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:20.4194888+00:00"
+    },
+    {
+      "id": "UG_ASSEMBLIES_ADD_COMPONENT",
+      "name": "Add Component",
+      "schema_version": 3,
+      "request_id": "20260728132820512-08d3bd67f6f41OMPONENT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:20.5698892+00:00"
+    },
+    {
+      "id": "UG_ASSEMBLIES_CONSTRAINTS",
+      "name": "Assembly Constraints",
+      "schema_version": 3,
+      "request_id": "20260728132820622-1a745cb23c923STRAINTS",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:20.7210357+00:00"
+    },
+    {
+      "id": "UG_ASSEMBLIES_MOVE_COMPONENT",
+      "name": "Move Component",
+      "schema_version": 3,
+      "request_id": "20260728132820734-0751702bed315OMPONENT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:20.8820299+00:00"
+    },
+    {
+      "id": "UG_ASSEMBLIES_NAVIGATOR",
+      "name": "Assembly Navigator",
+      "schema_version": 3,
+      "request_id": "20260728132820948-9195df1961fa2AVIGATOR",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:21.0364014+00:00"
+    },
+    {
+      "id": "UG_ASSEMBLIES_NEW_COMPONENT",
+      "name": "Create New Component",
+      "schema_version": 3,
+      "request_id": "20260728132821053-12326709ed06fOMPONENT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:21.1924493+00:00"
+    },
+    {
+      "id": "UG_ASSEMBLIES_PATTERN_COMPONENT",
+      "name": "Pattern Component",
+      "schema_version": 3,
+      "request_id": "20260728132821268-d8167ab76306eOMPONENT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:21.3546814+00:00"
+    },
+    {
+      "id": "UG_ASSEMBLIES_REMOVE_COMPONENT",
+      "name": "Remove Component",
+      "schema_version": 3,
+      "request_id": "20260728132821372-7c07516c4653eOMPONENT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:21.5141996+00:00"
+    },
+    {
+      "id": "UG_ASSEMBLIES_REPLACE_COMPONENT",
+      "name": "Replace Component",
+      "schema_version": 3,
+      "request_id": "20260728132821590-84a2ca4167671OMPONENT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:21.6618281+00:00"
+    },
+    {
+      "id": "UG_ASSY_WAVE_ASSOC_MANAGER",
+      "name": "WAVE Associativity Manager",
+      "schema_version": 3,
+      "request_id": "20260728132821700-110cf3d352291CMANAGER",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:21.8277920+00:00"
+    },
+    {
+      "id": "UG_ASSY_WAVE_GRAPH_BROWSER",
+      "name": "WAVE Graph Browser",
+      "schema_version": 3,
+      "request_id": "20260728132821919-a1ed5a6886525HBROWSER",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:21.9826744+00:00"
+    },
+    {
+      "id": "UG_ASSY_WAVE_INTERFACE_LINKER",
+      "name": "WAVE Interface Linker",
+      "schema_version": 3,
+      "request_id": "20260728132822035-5f091fdfd1dc7CELINKER",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:22.1340612+00:00"
+    },
+    {
+      "id": "UG_ASSY_WAVE_LINKER",
+      "name": "WAVE Geometry Linker",
+      "schema_version": 3,
+      "request_id": "20260728132822146-b1eeaa9e15209VELINKER",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:22.2964959+00:00"
+    },
+    {
+      "id": "UG_ASSY_WAVE_LOAD_DATA",
+      "name": "Load WAVE Data",
+      "schema_version": 3,
+      "request_id": "20260728132822370-bbef6eaa11596LOADDATA",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:22.4459647+00:00"
+    },
+    {
+      "id": "UG_ASSY_WAVE_PART_NAVIGATOR",
+      "name": "WAVE Part Navigator",
+      "schema_version": 3,
+      "request_id": "20260728132822483-5223d6b0442f5AVIGATOR",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:22.6094003+00:00"
+    },
+    {
+      "id": "UG_CAM_CREATE_OPERATION",
+      "name": "Create Operation",
+      "schema_version": 3,
+      "request_id": "20260728132822698-6ee1b70e5af7cPERATION",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:22.7647367+00:00"
+    },
+    {
+      "id": "UG_CAM_CREATE_TOOL",
+      "name": "Create Tool",
+      "schema_version": 3,
+      "request_id": "20260728132822808-1b1c944fbdd71EATETOOL",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:22.9176342+00:00"
+    },
+    {
+      "id": "UG_CAM_DELETE_OPERATION",
+      "name": "Delete Operation",
+      "schema_version": 3,
+      "request_id": "20260728132823037-eea97536a8d91PERATION",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4199,
+      "completed_utc": "2026-07-28T13:28:23.0735277+00:00"
+    },
+    {
+      "id": "UG_CAM_GENERATE_TOOL_PATH",
+      "name": "Generate Tool Path",
+      "schema_version": 3,
+      "request_id": "20260728132823150-e6a5d426209f7TOOLPATH",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4200.",
+      "context_revision": 4200,
+      "completed_utc": "2026-07-28T13:28:23.4265579+00:00"
+    },
+    {
+      "id": "UG_CAM_INFORMATION",
+      "name": "Tool Path Information",
+      "schema_version": 3,
+      "request_id": "20260728132823480-ab08f74608a4dORMATION",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:23.7359580+00:00"
+    },
+    {
+      "id": "UG_CAM_OPERATION_NAVIGATOR",
+      "name": "Operation Navigator",
+      "schema_version": 3,
+      "request_id": "20260728132823798-917461b9b2c84AVIGATOR",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:23.8486419+00:00"
+    },
+    {
+      "id": "UG_CAM_POSTPROCESS",
+      "name": "Postprocess",
+      "schema_version": 3,
+      "request_id": "20260728132823904-413688f694062TPROCESS",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:24.0054626+00:00"
+    },
+    {
+      "id": "UG_CAM_VERIFY_TOOL_PATH",
+      "name": "Verify Tool Path",
+      "schema_version": 3,
+      "request_id": "20260728132824116-be3228dce1534TOOLPATH",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:24.1652574+00:00"
+    },
+    {
+      "id": "UG_CREATE_FEATURE_TEMPLATE",
+      "name": "Create Feature Template",
+      "schema_version": 3,
+      "request_id": "20260728132824217-1b3c51c8711c9TEMPLATE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:24.8014543+00:00"
+    },
+    {
+      "id": "UG_CREATE_SKETCH",
+      "name": "Sketch",
+      "schema_version": 3,
+      "request_id": "20260728132824869-2ce8a313cd11TESKETCH",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:24.9505545+00:00"
+    },
+    {
+      "id": "UG_DISPLAY_APPEARANCE_VISUAL_MATERIAL",
+      "name": "Visual Material Display",
+      "schema_version": 3,
+      "request_id": "20260728132824974-a176352d45b82MATERIAL",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:25.1092466+00:00"
+    },
+    {
+      "id": "UG_DRAFTING_BASE_VIEW",
+      "name": "Base View",
+      "schema_version": 3,
+      "request_id": "20260728132825199-cca574827748bBASEVIEW",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:25.2652112+00:00"
+    },
+    {
+      "id": "UG_DRAFTING_DETAIL_VIEW",
+      "name": "Detail View",
+      "schema_version": 3,
+      "request_id": "20260728132825452-0d187cc196176TAILVIEW",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:25.4556074+00:00"
+    },
+    {
+      "id": "UG_DRAFTING_PARTS_LIST",
+      "name": "Parts List",
+      "schema_version": 3,
+      "request_id": "20260728132825558-77326f6d1e0feARTSLIST",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:25.5776086+00:00"
+    },
+    {
+      "id": "UG_DRAFTING_PROJECTED_VIEW",
+      "name": "Projected View",
+      "schema_version": 3,
+      "request_id": "20260728132825667-7735861a3f517CTEDVIEW",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:25.7325102+00:00"
+    },
+    {
+      "id": "UG_DRAFTING_RAPID_DIMENSION",
+      "name": "Rapid Dimension",
+      "schema_version": 3,
+      "request_id": "20260728132825776-5089eca11c0b9IMENSION",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:25.8790888+00:00"
+    },
+    {
+      "id": "UG_DRAFTING_SECTION_VIEW",
+      "name": "Section View",
+      "schema_version": 3,
+      "request_id": "20260728132825889-c9b475dc10195TIONVIEW",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:26.4682372+00:00"
+    },
+    {
+      "id": "UG_DRAFTING_UPDATE_VIEWS",
+      "name": "Update Views",
+      "schema_version": 3,
+      "request_id": "20260728132826542-afd1666dd9677ATEVIEWS",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:26.6604135+00:00"
+    },
+    {
+      "id": "UG_DRAFTING_VIEW_STYLE",
+      "name": "View Style",
+      "schema_version": 3,
+      "request_id": "20260728132826757-c9ffd95f35f3eIEWSTYLE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:26.8266593+00:00"
+    },
+    {
+      "id": "UG_EDIT_BLANK_SELECTED",
+      "name": "Hide Selected",
+      "schema_version": 3,
+      "request_id": "20260728132826868-277f7882a3e92SELECTED",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:26.9825267+00:00"
+    },
+    {
+      "id": "UG_EDIT_COPY",
+      "name": "Copy",
+      "schema_version": 3,
+      "request_id": "20260728132827087-199d51ee3b0efEDITCOPY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:27.1312180+00:00"
+    },
+    {
+      "id": "UG_EDIT_CUT",
+      "name": "Cut",
+      "schema_version": 3,
+      "request_id": "20260728132827198-a6d3a930633e5GEDITCUT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:27.2909662+00:00"
+    },
+    {
+      "id": "UG_EDIT_DELETE",
+      "name": "Delete",
+      "schema_version": 3,
+      "request_id": "20260728132827307-bb365e08f1f2bITDELETE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:27.4427677+00:00"
+    },
+    {
+      "id": "UG_EDIT_MD_SHOWHIDE_ALL",
+      "name": "Show and Hide",
+      "schema_version": 3,
+      "request_id": "20260728132827512-a2aaad7e9ea93WHIDEALL",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:27.6075312+00:00"
+    },
+    {
+      "id": "UG_EDIT_PASTE",
+      "name": "Paste",
+      "schema_version": 3,
+      "request_id": "20260728132827620-f056e3d394388DITPASTE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:27.7654363+00:00"
+    },
+    {
+      "id": "UG_EDIT_REDO",
+      "name": "Redo",
+      "schema_version": 3,
+      "request_id": "20260728132827840-114108877adedEDITREDO",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:27.9202511+00:00"
+    },
+    {
+      "id": "UG_EDIT_UNDO",
+      "name": "Undo",
+      "schema_version": 3,
+      "request_id": "20260728132827948-7f0cbf3c3649cEDITUNDO",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:28.0753625+00:00"
+    },
+    {
+      "id": "UG_EXPRESSIONS",
+      "name": "Expressions",
+      "schema_version": 3,
+      "request_id": "20260728132828168-52dfbc792479fRESSIONS",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:28.2362612+00:00"
+    },
+    {
+      "id": "UG_FILE_NEW",
+      "name": "New",
+      "schema_version": 3,
+      "request_id": "20260728132828277-3da1d420e5833GFILENEW",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:28.3890574+00:00"
+    },
+    {
+      "id": "UG_FILE_OPEN",
+      "name": "Open",
+      "schema_version": 3,
+      "request_id": "20260728132828488-58ace26fa57bFILEOPEN",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:28.5385855+00:00"
+    },
+    {
+      "id": "UG_FILE_SAVE_AS",
+      "name": "Save As",
+      "schema_version": 3,
+      "request_id": "20260728132828590-de4293769f2f5LESAVEAS",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:29.4902755+00:00"
+    },
+    {
+      "id": "UG_FILE_SAVE_PART",
+      "name": "Save",
+      "schema_version": 3,
+      "request_id": "20260728132829575-bc8f5c74c2dc5SAVEPART",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:29.6500293+00:00"
+    },
+    {
+      "id": "UG_HELP_COMMAND_FINDER",
+      "name": "Command Finder",
+      "schema_version": 3,
+      "request_id": "20260728132829683-3262bea15e81dNDFINDER",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:29.8103702+00:00"
+    },
+    {
+      "id": "UG_INFO_ANALYSIS_SHEET_BOUNDARY",
+      "name": "Sheet Boundary Analysis",
+      "schema_version": 3,
+      "request_id": "20260728132829902-2a00b749da25cBOUNDARY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:29.9714405+00:00"
+    },
+    {
+      "id": "UG_INFO_GEOMETRIC_MEASUREMENT",
+      "name": "Measure",
+      "schema_version": 3,
+      "request_id": "20260728132830008-e3d975f776e04SUREMENT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:30.1389464+00:00"
+    },
+    {
+      "id": "UG_INFO_OBJECT",
+      "name": "Object Information",
+      "schema_version": 3,
+      "request_id": "20260728132830229-93e1f0b470adbFOOBJECT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:30.2942956+00:00"
+    },
+    {
+      "id": "UG_INFO_OTHER_LAYERS",
+      "name": "Layer Information",
+      "schema_version": 3,
+      "request_id": "20260728132830339-cffabb7f840cERLAYERS",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:30.4410967+00:00"
+    },
+    {
+      "id": "UG_LAYER_CATEGORY",
+      "name": "Layer Category",
+      "schema_version": 3,
+      "request_id": "20260728132830448-cb4f1f2ea8f5bCATEGORY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:30.6080525+00:00"
+    },
+    {
+      "id": "UG_LAYER_COPY",
+      "name": "Copy to Layer",
+      "schema_version": 3,
+      "request_id": "20260728132830659-a0d73748c522eAYERCOPY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:30.7599914+00:00"
+    },
+    {
+      "id": "UG_LAYER_MOVE",
+      "name": "Move to Layer",
+      "schema_version": 3,
+      "request_id": "20260728132830773-4198f05401dbaAYERMOVE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:30.9204009+00:00"
+    },
+    {
+      "id": "UG_LAYER_SETTINGS",
+      "name": "Layer Settings",
+      "schema_version": 3,
+      "request_id": "20260728132830998-0d4e3fd80310eSETTINGS",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:31.0773728+00:00"
+    },
+    {
+      "id": "UG_LAYER_VIEW",
+      "name": "Layer Visible in View",
+      "schema_version": 3,
+      "request_id": "20260728132831105-156472b36536aAYERVIEW",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:31.2311117+00:00"
+    },
+    {
+      "id": "UG_MATERIAL_ASSIGN",
+      "name": "Assign Material",
+      "schema_version": 3,
+      "request_id": "20260728132831324-7f7e42cea8076ALASSIGN",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:31.3994291+00:00"
+    },
+    {
+      "id": "UG_MATERIAL_LIBRARY_MANAGER",
+      "name": "Material Library Manager",
+      "schema_version": 3,
+      "request_id": "20260728132831428-6201ce103796fYMANAGER",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:31.5518953+00:00"
+    },
+    {
+      "id": "UG_MODELING_BLEND_FEATURE",
+      "name": "Edge Blend",
+      "schema_version": 3,
+      "request_id": "20260728132831646-9e006d06ffdefDFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:31.7137359+00:00"
+    },
+    {
+      "id": "UG_MODELING_CHAMFER_FEATURE",
+      "name": "Chamfer",
+      "schema_version": 3,
+      "request_id": "20260728132831757-806778f8cd4b9RFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:31.8731584+00:00"
+    },
+    {
+      "id": "UG_MODELING_EXTRACT_GEOMETRY",
+      "name": "Extract Geometry",
+      "schema_version": 3,
+      "request_id": "20260728132831983-08da042d7a3d8GEOMETRY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:32.0300670+00:00"
+    },
+    {
+      "id": "UG_MODELING_EXTRUDED_FEATURE",
+      "name": "Extrude",
+      "schema_version": 3,
+      "request_id": "20260728132832089-5a9c72df62ea3DFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:32.1775828+00:00"
+    },
+    {
+      "id": "UG_MODELING_FF_EXTEND_SHEET",
+      "name": "Extend Sheet",
+      "schema_version": 3,
+      "request_id": "20260728132832197-1609fb64c72cbENDSHEET",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:32.3458126+00:00"
+    },
+    {
+      "id": "UG_MODELING_HOLE_FEATURE",
+      "name": "Hole",
+      "schema_version": 3,
+      "request_id": "20260728132832412-3e8a8ee43e422EFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:32.4994038+00:00"
+    },
+    {
+      "id": "UG_MODELING_MIRRORFEATURE_FEATURE",
+      "name": "Mirror Feature",
+      "schema_version": 3,
+      "request_id": "20260728132832527-5b11f4e7252a5EFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:32.6544803+00:00"
+    },
+    {
+      "id": "UG_MODELING_PATTERNFEATURE_FEATURE",
+      "name": "Pattern Feature",
+      "schema_version": 3,
+      "request_id": "20260728132832743-543bb46341f97EFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:32.8002692+00:00"
+    },
+    {
+      "id": "UG_MODELING_REVOLVED_FEATURE",
+      "name": "Revolve",
+      "schema_version": 3,
+      "request_id": "20260728132832852-8b775908ba3c1DFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:32.9656270+00:00"
+    },
+    {
+      "id": "UG_MODELING_SEW_FEATURE",
+      "name": "Sew",
+      "schema_version": 3,
+      "request_id": "20260728132833073-8f7cb0a060649WFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:33.1230826+00:00"
+    },
+    {
+      "id": "UG_MODELING_SHEET_FEATURE",
+      "name": "Sheet Feature",
+      "schema_version": 3,
+      "request_id": "20260728132833184-3699b26524b3dTFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:33.2805115+00:00"
+    },
+    {
+      "id": "UG_MODELING_STUDIO_SURFACE_FEATURE",
+      "name": "Studio Surface",
+      "schema_version": 3,
+      "request_id": "20260728132833291-194c8d4153a6fEFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:33.4310786+00:00"
+    },
+    {
+      "id": "UG_MODELING_SWEPT_FEATURE",
+      "name": "Swept",
+      "schema_version": 3,
+      "request_id": "20260728132833506-c1f741dc44d22TFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:33.5879598+00:00"
+    },
+    {
+      "id": "UG_MODELING_THROUGH_CURVES_FEATURE",
+      "name": "Through Curves",
+      "schema_version": 3,
+      "request_id": "20260728132833615-9d8c4e8a6fdcfSFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:33.7485276+00:00"
+    },
+    {
+      "id": "UG_MODELING_TRIM_SHEET_FEATURE",
+      "name": "Trim Sheet",
+      "schema_version": 3,
+      "request_id": "20260728132833839-3eb63cc59a3b1TFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:34.1898072+00:00"
+    },
+    {
+      "id": "UG_MODELING_UNTRIM_FEATURE",
+      "name": "Untrim",
+      "schema_version": 3,
+      "request_id": "20260728132834277-d13c60e40c867MFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:34.3897244+00:00"
+    },
+    {
+      "id": "UG_MODELING_WAVE_LINKER",
+      "name": "WAVE Geometry Linker",
+      "schema_version": 3,
+      "request_id": "20260728132834496-48268d4f594d3VELINKER",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:34.5483035+00:00"
+    },
+    {
+      "id": "UG_MOLD_COOLING",
+      "name": "Cooling",
+      "schema_version": 3,
+      "request_id": "20260728132834605-851f18380b721DCOOLING",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:34.6928413+00:00"
+    },
+    {
+      "id": "UG_MOLD_EJECTOR",
+      "name": "Ejector",
+      "schema_version": 3,
+      "request_id": "20260728132834709-3f85bde5789c5DEJECTOR",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:35.3944068+00:00"
+    },
+    {
+      "id": "UG_MOLD_GATE",
+      "name": "Gate",
+      "schema_version": 3,
+      "request_id": "20260728132835479-472a5ffb614ecMOLDGATE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:35.5026375+00:00"
+    },
+    {
+      "id": "UG_MOLD_INITIALIZE_PROJECT",
+      "name": "Initialize Project",
+      "schema_version": 3,
+      "request_id": "20260728132835595-09076ae351697EPROJECT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:35.6338951+00:00"
+    },
+    {
+      "id": "UG_MOLD_LIBRARY",
+      "name": "Mold Library",
+      "schema_version": 3,
+      "request_id": "20260728132835704-968a6fb14efb7DLIBRARY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:35.7944075+00:00"
+    },
+    {
+      "id": "UG_MOLD_MOLD_BASE",
+      "name": "Mold Base",
+      "schema_version": 3,
+      "request_id": "20260728132835807-9c722207fed16MOLDBASE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:35.9521104+00:00"
+    },
+    {
+      "id": "UG_MOLD_PARTING",
+      "name": "Parting",
+      "schema_version": 3,
+      "request_id": "20260728132836030-68f122c412d45DPARTING",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:36.0996968+00:00"
+    },
+    {
+      "id": "UG_MOLD_VALIDATE",
+      "name": "Validate Mold Design",
+      "schema_version": 3,
+      "request_id": "20260728132836136-d6eaba44d381bVALIDATE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:36.2540120+00:00"
+    },
+    {
+      "id": "UG_NAVIGATOR_PART",
+      "name": "Part Navigator",
+      "schema_version": 3,
+      "request_id": "20260728132836355-af8c54232f273ATORPART",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:36.4208129+00:00"
+    },
+    {
+      "id": "UG_NAVIGATOR_REUSE_LIBRARY",
+      "name": "Reuse Library",
+      "schema_version": 3,
+      "request_id": "20260728132836464-09b234e1a9cc3ELIBRARY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:36.5684033+00:00"
+    },
+    {
+      "id": "UG_PARAMETER_TABLE",
+      "name": "Parameter Table",
+      "schema_version": 3,
+      "request_id": "20260728132836575-3b18773a4c89cTERTABLE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:36.7336305+00:00"
+    },
+    {
+      "id": "UG_PMI_DATUM_FEATURE_SYMBOL",
+      "name": "Datum Feature Symbol",
+      "schema_version": 3,
+      "request_id": "20260728132836793-7d7a969fa1983RESYMBOL",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:36.8877537+00:00"
+    },
+    {
+      "id": "UG_PMI_EDIT",
+      "name": "Edit PMI",
+      "schema_version": 3,
+      "request_id": "20260728132836901-6d27fa568a71bGPMIEDIT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:37.0494423+00:00"
+    },
+    {
+      "id": "UG_PMI_FEATURE_CONTROL_FRAME",
+      "name": "Feature Control Frame",
+      "schema_version": 3,
+      "request_id": "20260728132837120-302b5040ec697ROLFRAME",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:37.2257809+00:00"
+    },
+    {
+      "id": "UG_PMI_MODEL_VIEW",
+      "name": "Model View",
+      "schema_version": 3,
+      "request_id": "20260728132837229-a27705fef702cODELVIEW",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:37.3717534+00:00"
+    },
+    {
+      "id": "UG_PMI_NOTE",
+      "name": "PMI Note",
+      "schema_version": 3,
+      "request_id": "20260728132837448-6f9b27fb8e768GPMINOTE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:37.5297288+00:00"
+    },
+    {
+      "id": "UG_PMI_RAPID_DIMENSION",
+      "name": "Rapid Dimension",
+      "schema_version": 3,
+      "request_id": "20260728132837558-c15ce0196149eIMENSION",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:37.6918861+00:00"
+    },
+    {
+      "id": "UG_PMI_SURFACE_FINISH",
+      "name": "Surface Finish Symbol",
+      "schema_version": 3,
+      "request_id": "20260728132837777-008f7f5c91dfdCEFINISH",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:38.3574814+00:00"
+    },
+    {
+      "id": "UG_PMI_VALIDATE",
+      "name": "Validate PMI",
+      "schema_version": 3,
+      "request_id": "20260728132838431-e981f050a41ffVALIDATE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:38.4828064+00:00"
+    },
+    {
+      "id": "UG_REPLACE_FEATURE_TEMPLATE",
+      "name": "Replace Feature Template",
+      "schema_version": 3,
+      "request_id": "20260728132838543-192889e04ce4aTEMPLATE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:38.6390880+00:00"
+    },
+    {
+      "id": "UG_ROUTE_ADD_STOCK",
+      "name": "Add Stock",
+      "schema_version": 3,
+      "request_id": "20260728132838651-0d0fd5fb4da83ADDSTOCK",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:39.1549899+00:00"
+    },
+    {
+      "id": "UG_ROUTE_CREATE_ROUTE",
+      "name": "Create Route",
+      "schema_version": 3,
+      "request_id": "20260728132839196-17554806e43c1ATEROUTE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:39.2548865+00:00"
+    },
+    {
+      "id": "UG_ROUTE_DELETE",
+      "name": "Delete Route Object",
+      "schema_version": 3,
+      "request_id": "20260728132839312-5c0a068ca12cbTEDELETE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:39.4206115+00:00"
+    },
+    {
+      "id": "UG_ROUTE_EDIT_ROUTE",
+      "name": "Edit Route",
+      "schema_version": 3,
+      "request_id": "20260728132839528-cee16f0b7c087DITROUTE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:39.5761098+00:00"
+    },
+    {
+      "id": "UG_ROUTE_NAVIGATOR",
+      "name": "Routing Navigator",
+      "schema_version": 3,
+      "request_id": "20260728132839647-0c086f3dc69ffAVIGATOR",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:39.7342559+00:00"
+    },
+    {
+      "id": "UG_ROUTE_PLACE_PART",
+      "name": "Place Part",
+      "schema_version": 3,
+      "request_id": "20260728132839761-526a7721062ccLACEPART",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:39.8884740+00:00"
+    },
+    {
+      "id": "UG_ROUTE_REMOVE_PART",
+      "name": "Remove Part",
+      "schema_version": 3,
+      "request_id": "20260728132839968-56fa2e1130325MOVEPART",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:40.0354823+00:00"
+    },
+    {
+      "id": "UG_ROUTE_VALIDATE",
+      "name": "Validate Route",
+      "schema_version": 3,
+      "request_id": "20260728132840083-43ca4a8eb423cVALIDATE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:40.2023863+00:00"
+    },
+    {
+      "id": "UG_SBSM_SHEETMETAL_FROM_SOLID_FEATURE",
+      "name": "Sheet Metal from Solid",
+      "schema_version": 3,
+      "request_id": "20260728132840302-3bfaaa5d95889DFEATURE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:40.3511843+00:00"
+    },
+    {
+      "id": "UG_SEL_BODY_PRIORITY",
+      "name": "Body Selection Priority",
+      "schema_version": 3,
+      "request_id": "20260728132840404-ddffed4b9e631PRIORITY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:40.5024791+00:00"
+    },
+    {
+      "id": "UG_SEL_COMPONENT_PRIORITY",
+      "name": "Component Selection Priority",
+      "schema_version": 3,
+      "request_id": "20260728132840510-bcf674b5e6812PRIORITY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:40.6691363+00:00"
+    },
+    {
+      "id": "UG_SEL_CURVE_PRIORITY",
+      "name": "Curve Selection Priority",
+      "schema_version": 3,
+      "request_id": "20260728132840718-beb643bf7fd5dPRIORITY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:40.8266463+00:00"
+    },
+    {
+      "id": "UG_SEL_DATUM_PRIORITY",
+      "name": "Datum Selection Priority",
+      "schema_version": 3,
+      "request_id": "20260728132840933-a0ab9545d7468PRIORITY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:40.9871312+00:00"
+    },
+    {
+      "id": "UG_SEL_DESELECT_ALL",
+      "name": "Deselect All",
+      "schema_version": 3,
+      "request_id": "20260728132841048-fcaf95c564983ELECTALL",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:41.1572807+00:00"
+    },
+    {
+      "id": "UG_SEL_EDGE_PRIORITY",
+      "name": "Edge Selection Priority",
+      "schema_version": 3,
+      "request_id": "20260728132841256-43801c3f0865PRIORITY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:41.3030283+00:00"
+    },
+    {
+      "id": "UG_SEL_FACE_PRIORITY",
+      "name": "Face Selection Priority",
+      "schema_version": 3,
+      "request_id": "20260728132841363-a352b438fac48PRIORITY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:41.4642168+00:00"
+    },
+    {
+      "id": "UG_SEL_FEATURE_PRIORITY",
+      "name": "Feature Selection Priority",
+      "schema_version": 3,
+      "request_id": "20260728132841468-2ab08f94c4afaPRIORITY",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4201,
+      "completed_utc": "2026-07-28T13:28:41.6242104+00:00"
+    },
+    {
+      "id": "UG_SEL_RESET",
+      "name": "Reset Selection",
+      "schema_version": 3,
+      "request_id": "20260728132841684-e54d4ed95e631SELRESET",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4202.",
+      "context_revision": 4202,
+      "completed_utc": "2026-07-28T13:28:42.0157654+00:00"
+    },
+    {
+      "id": "UG_SEL_SELECT_ALL",
+      "name": "Select All",
+      "schema_version": 3,
+      "request_id": "20260728132842018-0a00cb8bfadaELECTALL",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4202.",
+      "context_revision": 4202,
+      "completed_utc": "2026-07-28T13:28:42.0854321+00:00"
+    },
+    {
+      "id": "UG_SEL_TYPE_RESET",
+      "name": "Reset Selection Filter",
+      "schema_version": 3,
+      "request_id": "20260728132842132-b0ab4abfcd709YPERESET",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4202.",
+      "context_revision": 4202,
+      "completed_utc": "2026-07-28T13:28:42.2524291+00:00"
+    },
+    {
+      "id": "UG_SHEET_METAL_BASE_TAB",
+      "name": "Base Tab",
+      "schema_version": 3,
+      "request_id": "20260728132842347-2dbd332e2ddecLBASETAB",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4202.",
+      "context_revision": 4202,
+      "completed_utc": "2026-07-28T13:28:42.3982150+00:00"
+    },
+    {
+      "id": "UG_SHEET_METAL_BEND",
+      "name": "Bend",
+      "schema_version": 3,
+      "request_id": "20260728132842449-80d4823b856a5ETALBEND",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4202.",
+      "context_revision": 4202,
+      "completed_utc": "2026-07-28T13:28:42.5593310+00:00"
+    },
+    {
+      "id": "UG_SHEET_METAL_CONTOUR_FLANGE",
+      "name": "Contour Flange",
+      "schema_version": 3,
+      "request_id": "20260728132842668-474bcdd44454aURFLANGE",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4202.",
+      "context_revision": 4202,
+      "completed_utc": "2026-07-28T13:28:42.7075090+00:00"
+    },
+    {
+      "id": "UG_SHEET_METAL_FLANGE",
+      "name": "Flange",
+      "schema_version": 3,
+      "request_id": "20260728132842779-8d3e869543554ALFLANGE",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4202.",
+      "context_revision": 4202,
+      "completed_utc": "2026-07-28T13:28:42.8707372+00:00"
+    },
+    {
+      "id": "UG_SHEET_METAL_FLAT_PATTERN",
+      "name": "Flat Pattern",
+      "schema_version": 3,
+      "request_id": "20260728132842884-ec49284c780c2TPATTERN",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4202.",
+      "context_revision": 4202,
+      "completed_utc": "2026-07-28T13:28:43.0220501+00:00"
+    },
+    {
+      "id": "UG_SHEET_METAL_REBEND",
+      "name": "Rebend",
+      "schema_version": 3,
+      "request_id": "20260728132843113-adb4419987bf8ALREBEND",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4202.",
+      "context_revision": 4202,
+      "completed_utc": "2026-07-28T13:28:43.1854079+00:00"
+    },
+    {
+      "id": "UG_SHEET_METAL_UNBEND",
+      "name": "Unbend",
+      "schema_version": 3,
+      "request_id": "20260728132843214-34d958ea4823dALUNBEND",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:43.6052563+00:00"
+    },
+    {
+      "id": "UG_SHEET_METAL_VALIDATE",
+      "name": "Sheet Metal Preferences",
+      "schema_version": 3,
+      "request_id": "20260728132843652-ec8a42ebce2e4VALIDATE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:43.8117128+00:00"
+    },
+    {
+      "id": "UG_SIM_CREATE_CONSTRAINT",
+      "name": "Create Constraint",
+      "schema_version": 3,
+      "request_id": "20260728132843871-f8637c406014aNSTRAINT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:43.9684876+00:00"
+    },
+    {
+      "id": "UG_SIM_CREATE_LOAD",
+      "name": "Create Load",
+      "schema_version": 3,
+      "request_id": "20260728132843980-3d9abe52e7156EATELOAD",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:44.1185507+00:00"
+    },
+    {
+      "id": "UG_SIM_CREATE_SOLUTION",
+      "name": "Create Solution",
+      "schema_version": 3,
+      "request_id": "20260728132844199-ef2f4f04cfbedSOLUTION",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:44.2818817+00:00"
+    },
+    {
+      "id": "UG_SIM_DELETE",
+      "name": "Delete Simulation Object",
+      "schema_version": 3,
+      "request_id": "20260728132844307-d4b7f12256fe6IMDELETE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:44.4395828+00:00"
+    },
+    {
+      "id": "UG_SIM_MESH",
+      "name": "Mesh",
+      "schema_version": 3,
+      "request_id": "20260728132844528-14754a5fdbd3GSIMMESH",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:44.5924661+00:00"
+    },
+    {
+      "id": "UG_SIM_NAVIGATOR",
+      "name": "Simulation Navigator",
+      "schema_version": 3,
+      "request_id": "20260728132844637-8cb22298e1f3AVIGATOR",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:44.7473369+00:00"
+    },
+    {
+      "id": "UG_SIM_RESULTS",
+      "name": "Results",
+      "schema_version": 3,
+      "request_id": "20260728132844854-0287513480eb6MRESULTS",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:44.9029538+00:00"
+    },
+    {
+      "id": "UG_SIM_SOLVE",
+      "name": "Solve",
+      "schema_version": 3,
+      "request_id": "20260728132844969-140ebf347717SIMSOLVE",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:45.0485699+00:00"
+    },
+    {
+      "id": "UG_SKETCH_ARC_BY_THREE_POINTS",
+      "name": "Arc by Three Points",
+      "schema_version": 3,
+      "request_id": "20260728132845076-7d075cd71d732EEPOINTS",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:45.2178120+00:00"
+    },
+    {
+      "id": "UG_SKETCH_ARC_FROM_CENTER",
+      "name": "Arc from Center",
+      "schema_version": 3,
+      "request_id": "20260728132845288-0a02d0c6160f7OMCENTER",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:45.3689827+00:00"
+    },
+    {
+      "id": "UG_SKETCH_CHECKER",
+      "name": "Sketch Checker",
+      "schema_version": 3,
+      "request_id": "20260728132845398-8daa37f55f00cHCHECKER",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:45.5288239+00:00"
+    },
+    {
+      "id": "UG_SKETCH_CIRCLE_BY_THREE_POINTS",
+      "name": "Circle by Three Points",
+      "schema_version": 3,
+      "request_id": "20260728132845621-f99514fc7b607EEPOINTS",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:45.6734577+00:00"
+    },
+    {
+      "id": "UG_SKETCH_CIRCLE_FROM_CENTER",
+      "name": "Circle from Center",
+      "schema_version": 3,
+      "request_id": "20260728132845736-982a81d82b31eOMCENTER",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:45.8426481+00:00"
+    },
+    {
+      "id": "UG_SKETCH_COINCIDENT_CONSTRAINT",
+      "name": "Coincident Constraint",
+      "schema_version": 3,
+      "request_id": "20260728132845952-478cea4c669f2NSTRAINT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:45.9907900+00:00"
+    },
+    {
+      "id": "UG_SKETCH_EXTEND",
+      "name": "Extend",
+      "schema_version": 3,
+      "request_id": "20260728132846053-3525dbd507bfCHEXTEND",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:46.1448051+00:00"
+    },
+    {
+      "id": "UG_SKETCH_HORIZONTAL_CONSTRAINT",
+      "name": "Horizontal Constraint",
+      "schema_version": 3,
+      "request_id": "20260728132846168-b30b538344b68NSTRAINT",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4203,
+      "completed_utc": "2026-07-28T13:28:46.3109726+00:00"
+    },
+    {
+      "id": "UG_SKETCH_LINEAR_DIMENSION",
+      "name": "Linear Dimension",
+      "schema_version": 3,
+      "request_id": "20260728132846396-d4443ea4d5eb9IMENSION",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:46.5538422+00:00"
+    },
+    {
+      "id": "UG_SKETCH_LINE_BY_TWO_POINTS",
+      "name": "Line by Two Points",
+      "schema_version": 3,
+      "request_id": "20260728132846613-37181aa0ae882WOPOINTS",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:46.6156019+00:00"
+    },
+    {
+      "id": "UG_SKETCH_LINE_FROM_MIDPOINT",
+      "name": "Line from Midpoint",
+      "schema_version": 3,
+      "request_id": "20260728132846721-86338ecadfb6dMIDPOINT",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:46.7790261+00:00"
+    },
+    {
+      "id": "UG_SKETCH_OFFSET_CURVE",
+      "name": "Offset Curve",
+      "schema_version": 3,
+      "request_id": "20260728132846823-4d9955f965324SETCURVE",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:46.9409670+00:00"
+    },
+    {
+      "id": "UG_SKETCH_PARALLEL_CONSTRAINT",
+      "name": "Parallel Constraint",
+      "schema_version": 3,
+      "request_id": "20260728132847041-7b932b60732b2NSTRAINT",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:47.1078702+00:00"
+    },
+    {
+      "id": "UG_SKETCH_PERPENDICULAR_CONSTRAINT",
+      "name": "Perpendicular Constraint",
+      "schema_version": 3,
+      "request_id": "20260728132847152-40282cec4492dNSTRAINT",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:47.2625275+00:00"
+    },
+    {
+      "id": "UG_SKETCH_RAPID_DIMENSION",
+      "name": "Rapid Dimension",
+      "schema_version": 3,
+      "request_id": "20260728132847371-9e0f534b68921IMENSION",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:47.4202512+00:00"
+    },
+    {
+      "id": "UG_SKETCH_RECTANGLE_BY_THREE_POINTS",
+      "name": "Rectangle by Three Points",
+      "schema_version": 3,
+      "request_id": "20260728132847480-f5df9e57f11d8EEPOINTS",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:47.5772530+00:00"
+    },
+    {
+      "id": "UG_SKETCH_RECTANGLE_BY_TWO_POINTS",
+      "name": "Rectangle by Two Points",
+      "schema_version": 3,
+      "request_id": "20260728132847597-3f203ea9e18ccWOPOINTS",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:47.7253216+00:00"
+    },
+    {
+      "id": "UG_SKETCH_RECTANGLE_FROM_CENTER",
+      "name": "Rectangle from Center",
+      "schema_version": 3,
+      "request_id": "20260728132847808-726569713559fOMCENTER",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:47.8907914+00:00"
+    },
+    {
+      "id": "UG_SKETCH_TANGENT_CONSTRAINT",
+      "name": "Tangent Constraint",
+      "schema_version": 3,
+      "request_id": "20260728132847912-f8356f6ae03c1NSTRAINT",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:48.0397521+00:00"
+    },
+    {
+      "id": "UG_SKETCH_TRIM",
+      "name": "Trim",
+      "schema_version": 3,
+      "request_id": "20260728132848135-3cb89f6dd1b8cETCHTRIM",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:48.2004320+00:00"
+    },
+    {
+      "id": "UG_SKETCH_VERTICAL_CONSTRAINT",
+      "name": "Vertical Constraint",
+      "schema_version": 3,
+      "request_id": "20260728132848242-f9f5d07af0846NSTRAINT",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:48.3586678+00:00"
+    },
+    {
+      "id": "UG_VIEW_FIT",
+      "name": "Fit",
+      "schema_version": 3,
+      "request_id": "20260728132848464-d651aa26390f5GVIEWFIT",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:48.5146754+00:00"
+    },
+    {
+      "id": "UG_VIEW_PALETTE_MATERIALS_IN_PART",
+      "name": "Part Materials Palette",
+      "schema_version": 3,
+      "request_id": "20260728132848575-f3ff33b8b6bcLSINPART",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:48.6700690+00:00"
+    },
+    {
+      "id": "UG_VIEW_PALETTE_SYSTEM_MATERIALS",
+      "name": "System Materials Palette",
+      "schema_version": 3,
+      "request_id": "20260728132848683-d710a9e57c452ATERIALS",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:48.8269163+00:00"
+    },
+    {
+      "id": "UG_VIEW_POPUP_ORIENT_TFRTRI",
+      "name": "Trimetric",
+      "schema_version": 3,
+      "request_id": "20260728132848903-05cca642465cbNTTFRTRI",
+      "status": "rejected",
+      "message": "NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.",
+      "context_revision": 4204,
+      "completed_utc": "2026-07-28T13:28:48.9809199+00:00"
+    },
+    {
+      "id": "UG_VIEW_REFRESH",
+      "name": "Refresh",
+      "schema_version": 3,
+      "request_id": "20260728132849008-bb6d0cd362d43WREFRESH",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4205,
+      "completed_utc": "2026-07-28T13:28:49.2652308+00:00"
+    },
+    {
+      "id": "UG_VIEW_SHED_MATERIAL_OVERRIDE_DEASSIGN",
+      "name": "Deassign Visual Material",
+      "schema_version": 3,
+      "request_id": "20260728132849339-47f8ebf2b23c3DEASSIGN",
+      "status": "rejected",
+      "message": "NX has an active modal dialog.",
+      "context_revision": 4205,
+      "completed_utc": "2026-07-28T13:28:49.4434362+00:00"
+    }
+  ]
+}

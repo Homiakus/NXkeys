@@ -29,18 +29,16 @@
       "guards": {
         "modules": ["modeling"],
         "require_work_part": true,
-        "minimum_context_confidence": 60,
-        "selection": { "minimum": 1, "types_any": ["Edge"] }
+        "minimum_context_confidence": 60
       },
-      "on_unavailable": { "action": "show_reason", "message": "Выберите одно или несколько рёбер" }
+      "on_unavailable": { "action": "show_reason", "message": "Команда Edge Blend доступна в Modeling; фильтр рёбер будет включён перед запуском" }
     },
     "MEEC": {
       "guards": {
         "modules": ["modeling"],
-        "require_work_part": true,
-        "selection": { "minimum": 1, "types_any": ["Edge"] }
+        "require_work_part": true
       },
-      "on_unavailable": { "action": "show_reason", "message": "Выберите рёбра для построения фаски" }
+      "on_unavailable": { "action": "show_reason", "message": "Команда Chamfer доступна в Modeling; фильтр рёбер будет включён перед запуском" }
     },
     "SCGL2": {
       "guards": { "modules": ["sketch"], "require_work_part": true },
@@ -53,27 +51,25 @@
     "AECR": {
       "guards": {
         "modules": ["assembly"],
-        "require_work_part": true,
-        "selection": { "minimum": 1, "types_any": ["Component"] }
+        "require_work_part": true
       },
       "confirmation": "required",
-      "on_unavailable": { "action": "show_reason", "message": "Выберите компонент для замены" }
+      "on_unavailable": { "action": "show_reason", "message": "Команда Replace Component доступна в Assembly; фильтр компонентов будет включён перед запуском" }
     },
     "AXCR": {
       "guards": {
         "modules": ["assembly"],
-        "require_work_part": true,
-        "selection": { "minimum": 1, "types_any": ["Component"] }
+        "require_work_part": true
       },
       "confirmation": "required",
-      "on_unavailable": { "action": "show_reason", "message": "Выберите компонент для удаления" }
+      "on_unavailable": { "action": "show_reason", "message": "Команда Remove Component доступна в Assembly; фильтр компонентов будет включён перед запуском" }
     },
-    "CPOP": { "guards": { "modules": ["manufacturing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
-    "CXOD": { "guards": { "modules": ["manufacturing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
-    "XPNS": { "guards": { "modules": ["simulation"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
-    "XXND": { "guards": { "modules": ["simulation"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
-    "GXRD": { "guards": { "modules": ["routing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
-    "GXRP": { "guards": { "modules": ["routing"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" },
-    "RETF": { "guards": { "modules": ["reuse"], "require_work_part": true, "selection": { "minimum": 1 } }, "confirmation": "required" }
+    "CPOP": { "guards": { "modules": ["manufacturing"], "require_work_part": true }, "confirmation": "required" },
+    "CXOD": { "guards": { "modules": ["manufacturing"], "require_work_part": true }, "confirmation": "required" },
+    "XPNS": { "guards": { "modules": ["simulation"], "require_work_part": true }, "confirmation": "required" },
+    "XXND": { "guards": { "modules": ["simulation"], "require_work_part": true }, "confirmation": "required" },
+    "GXRD": { "guards": { "modules": ["routing"], "require_work_part": true }, "confirmation": "required" },
+    "GXRP": { "guards": { "modules": ["routing"], "require_work_part": true }, "confirmation": "required" },
+    "RETF": { "guards": { "modules": ["reuse"], "require_work_part": true }, "confirmation": "required" }
   }
 }

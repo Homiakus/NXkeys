@@ -56,6 +56,8 @@ Delete, Ctrl+F, F5
     "выдавливание"
   ],
   "requires_selection": false,
+  "action": "execute_command",
+  "selection_type": "none",
   "destructive": false,
   "confirm_before_execute": false,
   "icon_hint": "feature",
@@ -96,6 +98,28 @@ M C F E
 
 Слова для полнотекстового поиска: русские и английские названия, профессиональные сокращения и пользовательские термины.
 
+### `action`
+
+Способ исполнения команды в bridge:
+
+| Значение | Назначение |
+|---|---|
+| `execute_command` | Обычный вызов NX `BUTTON ID` через `InvokeMenuButtonAction`. |
+| `set_selection_filter` | Установка глобального selection-фильтра NXOpen без запуска `BUTTON ID` как меню-команды. |
+
+Команды `UG_SEL_*` должны использовать `set_selection_filter`. Это убирает зависимость от состояния кнопки меню и позволяет сначала включить нужный тип выбора, а затем открыть команду NX, которая сама ведёт интерактивный selection workflow.
+
+### `selection_type`
+
+Тип выбора, который нужен команде или selection-фильтру:
+
+```text
+none, all, reset, edge, face, body, component,
+curve, datum, feature, operation
+```
+
+Для обычных команд поле описывает ожидаемый выбор и используется HUD/policy. Для `set_selection_filter` поле передаётся в IPC как `selection_filter`; CommandBridge переводит его в набор `NXOpen.Select.FilterMember` и применяет через global selection API.
+
 ## Автоматическая миграция
 
 При загрузке старого профиля:
@@ -107,8 +131,11 @@ M C F E
 5. выбирается значимая буква операции;
 6. разрешаются коллизии внутри активного модуля;
 7. конфликтующие aliases удаляются;
-8. строятся последовательности DFA;
-9. schema переводится в версию 5.
+8. primary-команды получают one-key alias по `input_key`;
+9. `UG_SEL_*` переводятся в `action: "set_selection_filter"`;
+10. selection-aware команды получают `selection_type`;
+11. строятся последовательности DFA;
+12. schema переводится в версию 5.
 
 Точные правила находятся в:
 
@@ -231,6 +258,9 @@ node .\scripts\validate-command-tree.mjs
 - 14 модулей;
 - наличие точных `BUTTON ID`;
 - точные мнемонические сопоставления;
+- наличие aliases для primary-команд;
+- корректную маршрутизацию selection-фильтров;
+- наличие `selection_type` у команд с выбором;
 - соответствие policy новым последовательностям;
 - наличие runtime schema v5;
 - исключение legacy-модели из компиляции;

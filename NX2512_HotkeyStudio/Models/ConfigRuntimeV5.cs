@@ -148,11 +148,31 @@ namespace NX2512_HotkeyStudio.Models
                             command.InputKey = LeaderKey.ResolveInputKey(command.Slot, order);
                         command.InputKey = LeaderKeyConfig.NormalizeInputKey(command.InputKey);
                         if (command.DisplayOrder <= 0) command.DisplayOrder = order;
+                        if (string.Equals(set.ID, "primary", StringComparison.OrdinalIgnoreCase) &&
+                            !string.IsNullOrWhiteSpace(command.InputKey))
+                            AddAlias(command, command.InputKey);
+                        if (!string.IsNullOrWhiteSpace(command.SubmenuKey) &&
+                            !string.IsNullOrWhiteSpace(command.InputKey))
+                            AddAlias(command, command.SubmenuKey, command.InputKey);
+                        if (string.IsNullOrWhiteSpace(command.Action))
+                            command.Action = SelectionIntent.ActionFor(command);
+                        if (string.IsNullOrWhiteSpace(command.SelectionType))
+                            command.SelectionType = SelectionIntent.SelectionTypeFor(command);
                         order++;
                     }
                 }
             }
             MnemonicPathGenerator.Apply(Modules);
+        }
+
+        private static void AddAlias(ModuleCommand command, params string[] path)
+        {
+            List<string> alias = MnemonicPathGenerator.NormalizePath(path).ToList();
+            if (alias.Count == 0) return;
+            command.Aliases ??= new List<List<string>>();
+            if (!command.Aliases.Any(existing => MnemonicPathGenerator.NormalizePath(existing)
+                    .SequenceEqual(alias, StringComparer.OrdinalIgnoreCase)))
+                command.Aliases.Add(alias);
         }
 
         public void ExpandEnvironment()
@@ -310,6 +330,60 @@ namespace NX2512_HotkeyStudio.Models
                 problems.Add($"module {module.ID} repeats mnemonic path {key}: {existing} and {owner}");
             else
                 paths[key] = owner;
+        }
+    }
+
+    public static class SelectionIntent
+    {
+        public const string ExecuteCommandAction = "execute_command";
+        public const string SetSelectionFilterAction = "set_selection_filter";
+
+        public static string ActionFor(ModuleCommand command)
+        {
+            string explicitAction = command?.Action?.Trim();
+            if (!string.IsNullOrWhiteSpace(explicitAction)) return explicitAction;
+            return IsSelectionFilterCommand(command?.Command?.ID)
+                ? SetSelectionFilterAction
+                : ExecuteCommandAction;
+        }
+
+        public static string SelectionTypeFor(ModuleCommand command)
+        {
+            string explicitType = command?.SelectionType?.Trim();
+            if (!string.IsNullOrWhiteSpace(explicitType)) return NormalizeSelectionType(explicitType);
+            string inferred = InferSelectionType(command?.Command?.ID, command?.Command?.Name, command?.Notes);
+            return string.IsNullOrWhiteSpace(inferred) && command?.RequiresSelection == true ? "all" : inferred;
+        }
+
+        public static string InferSelectionType(string commandId, string commandName = "", string notes = "")
+        {
+            string text = string.Join(" ", commandId ?? string.Empty, commandName ?? string.Empty, notes ?? string.Empty).ToUpperInvariant();
+            if (text.Contains("DESELECT")) return "none";
+            if (text.Contains("SELECT_ALL")) return "all";
+            if (text.Contains("RESET")) return "reset";
+            if (text.Contains("EDGE")) return "edge";
+            if (text.Contains("FACE") || text.Contains("SURFACE") || text.Contains("SHEET_BOUNDARY")) return "face";
+            if (text.Contains("BODY") || text.Contains("SOLID") || text.Contains("SHEET_METAL")) return "body";
+            if (text.Contains("COMPONENT") || text.Contains("ASSEMBL")) return "component";
+            if (text.Contains("CURVE") || text.Contains("LINE") || text.Contains("ARC") || text.Contains("CIRCLE")) return "curve";
+            if (text.Contains("DATUM") || text.Contains("COORDINATE_SYSTEM")) return "datum";
+            if (text.Contains("FEATURE") || text.Contains("TEMPLATE")) return "feature";
+            if (text.Contains("OPERATION") || text.Contains("TOOL_PATH") || text.Contains("CAM_")) return "operation";
+            return string.Empty;
+        }
+
+        public static bool IsSelectionFilterCommand(string commandId)
+        {
+            string id = commandId ?? string.Empty;
+            return id.StartsWith("UG_SEL_", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string NormalizeSelectionType(string value)
+        {
+            string normalized = new string((value ?? string.Empty).Trim().ToLowerInvariant()
+                .Select(character => char.IsLetterOrDigit(character) ? character : '_').ToArray());
+            while (normalized.Contains("__", StringComparison.Ordinal)) normalized = normalized.Replace("__", "_");
+            return normalized.Trim('_');
         }
     }
 

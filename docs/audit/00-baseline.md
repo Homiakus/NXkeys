@@ -30,14 +30,14 @@
 
 | Verification Action | Command | Result | Notes |
 |---|---|---|---|
-| JSON & Profile Validation | `node .\scripts\validate-command-tree.mjs` | **PASS** | 12 basic shortcuts, 14 modules, 112 commands verified |
+| JSON & Profile Validation | `node .\scripts\validate-command-tree.mjs` | **PASS** | 12 basic shortcuts, 14 modules, 277 commands, aliases and selection filters verified |
 | Automaton & State Invariants | `dotnet run --project .\NXKeys.StateMachines.Tests` | **PASS** | 17 invariants & replay sessions passed |
 | Contract Stubs Build | `dotnet build .\NX2512_CommandBridge.Tests\NXOpenUI` | **PASS** | Created `NXOpen.dll` and `NXOpenUI.dll` stubs |
 | HotkeyStudio Build | `dotnet build .\NX2512_HotkeyStudio -c Release` | **PASS** | Executable and models built cleanly |
 | ControlCenter Build | `dotnet build .\NX2512_ControlCenter -c Release` | **PASS** | WPF/WinForms dashboard built cleanly |
 | CommandBridge Build | `dotnet build .\NX2512_CommandBridge -p:NXOpenDir=...` | **PASS** | In-process DLL compiled against stubs |
 | CatalogStudio Build | `dotnet build .\NX2512_Catalog_Studio -p:NXOpenDir=...` | **FAIL** | `CS0117: 'Session.LibraryUnloadOption' does not contain definition for 'Immediately'` |
-| CLI Schema Validation | `NX2512_HotkeyStudio.exe validate --config ...` | **PASS** | Schema v3 canonical profile passed |
+| CLI Schema Validation | `NX2512_HotkeyStudio.exe validate --config ...` | **PASS** | Runtime schema v5 profile passed |
 
 ---
 

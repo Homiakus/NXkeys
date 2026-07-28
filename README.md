@@ -190,9 +190,18 @@ path
 path_labels
 aliases
 search_aliases
+action
+selection_type
 ```
 
 Известные `BUTTON ID` получают заданные пути. Для остальных команд путь строится по действию, объекту и названию. Коллизии и конфликтующие префиксы устраняются при загрузке.
+
+После аудита сочетаний 2026-07-28 профиль явно различает обычные NX-команды и команды выбора:
+
+- `action: "execute_command"` отправляет `BUTTON ID` в `InvokeMenuButtonAction`;
+- `action: "set_selection_filter"` включает глобальный selection-фильтр NXOpen без запуска псевдокнопки `UG_SEL_*`;
+- `selection_type` задаёт ожидаемый тип выбора (`edge`, `face`, `body`, `component`, `curve`, `datum`, `feature`, `operation`, `all`, `reset`, `none`);
+- primary-команды сохраняют быстрый one-key alias, а вложенные группы сохраняют submenu alias.
 
 Подробности: [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
 
@@ -280,6 +289,8 @@ CI проверяет:
 - 14 модулей;
 - уникальность путей;
 - отсутствие конфликтов префиксов;
+- наличие aliases, `action` и `selection_type`;
+- маршрутизацию `UG_SEL_*` через `set_selection_filter`;
 - DFA, HFSM и правила подтверждения;
 - сборку HotkeyStudio, Control Center и Command Bridge;
 - целостность профилей, IPC и документации.
@@ -288,6 +299,7 @@ CI проверяет:
 
 - [Интерактивная карта](https://homiakus.github.io/NXkeys/)
 - [Мнемонический язык](docs/MNEMONIC_COMMAND_LANGUAGE.md)
+- [Аудит сочетаний и selection-фильтров](docs/audit/11-shortcut-selection-audit.md)
 - [Конфигурация](docs/CONFIGURATION.md)
 - [Архитектура](docs/ARCHITECTURE.md)
 - [Автоматы](docs/STATE_MACHINE_ARCHITECTURE.md)

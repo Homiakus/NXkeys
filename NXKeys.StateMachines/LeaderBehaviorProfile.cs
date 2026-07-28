@@ -239,7 +239,7 @@ namespace NXKeys.StateMachines
             if (command != null)
             {
                 guards.RequireWorkPart = command.NeedsWorkPart;
-                if (command.RequiresSelection) guards.Selection.Minimum = Math.Max(1, command.MinimumSelectionCount);
+                if (command.MinimumSelectionCount > 0) guards.Selection.Minimum = Math.Max(1, command.MinimumSelectionCount);
                 if (!string.IsNullOrWhiteSpace(command.ModuleId)) guards.Modules.Add(command.ModuleId);
 
                 string key = NormalizeSequence(command.Id);

@@ -15,6 +15,7 @@ namespace NXKeys.StateMachines.Tests
             Require(json.Contains("\"command_id\"", StringComparison.Ordinal), "Protocol must serialize command_id.");
             Require(json.Contains("\"expected_context_revision\"", StringComparison.Ordinal), "Protocol must serialize expected_context_revision.");
             Require(json.Contains("\"confirmation_accepted\"", StringComparison.Ordinal), "Protocol must serialize confirmation_accepted.");
+            Require(json.Contains("\"selection_filter\"", StringComparison.Ordinal), "Protocol must serialize selection_filter.");
 
             NxCommandRequest roundTrip = JsonSerializer.Deserialize<NxCommandRequest>(json, NxProtocolJson.ReadOptions);
             Require(roundTrip != null && roundTrip.CommandId == request.CommandId, "Protocol round-trip failed.");
@@ -43,6 +44,7 @@ namespace NXKeys.StateMachines.Tests
                 Action = "execute_command",
                 CommandId = "UG_TEST_COMMAND",
                 CommandName = "Test",
+                SelectionFilter = "edge",
                 CreatedUtc = now.ToString("O"),
                 ExpiresUtc = now.AddSeconds(15).ToString("O"),
                 ExpectedContextRevision = 1,

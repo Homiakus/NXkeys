@@ -252,6 +252,11 @@ namespace NX2512_CommandBridge
                     SwitchModule(request);
                     CompleteClaim(processingPath, request, "executed", "Switched module: " + request.TargetApplicationId, before.Revision);
                 }
+                else if (string.Equals(request.Action, "set_selection_filter", StringComparison.OrdinalIgnoreCase))
+                {
+                    string message = ApplySelectionCommand(request);
+                    CompleteClaim(processingPath, request, "executed", message, before.Revision);
+                }
                 else if (string.Equals(request.Action, "probe_command", StringComparison.OrdinalIgnoreCase))
                 {
                     string message = ProbeNxCommand(request.CommandId);
@@ -335,6 +340,9 @@ namespace NX2512_CommandBridge
             string commandId = request.CommandId.Trim();
             WriteLog("Executing direct NX command: " + request.Sequence + " -> " + commandId + " (" + request.CommandName + ")");
 
+            if (!string.IsNullOrWhiteSpace(request.SelectionFilter))
+                ApplyGlobalSelectionFilter(request.SelectionFilter);
+
             MenuButton button = RequireRunnableButton(commandId);
 
             bool invoked = theUI.DialogTester.InvokeMenuButtonAction(button);
@@ -378,6 +386,133 @@ namespace NX2512_CommandBridge
             if (button.ButtonSensitivity == MenuButton.SensitivityStatus.Insensitive)
                 throw new InvalidOperationException("NX menu button is insensitive in the current context: " + id);
             return button;
+        }
+
+        private static string ApplySelectionCommand(NxCommandRequest request)
+        {
+            string filter = !string.IsNullOrWhiteSpace(request.SelectionFilter)
+                ? request.SelectionFilter
+                : SelectionFilterFromCommandId(request.CommandId);
+            if (string.IsNullOrWhiteSpace(filter))
+                throw new InvalidOperationException("Selection filter is not defined for: " + request.CommandId);
+
+            string normalized = NormalizeSelectionFilter(filter);
+            if (normalized == "none")
+            {
+                ClearGlobalSelectionList();
+                return "Selection cleared";
+            }
+            if (normalized == "all")
+            {
+                ExecuteRelaxedMenuButton(request.CommandId);
+                return "Select all requested";
+            }
+            if (normalized == "reset")
+            {
+                theUI.SelectionManager.ResetEnabledGlobalFilterMembers();
+                return "Selection filters reset";
+            }
+
+            ApplyGlobalSelectionFilter(normalized);
+            return "Selection filter set: " + normalized;
+        }
+
+        private static void ApplyGlobalSelectionFilter(string filter)
+        {
+            string normalized = NormalizeSelectionFilter(filter);
+            if (string.IsNullOrWhiteSpace(normalized) || normalized == "all") return;
+            if (normalized == "none") { ClearGlobalSelectionList(); return; }
+            if (normalized == "reset") { theUI.SelectionManager.ResetEnabledGlobalFilterMembers(); return; }
+
+            NXOpen.Select.FilterMember[] members = FilterMembersFor(normalized);
+            if (members.Length == 0)
+            {
+                WriteLog("No global NX selection filter mapping for: " + filter);
+                return;
+            }
+            theUI.SelectionManager.SetEnabledGlobalFilterMembers(members);
+            WriteLog("Applied global selection filter: " + normalized + " => " + string.Join(",", members.Select(value => value.ToString())));
+        }
+
+        private static NXOpen.Select.FilterMember[] FilterMembersFor(string filter)
+        {
+            switch (NormalizeSelectionFilter(filter))
+            {
+                case "edge": return ParseFilterMembers("AllEdges");
+                case "face": return ParseFilterMembers("AllFaces");
+                case "body": return ParseFilterMembers("AllSolidBodies", "AllSheetBodies", "AllFacetBodies");
+                case "component": return ParseFilterMembers("Component");
+                case "curve": return ParseFilterMembers("AllCurves", "AllConicCurves");
+                case "datum": return ParseFilterMembers("DatumAxis", "DatumPlane", "CoordinateSystem");
+                case "feature": return ParseFilterMembers("AllBasicFeatures", "SolidFeature", "CurveFeature", "DatumPlaneFeature", "DatumAxisFeature");
+                case "operation": return ParseFilterMembers("CAMOperation");
+                default: return Array.Empty<NXOpen.Select.FilterMember>();
+            }
+        }
+
+        private static NXOpen.Select.FilterMember[] ParseFilterMembers(params string[] names)
+        {
+            var values = new List<NXOpen.Select.FilterMember>();
+            foreach (string name in names ?? Array.Empty<string>())
+            {
+                try
+                {
+                    values.Add((NXOpen.Select.FilterMember)Enum.Parse(typeof(NXOpen.Select.FilterMember), name, true));
+                }
+                catch { }
+            }
+            return values.Distinct().ToArray();
+        }
+
+        private static string SelectionFilterFromCommandId(string commandId)
+        {
+            string id = (commandId ?? string.Empty).ToUpperInvariant();
+            if (id.Contains("DESELECT")) return "none";
+            if (id.Contains("SELECT_ALL")) return "all";
+            if (id.Contains("RESET")) return "reset";
+            if (id.Contains("EDGE")) return "edge";
+            if (id.Contains("FACE")) return "face";
+            if (id.Contains("BODY")) return "body";
+            if (id.Contains("COMPONENT")) return "component";
+            if (id.Contains("CURVE")) return "curve";
+            if (id.Contains("DATUM")) return "datum";
+            if (id.Contains("FEATURE")) return "feature";
+            return string.Empty;
+        }
+
+        private static string NormalizeSelectionFilter(string value)
+        {
+            string normalized = new string((value ?? string.Empty).Trim().ToLowerInvariant()
+                .Select(character => char.IsLetterOrDigit(character) ? character : '_').ToArray());
+            while (normalized.Contains("__", StringComparison.Ordinal)) normalized = normalized.Replace("__", "_");
+            return normalized.Trim('_');
+        }
+
+        private static void ClearGlobalSelectionList()
+        {
+            try
+            {
+                theUI.SelectionManager.ClearGlobalSelectionList();
+            }
+            catch
+            {
+                ExecuteRelaxedMenuButton("UG_SEL_DESELECT_ALL");
+            }
+        }
+
+        private static void ExecuteRelaxedMenuButton(string commandId)
+        {
+            string id = (commandId ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(id)) return;
+            try
+            {
+                MenuButton button = theUI.MenuBarManager.GetButtonFromName(id);
+                if (button != null) theUI.DialogTester.InvokeMenuButtonAction(button);
+            }
+            catch (Exception ex)
+            {
+                WriteLog("Relaxed menu action failed for " + id + ": " + ex.Message);
+            }
         }
 
         private static void CompleteClaim(

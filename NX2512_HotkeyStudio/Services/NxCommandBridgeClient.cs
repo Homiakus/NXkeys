@@ -31,14 +31,18 @@ namespace NX2512_HotkeyStudio.Services
                 throw new InvalidOperationException("Leader sequence has no exact NX command id.");
 
             NxBridgeContext context = RequireFreshContext();
+            string action = string.IsNullOrWhiteSpace(item.Action)
+                ? "execute_command"
+                : item.Action.Trim();
             NxCommandRequest request = CreateRequest(
-                "execute_command",
+                action,
                 item.Command.ID.Trim(),
                 item.Command.Name,
                 item.Sequence,
                 item.ModuleID,
                 string.Empty,
                 context);
+            request.SelectionFilter = item.SelectionType ?? string.Empty;
             request.Destructive = item.Destructive;
             request.ConfirmationAccepted = confirmationAccepted || (!item.Destructive && !item.ConfirmBeforeExecute);
             request.Validate();
