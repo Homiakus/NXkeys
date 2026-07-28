@@ -1,18 +1,32 @@
-# Конфигурация NXKeys — runtime schema v5
+# Конфигурация NXKeys
 
-Канонический профиль команд:
+## Профили
+
+NXKeys использует два типа профилей:
 
 ```text
-config/nx2512-pro-hybrid.json
+config/nx2512-pro-hybrid.json          базовый проверенный профиль
+config/nx2512-pro-full.generated.json  локально сгенерированный полный профиль
 ```
 
-Профиль schema v4 полностью совместим: при загрузке NXKeys автоматически присваивает командам многоуровневые мнемонические пути и переводит модель в runtime schema v5. После сохранения через Studio новые поля записываются в JSON явно.
+Полный профиль создаётся из 1169 намерений и каталога конкретной установки NX. Его нельзя считать универсальным: число включённых команд зависит от роли, лицензий, локализации и MenuScript-расширений.
+
+## Версии schema
+
+| Уровень | Версия |
+|---|---:|
+| JSON-профиль на диске | `4` |
+| Runtime-модель HotkeyStudio | `5` |
+| IPC HotkeyStudio ↔ CommandBridge | `3` |
+| `full_command_catalog` | `1` |
+
+Установщик принимает source profile schema 3–4. При загрузке `Config.ApplyDefaults()` мигрирует его в runtime schema 5, нормализует пути и строит производные последовательности. При сохранении через HotkeyStudio новые runtime-поля могут быть записаны явно.
 
 ## Верхний уровень
 
 ```json
 {
-  "schema_version": 5,
+  "schema_version": 4,
   "profile": {},
   "scan": {},
   "deployment": {},
@@ -21,13 +35,16 @@ config/nx2512-pro-hybrid.json
   "workflow_controls": {},
   "performance": {},
   "role_deployment": {},
-  "leader_key": {}
+  "leader_key": {},
+  "full_command_catalog": {}
 }
 ```
 
-## Базовые сочетания
+`full_command_catalog` присутствует только в полном сгенерированном профиле.
 
-Секция `keyboard` содержит ровно 12 прямых привязок:
+## Базовые прямые сочетания
+
+Секция `keyboard` содержит ровно 12 разрешённых привязок:
 
 ```text
 Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+Shift+S,
@@ -35,29 +52,25 @@ Ctrl+Z, Ctrl+Y, Ctrl+X, Ctrl+C, Ctrl+V,
 Delete, Ctrl+F, F5
 ```
 
-Все профессиональные команды NX вызываются через Leader.
+Все профессиональные команды вызываются через Leader, чтобы не создавать глобальные конфликты NX.
 
-## Мнемоническая команда
+## Команда модуля
 
 ```json
 {
   "command": {
     "id": "UG_MODELING_EXTRUDED_FEATURE",
-    "name": "Extrude"
+    "name": "Extrude",
+    "aliases": ["Extrude", "Вытягивание"]
   },
   "path": ["C", "F", "E"],
   "path_labels": ["Create", "Feature", "Extrude"],
-  "aliases": [
-    ["C", "E"]
-  ],
-  "search_aliases": [
-    "extrude",
-    "вытянуть",
-    "выдавливание"
-  ],
-  "requires_selection": false,
+  "aliases": [["C", "E"]],
+  "search_aliases": ["extrude", "вытянуть", "выдавливание"],
   "action": "execute_command",
   "selection_type": "none",
+  "enabled": true,
+  "requires_selection": false,
   "destructive": false,
   "confirm_before_execute": false,
   "icon_hint": "feature",
@@ -67,104 +80,91 @@ Delete, Ctrl+F, F5
 
 ### `path`
 
-Канонический путь после `CapsLock`. Пользователь не вводит внутренний префикс модуля.
+Канонический путь после `CapsLock`. Внутренний префикс модуля пользователем не вводится.
 
 ```text
-CapsLock → C → F → E
+Пользователь: CapsLock → C → F → E
+DFA:          M → C → F → E
 ```
-
-Внутренний DFA получает:
-
-```text
-M C F E
-```
-
-где `M` — внутренний префикс Modeling.
 
 ### `path_labels`
 
-Подписи уровней HUD. Количество подписей должно совпадать с количеством токенов пути.
+Подписи уровней HUD. Их число должно совпадать с длиной `path`.
 
 ### `aliases`
 
-Дополнительные быстрые пути к той же команде. Alias автоматически удаляется, если:
-
-- совпадает с другим путём;
-- является префиксом другой команды;
-- другая команда является его префиксом;
-- совпадает с каноническим путём.
+Дополнительные короткие пути. Alias удаляется, если совпадает с каноническим путём, другой командой либо создаёт конфликт префикса.
 
 ### `search_aliases`
 
-Слова для полнотекстового поиска: русские и английские названия, профессиональные сокращения и пользовательские термины.
+Имена, переводы, сокращения, профессиональные термины и пользовательские формулировки для поиска.
 
 ### `action`
 
-Способ исполнения команды в bridge:
-
-| Значение | Назначение |
+| Значение | Поведение |
 |---|---|
-| `execute_command` | Обычный вызов NX `BUTTON ID` через `InvokeMenuButtonAction`. |
-| `set_selection_filter` | Установка глобального selection-фильтра NXOpen без запуска `BUTTON ID` как меню-команды. |
-
-Команды `UG_SEL_*` должны использовать `set_selection_filter`. Это убирает зависимость от состояния кнопки меню и позволяет сначала включить нужный тип выбора, а затем открыть команду NX, которая сама ведёт интерактивный selection workflow.
+| `execute_command` | Вызов точного NX `BUTTON ID` через CommandBridge. |
+| `set_selection_filter` | Применение глобального NXOpen selection-фильтра без запуска `UG_SEL_*` как обычной кнопки. |
 
 ### `selection_type`
-
-Тип выбора, который нужен команде или selection-фильтру:
 
 ```text
 none, all, reset, edge, face, body, component,
 curve, datum, feature, operation
 ```
 
-Для обычных команд поле описывает ожидаемый выбор и используется HUD/policy. Для `set_selection_filter` поле передаётся в IPC как `selection_filter`; CommandBridge переводит его в набор `NXOpen.Select.FilterMember` и применяет через global selection API.
+Поле описывает ожидаемый тип выбора. Для `set_selection_filter` оно передаётся в IPC как `selection_filter`.
 
-## Автоматическая миграция
+## Поля полного каталога
 
-При загрузке старого профиля:
+Команды, добавленные компилятором, дополнительно содержат:
 
-1. заполняются legacy-поля `input_key` и `display_order`;
-2. для известных `BUTTON ID` применяется точное сопоставление;
-3. для остальных команд определяется действие;
-4. определяется объект команды;
-5. выбирается значимая буква операции;
-6. разрешаются коллизии внутри активного модуля;
-7. конфликтующие aliases удаляются;
-8. primary-команды получают one-key alias по `input_key`;
-9. `UG_SEL_*` переводятся в `action: "set_selection_filter"`;
-10. selection-aware команды получают `selection_type`;
-11. строятся последовательности DFA;
-12. schema переводится в версию 5.
-
-Точные правила находятся в:
-
-```text
-NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs
+```json
+{
+  "catalog_refs": ["nx2512-000123"],
+  "frequency": "K4",
+  "resolution_status": "resolved",
+  "resolution_candidates": [],
+  "fallback": "catalog:nx2512-000123"
+}
 ```
 
-## Корневые категории
-
-| Клавиша | Категория |
+| Поле | Назначение |
 |---|---|
-| `C` | Create |
-| `E` | Edit |
-| `T` | Transform |
-| `X` | Remove |
-| `P` | Process |
-| `I` | Inspect |
-| `V` | View |
-| `S` | Select |
-| `A` | Annotate |
-| `M` | Manage |
-| `F` | File |
-| `G` | Go |
-| `U` | Utilities |
-| `H` | Help |
+| `catalog_refs` | Стабильные идентификаторы исходных намерений. |
+| `frequency` | Экспертная частота `K1–K5`. |
+| `resolution_status` | `existing`, `resolved`, `ambiguous` или `unresolved`. |
+| `resolution_candidates` | Лучшие кандидаты `BUTTON ID` и оценки сходства. |
+| `fallback` | Трассировка к исходной записи полного каталога. |
+
+Правило безопасности: `enabled: true` допустим только при непустом точном `command.id`.
+
+## Метаданные полной генерации
+
+```json
+{
+  "full_command_catalog": {
+    "schema_version": 1,
+    "source_intents": 1169,
+    "generated_utc": "2026-07-28T00:00:00Z",
+    "catalog_items": 12345,
+    "global_commands_duplicated": true,
+    "source_files": []
+  }
+}
+```
+
+`generated_utc` и `catalog_items` зависят от конкретного запуска.
 
 ## Модули
 
-Каждый модуль сохраняет собственный внутренний `leader_prefix`. Он нужен DFA и не вводится пользователем.
+Канонические модули:
+
+```text
+modeling, sketch, assembly, drafting, pmi, surface,
+sheet_metal, manufacturing, simulation, routing, mold,
+reuse, inspect_view, selection_object
+```
 
 ```json
 {
@@ -177,91 +177,65 @@ NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs
 }
 ```
 
-Одинаковый пользовательский путь разрешается в разных модулях, поскольку активный модуль выбирается автоматически. Внутри одного модуля пути должны быть уникальны и не могут быть префиксами друг друга.
+Одинаковый пользовательский путь может существовать в разных модулях. Внутри одного модуля все канонические пути и aliases должны быть уникальными и prefix-free.
 
-## Полное покрытие NX 2512
+Базовый профиль содержит curated primary-команды и дополнительные command sets. Полный профиль не ограничен восемью командами на модуль: восемь физических клавиш относятся только к legacy/primary-слою быстрых aliases.
 
-Полный состав команд зависит от:
+## Автоматическая миграция
 
-- установленной роли NX;
-- приобретённых лицензий;
-- локализации;
-- пользовательских MenuScript-расширений;
-- доступных приложений.
+При загрузке профиля:
 
-Поэтому полный профиль строится из фактического каталога установки. `NX2512_Catalog_Studio` извлекает UI-команды и `BUTTON ID`. Каждая найденная команда получает:
+1. нормализуются legacy `slot`, `submenu_key`, `input_key`;
+2. создаются `path`, `path_labels`, `aliases`, `search_aliases`;
+3. для известных ID применяются точные ручные пути;
+4. остальным командам назначаются детерминированные пути;
+5. устраняются коллизии и конфликты префиксов;
+6. `UG_SEL_*` получают `action: set_selection_filter`;
+7. выводится `selection_type`;
+8. строится runtime schema 5 и DFA.
 
-- точный канонический путь;
-- поисковые псевдонимы;
-- модульную область;
-- guards;
-- статус доступности.
+Основная реализация:
 
-Команда без реального `BUTTON ID` не добавляется как исполняемая.
+```text
+NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs
+NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs
+NX2512_HotkeyStudio/Models/LeaderConfigV5.cs
+```
+
+## Компиляция полной карты
+
+```powershell
+node .\scripts\compile-full-command-map.mjs `
+  --profile .\config\nx2512-pro-hybrid.json `
+  --intents .\config\full-command-map `
+  --catalog-dir "D:\NX2512_Catalog_Output" `
+  --out .\config\nx2512-pro-full.generated.json `
+  --report .\docs\generated\full-command-resolution.md
+```
+
+По умолчанию глобальные команды дублируются в активные модули. Флаг `--no-global-duplication` оставляет их только в специализированных областях.
 
 ## Guards и подтверждение
 
-Файл:
+`config/nx2512-state-machines.json` задаёт таймауты, допустимые модули, требования к Work/Display Part, confidence, selection и подтверждению. Policy использует нормализованные последовательности с внутренним префиксом модуля.
 
-```text
-config/nx2512-state-machines.json
-```
-
-задаёт:
-
-- таймауты;
-- допустимые модули;
-- наличие Work/Display Part;
-- минимальную достоверность контекста;
-- типы и количество выбранных объектов;
-- обязательное подтверждение;
-- сообщения недоступности.
-
-Политики используют новые канонические последовательности, включая внутренний префикс модуля.
-
-Пример:
-
-```text
-M E E B
-```
-
-означает:
-
-```text
-Modeling → Edit → Edge → Blend
-```
-
-## Реализация модели
-
-Старый `Models/ConfigModels.cs` сохранён в репозитории как reference-источник schema v4, но исключён из компиляции HotkeyStudio. Runtime schema v5 разнесена по отдельным файлам:
-
-```text
-ConfigRuntimeV5.cs
-BaseConfigTypesV5.cs
-ModuleConfigTypesV5.cs
-RuntimeSettingsTypesV5.cs
-LeaderConfigV5.cs
-CommandMetadataV5.cs
-```
-
-Так миграция остаётся обратимо проверяемой, а новые поля не смешиваются с legacy-моделью.
+`requires_selection` описывает workflow и ожидаемый тип выбора, но не всегда означает обязательный preselection. Жёсткий минимум задаётся policy.
 
 ## Проверка
 
 ```powershell
 node .\scripts\validate-command-tree.mjs
+node .\scripts\validate-full-command-map.mjs
 ```
 
-Валидатор проверяет:
+Проверяется:
 
 - 12 базовых сочетаний;
 - 14 модулей;
-- наличие точных `BUTTON ID`;
-- точные мнемонические сопоставления;
-- наличие aliases для primary-команд;
-- корректную маршрутизацию selection-фильтров;
-- наличие `selection_type` у команд с выбором;
-- соответствие policy новым последовательностям;
-- наличие runtime schema v5;
-- исключение legacy-модели из компиляции;
-- целостность интерактивной карты.
+- 1169 намерений и 32 раздела;
+- `K1–K5`;
+- уникальность и prefix-free пути;
+- отсутствие включённых строк без точного `BUTTON ID`;
+- aliases, `action`, `selection_type`;
+- schema migration и policy;
+- целостность HTML-карты и документации.
