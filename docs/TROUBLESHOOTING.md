@@ -1,18 +1,23 @@
 # Диагностика NXKeys
 
-Документ относится к C#-only архитектуре NXKeys для Siemens NX 2512.
+Документ относится к актуальной архитектуре NXKeys: source profile schema 4, runtime schema 5, IPC schema 3, 14 модулей и полная карта из 1169 намерений.
 
 ## 1. Базовый порядок проверки
 
-1. Закройте Siemens NX перед обновлением DLL и MenuScript.
-2. Проверьте JSON-профиль.
-3. Постройте план без записи.
-4. Выполните установку или обновление.
-5. Проверьте package manifest.
-6. Запустите NX через managed launcher.
-7. Проверьте Bridge и конкретную команду в правильном модуле.
+1. Закройте Siemens NX перед заменой DLL и MenuScript.
+2. Проверьте базовую и полную карты.
+3. Для полного профиля проверьте каталог `06_ui_commands_buttons.csv`.
+4. Скомпилируйте профиль и изучите отчёт.
+5. Постройте deployment plan без записи.
+6. Выполните установку.
+7. Проверьте package manifest и health.
+8. Запустите NX только через managed launcher.
+9. Проверьте Bridge context и безопасную команду.
 
 ```powershell
+node .\scripts\validate-command-tree.mjs
+node .\scripts\validate-full-command-map.mjs
+
 $root = "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000"
 $studio = "$root\NX2512_HotkeyStudio.exe"
 $config = "$root\nx2512-pro-hybrid.json"
@@ -23,24 +28,80 @@ $config = "$root\nx2512-pro-hybrid.json"
 & $studio bridge-status --config $config
 ```
 
-## 2. NX не видит NXKeys
+## 2. Полный профиль не компилируется
 
 Проверьте:
 
-- NX запущен через `launch-nx2512-with-nxkeys.cmd`;
-- существует `%LOCALAPPDATA%\NXKeys\managed\NX2512.6000\custom_dirs.dat`;
-- `custom_dirs.dat` содержит managed custom root;
-- `custom\startup` содержит `.men`, `.rtb`, `.tbr` и launch CMD;
-- `custom\application` содержит `NX2512_CommandBridge.dll` и `nxkeys_command_bridge.men`;
-- Bridge DLL отсутствует в `custom\startup`;
-- путь `deployment.nx_executable` корректен либо C# auto-discovery находит NX 2512;
-- `package-manifest.json` существует;
-- `health` не сообщает SHA mismatch;
-- MenuScript содержит ожидаемые версии.
+- Node.js 20+;
+- путь `-CatalogDir`;
+- наличие `06_ui_commands_buttons.csv`;
+- доступ на чтение каталога;
+- целостность трёх частей `config/full-command-map/*.part1–part3`;
+- успешное выполнение `validate-full-command-map.mjs`.
 
-## 3. Launcher сообщает, что NX не найден
+```powershell
+node --version
+.\install-full-command-profile.ps1 `
+  -CatalogDir "D:\NX2512_Catalog_Output" `
+  -CompileOnly
+```
 
-Укажите точный путь в профиле:
+## 3. Много `unresolved` или `ambiguous`
+
+Это не ошибка безопасности: такие команды намеренно отключаются.
+
+Причины:
+
+- каталог сформирован не из целевой NX;
+- роль не содержит нужный модуль;
+- лицензия скрывает команды;
+- локализация изменила labels;
+- несколько `BUTTON ID` имеют похожие названия;
+- корпоративный MenuScript переименовал команду.
+
+Откройте:
+
+```text
+docs/generated/full-command-resolution.md
+```
+
+Для критичных команд найдите точный ID через Catalog Studio или CLI:
+
+```powershell
+& $studio catalog --config $config --query "Extrude" --catalog "D:\NX2512_Catalog_Output"
+```
+
+Не подставляйте ID по догадке.
+
+## 4. NX не видит NXKeys
+
+Проверьте:
+
+- запуск через `launch-nx2512-with-nxkeys.cmd`;
+- `%LOCALAPPDATA%\NXKeys\managed\NX2512.6000\custom_dirs.dat`;
+- путь managed custom root внутри файла;
+- `.men`, `.rtb`, `.tbr` в управляемом layout;
+- `NX2512_CommandBridge.dll` в путях, перечисленных `package-manifest.json`;
+- отсутствие ручных конфликтующих копий другой версии Bridge;
+- корректный `deployment.nx_executable`;
+- MenuScript VERSION 139 для `.men` и 170 для `.tbr/.rtb`;
+- отсутствие SHA mismatch.
+
+Не используйте правило «Bridge обязан быть только в одной заранее заданной папке». Точный layout определяет текущий installer и package manifest.
+
+## 5. NX запускается без кастомизации
+
+Managed launcher задаёт:
+
+```text
+UGII_CUSTOM_DIRECTORY_FILE=<managed-root>\custom_dirs.dat
+```
+
+Проверьте, что NX не запущен старым ярлыком. NXKeys не изменяет глобальный `PATH` и `UGII_USER_DIR`.
+
+## 6. NX executable не найден
+
+Укажите абсолютный путь:
 
 ```json
 {
@@ -50,174 +111,83 @@ $config = "$root\nx2512-pro-hybrid.json"
 }
 ```
 
-Затем повторно примените профиль.
-
-C# launcher также проверяет:
-
-- `UGII_ROOT_DIR`;
-- `UGII_BASE_DIR`;
-- `scan.install_hints`;
-- стандартные каталоги Siemens в Program Files.
-
-При нескольких версиях NX рекомендуется всегда задавать абсолютный путь.
-
-## 4. NX запускается, но загружается без кастомизации
-
-Проверьте, что NX создан дочерним процессом C# launcher, а не запущен старым ярлыком.
-
-Managed launcher задаёт только:
-
-```text
-UGII_CUSTOM_DIRECTORY_FILE=<managed-root>\custom_dirs.dat
-```
-
-Команда проверки:
-
-```powershell
-& $studio launch --config $config
-```
-
-NXKeys не изменяет глобальный `PATH` и не устанавливает `UGII_USER_DIR`.
-
-## 5. Ошибка VERSION в `.men`
-
-Для `.men` требуется:
-
-```text
-VERSION 139
-```
-
-Проверка:
-
-```powershell
-& $studio health --config $config
-```
-
-После исправления закройте NX и переустановите пакет.
-
-## 6. Ошибка VERSION в `.tbr` или `.rtb`
-
-Для toolbar/ribbon требуется:
-
-```text
-VERSION 170
-```
-
-`.tbr/.rtb` должны оставаться слоем размещения. Определения кнопок и действий находятся в `.men`.
+Auto-discovery проверяет environment variables, `scan.install_hints` и стандартные каталоги Siemens. При нескольких версиях всегда задавайте точный путь.
 
 ## 7. Установка остановилась из-за запущенного NX
 
-C# и PowerShell используют общий набор признаков:
+Проверьте процессы:
 
-- `ugraf.exe`;
-- `run_nx.exe`;
-- `nx.exe`, подтверждённый путём или описанием Siemens/Designcenter/NXBIN.
+```text
+ugraf.exe
+run_nx.exe
+nx.exe, подтверждённый Siemens/Designcenter/NXBIN path
+```
 
-Сохраните открытые документы, закройте NX и повторите установку.
+Закройте NX и повторите установку. `-AllowRunningNX` предназначен только для диагностики: загруженная DLL не заменится в уже работающем процессе.
 
-Параметр `-AllowRunningNX` предназначен только для диагностических сценариев. Загруженная Bridge DLL не заменится в уже работающем процессе.
-
-## 8. Не удаётся заменить CommandBridge DLL
-
-Причина обычно в блокировке процессом NX.
+## 8. Не заменяется CommandBridge DLL
 
 1. Закройте все окна NX.
-2. Проверьте процессы `ugraf`, `run_nx`, `nx`.
-3. Убедитесь, что не остался фоновый NX-процесс.
+2. Завершите оставшиеся процессы NX.
+3. Проверьте, что Control Center и HotkeyStudio не используют старый managed root.
 4. Повторите установку.
 
-`AtomicFileWriter` выполняет несколько повторных попыток. При окончательной ошибке общий deployment восстанавливает backup manifest.
+Deployment выполняет retry и rollback по backup manifest.
 
-## 9. Ошибка staging SHA-256
+## 9. Ошибка VERSION
 
-Deployment сначала записывает каждый файл в:
+```text
+.men       VERSION 139
+.tbr/.rtb  VERSION 170
+```
+
+Toolbar/ribbon являются слоем размещения; действия определяются `.men` и Bridge.
+
+## 10. Staging SHA-256 или rollback
+
+Staging:
 
 ```text
 %LOCALAPPDATA%\NXKeys\staging\<guid>
 ```
 
-и сравнивает SHA-256 с исходным буфером.
+Проверьте свободное место, файловую систему и вмешательство антивируса. Не отключайте защиту без согласования.
 
-Причины ошибки:
-
-- сбой диска;
-- антивирус изменяет временный файл;
-- нехватка места;
-- повреждённая файловая система;
-- сторонний процесс вмешивается в staging.
-
-Проверьте свободное место и журнал антивируса. Не отключайте защиту без согласования с администратором.
-
-## 10. Установка завершилась rollback
-
-При исключении после создания резервной копии NXKeys вызывает восстановление backup manifest.
-
-Проверьте последнюю папку:
+Backup:
 
 ```text
-%LOCALAPPDATA%\NXKeys\backups\<timestamp>
+%LOCALAPPDATA%\NXKeys\backups\<timestamp>\manifest.json
 ```
 
-В `manifest.json` находятся:
-
-- исходные пути;
-- SHA-256 до изменения;
-- SHA-256 после попытки;
-- резервные копии существовавших файлов;
-- отметки новых файлов.
-
-Повторяйте установку только после устранения исходной ошибки.
+При ошибке после backup deployment пытается восстановить предыдущий набор.
 
 ## 11. `package-manifest.json` отсутствует
 
-Это означает, что:
+Возможные причины:
 
-- установка не дошла до commit-фазы;
+- установка не дошла до commit;
+- сработал rollback;
 - установлен старый пакет;
-- manifest был удалён вручную;
-- сработал rollback.
+- manifest удалён вручную.
 
-Выполните чистую установку:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install-nx-ribbon-buttons.ps1 `
-  -Clean `
-  -NxRoot "C:\Program Files\Siemens\NX2512"
-```
+Выполните чистую установку и не копируйте файлы в managed root вручную.
 
 ## 12. Health показывает SHA mismatch
 
-Не копируйте файлы в managed root вручную.
+1. Сохраните вручную изменённый файл отдельно.
+2. Закройте NX.
+3. Повторно установите пакет.
+4. Снова выполните `health`.
 
-Порядок действий:
+Package manifest — источник контроля целостности установленного набора.
 
-1. Сохраните изменённый файл отдельно, если он нужен.
-2. Сравните его с текущей сборкой.
-3. Закройте NX.
-4. Повторно установите пакет.
-5. Повторите `health`.
+## 13. После обновления остались старые файлы
 
-Package manifest является источником контроля целостности установленного набора.
+Автоматически удаляются только файлы, перечисленные в предыдущем manifest и отсутствующие в новом. Неизвестные пользовательские файлы намеренно не удаляются.
 
-## 13. После обновления остался старый файл
+## 14. Existing `custom_dirs.dat`
 
-Автоматически удаляются только файлы, перечисленные в предыдущем `package-manifest.json` и отсутствующие в новом наборе.
-
-Пользовательские файлы NXKeys намеренно не удаляются.
-
-При отсутствии старого manifest неизвестные файлы требуется проверить и удалить вручную.
-
-## 14. Existing `custom_dirs.dat` изменил формат
-
-Новая C#-реализация сохраняет:
-
-- UTF-8;
-- UTF-8 BOM;
-- UTF-16 LE/BE;
-- исходный CRLF/LF;
-- существующие комментарии и строки.
-
-Убедитесь, что используется явный путь:
+При режиме:
 
 ```json
 {
@@ -229,225 +199,115 @@ Package manifest является источником контроля цело
 }
 ```
 
-NXKeys больше не выбирает первый найденный файл автоматически.
+NXKeys сохраняет кодировку, line endings, комментарии и существующие строки. Используйте явный путь — первый найденный файл автоматически не выбирается.
 
-## 15. Bridge показывает OFFLINE
+## 15. Bridge OFFLINE или STALE
 
-Когда NX закрыт, это нормально.
+Когда NX закрыт, OFFLINE нормально.
 
-Когда NX открыт:
+Когда NX открыт, проверьте:
 
-- убедитесь, что NX запущен через managed launcher;
-- проверьте `%LOCALAPPDATA%\NXKeys\bridge\status.json`;
-- проверьте `context.json`;
-- откройте журналы `%LOCALAPPDATA%\NXKeys\logs`;
-- проверьте `custom\application\NX2512_CommandBridge.dll`;
-- убедитесь, что нет второй Bridge DLL в `custom\startup`.
+- managed launcher;
+- `bridge/status.json`;
+- `bridge/context.json`;
+- `%LOCALAPPDATA%\NXKeys\logs`;
+- package manifest;
+- отсутствие нескольких конфликтующих Bridge DLL;
+- `updated_utc` и `status=running`.
 
-## 16. Bridge показывает STALE
+Protocol freshness для dispatch по умолчанию — 3 секунды. Control Center может показывать контекст как визуально доступный дольше, но выполнение подчиняется policy.
 
-Control Center считает контекст свежим приблизительно 10 секунд после `updated_utc`.
-
-Возможные причины:
-
-- таймер Bridge остановился;
-- библиотека не загрузилась;
-- `context.json` заблокирован или повреждён;
-- NX завис;
-- установлена старая DLL;
-- NX был запущен не через managed launcher.
-
-Закройте NX, выполните установку и повторите запуск.
-
-## 17. Команда попала в `failed`
-
-Результаты находятся в:
-
-```text
-%LOCALAPPDATA%\NXKeys\bridge\failed
-```
+## 16. Команда попала в `failed`
 
 Типовые причины:
 
-- `BUTTON ID` отсутствует в данной сборке NX;
-- команда недоступна в текущем приложении;
-- кнопка нечувствительна без выбранного объекта;
-- открыт несовместимый диалог;
+- ID отсутствует в этой NX;
+- команда недоступна в приложении;
+- кнопка нечувствительна;
+- открыт modal dialog;
 - отсутствует лицензия;
-- команда переименована;
-- запрос просрочен;
-- ожидаемый контекст изменился.
+- context revision изменилась;
+- request expired;
+- destructive confirmation не принято;
+- expected selection/application не совпали.
 
-Сначала выполните ту же команду вручную в NX, затем сверяйте точный ID с каталогом целевой установки.
+Сначала выполните команду вручную в NX, затем проверьте точный ID и runtime context.
 
-## 18. Selection-фильтр не включается
+## 17. Selection filter не работает
 
-Команды `UG_SEL_*` должны приходить в `pending/*.json` с:
+В pending request должно быть:
 
 ```json
 {
+  "schema_version": 3,
   "action": "set_selection_filter",
   "selection_filter": "edge"
 }
 ```
 
-Если вместо этого в failed появляется обычный вызов `BUTTON ID`, проверьте:
+Проверьте:
 
-- в профиле команды есть `action: "set_selection_filter"`;
-- задан корректный `selection_type`;
-- установлен свежий `NX2512_CommandBridge.dll`;
-- NX запущен через managed launcher;
-- нет активного модального диалога NX.
+- `action: set_selection_filter` в runtime profile;
+- корректный `selection_type`;
+- свежий Bridge;
+- отсутствие modal dialog;
+- поддержку нужных `NXOpen.Select.FilterMember` в целевой NX.
 
-Для обычных команд с выбором `requires_selection` не должен блокировать запуск сам по себе. Если команда не открывается без предварительного выбора, ищите policy-правило с положительным `expected_selection_count` или hard guard.
+`requires_selection` сам по себе не должен блокировать интерактивную команду. Ищите положительный minimum selection в policy.
 
-## 19. Control Center показывает неизвестный выбор
+## 18. HUD не показывает все 1169 команд
 
-`Selection: unknown` или `-1` означает, что Bridge не передал число выбранных объектов. Это не равнозначно нулю.
+Это ожидаемо:
 
-Команда с `requires_selection` в таком состоянии должна рассматриваться осторожно и проверяться непосредственно в NX.
+- HUD показывает только активный module scope;
+- часть команд может быть unresolved и отключена;
+- глобальное дублирование можно отключить;
+- поиск удобнее полного визуального дерева;
+- одна intent-команда может быть представлена только в целевом модуле.
 
-## 20. Control Center не находит HotkeyStudio
+Проверьте сгенерированный профиль и отчёт, а не только первый экран HUD.
 
-Стандартная установка:
-
-```text
-managed-root\NX2512_HotkeyStudio.exe
-managed-root\control-center\NX2512_ControlCenter.exe
-```
-
-Control Center ищет HotkeyStudio в своей папке и в родительском managed root.
-
-Не переносите только один EXE без его зависимостей.
-
-## 21. API-каталог не найден
-
-Порядок поиска:
-
-1. `--catalog`;
-2. `NXKEYS_CATALOG_DIR`;
-3. свежий каталог под `%LOCALAPPDATA%\NXKeys\catalog`.
-
-Пример:
-
-```powershell
-& "$root\control-center\NX2512_ControlCenter.exe" `
-  --config $config `
-  --catalog "D:\NX2512_Full_Function_API_Catalog_YYYYMMDD_HHMMSS"
-```
-
-Либо:
-
-```powershell
-$env:NXKEYS_CATALOG_DIR = "D:\NX2512_Full_Function_API_Catalog_YYYYMMDD_HHMMSS"
-```
-
-Ожидаемые CSV:
-
-```text
-04_nxopen_members.csv
-05_nxopen_entry_points.csv
-06_ui_commands_buttons.csv
-07_ufun_functions.csv
-08_ui_command_api_candidates.csv
-```
-
-## 22. API-кэш не обновился
-
-Ключ кэша включает MenuScript и API CSV по пути, размеру и времени изменения, а также версию NX и схему сканера.
-
-Для принудительной очистки закройте приложения NXKeys и удалите:
-
-```text
-%LOCALAPPDATA%\NXKeys\cache
-```
-
-После следующего сканирования кэш будет создан заново.
-
-## 23. Сборка CommandBridge выбрала не ту NXOpen
-
-Передайте точный DLL:
-
-```powershell
-.\NX2512_CommandBridge\build.ps1 `
-  -NxOpenDll "D:\Siemens\NX2512\NXBIN\managed\NXOpen.dll" `
-  -Clean
-```
-
-По умолчанию build-скрипт отклоняет путь без признака версии 2512.
-
-Не используйте `-AllowVersionMismatch`, пока совместимость не проверена вручную.
-
-## 24. Сборка требует .NET 8
-
-Build-скрипты больше не скачивают SDK автоматически.
-
-Проверка:
-
-```powershell
-dotnet --list-sdks
-```
-
-Должна присутствовать версия `8.x`.
-
-## 25. Неоднозначная команда
-
-Заполните точный ID:
-
-```json
-{
-  "command": {
-    "id": "UG_EXACT_BUTTON_ID",
-    "name": "Читаемое имя"
-  }
-}
-```
-
-Не снижайте порог fuzzy matching только ради прохождения плана.
-
-## 26. Конфликт горячих клавиш
+## 19. Сочетание вызывает не ту команду
 
 Проверьте:
 
-- `Ctrl+1 → Customize → Keyboard`;
-- корпоративную роль;
-- сторонние custom directories;
-- generated `.men`;
-- `clear_detected_conflicts`;
-- `resolution-report.md`.
+1. активный `module_id`;
+2. канонический `path` и aliases;
+3. отсутствие старого профиля в managed root;
+4. source profile, использованный установщиком;
+5. `resolution_status` и `catalog_refs`;
+6. фактический `command_id` в pending request.
 
-NXKeys не может полностью прочитать ускорители внутри непрозрачного `.mtx`.
+Внутри другого модуля тот же пользовательский путь может быть корректно назначен другой команде.
 
-## 27. Восстановление вручную
+## 20. Конфликт prefix или duplicate path
 
-Список резервных копий:
-
-```powershell
-& $studio backups --config $config
-```
-
-Конкретный manifest:
+Запустите:
 
 ```powershell
-& $studio restore `
-  --config $config `
-  --manifest "$env:LOCALAPPDATA\NXKeys\backups\YYYYMMDD_HHMMSS.mmm\manifest.json"
+node .\scripts\validate-command-tree.mjs
+node .\scripts\validate-full-command-map.mjs
 ```
 
-Используйте `--force` только после проверки, если файлы изменились после установки.
+Не исправляйте конфликт случайным удалением токена. Сохраните модель `action → object → command` и назначьте детерминированный отличающийся leaf/variant.
 
-## 28. Что приложить к отчёту об ошибке
+## 21. Control Center показывает неизвестный выбор
 
-- версия Windows;
-- точная версия NX;
-- путь `ugraf.exe`;
-- версия NXOpen assembly;
-- используемая роль и приложение NX;
-- команда или Leader-последовательность;
-- вывод `validate`, `plan`, `health`;
-- `package-manifest.json`;
-- backup manifest последней неудачной установки;
-- соответствующий результат из `bridge\failed`;
-- последние строки журналов;
-- обезличенный фрагмент профиля;
-- сведения о лицензии проблемного модуля.
+`selection_count: -1` означает «неизвестно», а не ноль. Не делайте вывод о готовности selection-dependent команды только по этой карточке.
+
+## 22. Сбор диагностических данных
+
+Сохраните:
+
+```text
+active profile JSON
+full-command-resolution.md
+package-manifest.json
+bridge/context.json
+bridge/status.json
+последний pending/processing/completed/failed request
+runtime logs
+версию NX, роль и набор лицензий
+```
+
+Не публикуйте корпоративные пути, имена деталей, customer data или закрытые постпроцессоры без очистки.
