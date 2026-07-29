@@ -1,0 +1,244 @@
+{
+  "generated_utc": "2026-07-29T07:50:17.789Z",
+  "mode": "safe-full-audit-no-mass-command-execution",
+  "commands": {
+    "mainValidator": {
+      "label": "validate-main-command-map",
+      "command": "C:\\Program Files\\nodejs\\node.exe D:\\Programms\\NXkeys\\scripts\\validate-main-command-map.mjs",
+      "status": 0,
+      "stdout": "[main-command-map] OK: 1169 source intents; single K3-K5 profile covers 885 intents with selection support.\n",
+      "stderr": ""
+    },
+    "fullValidator": {
+      "label": "validate-full-command-map",
+      "command": "C:\\Program Files\\nodejs\\node.exe D:\\Programms\\NXkeys\\scripts\\validate-full-command-map.mjs",
+      "status": 1,
+      "stdout": "",
+      "stderr": "[full-command-map] ERROR: README.md is missing current documentation marker: `schema_version: 4`\n[full-command-map] ERROR: README.md is missing current documentation marker: runtime schema v5\n[full-command-map] ERROR: FULL_COMMAND_MAP.md is missing current documentation marker: Node.js 20+\n[full-command-map] ERROR: docs/README.md is missing current documentation marker: source schema 4\n[full-command-map] ERROR: docs/README.md is missing current documentation marker: runtime schema 5\n[full-command-map] ERROR: docs/INSTALLATION.md is missing current documentation marker: full-command-resolution.md\n[full-command-map] ERROR: docs/ARCHITECTURE.md is missing current documentation marker: Legacy primary-grid\n[full-command-map] ERROR: docs/SAFETY_MODEL.md is missing current documentation marker: 1169\n[full-command-map] ERROR: docs/SAFETY_MODEL.md is missing current documentation marker: source profile `schema_version` — 3 или 4\n[full-command-map] ERROR: docs/TROUBLESHOOTING.md is missing current documentation marker: full-command-resolution.md\n[full-command-map] ERROR: NX2512_ControlCenter/README.md is missing current documentation marker: nx2512-pro-full.generated.json\n"
+    },
+    "compile": {
+      "label": "compile-main-command-map-temp",
+      "command": "C:\\Program Files\\nodejs\\node.exe D:\\Programms\\NXkeys\\scripts\\compile-main-command-map.mjs --profile D:\\Programms\\NXkeys\\config\\nx2512-pro-hybrid.json --intents D:\\Programms\\NXkeys\\config\\full-command-map --probe D:\\Programms\\NXkeys\\docs\\audit\\runtime-command-probe-2026-07-28.json --out C:\\Windows\\TEMP\\nxkeys-885-audit-BynFx4\\nx2512-pro-main.generated.json --report C:\\Windows\\TEMP\\nxkeys-885-audit-BynFx4\\main-profile-resolution.md",
+      "status": 0,
+      "stdout": "[main-command-map] Source: 1169; selected K3,K4,K5: 885.\n[main-command-map] Rows: 2144; enabled: 473; support: 8.\n[main-command-map] Profile: C:\\Windows\\TEMP\\nxkeys-885-audit-BynFx4\\nx2512-pro-main.generated.json\n[main-command-map] Report: C:\\Windows\\TEMP\\nxkeys-885-audit-BynFx4\\main-profile-resolution.md\n",
+      "stderr": ""
+    },
+    "health": {
+      "label": "hotkeystudio-health",
+      "command": "D:\\Programms\\NXkeys\\NX2512_HotkeyStudio\\bin\\Release\\net8.0-windows\\NX2512_HotkeyStudio.exe health --config D:\\Programms\\NXkeys\\config\\nx2512-pro-hybrid.json",
+      "status": 0,
+      "stdout": "Managed root: C:\\Users\\KDFX Modes\\AppData\\Local\\NXKeys\\managed\\NX2512.6000\r\nExpected custom dirs: C:\\Users\\KDFX Modes\\AppData\\Local\\NXKeys\\managed\\NX2512.6000\\custom_dirs.dat\r\nUGII_CUSTOM_DIRECTORY_FILE[Process]: C:\\Users\\KDFX Modes\\AppData\\Local\\Programs\\NxHotkeys\\2512\\NxCustomization\\custom_dirs.dat\r\nUGII_CUSTOM_DIRECTORY_FILE[User]: C:\\Users\\KDFX Modes\\AppData\\Local\\Programs\\NxHotkeys\\2512\\NxCustomization\\custom_dirs.dat\r\nNX запущен: да\r\n  ugraf[29804] C:\\Program Files\\Siemens\\DesigncenterNX2512\\NXBIN\\ugraf.exe\r\nMenuScript versions: OK\r\nBridge loaded: да\r\nBridge status: C:\\Users\\KDFX Modes\\AppData\\Local\\NXKeys\\bridge\\status.json\r\nBridge context: C:\\Users\\KDFX Modes\\AppData\\Local\\NXKeys\\bridge\\context.json\r\nContext age: 0.3s\r\nBridge log: C:\\Users\\KDFX Modes\\AppData\\Local\\NXKeys\\logs\\nx-command-bridge.log\r\n  log: 2026-07-28 06:28:48.360 [1588] rejected: 20260728132848242-f9f5d07af0846NSTRAINT - NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.\r\n  log: 2026-07-28 06:28:48.515 [1588] rejected: 20260728132848464-d651aa26390f5GVIEWFIT - NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.\r\n  log: 2026-07-28 06:28:48.671 [1588] rejected: 20260728132848575-f3ff33b8b6bcLSINPART - NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.\r\n  log: 2026-07-28 06:28:48.828 [1588] rejected: 20260728132848683-d710a9e57c452ATERIALS - NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.\r\n  log: 2026-07-28 06:28:48.982 [1588] rejected: 20260728132848903-05cca642465cbNTTFRTRI - NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.\r\n  log: 2026-07-28 06:28:49.266 [1588] rejected: 20260728132849008-bb6d0cd362d43WREFRESH - NX has an active modal dialog.\r\n  log: 2026-07-28 06:28:49.445 [1588] rejected: 20260728132849339-47f8ebf2b23c3DEASSIGN - NX has an active modal dialog.\r\n  log: 2026-07-28 23:23:12.491 [29804] NXKeys Command Bridge initialized. Pending=C:\\Users\\KDFX Modes\\AppData\\Local\\NXKeys\\bridge\\pending\r\nBridge queue: pending=0, completed=38, failed=436\r\nManaged package: OK\r\n",
+      "stderr": ""
+    },
+    "bridgeStatus": {
+      "label": "hotkeystudio-bridge-status",
+      "command": "D:\\Programms\\NXkeys\\NX2512_HotkeyStudio\\bin\\Release\\net8.0-windows\\NX2512_HotkeyStudio.exe bridge-status --config D:\\Programms\\NXkeys\\config\\nx2512-pro-hybrid.json",
+      "status": 0,
+      "stdout": "Bridge root: C:\\Users\\KDFX Modes\\AppData\\Local\\NXKeys\\bridge\r\nContext: C:\\Users\\KDFX Modes\\AppData\\Local\\NXKeys\\bridge\\context.json\r\nContext age: 0.6s\r\nContext module: modeling / Modeling\r\nContext status: running\r\npending: 0\r\nprocessing: 0\r\ncompleted: 38\r\nfailed: 436\r\n",
+      "stderr": ""
+    }
+  },
+  "summaries": {
+    "repo_profile": {
+      "label": "repo config hybrid",
+      "schema_version": 4,
+      "module_count": 14,
+      "row_count": 277,
+      "enabled_count": 277,
+      "unique_catalog_refs": 0,
+      "metadata": null,
+      "resolution_statuses": {
+        "(none)": 277
+      },
+      "enabled_execute_without_button_id": 0
+    },
+    "repo_root_profile": {
+      "label": "repo root hybrid",
+      "schema_version": 4,
+      "module_count": 14,
+      "row_count": 277,
+      "enabled_count": 277,
+      "unique_catalog_refs": 0,
+      "metadata": null,
+      "resolution_statuses": {
+        "(none)": 277
+      },
+      "enabled_execute_without_button_id": 0
+    },
+    "generated_profile": {
+      "label": "temp generated K3-K5 profile",
+      "schema_version": 4,
+      "module_count": 14,
+      "row_count": 2144,
+      "enabled_count": 473,
+      "unique_catalog_refs": 885,
+      "metadata": {
+        "schema_version": 2,
+        "source_intents": 1169,
+        "selected_intents": 885,
+        "selected_frequencies": [
+          "K3",
+          "K4",
+          "K5"
+        ],
+        "frequency_counts": {
+          "K1": 4,
+          "K2": 280,
+          "K3": 445,
+          "K4": 371,
+          "K5": 69
+        },
+        "support_commands": 8,
+        "generated_utc": "2026-07-29T07:50:17.018Z",
+        "catalog_items": 170,
+        "global_commands_duplicated": true,
+        "source_files": [
+          "nx2512-full-command-map.json.gz.b64.part1",
+          "nx2512-full-command-map.json.gz.b64.part2",
+          "nx2512-full-command-map.json.gz.b64.part3"
+        ]
+      },
+      "resolution_statuses": {
+        "(none)": 132,
+        "resolved": 333,
+        "unresolved": 1588,
+        "ambiguous": 83,
+        "existing": 8
+      },
+      "enabled_execute_without_button_id": 0
+    },
+    "managed_profile": {
+      "label": "managed runtime profile",
+      "schema_version": 4,
+      "module_count": 14,
+      "row_count": 277,
+      "enabled_count": 277,
+      "unique_catalog_refs": 0,
+      "metadata": null,
+      "resolution_statuses": {
+        "(none)": 277
+      },
+      "enabled_execute_without_button_id": 0
+    },
+    "matrix": {
+      "rows": 885,
+      "readiness_counts": {
+        "compiled_enabled_not_installed_in_managed_runtime": 55,
+        "blocked_unresolved_disabled": 592,
+        "button_id_present_in_bootstrap_runtime_but_not_traceable_to_885": 214,
+        "blocked_ambiguous_disabled": 24
+      },
+      "frequency_counts": {
+        "K5": 69,
+        "K3": 445,
+        "K4": 371
+      },
+      "status_counts_by_intent": {
+        "resolved": 113,
+        "unresolved": 592,
+        "(none)": 135,
+        "ambiguous": 24,
+        "(none)|resolved": 20,
+        "(none)|ambiguous": 1
+      }
+    },
+    "catalog_csv_locations": [],
+    "managed_manifest": {
+      "path": "C:\\Users\\KDFX Modes\\AppData\\Local\\NXKeys\\managed\\NX2512.6000\\package-manifest.json",
+      "checked_files": 31,
+      "missing_required": [],
+      "mismatches": [],
+      "menuscript_versions": {
+        "men_startup": "VERSION 139",
+        "men_application": "VERSION 139",
+        "tbr": "VERSION 170",
+        "rtb": "VERSION 170"
+      }
+    },
+    "bridge": {
+      "context": {
+        "schema_version": 3,
+        "revision": 4588,
+        "status": "running",
+        "application_id": "UG_APP_MODELING",
+        "module_id": "modeling",
+        "module_label": "Modeling",
+        "selection_count": 0,
+        "selection_state": "none",
+        "selected_types": [],
+        "work_part_available": true,
+        "display_part_available": true,
+        "modal_dialog_active": false,
+        "active_command_id": "",
+        "context_confidence": 90,
+        "updated_utc": "2026-07-29T07:50:17.1435829+00:00",
+        "last_request_id": "",
+        "last_result": "initialized",
+        "last_message": "NXKeys Command Bridge initialized."
+      },
+      "status": {
+        "schema_version": 3,
+        "status": "running",
+        "process_id": 29804,
+        "updated_utc": "2026-07-29T06:23:12.4518293+00:00",
+        "pending_directory": "C:\\Users\\KDFX Modes\\AppData\\Local\\NXKeys\\bridge\\pending",
+        "processing_directory": "C:\\Users\\KDFX Modes\\AppData\\Local\\NXKeys\\bridge\\processing",
+        "log_path": "C:\\Users\\KDFX Modes\\AppData\\Local\\NXKeys\\logs\\nx-command-bridge.log"
+      },
+      "queue_counts": {
+        "pending": 0,
+        "processing": 0,
+        "completed": 38,
+        "failed": 436
+      },
+      "old_probe_count": 161,
+      "old_probe_context": {
+        "schema_version": 3,
+        "revision": 4199,
+        "status": "running",
+        "application_id": "UG_APP_GATEWAY",
+        "module_id": "inspect_view",
+        "module_label": "Inspect / View",
+        "selection_count": 0,
+        "selection_state": "none",
+        "selected_types": [],
+        "work_part_available": true,
+        "display_part_available": true,
+        "modal_dialog_active": true,
+        "active_command_id": "",
+        "context_confidence": 90,
+        "updated_utc": "2026-07-28T13:28:19.9455385+00:00",
+        "last_request_id": "20260728091436177-66a05defda064d579af180e1f15e3a92",
+        "last_result": "executed",
+        "last_message": "OK"
+      },
+      "old_probe_result_counts": {
+        "rejected: NX has an active modal dialog.": 134,
+        "rejected: NX context changed after the shortcut was accepted. Expected revision 4199, actual 4200.": 1,
+        "rejected: NX context changed after the shortcut was accepted. Expected revision 4199, actual 4202.": 9,
+        "rejected: NX context changed after the shortcut was accepted. Expected revision 4199, actual 4204.": 17
+      },
+      "post_sample_queue_counts": {
+        "pending": 0,
+        "processing": 0,
+        "completed": 54,
+        "failed": 436
+      }
+    },
+    "safe_runtime_probe_sample": {
+      "path": "docs/audit/safe-runtime-probe-sample-2026-07-29.json",
+      "requested_count": 8,
+      "completed_count": 8,
+      "completed_available_sensitive": 7,
+      "completed_missing": [
+        {
+          "command_id": "UG_ANALYSIS_FACE_CURVATURE",
+          "message": "missing: UG_ANALYSIS_FACE_CURVATURE; Кнопка не существует"
+        }
+      ],
+      "rejected_count": 0,
+      "start_modal_dialog_active": false,
+      "end_modal_dialog_active": false
+    }
+  }
+}

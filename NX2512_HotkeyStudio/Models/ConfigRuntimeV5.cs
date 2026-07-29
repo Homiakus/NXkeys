@@ -56,7 +56,7 @@ namespace NX2512_HotkeyStudio.Models
 
     public sealed class Config
     {
-        public const int CurrentSchemaVersion = 5;
+        public const int CurrentSchemaVersion = 6;
         private const int MinimumSupportedSchemaVersion = 3;
 
         [JsonPropertyName("schema_version")] public int SchemaVersion { get; set; } = CurrentSchemaVersion;
@@ -219,7 +219,7 @@ namespace NX2512_HotkeyStudio.Models
         {
             var problems = new List<string>();
             if (SchemaVersion < MinimumSupportedSchemaVersion || SchemaVersion > CurrentSchemaVersion)
-                problems.Add("schema_version must be between 3 and 5");
+                problems.Add("schema_version must be between 3 and 6");
             if (Profile == null || string.IsNullOrWhiteSpace(Profile.Name)) problems.Add("profile.name is required");
             if (Deployment == null || string.IsNullOrWhiteSpace(Deployment.ManagedRoot)) problems.Add("deployment.managed_root is required");
             if (Deployment == null || string.IsNullOrWhiteSpace(Deployment.BackupRoot)) problems.Add("deployment.backup_root is required");
@@ -291,6 +291,9 @@ namespace NX2512_HotkeyStudio.Models
                     if (command.DisplayOrder <= 0) problems.Add($"module {module.ID} has invalid display_order {command.DisplayOrder}");
                     if (command.Command == null || string.IsNullOrWhiteSpace(command.Command.ID))
                         problems.Add($"module {module.ID} requires exact command.id");
+                    if (string.Equals(command.Action, "switch_module", StringComparison.OrdinalIgnoreCase) &&
+                        string.IsNullOrWhiteSpace(command.TargetModuleID))
+                        problems.Add($"module {module.ID} switch command {command.Command?.ID} requires target_module_id");
                     if (command.Command == null || string.IsNullOrWhiteSpace(command.Command.Name))
                         problems.Add($"module {module.ID} requires command.name");
                 }

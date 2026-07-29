@@ -22,7 +22,7 @@ d:\Programms\NXkeys
 ├── docs/                      # [Markdown & HTML] Technical specifications, architecture, and interactive command-tree.html
 ├── roles/                     # [Siemens NX Roles] Custom `.mtx` role export profiles
 ├── scripts/                   # [Node.js Scripts] `validate-command-tree.mjs` verification utility
-├── install-nx-ribbon-buttons.ps1 # [PowerShell] System installer script for managed packaging
+├── install-nxkeys.ps1 # [PowerShell] System installer script for managed packaging
 └── BUILD_REPORT.md            # [Markdown] Build status and architectural specification
 ```
 

@@ -17,6 +17,10 @@ Desktop.ini
 *.sln.docstates
 *.swp
 *.swo
+.env
+.env.*
+!.env.example
+*.local
 
 ################################################################################
 # Logs, temp files, and crash dumps
@@ -32,6 +36,7 @@ Desktop.ini
 *.pid
 *.lock
 *.cache
+*.etl
 
 ################################################################################
 # Go build/test outputs
@@ -84,6 +89,19 @@ TestResults/
 /custom_dirs.dat
 /launch-nx2512-with-nxkeys.cmd
 /README(*).md
+
+################################################################################
+# Local Siemens NX catalog exports and probe scratch
+################################################################################
+# Keep curated catalogs under config/ and docs/audit/ versioned. Ignore only
+# machine-local exports and ad-hoc probe dumps created during live NX analysis.
+/NX2512_Catalog_Output/
+/catalog-output/
+/catalog-export/
+/runtime-probe-output/
+/safe-runtime-probe-output/
+/artifacts/tmp/
+/artifacts/cache/
 
 ################################################################################
 # Siemens NX / NXKeys runtime state

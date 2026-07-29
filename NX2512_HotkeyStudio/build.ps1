@@ -2,8 +2,7 @@
 param(
     [switch]$Clean,
     [string]$ProfilePath,
-    [string]$CatalogDir,
-    [switch]$AllFrequencies
+    [string]$CatalogDir
 )
 
 Set-StrictMode -Version Latest
@@ -17,6 +16,7 @@ $BuildDir = Join-Path $ProjectDir 'bin'
 $ObjDir = Join-Path $ProjectDir 'obj'
 $PolicySource = Join-Path $RepoRoot 'config\nx2512-state-machines.json'
 $BridgeDistDir = Join-Path $RepoRoot 'NX2512_CommandBridge\dist'
+$OperationIconsSource = Join-Path $RepoRoot 'assets\nx-operation-icons'
 
 function Assert-DotNet8 {
     $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
@@ -43,8 +43,8 @@ function Resolve-Profile([string]$Requested) {
     }
 
     $node = Assert-Node20
-    $outputName = if ($AllFrequencies) { 'nx2512-pro-all.generated.json' } else { 'nx2512-pro-main.generated.json' }
-    $reportName = if ($AllFrequencies) { 'all-frequency-resolution.md' } else { 'main-profile-resolution.md' }
+    $outputName = 'nx2512-pro-main.generated.json'
+    $reportName = 'main-profile-resolution.md'
     $output = Join-Path $RepoRoot (Join-Path 'config' $outputName)
     $report = Join-Path $RepoRoot (Join-Path 'docs\generated' $reportName)
     $compileArgs = @(
@@ -57,11 +57,12 @@ function Resolve-Profile([string]$Requested) {
     )
     $catalog = if (-not [string]::IsNullOrWhiteSpace($CatalogDir)) { $CatalogDir } else { $env:NXKEYS_CATALOG_DIR }
     if (-not [string]::IsNullOrWhiteSpace($catalog)) { $compileArgs += @('--catalog-dir', $catalog) }
-    if ($AllFrequencies) { $compileArgs += '--all-frequencies' }
 
-    Write-Host $(if ($AllFrequencies) { '==> Компиляция совместимого профиля K1–K5' } else { '==> Компиляция главного профиля K3–K5 (885 намерений)' }) -ForegroundColor Cyan
-    & $node @compileArgs
-    if ($LASTEXITCODE -ne 0) { throw 'Компиляция профиля завершилась ошибкой.' }
+    Write-Host '==> Компиляция единого профиля K3–K5 (885 намерений)' -ForegroundColor Cyan
+    $compileOutput = & $node @compileArgs 2>&1
+    $compileExit = $LASTEXITCODE
+    $compileOutput | ForEach-Object { Write-Host $_ }
+    if ($compileExit -ne 0) { throw 'Компиляция профиля завершилась ошибкой.' }
     return (Resolve-Path -LiteralPath $output).Path
 }
 
@@ -86,6 +87,15 @@ if ($LASTEXITCODE -ne 0) { throw "Сборка завершилась с код�
 # Runtime filename is preserved for backwards compatibility. Its content is the selected main/generated profile.
 Copy-Item -LiteralPath $ProfileSource -Destination (Join-Path $DistDir 'nx2512-pro-hybrid.json') -Force
 Copy-Item -LiteralPath $PolicySource -Destination (Join-Path $DistDir 'nx2512-state-machines.json') -Force
+if (Test-Path -LiteralPath $OperationIconsSource -PathType Container) {
+    $assetsTarget = Join-Path $DistDir 'assets'
+    Remove-Item -LiteralPath $assetsTarget -Recurse -Force -ErrorAction SilentlyContinue
+    $operationIconsTarget = Join-Path $assetsTarget 'nx-operation-icons'
+    New-Item -ItemType Directory -Force -Path $operationIconsTarget | Out-Null
+    Get-ChildItem -LiteralPath $OperationIconsSource -Force | ForEach-Object {
+        Copy-Item -LiteralPath $_.FullName -Destination $operationIconsTarget -Recurse -Force
+    }
+}
 if (Test-Path -LiteralPath (Join-Path $BridgeDistDir 'NX2512_CommandBridge.dll') -PathType Leaf) {
     $bridgeTarget = Join-Path $DistDir 'custom\application'
     New-Item -ItemType Directory -Force -Path $bridgeTarget | Out-Null

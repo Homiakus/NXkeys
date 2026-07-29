@@ -2,6 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import {
+  CANONICAL_SELECTION_FILTERS,
+  MODULE_SWITCH_PATHS,
+  SWITCHABLE_MODULE_IDS,
+  isModuleSwitchSupportCommand,
+  isSelectionSupportCommand,
+  targetLengthForFrequency
+} from "./sequence-policy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let failed = false;
@@ -56,8 +64,8 @@ try {
   const docsReadme = text("docs/README.md");
   const knownPaths = parseKnownPaths(generatorSource);
 
-  if (![4, 5].includes(profile.schema_version)) fail(`source profile schema_version must be 4 or 5, got ${profile.schema_version}.`);
-  if (!/CurrentSchemaVersion\s*=\s*5/.test(modelSource)) fail("Schema model must expose schema v5 runtime migration.");
+  if (![4, 5, 6].includes(profile.schema_version)) fail(`source profile schema_version must be 4, 5 or 6, got ${profile.schema_version}.`);
+  if (!/CurrentSchemaVersion\s*=\s*6/.test(modelSource)) fail("Schema model must expose schema v6 runtime migration.");
   for (const required of ["path", "path_labels", "aliases", "search_aliases", "MnemonicPathGenerator.Apply"])
     if (!modelSource.includes(required)) fail(`Schema v5 model missing mnemonic feature: ${required}.`);
   if (!projectSource.includes('Compile Remove="Models\\ConfigModels.cs"'))
@@ -111,13 +119,20 @@ try {
           fail(`Module ${module.id}, ${item.command.id}: selection filter command must use set_selection_filter action.`);
         if (!item.selection_type)
           fail(`Module ${module.id}, ${item.command.id}: selection filter command must declare selection_type.`);
-        const expectedAlias = normalize(`${item.submenu_key ?? ""}${item.input_key ?? ""}`);
-        const aliases = (item.aliases ?? []).map(alias => normalize((alias ?? []).join("")));
-        if (expectedAlias.length && !aliases.includes(expectedAlias))
-          fail(`Module ${module.id}, ${item.command.id}: selection filter must keep submenu alias ${expectedAlias}.`);
+        const expectedPath = CANONICAL_SELECTION_FILTERS.find(filter => filter.id === item.command.id)?.path ?? [];
+        if (expectedPath.length && normalize((item.path ?? []).join("")) !== normalize(expectedPath.join("")))
+          fail(`Module ${module.id}, ${item.command.id}: selection filter must follow S* policy.`);
+      }
+      if (item.action === "switch_module") {
+        if (module.id === "sketch") fail("Sketch module must not contain module switch commands.");
+        if (!item.target_module_id) fail(`Module ${module.id}, ${item.command?.id}: module switch must declare target_module_id.`);
+        if (normalize((item.path ?? []).join("")) !== normalize((MODULE_SWITCH_PATHS[item.target_module_id] ?? []).join("")))
+          fail(`Module ${module.id}, ${item.command?.id}: module switch path must follow G* policy.`);
       }
       if (item.requires_selection && !item.selection_type)
         fail(`Module ${module.id}, ${item.command?.id}: requires_selection command must declare selection_type or all.`);
+      if (item.frequency && !item.support_kind && (item.path ?? []).length > targetLengthForFrequency(item.frequency))
+        fail(`Module ${module.id}, ${item.command?.id}: ${item.frequency} path exceeds target length.`);
       const known = knownPaths.get(item.command?.id);
       if (!known) continue;
       const key = [prefix, ...known].join("");
@@ -126,6 +141,23 @@ try {
   }
 
   if (commandCount < 112) fail(`Expected at least 112 module commands, got ${commandCount}.`);
+  const availableModules = new Set(modules.map(module => module.id));
+  const expectedSelection = CANONICAL_SELECTION_FILTERS.map(filter => filter.id);
+  for (const module of modules) {
+    const rows = (module.command_sets ?? []).flatMap(set => set.commands ?? []);
+    const selectionIds = new Set(rows.filter(isSelectionSupportCommand).map(command => String(command.command?.id ?? "").toUpperCase()));
+    for (const id of expectedSelection) if (!selectionIds.has(id)) fail(`Module ${module.id} is missing universal selection filter ${id}.`);
+    const switches = rows.filter(isModuleSwitchSupportCommand);
+    if (module.id === "sketch") {
+      if (switches.length) fail("Sketch module must not expose module switches.");
+      continue;
+    }
+    if (module.id === "selection_object") continue;
+    const switchTargets = new Set(switches.map(command => command.target_module_id).filter(Boolean));
+    for (const target of SWITCHABLE_MODULE_IDS.filter(id => id !== module.id && availableModules.has(id))) {
+      if (!switchTargets.has(target)) fail(`Module ${module.id} is missing switch target ${target}.`);
+    }
+  }
   if (!protocolSource.includes("selection_filter")) fail("Protocol request must carry selection_filter.");
   if (!bridgeSource.includes("set_selection_filter") || !bridgeSource.includes("SetEnabledGlobalFilterMembers"))
     fail("CommandBridge must implement direct NXOpen selection filter actions.");
@@ -168,7 +200,7 @@ try {
   if (!readme.includes("CapsLock") || !readme.includes("3 колонки")) fail("Root README lacks adaptive input documentation.");
   if (!docsReadme.includes("command-tree.html")) fail("docs/README.md must link to the command map.");
 
-  if (!failed) console.log(`[mnemonic-profile] OK: ${bindings.length} basic shortcuts, ${modules.length} modules, ${commandCount} commands, ${knownPaths.size} exact mnemonic mappings, schema v5 runtime.`);
+  if (!failed) console.log(`[mnemonic-profile] OK: ${bindings.length} basic shortcuts, ${modules.length} modules, ${commandCount} commands, ${knownPaths.size} exact mnemonic mappings, schema v6 runtime.`);
 } catch (error) {
   fail(error?.stack || error?.message || String(error));
 }

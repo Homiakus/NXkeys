@@ -215,6 +215,7 @@ namespace NX2512_HotkeyStudio.Services
             CollectArtifacts(files, bridgeSource, startup, true);
             CollectArtifacts(files, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "control-center"), Path.Combine(managedRoot, "control-center"), false);
             CollectArtifacts(files, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "catalog-studio"), Path.Combine(managedRoot, "catalog-studio"), false);
+            CollectStaticAssets(files, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets"), Path.Combine(managedRoot, "assets"));
             return files;
         }
 
@@ -240,6 +241,25 @@ namespace NX2512_HotkeyStudio.Services
             return extension == ".exe" || extension == ".dll" || extension == ".json" ||
                    extension == ".config" || name.EndsWith(".deps.json", StringComparison.OrdinalIgnoreCase) ||
                    name.EndsWith(".runtimeconfig.json", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void CollectStaticAssets(List<DeploymentFile> files, string sourceDirectory, string destinationDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(sourceDirectory) || !Directory.Exists(sourceDirectory)) return;
+
+            string sourceRoot = Path.GetFullPath(sourceDirectory);
+            foreach (string source in Directory.GetFiles(sourceRoot, "*", SearchOption.AllDirectories))
+            {
+                string extension = Path.GetExtension(source).ToLowerInvariant();
+                if (extension != ".png" && extension != ".bmp" && extension != ".ico" &&
+                    extension != ".jpg" && extension != ".jpeg" && extension != ".gif" &&
+                    extension != ".tif" && extension != ".tiff" && extension != ".json" &&
+                    extension != ".md") continue;
+
+                string relative = Path.GetRelativePath(sourceRoot, source);
+                string destination = Path.Combine(destinationDirectory, relative);
+                AddOrReplace(files, destination, File.ReadAllBytes(source), false);
+            }
         }
 
         private static void ValidateRequiredPackage(List<DeploymentFile> files, string managedRoot, string application)

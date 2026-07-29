@@ -450,7 +450,23 @@ namespace NX2512_HotkeyStudio.Services
             }
             try
             {
-                NxCommandRequest request = NxCommandBridgeClient.Enqueue(item, confirmationAccepted);
+                NxCommandRequest request;
+                if (string.Equals(item.Action, "switch_module", StringComparison.OrdinalIgnoreCase))
+                {
+                    ModuleConfig target = config.RuntimeModules.FirstOrDefault(module => module != null && module.Enabled &&
+                        string.Equals(ContextGuardEvaluator.NormalizeModule(module.ID),
+                            ContextGuardEvaluator.NormalizeModule(item.TargetModuleID), StringComparison.OrdinalIgnoreCase));
+                    if (target == null)
+                    {
+                        Apply(stateMachine.CompleteRequest(false, "Целевой модуль отсутствует в профиле: " + item.TargetModuleID));
+                        return;
+                    }
+                    request = NxCommandBridgeClient.EnqueueModuleSwitch(target);
+                }
+                else
+                {
+                    request = NxCommandBridgeClient.Enqueue(item, confirmationAccepted);
+                }
                 Apply(stateMachine.MarkRequestQueued(request.RequestId));
                 SequenceExecuted?.Invoke(item.DisplayPath(config.TriggerKey), item);
             }

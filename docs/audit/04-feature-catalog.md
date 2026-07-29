@@ -16,7 +16,7 @@
 | **F-005** | Destructive Guard Confirmation | Safety confirmation prompt requiring `Enter` key before executing destructive commands | `AwaitingConfirmation` state | `WORKING` | High | `ContextGuardEvaluator.cs` |
 | **F-006** | Out-of-Process IPC Bridge | Asynchronous file-based request queue (`pending`, `processing`, `completed`, `failed`) | `%LOCALAPPDATA%\NXKeys\bridge` | `WORKING` | Critical | `NxProtocol.cs`, `NX2512_CommandBridge` |
 | **F-007** | In-Process NX Command Execution | Invocation of Siemens NX UI `BUTTON ID` actions via NXOpen API | `NX2512_CommandBridge.dll` | `WORKING` | Critical | `NX2512_CommandBridge/Program.cs` |
-| **F-008** | Transactional Deployment Engine | Managed package installation, SHA-256 staging checks, staging backup, and atomic rollback | PowerShell / C# CLI | `WORKING` | High | `DeploymentEngine.cs`, `install-nx-ribbon-buttons.ps1` |
+| **F-008** | Transactional Deployment Engine | Managed package installation, SHA-256 staging checks, staging backup, and atomic rollback | PowerShell / C# CLI | `WORKING` | High | `DeploymentEngine.cs`, `install-nxkeys.ps1` |
 | **F-009** | Adaptive Control Center Dashboard | Monitoring dashboard for command coverage, IPC status, and API crosswalk | `NX2512_ControlCenter.exe` | `WORKING` | High | `ControlCenterForm.cs` |
 | **F-010** | NX Function & API Catalog Studio | Assembly & header inspection utility producing UI-to-API candidate mappings | `NX2512_CatalogStudio.exe` | `BROKEN` | Medium | `CatalogStudioForm.cs`, `NX2512_FullFunctionCatalog.cs` |
 | **F-011** | C# CLI Management Tools | Command-line validation, scan, catalog search, planning, health checks, and backup/restore | `NX2512_HotkeyStudio.exe [args]` | `WORKING` | High | `NX2512_HotkeyStudio/Program.cs` |

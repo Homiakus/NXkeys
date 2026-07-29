@@ -16,7 +16,7 @@
 
 - **Главный профиль:** K3–K5, 885 команд-намерений. Используется при обычной сборке, установке, поиске и работе HUD.
 - **K1–K2:** остаются в версионируемом источнике, но не входят в основной runtime.
-- **Полный экспорт K1–K5:** доступен только явной опцией `--all-frequencies` для аудита и специальных рабочих мест.
+- **Единый пресет:** отдельный full/all runtime-профиль не поставляется; установщик всегда собирает K3–K5.
 
 ## Файлы
 
@@ -28,10 +28,8 @@ config/full-command-map/
 
 config/nx2512-pro-hybrid.json             bootstrap-профиль
 config/nx2512-pro-main.generated.json     главный K3–K5
-config/nx2512-pro-all.generated.json      необязательный K1–K5
 
 docs/generated/main-profile-resolution.md
-docs/generated/all-frequency-resolution.md
 ```
 
 Bootstrap-профиль содержит проверенные IDs, базовые сочетания, структуру 14 модулей и safety-policy. Компилятор использует его как доверенный справочник, затем удаляет команды вне выбранного частотного scope.
@@ -53,7 +51,7 @@ Bootstrap-профиль содержит проверенные IDs, базов
 Рекомендуемый способ:
 
 ```powershell
-.\install-main-profile.ps1 `
+.\install-nxkeys.ps1 `
   -CatalogDir "D:\NX2512_Catalog_Output" `
   -CompileOnly
 ```
@@ -69,28 +67,7 @@ node .\scripts\compile-main-command-map.mjs `
   --report .\docs\generated\main-profile-resolution.md
 ```
 
-По умолчанию компилятор выбирает `K3,K4,K5`. Явная форма:
-
-```powershell
-node .\scripts\compile-main-command-map.mjs --frequencies K3,K4,K5
-```
-
-## Полный совместимый экспорт
-
-```powershell
-node .\scripts\compile-main-command-map.mjs `
-  --all-frequencies `
-  --out .\config\nx2512-pro-all.generated.json `
-  --report .\docs\generated\all-frequency-resolution.md
-```
-
-Либо:
-
-```powershell
-.\install-full-command-profile.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
-  -CompileOnly
-```
+Компилятор всегда выбирает `K3,K4,K5`; другого installable scope у проекта нет.
 
 ## Разрешение BUTTON ID
 
@@ -119,6 +96,9 @@ node .\scripts\compile-main-command-map.mjs `
     "source_intents": 1169,
     "selected_intents": 885,
     "selected_frequencies": ["K3", "K4", "K5"],
+    "sequence_policy_version": 6,
+    "selection_filter_support_commands": 112,
+    "module_switch_support_commands": 132,
     "frequency_counts": {
       "K1": 4,
       "K2": 280,
@@ -134,7 +114,10 @@ node .\scripts\compile-main-command-map.mjs `
 
 - пути prefix-free внутри каждого активного модуля;
 - длина 2–5 алфавитно-цифровых токенов;
+- K5 целится в 2 токена, K4 — в 3, K3 — в 4;
 - структура `действие → объект → команда → вариант`;
+- `S*` зарезервирован под универсальные фильтры выбора во всех модулях: `SB`, `SF`, `SE`, `ST`, `SC`, `SU`, `SD`, `SR`;
+- `G*` зарезервирован под переходы между модулями и не показывается в Sketch;
 - проверенные пути по `BUTTON ID` имеют приоритет;
 - короткий alias сохраняется только без конфликтов;
 - глобальные функции по умолчанию дублируются в активные модули;
@@ -144,6 +127,7 @@ node .\scripts\compile-main-command-map.mjs `
 
 ```powershell
 node .\scripts\validate-main-command-map.mjs
+node .\scripts\audit-command-sequences.mjs
 ```
 
 Валидатор проверяет:
@@ -154,6 +138,8 @@ node .\scripts\validate-main-command-map.mjs
 - отсутствие K1–K2 в главном профиле;
 - сохранение всех выбранных `catalog_refs`;
 - prefix-free пути и aliases;
+- универсальные фильтры выбора и переходы между модулями;
+- K5/K4/K3 целевые длины;
 - отсутствие включённых команд без точного ID;
-- возможность отдельной компиляции всех K1–K5;
+- отсутствие отдельного full/all runtime-профиля;
 - актуальность README и эксплуатационной документации.

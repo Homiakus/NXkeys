@@ -7,9 +7,7 @@ on:
       - 'scripts/compile-full-command-map.mjs'
       - 'scripts/compile-main-command-map.mjs'
       - 'scripts/validate-main-command-map.mjs'
-      - 'install-main-profile.ps1'
-      - 'install-full-command-profile.ps1'
-      - 'install-nx-ribbon-buttons.ps1'
+      - 'install-nxkeys.ps1'
       - 'NX2512_HotkeyStudio/build.ps1'
       - 'NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs'
       - 'config/nx2512-pro-hybrid.json'
@@ -24,9 +22,7 @@ on:
       - 'scripts/compile-full-command-map.mjs'
       - 'scripts/compile-main-command-map.mjs'
       - 'scripts/validate-main-command-map.mjs'
-      - 'install-main-profile.ps1'
-      - 'install-full-command-profile.ps1'
-      - 'install-nx-ribbon-buttons.ps1'
+      - 'install-nxkeys.ps1'
       - 'NX2512_HotkeyStudio/build.ps1'
       - 'NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs'
       - 'config/nx2512-pro-hybrid.json'
@@ -48,5 +44,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Validate main K3-K5 profile and optional K1-K5 export
+      - name: Validate single K3-K5 profile
         run: node scripts/validate-main-command-map.mjs

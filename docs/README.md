@@ -10,7 +10,7 @@ NXKeys — контекстный клавиатурный слой для Sieme
 | K2 | 280 | нет |
 | K1 | 4 | нет |
 
-K1–K2 остаются в исходном каталоге и могут быть включены только явным режимом полного экспорта. Они не входят в стандартную установку и не раздувают ежедневное дерево команд.
+K1–K2 остаются в исходном каталоге для аудита и трассировки. Они не входят в стандартную установку и не раздувают ежедневное дерево команд.
 
 ## Что является главным профилем
 
@@ -41,16 +41,7 @@ K1–K2 остаются в исходном каталоге и могут бы
 После экспорта `06_ui_commands_buttons.csv` из Catalog Studio:
 
 ```powershell
-.\install-main-profile.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
-  -NxRoot "C:\Program Files\Siemens\NX2512" `
-  -Clean
-```
-
-Обычный установщик также компилирует главный профиль K3–K5 по умолчанию:
-
-```powershell
-.\install-nx-ribbon-buttons.ps1 `
+.\install-nxkeys.ps1 `
   -CatalogDir "D:\NX2512_Catalog_Output" `
   -NxRoot "C:\Program Files\Siemens\NX2512" `
   -Clean
@@ -63,13 +54,14 @@ K1–K2 остаются в исходном каталоге и могут бы
 - мнемонические пути: каталог намерений и `MnemonicPathGenerator.cs`;
 - реальные IDs: `06_ui_commands_buttons.csv`, bootstrap и runtime probe;
 - безопасность: `config/nx2512-state-machines.json` и Command Bridge;
-- runtime schema: v5; source/generated profile: schema 4; IPC: schema 3.
+- runtime schema: v6; source/generated profile: schema 6; IPC: schema 3.
 
 ## Проверка
 
 ```powershell
 node .\scripts\validate-main-command-map.mjs
 node .\scripts\validate-command-tree.mjs
+node .\scripts\audit-command-sequences.mjs
 ```
 
-Первый валидатор подтверждает 885 намерений K3–K5, отсутствие утечки K1–K2, prefix-free пути, корректный optional export 1169 команд и актуальность документации. Второй проверяет bootstrap, базовые shortcuts, модули, selection routing и runtime migration.
+Первый валидатор подтверждает 885 намерений K3–K5, отсутствие утечки K1–K2, prefix-free пути и актуальность документации. Второй проверяет bootstrap, базовые shortcuts, модули, selection routing, module switching и runtime migration. Аудит сохраняет текущую матрицу последовательностей в `docs/audit/command-sequence-audit.*`.

@@ -3,6 +3,14 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
+import {
+  SEQUENCE_POLICY_VERSION,
+  ensureUniversalSupport,
+  isSupportCommand,
+  pathKey as policyPathKey,
+  supportMetadata,
+  targetLengthForFrequency
+} from './sequence-policy.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -318,19 +326,50 @@ function conflicts(candidate, used) {
   return [...used].some(existing => key.startsWith(existing) || existing.startsWith(key));
 }
 
-function reservePath(preferred, name, used) {
+function reservePath(preferred, name, used, frequency = '') {
   const requested = normalizePath(preferred);
-  if (requested.length >= 2 && !conflicts(requested, used)) { used.add(pathKey(requested)); return requested; }
+  const targetLength = targetLengthForFrequency(frequency);
+  if (requested.length >= 2 && requested.length <= targetLength && !conflicts(requested, used)) { used.add(pathKey(requested)); return requested; }
   const root = requested[0] || 'M';
   const object = requested[1] || 'Z';
   const letters = candidateLetters(name);
-  for (const first of letters) {
-    for (const second of letters) {
-      if (first === second) continue;
-      const candidate = [root, object, first, second];
-      if (!conflicts(candidate, used)) { used.add(pathKey(candidate)); return candidate; }
+  const rootAlternatives = [root, 'C', 'E', 'T', 'X', 'P', 'I', 'V', 'A', 'M', 'F', 'U', 'H']
+    .filter(value => value !== 'S' && value !== 'G')
+    .filter((value, index, array) => array.indexOf(value) === index);
+  const objectAlternatives = [
+    object, 'Z', 'F', 'G', 'B', 'C', 'D', 'E', 'H', 'K', 'L', 'M',
+    'N', 'O', 'P', 'R', 'S', 'T', 'U', 'V', 'W', 'Y'
+  ].filter((value, index, array) => array.indexOf(value) === index);
+  if (targetLength <= 2) {
+    for (const alternativeRoot of rootAlternatives) {
+      for (const leaf of letters) {
+        const candidate = [alternativeRoot, leaf];
+        if (!conflicts(candidate, used)) { used.add(pathKey(candidate)); return candidate; }
+      }
     }
   }
+  if (targetLength <= 3) {
+    for (const alternativeRoot of rootAlternatives) {
+      for (const alternativeObject of objectAlternatives) {
+        for (const leaf of letters) {
+          const candidate = [alternativeRoot, alternativeObject, leaf];
+          if (!conflicts(candidate, used)) { used.add(pathKey(candidate)); return candidate; }
+        }
+      }
+    }
+  }
+  for (const alternativeRoot of rootAlternatives) {
+    for (const alternativeObject of objectAlternatives) {
+      for (const first of letters) {
+        for (const second of letters) {
+          if (first === second) continue;
+          const candidate = [alternativeRoot, alternativeObject, first, second];
+          if (!conflicts(candidate, used)) { used.add(pathKey(candidate)); return candidate; }
+        }
+      }
+    }
+  }
+  if (targetLength <= 4) throw new Error(`Unable to allocate a <=${targetLength}-token prefix-free path for ${name}`);
   for (const first of letters) {
     for (const second of letters) {
       for (const third of letters) {
@@ -364,12 +403,17 @@ function addUnique(list, values) {
   return output;
 }
 
+function highestFrequency(left, right) {
+  const rank = value => ({ K5: 5, K4: 4, K3: 3, K2: 2, K1: 1 }[String(value ?? '').toUpperCase()] ?? 0);
+  return rank(right) > rank(left) ? right : left;
+}
+
 function allModuleCommands(module) {
   return (module.command_sets ?? []).flatMap(set => (set.commands ?? []).map(command => ({ set, command })));
 }
 
 function findExisting(module, intent, resolution) {
-  const rows = allModuleCommands(module);
+  const rows = allModuleCommands(module).filter(row => !isSupportCommand(row.command));
   if (resolution.id) {
     const byId = rows.find(row => String(row.command.command?.id ?? '').toUpperCase() === resolution.id.toUpperCase());
     if (byId) return byId;
@@ -385,6 +429,7 @@ const catalog = loadNxCatalog(catalogDir, probePath);
 addProfileCommandsToCatalog(profile, catalog);
 const knownPaths = parseKnownPaths(readText(path.join(repoRoot, 'NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs')));
 const modules = (profile.modules ?? []).filter(module => module && module.enabled !== false);
+ensureUniversalSupport(modules);
 const modulesById = new Map(modules.map(module => [module.id, module]));
 const globalTargets = modules.filter(module => module.id !== 'selection_object').map(module => module.id);
 const reportRows = [];
@@ -406,7 +451,7 @@ for (const intent of intents) {
       const command = existing.command;
       command.search_aliases = addUnique(command.search_aliases, [intent.name_en, intent.name_ru, intent.source_module, intent.group]);
       command.catalog_refs = addUnique(command.catalog_refs, [intent.intent_id]);
-      command.frequency = command.frequency || intent.frequency;
+      command.frequency = highestFrequency(command.frequency, intent.frequency);
       if (!command.path?.length) command.path = knownPaths.get(String(command.command?.id ?? '').toUpperCase()) ?? intent.path_hint;
       mergedCount += 1;
       reportRows.push({ intent, target, resolution: { status: 'existing', id: command.command?.id, score: 1 }, result: 'merged' });
@@ -438,6 +483,8 @@ for (const intent of intents) {
       display_order: 1000 + intent.source_index * 100 + set.commands.length + 1,
       command: { id, name: resolved && resolution.label ? resolution.label : intent.name_en, aliases: [intent.name_en, intent.name_ru].filter(Boolean) },
       action: id.startsWith('UG_SEL_') ? 'set_selection_filter' : 'execute_command',
+      target_module_id: '',
+      support_kind: '',
       selection_type: selectionType(intent, id),
       enabled: resolved,
       requires_selection: requiresSelection(intent),
@@ -465,14 +512,14 @@ for (const module of modules) {
     const id = String(command.command.id ?? '').toUpperCase();
     const legacy = command.submenu_key ? [command.submenu_key, command.input_key] : [command.input_key];
     command.__preferred = command.path?.length ? command.path : knownPaths.get(id) ?? legacy;
-    command.__priority = knownPaths.has(id) ? 0 : (String(command.fallback ?? '').startsWith('catalog:') ? 2 : 1);
+    command.__priority = isSupportCommand(command) ? -1 : (knownPaths.has(id) ? 0 : (String(command.fallback ?? '').startsWith('catalog:') ? 2 : 1));
   }
   rows.sort((left, right) => left.command.__priority - right.command.__priority ||
     (left.command.display_order ?? 999999) - (right.command.display_order ?? 999999) ||
     String(left.command.command?.id ?? left.command.command?.name).localeCompare(String(right.command.command?.id ?? right.command.command?.name)));
   const used = new Set();
   for (const { command } of rows) {
-    command.path = reservePath(command.__preferred, command.command?.name ?? command.fallback, used);
+    command.path = reservePath(command.__preferred, command.command?.name ?? command.fallback, used, command.frequency);
     command.path_labels = buildPathLabels(command.path, command.command?.name ?? 'Command');
     delete command.__preferred;
     delete command.__priority;
@@ -495,17 +542,19 @@ for (const module of modules) {
   }
 }
 
-profile.schema_version = 4;
+profile.schema_version = 6;
 profile.profile ??= {};
 profile.profile.name = `${profile.profile.name ?? 'NXKeys'} — Full 1169 Command Map`;
 profile.profile.description = `Generated from the complete NX 2512 hierarchy: 1169 command intents. ${catalog.items.length} NX BUTTON IDs were available for resolution.`;
 profile.full_command_catalog = {
-  schema_version: 1,
+  schema_version: 2,
   source_intents: intents.length,
   generated_utc: new Date().toISOString(),
   catalog_items: catalog.items.length,
   global_commands_duplicated: duplicateGlobal,
-  source_files: fs.readdirSync(intentsDir).filter(name => name.startsWith('nx2512-full-')).sort()
+  source_files: fs.readdirSync(intentsDir).filter(name => name.startsWith('nx2512-full-')).sort(),
+  sequence_policy_version: SEQUENCE_POLICY_VERSION,
+  ...supportMetadata(modules)
 };
 profile.leader_key ??= {};
 profile.leader_key.adaptive_module_mode = true;

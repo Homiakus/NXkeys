@@ -32,12 +32,13 @@ config/nx2512-pro-main.generated.json
 
 ```json
 {
-  "schema_version": 4,
+  "schema_version": 6,
   "full_command_catalog": {
     "schema_version": 2,
     "source_intents": 1169,
     "selected_intents": 885,
     "selected_frequencies": ["K3", "K4", "K5"],
+    "sequence_policy_version": 6,
     "frequency_counts": {
       "K1": 4,
       "K2": 280,
@@ -63,8 +64,8 @@ nx2512-pro-hybrid.json
 
 ## Схемы
 
-- bootstrap/generated source: `schema_version: 4`;
-- после загрузки: runtime schema 5;
+- bootstrap/generated source: `schema_version: 6`;
+- после загрузки: runtime schema 6;
 - IPC Command Bridge: schema 3;
 - `full_command_catalog.schema_version`: 2.
 
@@ -76,6 +77,8 @@ path_labels
 aliases
 search_aliases
 action
+target_module_id
+support_kind
 selection_type
 ```
 
@@ -96,6 +99,8 @@ selection_type
   "catalog_refs": ["intent-..."],
   "resolution_status": "resolved",
   "action": "execute_command",
+  "target_module_id": "",
+  "support_kind": "",
   "selection_type": "feature"
 }
 ```
@@ -106,6 +111,8 @@ selection_type
 - `frequency` — K3, K4 или K5 в главном профиле;
 - `resolution_status` — `existing`, `resolved`, `ambiguous`, `unresolved`;
 - `resolution_candidates` — лучшие кандидаты с оценкой;
+- `target_module_id` — целевой модуль для строк `action: "switch_module"`;
+- `support_kind` — runtime-инфраструктура, например `selection_filter` или `module_switch`;
 - `fallback: catalog:<intent_id>` — стабильная связь с источником.
 
 ## Статусы разрешения
@@ -131,19 +138,9 @@ node .\scripts\compile-main-command-map.mjs `
   --report .\docs\generated\main-profile-resolution.md
 ```
 
-Явная область:
+Область фиксирована в компиляторе: `K3,K4,K5`.
 
-```powershell
-node .\scripts\compile-main-command-map.mjs --frequencies K3,K4,K5
-```
-
-Полный диагностический экспорт K1–K5:
-
-```powershell
-node .\scripts\compile-main-command-map.mjs `
-  --all-frequencies `
-  --out .\config\nx2512-pro-all.generated.json
-```
+Установочный пресет один: K3/K4/K5. K1/K2 остаются в исходном каталоге `config/full-command-map/`, но не собираются в отдельный runtime profile.
 
 ## Глобальные команды
 
@@ -162,6 +159,8 @@ node .\scripts\compile-main-command-map.mjs --no-global-duplication
 - ни один K1/K2 `catalog_ref` не попадает в main;
 - включённая команда имеет непустой реальный ID;
 - путь длиной 2–5 токенов;
+- K5 не длиннее 2 токенов, K4 не длиннее 3, K3 не длиннее 4;
 - пути и aliases prefix-free внутри модуля;
 - destructive-команда требует подтверждение;
-- selection-фильтры используют `set_selection_filter`.
+- selection-фильтры используют фиксированные `S*` пути: `SB`, `SF`, `SE`, `ST`, `SC`, `SU`, `SD`, `SR`;
+- переходы между модулями используют `G*` и доступны во всех модулях кроме Sketch.

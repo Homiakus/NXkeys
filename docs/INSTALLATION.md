@@ -27,7 +27,7 @@
 Закройте NX и выполните:
 
 ```powershell
-.\install-main-profile.ps1 `
+.\install-nxkeys.ps1 `
   -CatalogDir "D:\NX2512_Catalog_Output" `
   -NxRoot "C:\Program Files\Siemens\NX2512" `
   -Clean
@@ -36,7 +36,7 @@
 Для Designcenter NX:
 
 ```powershell
-.\install-main-profile.ps1 `
+.\install-nxkeys.ps1 `
   -CatalogDir "D:\NX2512_Catalog_Output" `
   -NxRoot "C:\Program Files\Siemens\DesigncenterNX2512" `
   -Clean
@@ -54,23 +54,23 @@
 8. создаёт backup, manifest и ярлыки;
 9. выполняет health-check.
 
-## 3. Обычный установщик
+## 3. Единый установщик
 
-`install-nx-ribbon-buttons.ps1` также использует K3–K5 по умолчанию:
+`install-nxkeys.ps1` — единственный поддерживаемый PowerShell-вход для компиляции и установки профиля:
 
 ```powershell
-.\install-nx-ribbon-buttons.ps1 `
+.\install-nxkeys.ps1 `
   -CatalogDir "D:\NX2512_Catalog_Output" `
   -NxRoot "C:\Program Files\Siemens\NX2512" `
   -Clean
 ```
 
-`-ConfigPath` нужен только для явной установки заранее подготовленного профиля.
+`-ConfigPath` нужен только для явной установки заранее подготовленного K3–K5 профиля. Скрипт отклоняет generated profile с другим frequency scope.
 
 ## 4. Только компиляция
 
 ```powershell
-.\install-main-profile.ps1 `
+.\install-nxkeys.ps1 `
   -CatalogDir "D:\NX2512_Catalog_Output" `
   -CompileOnly
 ```
@@ -88,26 +88,7 @@ docs/generated/main-profile-resolution.md
 
 Допускается диагностическая компиляция без `-CatalogDir`. Компилятор использует bootstrap и runtime probe, но часть команд останется `unresolved` и будет отключена. Для production рекомендуется повторить установку с актуальным `06_ui_commands_buttons.csv`.
 
-## 6. Полный K1–K5 режим
-
-Полный экспорт 1169 команд не является главным профилем. Он запускается только явно:
-
-```powershell
-.\install-main-profile.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
-  -AllFrequencies `
-  -CompileOnly
-```
-
-Совместимый wrapper:
-
-```powershell
-.\install-full-command-profile.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
-  -CompileOnly
-```
-
-## 7. Запуск
+## 6. Запуск
 
 ```text
 %LOCALAPPDATA%\NXKeys\managed\NX2512.6000\launch-nx2512-with-nxkeys.cmd
@@ -121,7 +102,7 @@ Installed profile хранится под runtime-именем:
 
 Это compatibility filename; стандартный installer помещает туда содержимое main K3–K5 profile.
 
-## 8. Проверка
+## 7. Проверка
 
 ```powershell
 $root = "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000"

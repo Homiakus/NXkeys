@@ -5,6 +5,16 @@ import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
+import {
+  CANONICAL_SELECTION_FILTERS,
+  MODULE_SWITCH_PATHS,
+  SEQUENCE_POLICY_VERSION,
+  SWITCHABLE_MODULE_IDS,
+  isModuleSwitchSupportCommand,
+  isSelectionSupportCommand,
+  supportMetadata,
+  targetLengthForFrequency
+} from './sequence-policy.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const intentsDir = path.join(root, 'config', 'full-command-map');
@@ -55,17 +65,16 @@ function loadIntents() {
   }));
 }
 
-function compile(tempRoot, extraArgs = []) {
-  const output = path.join(tempRoot, extraArgs.includes('--all-frequencies') ? 'all-profile.json' : 'main-profile.json');
-  const report = path.join(tempRoot, extraArgs.includes('--all-frequencies') ? 'all-report.md' : 'main-report.md');
+function compile(tempRoot) {
+  const output = path.join(tempRoot, 'main-profile.json');
+  const report = path.join(tempRoot, 'main-report.md');
   const result = spawnSync(process.execPath, [
     path.join(root, 'scripts', 'compile-main-command-map.mjs'),
     '--profile', path.join(root, 'config', 'nx2512-pro-hybrid.json'),
     '--intents', intentsDir,
     '--probe', path.join(root, 'docs', 'audit', 'runtime-command-probe-2026-07-28.json'),
     '--out', output,
-    '--report', report,
-    ...extraArgs
+    '--report', report
   ], { cwd: root, encoding: 'utf8' });
   if (result.status !== 0) fail(`Compiler failed:\n${result.stdout}\n${result.stderr}`);
   if (!fs.existsSync(output)) fail(`Compiler did not create ${output}.`);
@@ -107,11 +116,14 @@ function validateGeneratedProfile(profile, expectedIntents, expectedFrequencies,
       const fallback = String(command.fallback ?? '');
       const refs = [...(command.catalog_refs ?? [])];
       if (fallback.startsWith('catalog:')) refs.push(fallback.slice('catalog:'.length));
-      if (command.profile_support === true) {
+      const selectionSupport = isSelectionSupportCommand(command);
+      const moduleSwitchSupport = isModuleSwitchSupportCommand(command);
+      if (command.profile_support === true || selectionSupport || moduleSwitchSupport) {
         supportCount += 1;
-        if (module.id !== 'selection_object') fail(`Support command is outside selection_object: ${module.id}/${command.command?.name}.`);
-        if (command.action !== 'set_selection_filter') fail(`Support command has invalid action: ${module.id}/${command.command?.name}.`);
-        if (!/^UG_SEL_/i.test(String(command.command?.id ?? ''))) fail(`Support command has invalid ID: ${module.id}/${command.command?.name}.`);
+        if (selectionSupport && command.action !== 'set_selection_filter') fail(`Selection support command has invalid action: ${module.id}/${command.command?.name}.`);
+        if (selectionSupport && !/^UG_SEL_/i.test(String(command.command?.id ?? ''))) fail(`Selection support command has invalid ID: ${module.id}/${command.command?.name}.`);
+        if (moduleSwitchSupport && command.action !== 'switch_module') fail(`Module switch support command has invalid action: ${module.id}/${command.command?.name}.`);
+        if (moduleSwitchSupport && !command.target_module_id) fail(`Module switch support command has no target_module_id: ${module.id}/${command.command?.name}.`);
         if (refs.length) fail(`Support command must not claim catalog coverage: ${module.id}/${command.command?.name}.`);
         if (command.frequency !== 'support') fail(`Support command has invalid frequency marker: ${module.id}/${command.command?.name}.`);
       } else {
@@ -122,6 +134,9 @@ function validateGeneratedProfile(profile, expectedIntents, expectedFrequencies,
         if (!expectedFrequencies.includes(command.frequency))
           fail(`Profile row has frequency outside scope: ${module.id}/${command.command?.name}/${command.frequency}.`);
         if (!refs.length) fail(`Non-support profile row has no catalog reference: ${module.id}/${command.command?.name}.`);
+        const targetLength = targetLengthForFrequency(command.frequency);
+        if (normalizePath(command.path).length > targetLength)
+          fail(`Path exceeds ${command.frequency} target length ${targetLength}: ${module.id}/${command.command?.name}/${canonical}.`);
       }
       if (command.enabled !== false && !command.command?.id)
         fail(`Enabled command has no BUTTON ID: ${module.id}/${command.command?.name}.`);
@@ -141,16 +156,52 @@ function validateGeneratedProfile(profile, expectedIntents, expectedFrequencies,
   if (commandCount < expectedIntents) fail(`Generated profile contains only ${commandCount} rows for ${expectedIntents} intents.`);
   if (enabledCount < 1) fail('Generated profile has no executable command rows.');
   if (supportCount < 1) fail('Generated profile has no runtime selection support commands.');
-  if (metadata.support_commands !== supportCount) fail(`Metadata reports ${metadata.support_commands} support commands, actual ${supportCount}.`);
+  const support = supportMetadata(profile.modules ?? []);
+  if (metadata.sequence_policy_version !== SEQUENCE_POLICY_VERSION) fail(`Metadata sequence policy is ${metadata.sequence_policy_version}, expected ${SEQUENCE_POLICY_VERSION}.`);
+  if (metadata.support_commands !== support.support_commands) fail(`Metadata reports ${metadata.support_commands} support commands, actual ${support.support_commands}.`);
+  if (metadata.selection_filter_support_commands !== support.selection_filter_support_commands)
+    fail(`Metadata reports ${metadata.selection_filter_support_commands} selection filters, actual ${support.selection_filter_support_commands}.`);
+  if (metadata.module_switch_support_commands !== support.module_switch_support_commands)
+    fail(`Metadata reports ${metadata.module_switch_support_commands} module switches, actual ${support.module_switch_support_commands}.`);
+  validateUniversalSupport(enabledModules);
+}
+
+function validateUniversalSupport(enabledModules) {
+  const expectedSelection = CANONICAL_SELECTION_FILTERS.map(filter => filter.id);
+  const available = new Set(enabledModules.map(module => module.id));
+  for (const module of enabledModules) {
+    const rows = (module.command_sets ?? []).flatMap(set => set.commands ?? []);
+    const selectionIds = new Set(rows.filter(isSelectionSupportCommand).map(command => String(command.command?.id ?? '').toUpperCase()));
+    for (const id of expectedSelection) if (!selectionIds.has(id)) fail(`Module ${module.id} is missing universal selection filter ${id}.`);
+    for (const filter of CANONICAL_SELECTION_FILTERS) {
+      const command = rows.find(row => String(row.command?.id ?? '').toUpperCase() === filter.id);
+      if (command && keyOf(command.path) !== filter.path.join('')) fail(`Selection filter path drift in ${module.id}/${filter.id}: ${keyOf(command.path)}.`);
+    }
+
+    const switches = rows.filter(isModuleSwitchSupportCommand);
+    if (module.id === 'sketch') {
+      if (switches.length) fail('Sketch module must not expose module switches.');
+      continue;
+    }
+    if (module.id === 'selection_object') continue;
+    const switchTargets = new Set(switches.map(command => command.target_module_id).filter(Boolean));
+    for (const target of SWITCHABLE_MODULE_IDS.filter(id => id !== module.id && available.has(id))) {
+      if (!switchTargets.has(target)) fail(`Module ${module.id} is missing switch target ${target}.`);
+      const command = switches.find(row => row.target_module_id === target);
+      const expectedPath = MODULE_SWITCH_PATHS[target]?.join('');
+      if (command && expectedPath && keyOf(command.path) !== expectedPath)
+        fail(`Module switch path drift in ${module.id}->${target}: ${keyOf(command.path)}, expected ${expectedPath}.`);
+    }
+  }
 }
 
 function validateDocumentation() {
   const required = {
-    'README.md': ['K3–K5', '885', 'install-main-profile.ps1', 'nx2512-pro-main.generated.json', 'главный профиль'],
-    'FULL_COMMAND_MAP.md': ['K3–K5', '885', 'K1–K2', '--all-frequencies', '06_ui_commands_buttons.csv'],
+    'README.md': ['K3–K5', '885', 'install-nxkeys.ps1', 'nx2512-pro-main.generated.json', 'главный профиль'],
+    'FULL_COMMAND_MAP.md': ['K3–K5', '885', 'K1–K2', 'install-nxkeys.ps1', '06_ui_commands_buttons.csv'],
     'docs/README.md': ['K3–K5', '885', 'главный профиль'],
     'docs/CONFIGURATION.md': ['selected_frequencies', 'selected_intents', 'K3', 'K4', 'K5'],
-    'docs/INSTALLATION.md': ['install-main-profile.ps1', 'nx2512-pro-main.generated.json', 'main-profile-resolution.md'],
+    'docs/INSTALLATION.md': ['install-nxkeys.ps1', 'nx2512-pro-main.generated.json', 'main-profile-resolution.md'],
     'docs/ARCHITECTURE.md': ['K3–K5', '885'],
     'docs/SAFETY_MODEL.md': ['K3–K5', 'unresolved'],
     'docs/TROUBLESHOOTING.md': ['main-profile-resolution.md', 'K3–K5'],
@@ -207,12 +258,11 @@ try {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'nxkeys-command-map-'));
   try {
     validateGeneratedProfile(compile(tempRoot), EXPECTED_MAIN_INTENTS, MAIN_FREQUENCIES, intents.length);
-    validateGeneratedProfile(compile(tempRoot, ['--all-frequencies']), intents.length, Object.keys(EXPECTED_COUNTS), intents.length);
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   }
 
-  if (!failed) console.log(`[main-command-map] OK: 1169 source intents; main K3-K5 profile covers ${EXPECTED_MAIN_INTENTS} intents; selection support and optional all-frequency profile validated.`);
+  if (!failed) console.log(`[main-command-map] OK: 1169 source intents; single K3-K5 profile covers ${EXPECTED_MAIN_INTENTS} intents with selection support.`);
 } catch (error) {
   fail(error?.stack || error?.message || String(error));
 }

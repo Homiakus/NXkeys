@@ -24,7 +24,7 @@ Requirement -> UI / Entry Point -> Frontend / Leader Hook -> IPC Protocol -> Com
 | **F-005** | Destructive Guard Confirmation | Destructive Key (`Delete`, `Trim`) | `ContextGuardEvaluator` | `AwaitingConfirmation` state | Pause IPC Request | `NxBridgeRequest` | `ReplayAndRandomizedTests.cs` | `WORKING` |
 | **F-006** | Out-of-Process IPC Bridge | Key slot select (`QWE/A·D/ZXC`) | `LeaderKeyEngine.Dispatch` | `pending/*.json` | File System Queue Watcher | `NxBridgeRequest` | `ProtocolInvariantTests.cs` | `WORKING` |
 | **F-007** | In-Process NX Command Execution | Request file in `pending/` | `CommandBridge.ProcessQueue` | `completed/*.json` or `failed/*.json` | `UI.GetUI().Menu...Execute()` | `BUTTON ID` | `NX2512_CommandBridge.Tests` | `WORKING` |
-| **F-008** | Transactional Deployment Engine | `install-nx-ribbon-buttons.ps1` | `DeploymentEngine` | `package-manifest.json` | Backup / Staging / Copy | SHA-256 Manifest | `ci.yml (Validate deployment)` | `WORKING` |
+| **F-008** | Transactional Deployment Engine | `install-nxkeys.ps1` | `DeploymentEngine` | `package-manifest.json` | Backup / Staging / Copy | SHA-256 Manifest | `ci.yml (Validate deployment)` | `WORKING` |
 | **F-009** | Adaptive Control Center | GUI Application | `ControlCenterForm` | `status.json`, `context.json` | Visual Status Display | `NxBridgeStatus` | `ci.yml (Build Control Center)` | `WORKING` |
 | **F-010** | NX Catalog Studio | Utility GUI | `CatalogStudioForm` | None | Reflection over `NXOpen.dll` | `08_ui_command_api_candidates.csv` | `CatalogStudio.csproj` compilation | `BROKEN` |
 | **F-011** | C# CLI Management | Command Line | `Program.Main()` | `nx2512-pro-hybrid.json` | Execution of CLI verb | `ConfigModels.cs` | `ci.yml (Validate profile CLI)` | `WORKING` |

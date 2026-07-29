@@ -11,15 +11,16 @@ namespace NX2512_HotkeyStudio.UI
     internal sealed class CommandListPreviewPanel : Panel
     {
         private readonly Color background = Color.FromArgb(13, 17, 23);
-        private readonly Color surface = Color.FromArgb(22, 27, 34);
-        private readonly Color border = Color.FromArgb(48, 54, 61);
+        private readonly Color surface = Color.FromArgb(22, 31, 40);
+        private readonly Color surfaceHighlight = Color.FromArgb(28, 42, 54);
+        private readonly Color border = Color.FromArgb(55, 70, 84);
         private readonly Color text = Color.FromArgb(240, 246, 252);
-        private readonly Color muted = Color.FromArgb(139, 148, 158);
+        private readonly Color muted = Color.FromArgb(154, 166, 179);
         private readonly Color accent = Color.FromArgb(56, 189, 248);
         private readonly Color success = Color.FromArgb(16, 185, 129);
         private readonly Color warning = Color.FromArgb(245, 158, 11);
         private readonly Color danger = Color.FromArgb(239, 68, 68);
-        private readonly Color keyBack = Color.FromArgb(33, 38, 45);
+        private readonly Color keyBack = Color.FromArgb(10, 17, 25);
 
         private string moduleLabel = "Module";
         private string moduleId = string.Empty;
@@ -66,12 +67,28 @@ namespace NX2512_HotkeyStudio.UI
             graphics.SmoothingMode = SmoothingMode.AntiAlias;
             graphics.Clear(background);
 
+            Rectangle header = new Rectangle(0, 0, Width, 52);
+            using (LinearGradientBrush brush = new LinearGradientBrush(header, Color.FromArgb(18, 35, 50), Color.FromArgb(14, 20, 29), 0f))
+                graphics.FillRectangle(brush, header);
+            using (Pen pen = new Pen(border))
+                graphics.DrawLine(pen, 0, header.Bottom, Width, header.Bottom);
+
+            Rectangle moduleIcon = new Rectangle(12, 9, 34, 34);
+            CadIconPainter.Draw(graphics, moduleIcon, moduleId, string.Empty, moduleLabel);
+
             using (Font title = new Font("Segoe UI Semibold", 11f))
             using (SolidBrush titleBrush = new SolidBrush(text))
-                graphics.DrawString(moduleLabel, title, titleBrush, 12, 10);
+                DrawEllipsized(graphics, moduleLabel, title, titleBrush, new Rectangle(56, 8, Width - 190, 22));
             using (Font idFont = new Font("Consolas", 8.5f))
             using (SolidBrush idBrush = new SolidBrush(muted))
-                graphics.DrawString(moduleId, idFont, idBrush, 12, 34);
+                DrawEllipsized(graphics, moduleId, idFont, idBrush, new Rectangle(56, 30, Width - 190, 16));
+
+            using (Font chipFont = new Font("Segoe UI Semibold", 8f))
+            {
+                DrawPill(graphics, bridgeReady ? "BRIDGE OK" : "BRIDGE OFF", chipFont,
+                    new Rectangle(Width - 118, 12, 104, 24), bridgeReady ? success : danger,
+                    bridgeReady ? Color.Black : Color.White);
+            }
 
             int columnCount = 3;
             int gutter = 10;
@@ -92,33 +109,44 @@ namespace NX2512_HotkeyStudio.UI
 
         private void DrawRow(Graphics graphics, Rectangle rectangle, DisplayRow row)
         {
+            Color stateColor = StatusColor(row.Status);
             using (GraphicsPath path = Rounded(rectangle, 8))
-            using (SolidBrush brush = new SolidBrush(surface))
             using (Pen pen = new Pen(row.Item?.Destructive == true ? danger : border))
             {
-                graphics.FillPath(brush, path);
+                using (LinearGradientBrush brush = new LinearGradientBrush(rectangle, surfaceHighlight, surface, 90f))
+                    graphics.FillPath(brush, path);
                 graphics.DrawPath(pen, path);
             }
 
-            Rectangle keyBox = new Rectangle(rectangle.Left + 8, rectangle.Top + 9, 30, 30);
-            using (SolidBrush brush = new SolidBrush(keyBack)) graphics.FillRectangle(brush, keyBox);
+            using (SolidBrush stripe = new SolidBrush(row.Item?.Destructive == true ? danger : stateColor))
+                graphics.FillRectangle(stripe, rectangle.Left, rectangle.Top + 10, 3, rectangle.Height - 20);
+
+            Rectangle keyBox = new Rectangle(rectangle.Left + 8, rectangle.Top + 10, 30, 30);
+            using (GraphicsPath keyPath = Rounded(keyBox, 7))
+            using (SolidBrush brush = new SolidBrush(keyBack))
+            using (Pen pen = new Pen(Color.FromArgb(72, accent), 1f))
+            {
+                graphics.FillPath(brush, keyPath);
+                graphics.DrawPath(pen, keyPath);
+            }
             using (Font keyFont = new Font("Consolas", 12f, FontStyle.Bold))
             using (SolidBrush keyBrush = new SolidBrush(accent))
                 DrawCentered(graphics, row.Key, keyFont, keyBrush, keyBox);
 
-            Rectangle iconBox = new Rectangle(rectangle.Left + 43, rectangle.Top + 11, 26, 26);
+            Rectangle iconBox = new Rectangle(rectangle.Left + 44, rectangle.Top + 9, 30, 30);
             CadIconPainter.Draw(graphics, iconBox, row.IconHint, row.Item?.Command?.ID, row.Name);
 
             using (Font nameFont = new Font("Segoe UI Semibold", 8.7f))
             using (SolidBrush nameBrush = new SolidBrush(text))
-                graphics.DrawString(Trim(row.Name, 20), nameFont, nameBrush, rectangle.Left + 76, rectangle.Top + 7);
+                DrawEllipsized(graphics, row.Name, nameFont, nameBrush,
+                    new Rectangle(rectangle.Left + 82, rectangle.Top + 7, rectangle.Width - 90, 20));
             string status = row.Status;
             using (Font statusFont = new Font("Segoe UI", 7.8f))
-            using (SolidBrush statusBrush = new SolidBrush(StatusColor(status)))
-                graphics.DrawString(status, statusFont, statusBrush, rectangle.Left + 76, rectangle.Top + 30);
+                DrawPill(graphics, status, statusFont, new Rectangle(rectangle.Left + 82, rectangle.Top + 31, Math.Min(104, rectangle.Width - 90), 20),
+                    StatusColor(status), status == "Готово" || status == "Открыть" ? Color.Black : Color.White);
             using (Font idFont = new Font("Consolas", 7.4f))
             using (SolidBrush idBrush = new SolidBrush(muted))
-                graphics.DrawString(Trim(row.Details, 32), idFont, idBrush,
+                DrawEllipsized(graphics, row.Details, idFont, idBrush,
                     new Rectangle(rectangle.Left + 8, rectangle.Bottom - 20, rectangle.Width - 16, 14));
         }
 
@@ -233,6 +261,31 @@ namespace NX2512_HotkeyStudio.UI
             SizeF size = graphics.MeasureString(value ?? string.Empty, font);
             graphics.DrawString(value ?? string.Empty, font, brush, rectangle.Left + (rectangle.Width - size.Width) / 2,
                 rectangle.Top + (rectangle.Height - size.Height) / 2);
+        }
+
+        private static void DrawEllipsized(Graphics graphics, string value, Font font, Brush brush, Rectangle rectangle)
+        {
+            using (StringFormat format = new StringFormat())
+            {
+                format.Trimming = StringTrimming.EllipsisCharacter;
+                format.FormatFlags = StringFormatFlags.NoWrap;
+                format.LineAlignment = StringAlignment.Center;
+                graphics.DrawString(value ?? string.Empty, font, brush, rectangle, format);
+            }
+        }
+
+        private static void DrawPill(Graphics graphics, string value, Font font, Rectangle rectangle, Color fillColor, Color textColor)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return;
+            SizeF size = graphics.MeasureString(value, font);
+            Rectangle pill = new Rectangle(rectangle.Left, rectangle.Top, Math.Min(rectangle.Width, (int)Math.Ceiling(size.Width) + 16), rectangle.Height);
+            using (GraphicsPath path = Rounded(pill, pill.Height / 2))
+            using (SolidBrush fill = new SolidBrush(Color.FromArgb(220, fillColor)))
+            using (SolidBrush textBrush = new SolidBrush(textColor))
+            {
+                graphics.FillPath(fill, path);
+                DrawCentered(graphics, value, font, textBrush, pill);
+            }
         }
 
         private static string Trim(string value, int max)

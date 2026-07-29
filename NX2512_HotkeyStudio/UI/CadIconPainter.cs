@@ -2,6 +2,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
 
 namespace NX2512_HotkeyStudio.UI
 {
@@ -9,6 +12,10 @@ namespace NX2512_HotkeyStudio.UI
     {
         private static readonly ConcurrentDictionary<string, Image> imageCache =
             new ConcurrentDictionary<string, Image>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Lazy<ConcurrentDictionary<string, string>> commandIconMap =
+            new Lazy<ConcurrentDictionary<string, string>>(BuildCommandIconMap);
+        private static readonly Lazy<ConcurrentDictionary<string, string>> operationIconIndex =
+            new Lazy<ConcurrentDictionary<string, string>>(BuildOperationIconIndex);
 
         public static void ClearCache() => imageCache.Clear();
 
@@ -901,72 +908,254 @@ namespace NX2512_HotkeyStudio.UI
 
         private static Image GetIconPng(string hint, string commandId, string commandName)
         {
-            string fileName = GetPngFileName(hint, commandId, commandName);
-            if (imageCache.TryGetValue(fileName, out Image img)) return img;
-
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string[] searchPaths = new string[]
+            string exactKey = "nx|" + (commandId ?? string.Empty) + "|" + (commandName ?? string.Empty);
+            if (imageCache.TryGetValue(exactKey, out Image exactImage)) return exactImage;
+            Image nxIcon = GetOperationIcon(commandId, commandName);
+            if (nxIcon != null)
             {
-                System.IO.Path.Combine(baseDir, "assets", "icons", fileName),
-                System.IO.Path.Combine(baseDir, "..", "..", "..", "..", "assets", "icons", fileName),
-                System.IO.Path.Combine(baseDir, "Resources", "Icons", fileName),
-                System.IO.Path.Combine(Environment.CurrentDirectory, "assets", "icons", fileName)
-            };
+                imageCache[exactKey] = nxIcon;
+                return nxIcon;
+            }
+            return null;
+        }
 
-            foreach (string path in searchPaths)
+        private static Image GetOperationIcon(string commandId, string commandName)
+        {
+            string id = NormalizeToken(commandId);
+            string name = NormalizeToken(commandName);
+            if (string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(name)) return null;
+
+            foreach (string key in new[] { commandId, commandName, id, name })
             {
-                if (System.IO.File.Exists(path))
+                if (string.IsNullOrWhiteSpace(key)) continue;
+                if (commandIconMap.Value.TryGetValue(key, out string mappedPath))
                 {
-                    try
+                    Image mapped = LoadImageIfSmall(mappedPath, 250000);
+                    if (mapped != null) return mapped;
+                }
+            }
+
+            string[] keys = new[]
+            {
+                id,
+                id.Replace("UG_", string.Empty),
+                id.Replace("UG_MODELING_", string.Empty),
+                id.Replace("UG_SKETCH_", string.Empty),
+                name
+            }.Where(value => !string.IsNullOrWhiteSpace(value) && value.Length >= 4)
+             .SelectMany(ExpandSearchKey)
+             .Distinct(StringComparer.OrdinalIgnoreCase)
+             .ToArray();
+
+            var index = operationIconIndex.Value;
+            foreach (string key in keys)
+            {
+                if (index.TryGetValue(key, out string exactPath))
+                {
+                    Image exact = LoadImageIfSmall(exactPath, 200000);
+                    if (exact != null) return exact;
+                }
+
+                foreach (var pair in index)
+                {
+                    if (pair.Key.Contains(key) || key.Contains(pair.Key))
                     {
-                        var info = new System.IO.FileInfo(path);
-                        if (info.Length > 50000) continue; // Bypass old legacy duplicate files
-                        using (var stream = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.Read))
-                        {
-                            Image loaded = Image.FromStream(stream);
-                            imageCache[fileName] = loaded;
-                            return loaded;
-                        }
+                        Image loaded = LoadImageIfSmall(pair.Value, 200000);
+                        if (loaded != null) return loaded;
                     }
-                    catch { }
                 }
             }
             return null;
         }
 
-        private static string GetPngFileName(string hint, string commandId, string commandName)
+        private static ConcurrentDictionary<string, string> BuildCommandIconMap()
         {
-            string id = (commandId ?? string.Empty).ToUpperInvariant();
-            string name = (commandName ?? string.Empty).ToUpperInvariant();
-            string h = (string.IsNullOrWhiteSpace(hint) ? Models.CommandIconHints.FromCommand(commandId, commandName) : hint).Trim().ToLowerInvariant();
+            var result = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string root in OperationIconRoots())
+            {
+                string mapPath = Path.Combine(root, "command-icon-map.json");
+                if (!File.Exists(mapPath)) continue;
+                try
+                {
+                    using (JsonDocument document = JsonDocument.Parse(File.ReadAllText(mapPath)))
+                    {
+                        if (!document.RootElement.TryGetProperty("entries", out JsonElement entries) ||
+                            entries.ValueKind != JsonValueKind.Object) continue;
 
-            if (id.Contains("EXTRUDE") || name.Contains("EXTRUDE")) return "extrude.png";
-            if (id.Contains("REVOLVE") || name.Contains("REVOLVE")) return "revolve.png";
-            if (id.Contains("HOLE") || name.Contains("HOLE")) return "hole.png";
-            if (id.Contains("BLEND") || id.Contains("FILLET") || name.Contains("BLEND") || name.Contains("FILLET")) return "blend.png";
-            if (id.Contains("CHAMFER") || name.Contains("CHAMFER")) return "chamfer.png";
-            if (id.Contains("RECTANGLE") || name.Contains("RECTANGLE")) return "rectangle.png";
-            if (id.Contains("CIRCLE") || name.Contains("CIRCLE")) return "circle.png";
-            if (id.Contains("ARC") || name.Contains("ARC")) return "arc.png";
-            if (id.Contains("LINE") || name.Contains("LINE")) return "line.png";
-            if (id.Contains("CONSTRAINT") || name.Contains("CONSTRAINT")) return "constraint.png";
-            if (id.Contains("PATTERN") || name.Contains("PATTERN")) return "pattern.png";
-            if (id.Contains("MIRROR") || name.Contains("MIRROR")) return "mirror.png";
-            if (id.Contains("WAVE") || name.Contains("WAVE")) return "wave.png";
-            if (id.Contains("LAYER") || name.Contains("LAYER")) return "layer.png";
-            if (id.Contains("MATERIAL") || name.Contains("MATERIAL")) return "material.png";
-            if (id.Contains("SBSM") || id.Contains("FLANGE") || id.Contains("SHEET") || name.Contains("SHEET")) return "sheet_metal.png";
-            if (id.Contains("BODY_PRIORITY") || name.Contains("BODY")) return "sel_body.png";
-            if (id.Contains("FACE_PRIORITY") || name.Contains("FACE")) return "sel_face.png";
-            if (id.Contains("EDGE_PRIORITY") || name.Contains("EDGE")) return "sel_edge.png";
-            if (id.Contains("DESELECT") || name.Contains("СНЯТЬ")) return "sel_deselect.png";
-            if (id.Contains("SELECT") || h == "selection") return "selection.png";
-            if (id.Contains("ADD_COMPONENT") || id.Contains("COMPONENT") || h == "assembly") return "assembly.png";
-            if (id.Contains("MEASURE") || id.Contains("INFO") || h == "inspect") return "inspect.png";
-            if (id.Contains("FIT") || id.Contains("ORIENT") || id.Contains("VIEW") || h == "view") return "view.png";
-            if (h == "menu") return "menu.png";
-            if (h == "sketch") return "sketch.png";
-            return "default.png";
+                        foreach (JsonProperty property in entries.EnumerateObject())
+                        {
+                            JsonElement value = property.Value;
+                            if (!value.TryGetProperty("icon", out JsonElement iconValue)) continue;
+                            string icon = iconValue.GetString();
+                            if (string.IsNullOrWhiteSpace(icon)) continue;
+
+                            string fullPath = Path.GetFullPath(Path.Combine(root, icon.Replace('/', Path.DirectorySeparatorChar)));
+                            if (!File.Exists(fullPath)) continue;
+                            AddMapKey(result, property.Name, fullPath);
+                            if (value.TryGetProperty("command_id", out JsonElement idValue)) AddMapKey(result, idValue.GetString(), fullPath);
+                            if (value.TryGetProperty("command_name", out JsonElement nameValue)) AddMapKey(result, nameValue.GetString(), fullPath);
+                        }
+                    }
+                    if (result.Count > 0) return result;
+                }
+                catch { }
+            }
+            return result;
+        }
+
+        private static void AddMapKey(ConcurrentDictionary<string, string> map, string key, string path)
+        {
+            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(path)) return;
+            map.TryAdd(key, path);
+            string normalized = NormalizeToken(key);
+            if (!string.IsNullOrWhiteSpace(normalized)) map.TryAdd(normalized, path);
+        }
+
+        private static ConcurrentDictionary<string, string> BuildOperationIconIndex()
+        {
+            var index = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string root in OperationIconRoots())
+            {
+                if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root)) continue;
+                try
+                {
+                    foreach (string file in Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories))
+                    {
+                        string extension = Path.GetExtension(file);
+                        if (!string.Equals(extension, ".png", StringComparison.OrdinalIgnoreCase) &&
+                            !string.Equals(extension, ".bmp", StringComparison.OrdinalIgnoreCase) &&
+                            !string.Equals(extension, ".ico", StringComparison.OrdinalIgnoreCase) &&
+                            !string.Equals(extension, ".jpg", StringComparison.OrdinalIgnoreCase) &&
+                            !string.Equals(extension, ".jpeg", StringComparison.OrdinalIgnoreCase) &&
+                            !string.Equals(extension, ".gif", StringComparison.OrdinalIgnoreCase) &&
+                            !string.Equals(extension, ".tif", StringComparison.OrdinalIgnoreCase) &&
+                            !string.Equals(extension, ".tiff", StringComparison.OrdinalIgnoreCase)) continue;
+                        string key = NormalizeToken(Path.GetFileNameWithoutExtension(file));
+                        if (key.Length < 4) continue;
+                        FileInfo info = new FileInfo(file);
+                        if (info.Length <= 0 || info.Length > 200000) continue;
+                        TryAddBetterIcon(index, key, file);
+                        string simplifiedKey = SimplifyNxAssetKey(key);
+                        if (simplifiedKey.Length >= 4) TryAddBetterIcon(index, simplifiedKey, file);
+                    }
+                }
+                catch { }
+            }
+            return index;
+        }
+
+        private static string[] ExpandSearchKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return Array.Empty<string>();
+            string normalized = NormalizeToken(key);
+            if (normalized.Length < 4) return Array.Empty<string>();
+
+            string trimmedFeature = normalized
+                .Replace("FEATURE", string.Empty)
+                .Replace("DIALOG", string.Empty)
+                .Replace("COMMAND", string.Empty);
+            string pastTense = trimmedFeature.EndsWith("ED", StringComparison.OrdinalIgnoreCase) && trimmedFeature.Length > 5
+                ? trimmedFeature.Substring(0, trimmedFeature.Length - 1)
+                : trimmedFeature;
+
+            return new[] { normalized, trimmedFeature, pastTense }
+                .Where(value => !string.IsNullOrWhiteSpace(value) && value.Length >= 4)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+        }
+
+        private static string SimplifyNxAssetKey(string key)
+        {
+            string simplified = key ?? string.Empty;
+            if (simplified.StartsWith("DARKSTYLE", StringComparison.OrdinalIgnoreCase))
+                simplified = simplified.Substring("DARKSTYLE".Length);
+            if (simplified.StartsWith("HIGHQUALITY", StringComparison.OrdinalIgnoreCase))
+                simplified = simplified.Substring("HIGHQUALITY".Length);
+
+            string[] suffixes = { "SC", "LC", "1X", "2X", "2L", "2S", "8S", "B" };
+            bool changed;
+            do
+            {
+                changed = false;
+                foreach (string suffix in suffixes)
+                {
+                    if (simplified.EndsWith(suffix, StringComparison.OrdinalIgnoreCase) && simplified.Length > suffix.Length + 3)
+                    {
+                        simplified = simplified.Substring(0, simplified.Length - suffix.Length);
+                        changed = true;
+                        break;
+                    }
+                }
+            } while (changed);
+
+            return simplified;
+        }
+
+        private static void TryAddBetterIcon(ConcurrentDictionary<string, string> index, string key, string file)
+        {
+            index.AddOrUpdate(key, file, (candidateKey, existing) =>
+                ScoreAssetCandidate(candidateKey, file) > ScoreAssetCandidate(candidateKey, existing) ? file : existing);
+        }
+
+        private static int ScoreAssetCandidate(string key, string path)
+        {
+            string normalizedName = NormalizeToken(Path.GetFileNameWithoutExtension(path));
+            int score = 0;
+            if (normalizedName.Equals(key, StringComparison.OrdinalIgnoreCase)) score += 1000;
+            if (path.IndexOf(@"\bma-extracted\", StringComparison.OrdinalIgnoreCase) >= 0) score += 700;
+            if (path.IndexOf(".8s.", StringComparison.OrdinalIgnoreCase) >= 0) score += 190;
+            if (path.IndexOf(".2l.", StringComparison.OrdinalIgnoreCase) >= 0) score += 160;
+            if (path.IndexOf(".2s.", StringComparison.OrdinalIgnoreCase) >= 0) score += 130;
+            if (path.IndexOf(".lc.", StringComparison.OrdinalIgnoreCase) >= 0) score += 80;
+            if (path.IndexOf(".sc.", StringComparison.OrdinalIgnoreCase) >= 0) score += 50;
+            if (path.IndexOf(".1x.", StringComparison.OrdinalIgnoreCase) >= 0) score += 30;
+            if (path.IndexOf("darkstyle_high_quality", StringComparison.OrdinalIgnoreCase) >= 0) score += 30;
+            if (path.IndexOf("PNG_400x300", StringComparison.OrdinalIgnoreCase) >= 0) score -= 500;
+
+            try
+            {
+                long length = new FileInfo(path).Length;
+                if (length <= 50000) score += 40;
+                if (length > 150000) score -= 80;
+            }
+            catch { }
+            return score;
+        }
+
+        private static string[] OperationIconRoots()
+        {
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            return new[]
+            {
+                Path.Combine(baseDir, "assets", "nx-operation-icons"),
+                Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "assets", "nx-operation-icons")),
+                Path.Combine(Environment.CurrentDirectory, "assets", "nx-operation-icons")
+            };
+        }
+
+        private static Image LoadImageIfSmall(string path, long maxBytes)
+        {
+            try
+            {
+                FileInfo info = new FileInfo(path);
+                if (!info.Exists || info.Length <= 0 || info.Length > maxBytes) return null;
+                using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+                using (Image loaded = Image.FromStream(stream))
+                {
+                    return new Bitmap(loaded);
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static string NormalizeToken(string value)
+        {
+            return new string((value ?? string.Empty).ToUpperInvariant()
+                .Where(char.IsLetterOrDigit)
+                .ToArray());
         }
 
         public static Bitmap RenderIconBitmap(int size, string hint, string commandId, string commandName = "")
@@ -983,64 +1172,6 @@ namespace NX2512_HotkeyStudio.UI
         public static void ExportAllIcons(int size = 128)
         {
             ClearCache();
-            string rootDir = AppDomain.CurrentDomain.BaseDirectory;
-            string workspaceRoot = System.IO.Path.GetFullPath(System.IO.Path.Combine(rootDir, "..", "..", "..", ".."));
-
-            string[] targetFolders = new string[]
-            {
-                System.IO.Path.Combine(workspaceRoot, "assets", "icons"),
-                System.IO.Path.Combine(workspaceRoot, "docs", "assets", "icons"),
-                System.IO.Path.Combine(workspaceRoot, "NX2512_HotkeyStudio", "Resources", "Icons"),
-                System.IO.Path.Combine(rootDir, "assets", "icons")
-            };
-
-            var icons = new (string filename, string hint, string commandId, string name)[]
-            {
-                ("extrude.png", "feature", "UG_MODELING_EXTRUDED_FEATURE", "Extrude"),
-                ("revolve.png", "feature", "UG_MODELING_REVOLVED_FEATURE", "Revolve"),
-                ("hole.png", "feature", "UG_MODELING_HOLE_FEATURE", "Hole"),
-                ("blend.png", "feature", "UG_MODELING_BLEND_FEATURE", "Edge Blend"),
-                ("chamfer.png", "feature", "UG_MODELING_CHAMFER_FEATURE", "Chamfer"),
-                ("rectangle.png", "sketch", "UG_SKETCH_RECTANGLE", "Rectangle"),
-                ("circle.png", "sketch", "UG_SKETCH_CIRCLE", "Circle"),
-                ("arc.png", "sketch", "UG_SKETCH_ARC", "Arc"),
-                ("line.png", "sketch", "UG_SKETCH_LINE", "Line"),
-                ("constraint.png", "sketch", "UG_SKETCH_CONSTRAINTS", "Constraints"),
-                ("pattern.png", "pattern", "UG_MODELING_PATTERNFEATURE_FEATURE", "Pattern Feature"),
-                ("mirror.png", "pattern", "UG_MODELING_MIRRORFEATURE_FEATURE", "Mirror Feature"),
-                ("assembly.png", "assembly", "UG_ADD_COMPONENT", "Add Component"),
-                ("sheet_metal.png", "sheet_metal", "UG_APP_SBSM", "Sheet Metal"),
-                ("wave.png", "wave", "UG_ASSY_WAVE_LINKER", "WAVE Linker"),
-                ("layer.png", "layer", "UG_LAYER_SETTINGS", "Layer Settings"),
-                ("material.png", "material", "UG_MATERIAL_ASSIGN", "Material Assign"),
-                ("sel_body.png", "selection", "UG_SEL_BODY_PRIORITY", "Body Priority"),
-                ("sel_face.png", "selection", "UG_SEL_FACE_PRIORITY", "Face Priority"),
-                ("sel_edge.png", "selection", "UG_SEL_EDGE_PRIORITY", "Edge Priority"),
-                ("sel_deselect.png", "selection", "UG_SEL_DESELECT_ALL", "Deselect All"),
-                ("selection.png", "selection", "UG_SEL_RESET", "Selection Filters"),
-                ("inspect.png", "inspect", "UG_INFO_ANALYSIS", "Inspect"),
-                ("view.png", "view", "UG_VIEW_FIT", "Fit View"),
-                ("sketch.png", "sketch", "UG_CREATE_SKETCH", "Sketch"),
-                ("menu.png", "menu", "", "Submenu"),
-                ("default.png", "command", "", "Default Command")
-            };
-
-            foreach (string folder in targetFolders)
-            {
-                try
-                {
-                    System.IO.Directory.CreateDirectory(folder);
-                    foreach (var (filename, hint, commandId, name) in icons)
-                    {
-                        using (Bitmap bmp = RenderIconBitmap(size, hint, commandId, name))
-                        {
-                            bmp.Save(System.IO.Path.Combine(folder, filename), System.Drawing.Imaging.ImageFormat.Png);
-                        }
-                    }
-                }
-                catch { }
-            }
         }
     }
 }
-

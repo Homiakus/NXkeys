@@ -57,7 +57,8 @@ namespace NX2512_HotkeyStudio.Models
                     .Where(set => set?.Commands != null)
                     .SelectMany(set => set.Commands)
                     .Where(command => command != null && command.Enabled)
-                    .OrderBy(command => command.DisplayOrder <= 0 ? int.MaxValue : command.DisplayOrder)
+                    .OrderBy(SupportPriority)
+                    .ThenBy(command => command.DisplayOrder <= 0 ? int.MaxValue : command.DisplayOrder)
                     .ThenBy(command => command.Command?.ID, StringComparer.OrdinalIgnoreCase)
                     .ToList() ?? new List<ModuleCommand>();
 
@@ -111,7 +112,9 @@ namespace NX2512_HotkeyStudio.Models
             List<string> candidate = requested.Count > 0 ? requested.ToList() : new List<string> { "M", "Z", "X" };
             if (candidate.Count < 2) candidate.Insert(0, "M");
             string key = string.Concat(candidate);
-            if (!used.ContainsKey(key) && !CreatesPrefixConflict(key, used.Keys))
+            int targetLength = TargetLength(command);
+            bool support = IsSupport(command);
+            if ((support || candidate.Count <= targetLength) && !used.ContainsKey(key) && !CreatesPrefixConflict(key, used.Keys))
             {
                 used[key] = command;
                 return candidate;
@@ -119,23 +122,68 @@ namespace NX2512_HotkeyStudio.Models
 
             string root = candidate.FirstOrDefault() ?? "M";
             string objectToken = candidate.Count > 1 ? candidate[1] : "Z";
+            string[] letters = CandidateLetters(command).ToArray();
+            string[] rootAlternatives = new[] { root, "C", "E", "T", "X", "P", "I", "V", "A", "M", "F", "U", "H" }
+                .Where(value => !string.Equals(value, "S", StringComparison.OrdinalIgnoreCase) &&
+                                !string.Equals(value, "G", StringComparison.OrdinalIgnoreCase))
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
             string[] objectAlternatives = new[]
             {
                 objectToken, "Z", "F", "G", "B", "C", "D", "E", "H", "K", "L", "M",
                 "N", "O", "P", "R", "S", "T", "U", "V", "W", "Y"
             }.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-
-            foreach (string alternativeObject in objectAlternatives)
+            if (targetLength <= 2)
             {
-                foreach (string token in CandidateLetters(command))
+                foreach (string alternativeRoot in rootAlternatives)
                 {
-                    List<string> alternative = new List<string> { root, alternativeObject, token };
-                    key = string.Concat(alternative);
-                    if (used.ContainsKey(key) || CreatesPrefixConflict(key, used.Keys)) continue;
-                    used[key] = command;
-                    return alternative;
+                    foreach (string token in letters)
+                    {
+                        List<string> alternative = new List<string> { alternativeRoot, token };
+                        key = string.Concat(alternative);
+                        if (used.ContainsKey(key) || CreatesPrefixConflict(key, used.Keys)) continue;
+                        used[key] = command;
+                        return alternative;
+                    }
                 }
             }
+            if (targetLength <= 3)
+            {
+                foreach (string alternativeRoot in rootAlternatives)
+                {
+                    foreach (string alternativeObject in objectAlternatives)
+                    {
+                        foreach (string token in letters)
+                        {
+                            List<string> alternative = new List<string> { alternativeRoot, alternativeObject, token };
+                            key = string.Concat(alternative);
+                            if (used.ContainsKey(key) || CreatesPrefixConflict(key, used.Keys)) continue;
+                            used[key] = command;
+                            return alternative;
+                        }
+                    }
+                }
+            }
+
+            foreach (string alternativeRoot in rootAlternatives)
+            {
+                foreach (string alternativeObject in objectAlternatives)
+                {
+                    foreach (string first in letters)
+                    {
+                        foreach (string second in letters)
+                        {
+                            if (string.Equals(first, second, StringComparison.OrdinalIgnoreCase)) continue;
+                            List<string> alternative = new List<string> { alternativeRoot, alternativeObject, first, second };
+                            key = string.Concat(alternative);
+                            if (used.ContainsKey(key) || CreatesPrefixConflict(key, used.Keys)) continue;
+                            used[key] = command;
+                            return alternative;
+                        }
+                    }
+                }
+            }
+            if (targetLength <= 4)
+                throw new InvalidOperationException("Unable to allocate a <=" + targetLength + "-token mnemonic path for " + (command?.Command?.ID ?? command?.Command?.Name));
 
             foreach (string alternativeRoot in new[] { root, "M", "U", "H", "I", "E", "T", "C", "P", "V", "A", "X" }.Distinct(StringComparer.OrdinalIgnoreCase))
             {
@@ -158,6 +206,31 @@ namespace NX2512_HotkeyStudio.Models
             return existing.Any(value =>
                 candidate.StartsWith(value, StringComparison.OrdinalIgnoreCase) ||
                 value.StartsWith(candidate, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static int SupportPriority(ModuleCommand command)
+        {
+            if (string.Equals(command?.SupportKind, "selection_filter", StringComparison.OrdinalIgnoreCase)) return 0;
+            if (string.Equals(command?.SupportKind, "module_switch", StringComparison.OrdinalIgnoreCase)) return 1;
+            if (string.Equals(command?.Action, "set_selection_filter", StringComparison.OrdinalIgnoreCase)) return 0;
+            if (string.Equals(command?.Action, "switch_module", StringComparison.OrdinalIgnoreCase)) return 1;
+            return 2;
+        }
+
+        private static bool IsSupport(ModuleCommand command) => SupportPriority(command) < 2;
+
+        private static int TargetLength(ModuleCommand command)
+        {
+            if (IsSupport(command)) return 2;
+            switch ((command?.Frequency ?? string.Empty).Trim().ToUpperInvariant())
+            {
+                case "K5": return 2;
+                case "K4": return 3;
+                case "K3": return 4;
+                case "K2":
+                case "K1": return 5;
+                default: return 5;
+            }
         }
 
         private static IReadOnlyList<string> GenerateCandidate(ModuleConfig module, ModuleCommand command)

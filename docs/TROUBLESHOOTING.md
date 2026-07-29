@@ -23,7 +23,7 @@ $config = "$root\nx2512-pro-hybrid.json"
 Признаки: мало команд, отсутствует metadata `full_command_catalog`, нет `selected_intents: 885`.
 
 ```powershell
-.\install-main-profile.ps1 `
+.\install-nxkeys.ps1 `
   -CatalogDir "D:\NX2512_Catalog_Output" `
   -NxRoot "C:\Program Files\Siemens\NX2512" `
   -Clean
@@ -33,7 +33,7 @@ $config = "$root\nx2512-pro-hybrid.json"
 
 ## В main появились K1–K2
 
-Validator должен сообщить reference outside K3–K5 scope. Убедитесь, что compiler запускается без `--all-frequencies` и без `--frequencies`, включающих K1/K2.
+Validator должен сообщить reference outside K3–K5 scope. Убедитесь, что compiler запускается без `--frequencies`, включающих K1/K2.
 
 ## Команда есть, но отключена
 
@@ -78,6 +78,6 @@ Validator должен сообщить reference outside K3–K5 scope. Убе�
 
 Проверьте последнюю папку `%LOCALAPPDATA%\NXKeys\backups\<timestamp>` и `manifest.json`. Устраните первичную ошибку и повторите установку. Не изменяйте managed root вручную.
 
-## Полный K1–K5 экспорт запущен случайно
+## Профиль с другим scope отклонён
 
-`install-full-command-profile.ps1` намеренно включает все 1169. Для возврата к основному профилю повторите `install-main-profile.ps1` без `-AllFrequencies`.
+`install-nxkeys.ps1` принимает только единый K3–K5 пресет на 885 намерений. Если передан generated profile с K1/K2 или другим числом selected intents, соберите профиль заново через `install-nxkeys.ps1 -CompileOnly`.

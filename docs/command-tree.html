@@ -899,8 +899,7 @@
                 return "default.png";
             };
             const icon = c => {
-                const cmdId = c?.command?.id;
-                const categoryPng = pngNameFor(c);
+                const operationName = String(c?.command?.name || "").trim();
                 const getSvgFallback = () => {
                     if (!c) return SVGS.command;
                     if (c.isMenu || menuKeyFor(c)) return SVGS.menu;
@@ -933,10 +932,10 @@
                     if (id.includes("FIT") || id.includes("VIEW") || hint === "view") return SVGS.view_fit;
                     return SVGS[hint] || SVGS.command;
                 };
-                if (cmdId) {
-                    return `<img src="assets/icons/${cmdId}.png" alt="" class="png-icon" onerror="this.onerror=null;this.src='assets/icons/${categoryPng}';this.onerror=function(){this.outerHTML='${getSvgFallback().replace(/'/g, "\\'")}';};" />`;
+                if (operationName) {
+                    return `<img src="../assets/nx-operation-icons/${encodeURIComponent(operationName)}.bmp" alt="" class="png-icon" onerror="this.outerHTML='${getSvgFallback().replace(/'/g, "\\'")}'" />`;
                 }
-                return `<img src="assets/icons/${categoryPng}" alt="" class="png-icon" onerror="this.outerHTML='${getSvgFallback().replace(/'/g, "\\'")}'" />`;
+                return getSvgFallback();
             };
             const policyFor = (m, c) => state.policy?.commands?.[sequence(m, c)] || null;
             const active = () => modules().find(x => x.id === state.moduleId) || modules()[0];

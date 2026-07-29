@@ -5,6 +5,13 @@ import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
+import {
+  SEQUENCE_POLICY_VERSION,
+  ensureUniversalSupport,
+  isModuleSwitchSupportCommand,
+  isSelectionSupportCommand,
+  supportMetadata
+} from './sequence-policy.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -22,11 +29,10 @@ const probe = valueOf('--probe', 'docs/audit/runtime-command-probe-2026-07-28.js
 const output = absolute(valueOf('--out', 'config/nx2512-pro-main.generated.json'));
 const report = absolute(valueOf('--report', 'docs/generated/main-profile-resolution.md'));
 const allLevels = ['K1', 'K2', 'K3', 'K4', 'K5'];
-const selected = has('--all-frequencies')
-  ? allLevels
-  : [...new Set(valueOf('--frequencies', 'K3,K4,K5').split(',').map(x => x.trim().toUpperCase()).filter(Boolean))];
-for (const level of selected) if (!allLevels.includes(level)) throw new Error(`Unsupported frequency: ${level}`);
-if (!selected.length) throw new Error('At least one frequency must be selected.');
+if (argv.includes('--all-frequencies') || argv.includes('--frequencies')) {
+  throw new Error('NXKeys has one installable preset: K3,K4,K5. Do not pass --all-frequencies or --frequencies.');
+}
+const selected = ['K3', 'K4', 'K5'];
 
 const readText = file => fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
 const normalizePath = value => (Array.isArray(value) ? value : String(value ?? '').split(/[\s>\-/]+/))
@@ -71,10 +77,8 @@ function allCommands(profile) {
     (set.commands ?? []).map(command => ({ module, set, command }))));
 }
 
-function isSelectionSupport(module, command) {
-  return module?.id === 'selection_object' &&
-    command?.action === 'set_selection_filter' &&
-    /^UG_SEL_/i.test(String(command?.command?.id ?? ''));
+function isRuntimeSupport(command) {
+  return isSelectionSupportCommand(command) || isModuleSwitchSupportCommand(command);
 }
 
 const intents = loadIntents(intentsDir);
@@ -97,6 +101,8 @@ try {
   if (result.status !== 0) throw new Error(`Base compiler failed:\n${result.stdout}\n${result.stderr}`);
 
   const profile = JSON.parse(readText(fullOutput));
+  const modules = (profile.modules ?? []).filter(module => module && module.enabled !== false);
+  ensureUniversalSupport(modules);
   for (const module of profile.modules ?? []) {
     for (const set of module.command_sets ?? []) {
       set.commands = (set.commands ?? []).filter(command => {
@@ -115,14 +121,14 @@ try {
 
         // Selection filters are runtime infrastructure rather than catalog coverage. Keeping them
         // preserves all 14 adaptive modules without adding K1/K2 intent references to the main profile.
-        if (isSelectionSupport(module, command)) {
+        if (isRuntimeSupport(command)) {
           command.catalog_refs = [];
           command.profile_support = true;
           command.frequency = 'support';
           command.resolution_status = 'existing';
           command.resolution_candidates = [];
           if (fallback.startsWith('catalog:')) delete command.fallback;
-          command.notes = ['Runtime selection infrastructure', command.notes].filter(Boolean).join(' | ');
+          command.notes = ['Runtime support infrastructure', command.notes].filter(Boolean).join(' | ');
           return true;
         }
         return false;
@@ -131,12 +137,13 @@ try {
     module.command_sets = (module.command_sets ?? []).filter(set => (set.commands ?? []).length > 0);
   }
 
-  profile.schema_version = 4;
+  profile.schema_version = 6;
   profile.profile ??= {};
   const isMain = selected.length === 3 && ['K3', 'K4', 'K5'].every(level => selected.includes(level));
   profile.profile.name = isMain ? 'NXKeys NX 2512 — Main K3–K5 Profile' : `NXKeys NX 2512 — ${selected.join(' + ')} Profile`;
   profile.profile.description = `Operational profile for ${selected.join(', ')}: ${selectedIntents.length} of 1169 NX 2512 command intents.`;
-  const supportCommands = allCommands(profile).filter(row => row.command.profile_support === true).length;
+  const support = supportMetadata(profile.modules ?? []);
+  const supportCommands = support.support_commands;
   profile.full_command_catalog = {
     schema_version: 2,
     source_intents: intents.length,
@@ -147,7 +154,10 @@ try {
     generated_utc: new Date().toISOString(),
     catalog_items: profile.full_command_catalog?.catalog_items ?? 0,
     global_commands_duplicated: profile.full_command_catalog?.global_commands_duplicated !== false,
-    source_files: profile.full_command_catalog?.source_files ?? []
+    source_files: profile.full_command_catalog?.source_files ?? [],
+    sequence_policy_version: SEQUENCE_POLICY_VERSION,
+    selection_filter_support_commands: support.selection_filter_support_commands,
+    module_switch_support_commands: support.module_switch_support_commands
   };
 
   const rows = allCommands(profile);
