@@ -216,6 +216,12 @@ function validateDocumentation() {
     if (operationalDocs.includes(obsolete)) fail(`Operational documentation contains obsolete statement: ${obsolete}`);
 }
 
+function validateInstallerCompatibility() {
+  const installer = readText('install-nxkeys.ps1');
+  if (!installer.includes('schema_version от 3 до 6') || !/\$schemaVersion\s+-gt\s+6/.test(installer))
+    fail('install-nxkeys.ps1 must accept the generated schema_version 6 profile.');
+}
+
 try {
   const intents = loadIntents();
   if (intents.length !== 1169) fail(`Expected 1169 intents, got ${intents.length}.`);
@@ -255,6 +261,7 @@ try {
   }
 
   validateDocumentation();
+  validateInstallerCompatibility();
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'nxkeys-command-map-'));
   try {
     validateGeneratedProfile(compile(tempRoot), EXPECTED_MAIN_INTENTS, MAIN_FREQUENCIES, intents.length);

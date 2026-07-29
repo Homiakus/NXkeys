@@ -167,7 +167,7 @@ $catalog = Resolve-Catalog $CatalogDir
 $config = Resolve-Config -Requested $ConfigPath -ResolvedCatalog $catalog -RequestedOutput $OutputPath -DisableGlobalDuplication:$NoGlobalDuplication
 $configJson = (Get-Content -LiteralPath $config) -join "`n" | ConvertFrom-Json
 $schemaVersion = [int]$configJson.schema_version
-if ($schemaVersion -lt 3 -or $schemaVersion -gt 4) { throw 'Для установки требуется schema_version=3 или 4.' }
+if ($schemaVersion -lt 3 -or $schemaVersion -gt 6) { throw 'Для установки требуется schema_version от 3 до 6.' }
 if ($configJson.leader_key.adaptive_module_mode -ne $true) { throw 'Для установки требуется adaptive_module_mode=true.' }
 if (-not (($configJson.PSObject.Properties.Name -contains 'full_command_catalog') -and $null -ne $configJson.full_command_catalog)) {
     throw 'Единый установщик принимает только generated profile с full_command_catalog.'
