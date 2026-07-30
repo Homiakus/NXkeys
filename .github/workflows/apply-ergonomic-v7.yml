@@ -1,0 +1,61 @@
+name: Apply ergonomic command map v7
+
+on:
+  push:
+    branches:
+      - agent/nxkeys-ergonomic-v7
+
+permissions:
+  contents: write
+
+jobs:
+  migrate-and-validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: agent/nxkeys-ergonomic-v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Apply source migration
+        shell: pwsh
+        run: python .\scripts\apply-ergonomic-v7.py
+
+      - name: Regenerate main profile
+        shell: pwsh
+        run: node .\scripts\compile-main-command-map.mjs
+
+      - name: Validate command maps
+        shell: pwsh
+        run: |
+          node .\scripts\validate-main-command-map.mjs
+          node .\scripts\validate-command-tree.mjs
+          node .\scripts\validate-full-command-map.mjs
+          node .\scripts\audit-command-sequences.mjs
+          node .\scripts\validate-ergonomic-map.mjs
+
+      - name: Run state-machine tests
+        shell: pwsh
+        run: dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
+
+      - name: Check patch quality
+        shell: pwsh
+        run: git diff --check
+
+      - name: Commit validated implementation
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if (git diff --cached --quiet) { throw "Migration produced no changes." }
+          git commit -m "Implement ergonomic NX command map v7"
+          git push origin HEAD:agent/nxkeys-ergonomic-v7
