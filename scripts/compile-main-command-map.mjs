@@ -111,22 +111,32 @@ try {
         const fallbackRef = fallback.startsWith('catalog:') ? fallback.slice('catalog:'.length) : '';
         const refs = originalRefs.filter(ref => selectedIds.has(ref));
         if (fallbackRef && selectedIds.has(fallbackRef) && !refs.includes(fallbackRef)) refs.push(fallbackRef);
+        const runtimeSupport = isRuntimeSupport(command);
+
         if (refs.length) {
           command.catalog_refs = refs;
-          command.frequency = refs.map(ref => frequencyById.get(ref)).filter(Boolean)
-            .sort((a, b) => Number(b.slice(1)) - Number(a.slice(1)))[0] ?? command.frequency;
-          delete command.profile_support;
+          if (runtimeSupport) {
+            command.catalog_backed_support = true;
+            command.profile_support = true;
+            command.frequency = 'support';
+            command.notes = ['Catalog-backed runtime support', command.notes].filter(Boolean).join(' | ');
+          } else {
+            command.frequency = refs.map(ref => frequencyById.get(ref)).filter(Boolean)
+              .sort((a, b) => Number(b.slice(1)) - Number(a.slice(1)))[0] ?? command.frequency;
+            delete command.profile_support;
+            delete command.catalog_backed_support;
+          }
           return true;
         }
 
-        // Selection filters are runtime infrastructure rather than catalog coverage. Keeping them
-        // preserves all 14 adaptive modules without adding K1/K2 intent references to the main profile.
-        if (isRuntimeSupport(command)) {
+        // Selection filters and module switches are runtime infrastructure rather than catalog coverage.
+        if (runtimeSupport) {
           command.catalog_refs = [];
           command.profile_support = true;
           command.frequency = 'support';
           command.resolution_status = 'existing';
           command.resolution_candidates = [];
+          delete command.catalog_backed_support;
           if (fallback.startsWith('catalog:')) delete command.fallback;
           command.notes = ['Runtime support infrastructure', command.notes].filter(Boolean).join(' | ');
           return true;

@@ -1,6 +1,6 @@
 # NXKeys Mnemonic Command Language
 
-## 1. Цель
+## Назначение
 
 NXKeys использует язык намерений:
 
@@ -8,18 +8,22 @@ NXKeys использует язык намерений:
 CapsLock → действие → объект → команда → вариант
 ```
 
-Пользователь запоминает смысл операции, а не позицию кнопки на ленте NX.
+Пользователь запоминает смысл операции, а не положение кнопки на ribbon. Canonical path содержит 2–5 токенов. Внутренний module prefix добавляется runtime и пользователем не вводится.
 
-Язык обслуживает:
+## Контракты
 
-- базовый curated-профиль;
-- 14 контекстных модулей;
-- полную карту из 1169 намерений в 32 разделах;
-- безопасные короткие aliases для частых команд.
+- profile schema: 6;
+- source sequence policy: 7;
+- 14 context modules;
+- source catalog: 1169 intents;
+- main runtime scope: 885 K3–K5 intents;
+- paths и aliases prefix-free внутри module.
 
-## 2. Корневой алфавит действий
+Checked-in generated audit может отражать предыдущую policy до regeneration; source `scripts/sequence-policy.mjs` имеет приоритет.
 
-| Клавиша | Смысл |
+## Корневой алфавит действий
+
+| Token | Смысл |
 |---|---|
 | `C` | Create — создать или добавить |
 | `E` | Edit — изменить существующее |
@@ -30,17 +34,17 @@ CapsLock → действие → объект → команда → вариа
 | `V` | View — показать, скрыть, ориентировать |
 | `S` | Select — выбор и фильтры |
 | `A` | Annotate — размеры, PMI, символы, примечания |
-| `M` | Manage — навигаторы, слои, материалы, библиотеки |
+| `M` | Manage — слои, материалы, навигаторы, библиотеки |
 | `F` | File — файловые операции |
 | `G` | Go — переход между приложениями NX |
 | `U` | Utilities — выражения, журналы, настройки |
 | `H` | Help — справка, поиск, диагностика |
 
-Смысл первой буквы не меняется между модулями.
+Смысл корня должен оставаться стабильным между модулями. `S*` и `G*` зарезервированы source policy для universal support commands.
 
-## 3. Основные объекты
+## Объектные токены
 
-| Клавиша | Объект |
+| Token | Объект/область |
 |---|---|
 | `A` | Annotation / Additive |
 | `B` | Body / Base |
@@ -50,68 +54,74 @@ CapsLock → действие → объект → команда → вариа
 | `F` | Feature / Frame |
 | `G` | Geometry / Curve |
 | `H` | Sheet Metal |
-| `I` | Inspection |
-| `J` | Fixture |
 | `K` | Constraint |
 | `L` | Layout / Layer |
 | `M` | Material / Mold |
 | `N` | Simulation |
 | `O` | CAM Operation |
 | `P` | Part / Data |
-| `Q` | Quality |
 | `R` | Routing |
 | `S` | Sketch / Selection |
 | `T` | Tool / Template |
 | `U` | Surface |
 | `V` | View |
 | `W` | WAVE |
-| `Y` | Assembly / Ship |
-| `Z` | Other |
+| `Y` | Assembly |
+| `Z` | Deterministic fallback / other |
 
-## 4. Контекст модуля
+Object token выбирается по command ID/name, module и semantic group. Он не является отдельным публичным API.
 
-Пользователь не вводит module prefix. Его добавляет движок:
+## Контекст модуля
+
+Пример:
 
 ```text
 Пользователь: CapsLock → C → F → E
 Внутри DFA:  M → C → F → E
+Команда:      Modeling → Create → Feature → Extrude
 ```
 
-`M` здесь означает Modeling. Такой же пользовательский путь может существовать в другом модуле и вести к другой контекстной команде.
+Одинаковый user path может существовать в разных modules, поскольку internal prefixes различаются.
 
-## 5. Длина и структура пути
+## Правила пути
 
-Канонический путь содержит 2–5 буквенно-цифровых токенов:
+1. Path читается как намерение.
+2. Canonical path уникален внутри module.
+3. Ни один path/alias не является префиксом другого terminal path.
+4. Alias не затеняет canonical path или submenu.
+5. Explicit source path рассматривается раньше known definition и generated fallback в текущем runtime generator.
+6. Частотная цель задаёт максимальную длину, но не отменяет safety/conflict rules.
+7. Support paths резервируются до обычных commands.
+8. Command без exact ID не становится enabled.
 
-```text
-действие → объект → команда → вариант → подвариант
-```
+Частотные цели policy v7:
 
-Правила:
+| Frequency | Максимальная длина |
+|---|---:|
+| K5 | 2 |
+| K4 | 3 |
+| K3 | 4 |
+| K2/K1 | 5 |
+| support | 2 |
 
-1. Путь должен читаться как намерение.
-2. Внутри модуля путь уникален.
-3. Ни один путь не является префиксом другого.
-4. Alias не может затенять команду или submenu.
-5. Известные ручные пути имеют приоритет над сгенерированными.
-6. Частота `K5`/`K4` учитывается при проектировании коротких путей, но не отменяет правила безопасности.
+## Curated mappings, подтверждённые runtime generator
 
-## 6. Curated-примеры
+Ниже перечислены примеры из `MnemonicPathGenerator.BuildKnown()`. Generated main profile может выбрать другой fallback path для конфликтующей или другой command row, но известные IDs используют эти definitions, если explicit source path не имеет приоритета.
 
 ### Modeling
 
 ```text
-C S K  Create Sketch
-C F E  Create Feature Extrude       alias C E
-C F H  Create Feature Hole          alias C H
-C F R  Create Feature Revolve       alias C R
-E E B  Edit Edge Blend              alias E B
-E E C  Edit Edge Chamfer            alias E C
-T F P  Transform Feature Pattern    alias T P
-T F M  Transform Feature Mirror     alias T M
+C S K  Create Sketch               alias C S
+C F E  Extrude                     alias C E
+C F H  Hole                        alias C H
+C F R  Revolve                     alias C R
+E E B  Edge Blend                  alias E B
+E E C  Edge Chamfer                alias E C
+T F P  Pattern Feature             alias T P
+T F M  Mirror Feature              alias T M
 ```
 
-### Sketch
+### Sketch geometry
 
 ```text
 C G L    Line
@@ -121,23 +131,62 @@ C G A    Arc
 E G T    Trim
 E G E    Extend
 T G O    Offset Curve
+C G L 2  Line by Two Points
+C G L M  Line from Midpoint
+C G R 2  Rectangle by Two Points
+C G R C  Rectangle from Center
 C G R 3  Rectangle by Three Points
+C G C C  Circle from Center
+C G C 3  Circle by Three Points
+C G A C  Arc from Center
+C G A 3  Arc by Three Points
 ```
+
+### Sketch dimensions and constraints
+
+```text
+A D R  Rapid Dimension
+A D L  Linear Dimension
+C K C  Coincident
+C K T  Tangent
+C K P  Parallel
+C K N  Perpendicular
+C K H  Horizontal
+C K V  Vertical
+I S C  Sketch Checker
+```
+
+**Важно:** более короткие Sketch mappings вида `CL`, `CR`, `DQ`, `KC` обсуждались как эргономическое направление, но текущий `MnemonicPathGenerator.cs` подтверждает mappings выше. Документация не описывает предложенную карту как внедрённую.
 
 ### Assembly
 
 ```text
-C C A  Add Component
-C C N  Create New Component
-T C M  Move Component
-C K A  Assembly Constraints
-E C R  Replace Component
-X C R  Remove Component
-T C P  Pattern Component
-M N A  Assembly Navigator
+C C A  Add Component               alias C A
+C C N  New Component               alias C N
+T C M  Move Component              alias T M
+C K A  Assembly Constraints        alias C K
+E C R  Replace Component           alias E R
+X C R  Remove Component            alias X C
+T C P  Pattern Component           alias T P
+M N A  Assembly Navigator          alias M N
 ```
 
-### Drafting / PMI
+### Layers and materials
+
+```text
+M L S  Layer Settings
+M L V  Layer View
+M L A  Layer Category
+M L C  Copy to Layer
+M L M  Move to Layer
+I L I  Information on Other Layers
+M M A  Assign Material
+M M L  Material Library Manager
+```
+
+Dedicated root `L*` для layers не подтверждён текущим generator; current curated paths используют `M L *`.
+
+### Drafting and PMI
 
 ```text
 C V B  Base View
@@ -153,16 +202,16 @@ A S F  Surface Finish
 ### Manufacturing
 
 ```text
-C O O  Create Operation
-C T T  Create Tool
+C O O  Create Operation            alias C O
+C T T  Create Tool                 alias C T
 P O G  Generate Tool Path
 P O V  Verify Tool Path
 P O P  Postprocess
-X O D  Delete Operation
-M N O  Operation Navigator
 ```
 
-### Selection
+## Universal selection paths
+
+Source policy v7 закрепляет во всех 14 enabled modules:
 
 ```text
 S B  Body
@@ -174,118 +223,100 @@ S U  Curve
 S D  Datum
 S R  Reset Filter
 S A  Select All
-S N  Select None
+S N  Deselect All
 ```
 
-## 7. Полная карта 1169 команд
+Они используют `action: set_selection_filter`, а Bridge применяет selection semantics через NXOpen.
 
-Исходные намерения находятся в `config/full-command-map/`. Для каждого сохранены:
-
-- стабильный `intent_id`;
-- исходный раздел и группа;
-- `K1–K5`;
-- английское и русское имя;
-- runtime module;
-- path hint.
-
-`scripts/compile-full-command-map.mjs`:
-
-1. загружает базовый профиль;
-2. загружает 1169 намерений;
-3. читает каталог `BUTTON ID` конкретной NX;
-4. сохраняет известные ручные пути;
-5. разрешает новые команды;
-6. резервирует prefix-free путь внутри модуля;
-7. удаляет конфликтующие aliases;
-8. отключает ambiguous/unresolved-команды;
-9. создаёт отчёт разрешения.
-
-Полная карта не ограничивается восемью командами на модуль. Legacy-grid `QWE/A·D/ZXC` используется как слой быстрых primary aliases.
-
-## 8. Частота использования
-
-| Коэффициент | Интерпретация | Рекомендуемый доступ |
-|---|---|---|
-| `K5` | многократно в течение часа | короткий curated path или alias |
-| `K4` | обычно ежедневно | короткий путь 2–3 токена |
-| `K3` | несколько раз в неделю / на этапе | обычный путь 3–4 токена |
-| `K2` | специализированная функция | путь 3–5 токенов или поиск |
-| `K1` | редкая административная функция | поиск, полный путь, отдельный scope |
-
-`Kч` — экспертная оценка, а не официальная телеметрия Siemens.
-
-## 9. Автоматическая классификация
-
-Типовые признаки действия:
+## Module switches
 
 ```text
-CREATE / NEW / ADD          → C
-EDIT / REPLACE / TRIM       → E
-MOVE / MIRROR / PATTERN     → T
-DELETE / REMOVE             → X
-GENERATE / SOLVE / POST     → P
-MEASURE / INFO / VALIDATE   → I
-VIEW / SHOW / HIDE          → V
-SELECT                      → S
-NAVIGATOR / LAYER / LIBRARY → M
+G M  Modeling
+G A  Assembly
+G D  Drafting
+G P  PMI
+G U  Surface
+G H  Sheet Metal
+G C  Manufacturing
+G N  Simulation
+G R  Routing
+G O  Mold
+G L  Reuse
+G V  Inspect / View
 ```
 
-Объект определяется по имени, `BUTTON ID`, модулю и группе. При коллизии меняется командный токен, затем объектный токен, затем используется детерминированный резервный суффикс.
+Switch rows не добавляются в Sketch и Selection/Object module. Module не получает switch на самого себя.
 
-## 10. Aliases
+Source policy экспортирует рекомендуемый cycle Modeling → Assembly → Drafting → Manufacturing. Не считайте его активным UI contract без подтверждения runtime implementation.
 
-Alias — дополнительный путь к той же команде.
+## Legacy aliases
 
-Он принимается только если:
+Legacy grid `W/E/D/C/X/Z/A/Q` сохраняется для primary commands, если alias не конфликтует. Он является дополнительным motor layer и не ограничивает module восемью commands.
 
-- не равен каноническому пути;
-- не совпадает с другой командой;
-- не является префиксом другой команды;
-- другой путь не является его префиксом.
-
-Primary-команды сохраняют one-key legacy alias, когда это не создаёт конфликт.
-
-## 11. Безопасность и выбор
-
-`requires_selection` описывает expected workflow, но не всегда блокирует команду до preselection. Жёсткое требование задаётся policy.
-
-Selection-фильтры используют:
+Legacy fields:
 
 ```text
-action: set_selection_filter
-selection_type: edge | face | body | component | curve |
-                datum | feature | operation | all | reset | none
+slot, submenu_key, input_key
 ```
 
-Bridge применяет global NXOpen filter members, а не запускает `UG_SEL_*` как обычные menu buttons.
+сохраняются для migration/редактора, но canonical routing использует `path` и `aliases`.
 
-Разрушительные команды требуют `Enter`.
+## Автогенерация
 
-## 12. Поиск
+Compiler/runtime generator строит candidate из:
 
-`CapsLock → Space` ищет по:
+- action root;
+- object token;
+- command-name letters;
+- deterministic fallback alphabet.
 
-- имени команды;
-- `BUTTON ID`;
-- русскому и английскому названию;
-- aliases;
-- каноническому пути и labels;
-- модулю;
-- разделу и группе полного каталога;
-- частоте;
-- локальной истории использования.
+При конфликте текущая реализация перебирает alternative roots/object tokens/letters, соблюдая target length и prefix-free invariant. Формальная уникальность не гарантирует идеальную mnemonic ergonomics, поэтому high-frequency и critical commands должны иметь reviewed curated mapping.
 
-## 13. Совместимость
+## `path_locked` и `path_source`
 
-Legacy-поля `slot`, `submenu_key` и `input_key` остаются читаемыми. Runtime schema 5 назначает `path`, `path_labels`, `aliases`, `search_aliases`, `action` и `selection_type`.
+Schema 6 содержит metadata:
 
-Исходный JSON сохраняется как schema 4 для совместимости установщика. IPC использует отдельную schema 3.
+- `path_locked`;
+- `path_source`.
 
-## 14. Проверка
+Они позволяют хранить происхождение и намерение закрепления пути. Отдельный fully implemented user override file/UI flow текущим кодом не подтверждён; изменения source mappings должны проходить code review и validators.
+
+## Поиск
+
+`CapsLock → Space` ищет по доступным runtime metadata, включая:
+
+- command name и ID;
+- русские/английские aliases;
+- canonical path и labels;
+- module;
+- catalog section/group/frequency;
+- локальную usage history, если она доступна runtime.
+
+Search result не обходит enabled/resolution/context guards.
+
+## Safety semantics
+
+- `requires_selection` описывает ожидаемый workflow, но hard minimum задаётся policy/guard;
+- destructive command требует confirmation;
+- ambiguous/unresolved rows disabled;
+- modal context может блокировать dispatch;
+- module switch подтверждается новым context;
+- selection action маршрутизируется отдельно от обычной command invocation.
+
+## Изменение языка
+
+При изменении curated path или policy:
+
+1. обновите source policy/generator;
+2. запустите full/main/tree validators;
+3. пересоздайте sequence audit и generated profile;
+4. проверьте все canonical paths и aliases;
+5. обновите этот документ и command tree;
+6. проверьте high-frequency workflows на Windows/NX.
 
 ```powershell
-node .\scripts\validate-command-tree.mjs
 node .\scripts\validate-full-command-map.mjs
+node .\scripts\validate-main-command-map.mjs
+node .\scripts\validate-command-tree.mjs
+node .\scripts\audit-command-sequences.mjs
 ```
-
-Проверяются известные пути, 1169 намерений, 32 раздела, `K1–K5`, уникальность, prefix-free свойства и запрет включённых команд без точного ID.

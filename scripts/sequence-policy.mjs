@@ -101,48 +101,74 @@ function upsertCommand(set, match, factory) {
   return created;
 }
 
+function mergeCatalogTrace(target, source) {
+  if (!source) return target;
+  const refs = new Set([...(target.catalog_refs ?? []), ...(source.catalog_refs ?? [])].filter(Boolean));
+  target.catalog_refs = [...refs];
+  if (source.frequency && source.frequency !== 'support') target.frequency = source.frequency;
+  if (source.fallback) target.fallback = source.fallback;
+  if (source.resolution_status) target.resolution_status = source.resolution_status;
+  if (Array.isArray(source.resolution_candidates) && source.resolution_candidates.length)
+    target.resolution_candidates = source.resolution_candidates;
+  return target;
+}
+
 export function ensureUniversalSelectionFilters(modules) {
   const canonicalIds = new Set(CANONICAL_SELECTION_FILTERS.map(filter => filter.id));
   for (const module of modules ?? []) {
     if (!module || module.enabled === false) continue;
+
+    const preservedById = new Map();
     for (const existingSet of module.command_sets ?? []) {
       if (existingSet?.id === 'selection_filters') continue;
-      existingSet.commands = (existingSet.commands ?? []).filter(command => !canonicalIds.has(String(command?.command?.id ?? '').toUpperCase()));
+      existingSet.commands = (existingSet.commands ?? []).filter(command => {
+        const id = String(command?.command?.id ?? '').toUpperCase();
+        if (!canonicalIds.has(id)) return true;
+        const preserved = preservedById.get(id) ?? { catalog_refs: [] };
+        preservedById.set(id, mergeCatalogTrace(preserved, command));
+        return false;
+      });
     }
+
     const set = findOrCreateSet(module, 'selection_filters', 'Selection Filters');
     set.commands = set.commands.filter(command => !/^UG_SEL_RESET$/i.test(String(command?.command?.id ?? '')));
     for (const [index, filter] of CANONICAL_SELECTION_FILTERS.entries()) {
       upsertCommand(
         set,
         command => String(command?.command?.id ?? '').toUpperCase() === filter.id,
-        () => ({
-          slot: '',
-          submenu_key: '',
-          submenu_label: 'Selection Filters',
-          input_key: filter.path[1],
-          path: [...filter.path],
-          path_labels: ['Select', filter.name],
-          aliases: [],
-          search_aliases: [filter.name, filter.id],
-          icon_hint: filter.iconHint,
-          display_order: 9000 + index,
-          command: { id: filter.id, name: filter.name },
-          action: 'set_selection_filter',
-          selection_type: filter.selectionType,
-          enabled: true,
-          requires_selection: false,
-          destructive: false,
-          confirm_before_execute: false,
-          fallback: '',
-          notes: 'Universal runtime selection filter',
-          catalog_refs: [],
-          frequency: 'support',
-          resolution_status: 'existing',
-          resolution_candidates: [],
-          support_kind: 'selection_filter',
-          path_locked: false,
-          path_source: 'curated'
-        })
+        existing => {
+          const canonical = {
+            slot: '',
+            submenu_key: '',
+            submenu_label: 'Selection Filters',
+            input_key: filter.path[1],
+            path: [...filter.path],
+            path_labels: ['Select', filter.name],
+            aliases: [],
+            search_aliases: [filter.name, filter.id],
+            icon_hint: filter.iconHint,
+            display_order: 9000 + index,
+            command: { id: filter.id, name: filter.name },
+            action: 'set_selection_filter',
+            selection_type: filter.selectionType,
+            enabled: true,
+            requires_selection: false,
+            destructive: false,
+            confirm_before_execute: false,
+            fallback: '',
+            notes: 'Universal runtime selection filter',
+            catalog_refs: [],
+            frequency: 'support',
+            resolution_status: 'existing',
+            resolution_candidates: [],
+            support_kind: 'selection_filter',
+            path_locked: false,
+            path_source: 'curated'
+          };
+          mergeCatalogTrace(canonical, existing);
+          mergeCatalogTrace(canonical, preservedById.get(filter.id));
+          return canonical;
+        }
       );
     }
   }

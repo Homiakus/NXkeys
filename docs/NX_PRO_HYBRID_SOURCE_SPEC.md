@@ -1,27 +1,33 @@
 # Спецификация профилей NXKeys 2512
 
-## Цель
+## Термины
 
-NXKeys сочетает два уровня:
+| Термин | Значение |
+|---|---|
+| intent catalog | 1169 source records K1–K5 в `config/full-command-map/` |
+| bootstrap profile | `config/nx2512-pro-hybrid.json`, schema 6, safety/deployment/known IDs |
+| generated main profile | K3–K5 output с 885 selected intents и resolution metadata |
+| installed profile | generated main profile под compatibility filename `nx2512-pro-hybrid.json` |
+| runtime profile | загруженный и мигрированный объект schema 6 |
 
-1. **Hybrid baseline** — минимальный проверенный моторный слой для частых сценариев.
-2. **Full command map** — 1169 намерений в 32 разделах с компиляцией под конкретную установку NX.
+Слово `hybrid` в filename не означает, что source bootstrap является рекомендуемым полным runtime profile.
 
-Базовый профиль остаётся безопасным fallback и источником известных `BUTTON ID`, ручных путей и aliases. Полный профиль расширяет его, а не заменяет правила безопасности.
+## Базовые контракты
 
-## Базовые инварианты
+- 12 direct basic shortcuts;
+- один Leader key (`CapsLock` по умолчанию);
+- 14 context modules;
+- legacy primary aliases `W/E/D/C/X/Z/A/Q`;
+- canonical paths 2–5 tokens;
+- source/runtime profile schema 6;
+- minimum readable schema 3;
+- IPC schema 3;
+- source sequence policy 7;
+- main runtime scope K3/K4/K5 = 885 intents.
 
-- 12 прямых системных сочетаний;
-- один Leader (`CapsLock` по умолчанию);
-- 14 контекстных модулей;
-- legacy primary-grid из восьми физических клавиш;
-- многоуровневые пути длиной 2–5 токенов;
-- source profile schema 4, runtime schema 5;
-- IPC schema 3.
+## Модули
 
-## Канонические модули
-
-| ID | Приложение | Внутренний префикс |
+| ID | Область | Internal prefix |
 |---|---|---|
 | `modeling` | Modeling | `M` |
 | `sketch` | Sketch | `S` |
@@ -38,121 +44,181 @@ NXKeys сочетает два уровня:
 | `inspect_view` | Inspect / View | `V` |
 | `selection_object` | Selection / Object | `F` |
 
-Префикс нужен DFA и не вводится пользователем.
+Internal prefix нужен DFA и пользователем не вводится.
 
-## Legacy primary-grid
+## Legacy primary grid
 
-| Клавиша | Слот | Рекомендуемый смысл |
+| Key | Slot | Роль |
 |---|---|---|
-| `W` | `N` | основная create/open-команда |
-| `E` | `NE` | следующий частый шаг |
-| `D` | `E` | добавить объект или зависимость |
-| `C` | `SE` | преобразовать или заменить |
-| `X` | `S` | завершить, обработать или удалить |
-| `Z` | `SW` | удалить, уменьшить или ослабить |
-| `A` | `W` | структура, связь, pattern |
-| `Q` | `NW` | проверить, измерить, открыть сервис |
+| W | N | основная create/open command |
+| E | NE | следующий частый шаг |
+| D | E | добавить object/dependency |
+| C | SE | transform/replace |
+| X | S | process/remove |
+| Z | SW | remove/reduce |
+| A | W | structure/link/pattern |
+| Q | NW | inspect/service |
 
-Эти восемь клавиш являются быстрыми aliases для primary-набора. Они не ограничивают количество команд в модуле.
+Эти keys являются optional aliases. Они не ограничивают module восемью commands и сохраняются только без path conflicts.
 
-## Многоуровневый язык
+## Source sequence policy v7
+
+Частотные цели:
 
 ```text
-CapsLock → действие → объект → команда → вариант
+K5 <= 2
+K4 <= 3
+K3 <= 4
+K2/K1 <= 5
+support = 2
 ```
 
-Основные свойства:
+Selection support:
 
-- действие имеет стабильный смысл между модулями;
-- пути внутри модуля уникальны и prefix-free;
-- aliases проходят такую же проверку конфликтов;
-- одинаковый путь разрешён в разных модулях;
-- известные curated-пути приоритетнее автогенерации.
+```text
+SB SF SE ST SC SU SD SR SA SN
+```
 
-## Правила базового профиля
+Module switches:
 
-1. Команда должна иметь точный `BUTTON ID`.
-2. Частые команды получают primary alias, когда это безопасно.
-3. Контекстные команды получают `selection_type`.
-4. `UG_SEL_*` получают `action: set_selection_filter`.
-5. Разрушительные операции получают `destructive` и confirmation.
-6. Команда не дублируется прямым глобальным ускорителем, кроме 12 системных действий.
-7. Guards отражают Work/Display Part, module, selection и confidence.
+```text
+GM GA GD GP GU GH GC GN GR GO GL GV
+```
 
-## Полная карта
+Switches не добавляются в Sketch и Selection/Object module.
 
-Полный слой содержит:
+## Bootstrap requirements
 
-- 1169 intent records;
-- 32 исходных раздела;
-- `K1–K5`;
-- английские и русские имена;
-- source module и group;
-- целевой runtime module;
-- path hint.
+Bootstrap должен содержать:
 
-Компилятор объединяет намерения с базовым профилем и `06_ui_commands_buttons.csv`.
+- valid profile name/version;
+- deployment managed/backup roots;
+- 12 exact basic bindings;
+- 14 enabled modules с unique IDs/prefixes;
+- known exact IDs;
+- curated paths/aliases;
+- workflow controls;
+- safety flags;
+- adaptive Leader enabled.
 
-Результат для каждой команды:
+Bootstrap может содержать неполное command coverage и не должен выдавать себя за generated main profile.
 
-- `existing` — ID уже известен;
-- `resolved` — ID найден надёжно;
-- `ambiguous` — команда сохранена, но отключена;
-- `unresolved` — команда сохранена, но отключена.
+## Full intent catalog
 
-Включённая строка обязана иметь точный ID.
+Каждая source record должна иметь:
 
-## Глобальные команды
+- stable `intent_id`;
+- source section/group;
+- frequency K1–K5;
+- English/Russian names;
+- runtime module;
+- path hint;
+- traceability к source inventory.
 
-По умолчанию намерения Gateway/File/View/Measure/Teamcenter и других общих областей могут дублироваться во все активные модули. Это делает их доступными без ручной смены HUD.
+Количество records и frequencies являются машинно проверяемым contract:
 
-`--no-global-duplication` отключает такое дублирование.
+```text
+K1=4, K2=280, K3=445, K4=371, K5=69, total=1169
+```
 
-## Критерии готовности команды
+## Generation
 
-Команда считается production-ready, когда:
+Compiler объединяет intent catalog, bootstrap, target UI catalog и runtime probe.
 
-1. присутствует в базовом или полном профиле;
-2. имеет точный `BUTTON ID`;
-3. имеет prefix-free путь;
-4. проходит schema validation;
-5. корректно разрешяется в каталоге целевой NX;
-6. guards соответствуют workflow;
-7. selection routing проверен;
-8. destructive confirmation проверено;
-9. Bridge выполняет её в нужном приложении;
-10. результат подтверждён на целевой рабочей станции.
+Generated row получает:
 
-## Поведение при смене модуля
+- exact command ID либо disabled status;
+- canonical path и aliases;
+- frequency;
+- `catalog_refs`;
+- resolution status/candidates;
+- action/selection/module metadata;
+- safety fields.
 
-- Bridge обновляет context;
-- `AdaptiveModuleResolver` выбирает новый `ModuleConfig`;
-- HUD перестраивает доступные корни и ветви;
-- search ограничивается новым набором;
-- незавершённый путь отменяется;
-- явный switch завершается только после подтверждённой revision.
+Global intents могут дублироваться в active modules. Coverage измеряется unique `catalog_refs`, не module row count.
 
-## Расширение
+## Resolution rules
 
-Добавление нового runtime-модуля требует:
+| Status | Условие | Enabled |
+|---|---|---:|
+| existing | exact trusted bootstrap ID | да |
+| resolved | confident target catalog match | да |
+| ambiguous | несколько близких candidates | нет |
+| unresolved | ID отсутствует | нет |
 
-- уникального `id` и `leader_prefix`;
-- `nx_application_ids`;
-- switch command;
+Command name или API candidate не заменяет exact UI ID.
+
+## Path source и locking
+
+Schema 6 содержит `path_locked` и `path_source`. Они предназначены для provenance/locking metadata.
+
+Текущий source не подтверждает отдельный полностью завершённый user override file/UI pipeline. До его появления path customization выполняется через versioned source configuration/generator и validators.
+
+## Production-ready command
+
+Command считается готовой после:
+
+1. source intent/known command существует;
+2. exact ID подтверждён target NX catalog;
+3. path и aliases prefix-free;
+4. action/selection semantics заданы;
+5. context guards соответствуют workflow;
+6. destructive classification/confirmation проверены;
+7. profile validators проходят;
+8. Bridge contract build проходит;
+9. runtime execution подтверждено в target NX;
+10. evidence не содержит production data/secrets.
+
+Coverage или compilation без runtime test не достаточны.
+
+## Module change
+
+Новый module требует:
+
+- unique `id` и prefix;
+- application IDs;
+- switch command при применимости;
 - command sets;
-- policy guards;
-- теста resolver;
-- проверки DFA/HFSM;
-- проверки full-map compiler;
-- обновления документации и HTML-карты.
+- resolver mapping;
+- declarative guards;
+- support-command policy;
+- DFA/HFSM tests;
+- compiler validation;
+- docs и command tree update.
 
-Добавление новой команды в полный каталог требует стабильного `intent_id`, раздела, группы, `Kч`, двух языковых имён, target module и path hint.
+## Profile schema change
 
-## Проверка
+При изменении schema:
+
+- обновить current/minimum versions;
+- реализовать defaults/migration;
+- обновить installer range;
+- обновить CI checks;
+- добавить compatibility tests;
+- обновить examples/config docs;
+- исправить runtime error messages;
+- описать migration/rollback в changelog/ADR при breaking change.
+
+## Validation
 
 ```powershell
-node .\scripts\validate-command-tree.mjs
 node .\scripts\validate-full-command-map.mjs
+node .\scripts\validate-main-command-map.mjs
+node .\scripts\validate-command-tree.mjs
+node .\scripts\audit-command-sequences.mjs
+
+dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
 ```
 
-Базовый validator проверяет runtime и curated-профиль. Full-map validator проверяет 1169 намерений, 32 раздела, частоту, уникальность и prefix-free paths.
+Generated profile/report/audit должны быть созданы тем же source commit, который их публикует.
+
+## Требует проверки на workstation
+
+- application IDs конкретной role;
+- licensing каждого module;
+- sensitivity command IDs;
+- selection behavior;
+- modal workflows;
+- destructive classification;
+- code-signing policy;
+- custom directory interaction.
