@@ -2,7 +2,7 @@
 
 ## Область
 
-Source catalog NXKeys содержит **1169 намерений** Siemens NX 2512 в **32 разделах**. Стандартный runtime profile включает приоритетные уровни K3–K5.
+Source catalog NXKeys содержит **1169 намерений** Siemens NX 2512 в **32 разделах**. Стандартный runtime profile включает приоритетные уровни K3–K5. Уровни **K1–K2** остаются source-only и не входят в стандартную установку.
 
 | Уровень | Количество |
 |---|---:|
@@ -119,6 +119,8 @@ Similarity score не является достаточным доказател
 ```
 
 Почему selection support = 140: десять selection actions добавляются в 14 enabled modules. Module switches формируются в 12 обычных switchable modules, по 11 переходов без self-switch.
+
+`Select All` является одновременно catalog intent и universal support action. Generated row помечается `catalog_backed_support: true`: frequency остаётся `support`, а `catalog_refs` сохраняют покрытие intent.
 
 **Состояние репозитория:** source policy уже v7, но checked-in generated audit может всё ещё показывать v6/112 selection rows до запуска генераторов. Это несоответствие считается stale generated artifact, а не альтернативной policy.
 
