@@ -6,6 +6,7 @@ import {
   CANONICAL_SELECTION_FILTERS,
   MODULE_SWITCH_PATHS,
   SWITCHABLE_MODULE_IDS,
+  ensureUniversalSupport,
   isModuleSwitchSupportCommand,
   isSelectionSupportCommand,
   targetLengthForFrequency
@@ -68,6 +69,7 @@ try {
   if (!/CurrentSchemaVersion\s*=\s*6/.test(modelSource)) fail("Schema model must expose schema v6 runtime migration.");
   for (const required of ["path", "path_labels", "aliases", "search_aliases", "MnemonicPathGenerator.Apply"])
     if (!modelSource.includes(required)) fail(`Schema v5 model missing mnemonic feature: ${required}.`);
+  if (!modelSource.includes("catalog_backed_support")) fail("Schema model must preserve catalog-backed support traceability.");
   if (!projectSource.includes('Compile Remove="Models\\ConfigModels.cs"'))
     fail("HotkeyStudio project must exclude legacy ConfigModels.cs from compilation.");
   if (!generatorSource.includes("GenerateCandidate") || !generatorSource.includes("FilterAliases") || !generatorSource.includes("ReserveUnique"))
@@ -86,6 +88,8 @@ try {
       fail(`${binding.shortcut} must target ${requiredShortcuts.get(shortcut)}, got ${binding.command?.id}.`);
   }
 
+  // Validate the normalized v7 model rather than the raw bootstrap snapshot.
+  ensureUniversalSupport(profile.modules ?? []);
   const modules = (profile.modules ?? []).filter(item => item && item.enabled !== false);
   if (modules.length !== 14) fail(`Expected 14 enabled modules, got ${modules.length}.`);
   const moduleIds = new Set();
@@ -197,7 +201,8 @@ try {
   if (scripts.length !== 1) fail(`Expected one inline application script, got ${scripts.length}.`);
   for (const script of scripts) try { new Function(script); } catch (error) { fail(`Inline JavaScript syntax error: ${error.message}.`); }
 
-  if (!readme.includes("CapsLock") || !readme.includes("3 колонки")) fail("Root README lacks adaptive input documentation.");
+  if (!readme.includes("CapsLock → действие → объект") || !readme.includes("14 контекстных модулей"))
+    fail("Root README lacks current adaptive input documentation.");
   if (!docsReadme.includes("command-tree.html")) fail("docs/README.md must link to the command map.");
 
   if (!failed) console.log(`[mnemonic-profile] OK: ${bindings.length} basic shortcuts, ${modules.length} modules, ${commandCount} commands, ${knownPaths.size} exact mnemonic mappings, schema v6 runtime.`);
