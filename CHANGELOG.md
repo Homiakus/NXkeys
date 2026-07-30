@@ -13,6 +13,13 @@
 - добавлены `SA` Select All и `SN` Deselect All в каноническую документацию;
 - описаны contract build Command Bridge и обязательные проверки на реальной NX workstation.
 
+### Fixed
+
+- universal selection normalization теперь сохраняет catalog traceability заменяемой команды;
+- `Select All` может одновременно быть universal support action `SA` и одним из 885 selected intents;
+- добавлен явный флаг `catalog_backed_support`, позволяющий сохранять `catalog_refs` без нарушения support frequency/path policy;
+- main profile и command-tree validators проверяют нормализованную policy v7 и полное покрытие 885 intents.
+
 ### Known inconsistencies
 
 - checked-in `docs/audit/command-sequence-audit.*` всё ещё отражает policy v6 и должен быть пересоздан текущим генератором;
