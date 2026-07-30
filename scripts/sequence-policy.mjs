@@ -1,4 +1,4 @@
-export const SEQUENCE_POLICY_VERSION = 6;
+export const SEQUENCE_POLICY_VERSION = 7;
 
 export const FREQUENCY_TARGET_LENGTH = {
   K5: 2,
@@ -17,7 +17,9 @@ export const CANONICAL_SELECTION_FILTERS = [
   { id: 'UG_SEL_COMPONENT_PRIORITY', name: 'Component Selection Priority', path: ['S', 'C'], alias: ['X'], selectionType: 'component', iconHint: 'assembly' },
   { id: 'UG_SEL_CURVE_PRIORITY', name: 'Curve Selection Priority', path: ['S', 'U'], alias: ['Z'], selectionType: 'curve', iconHint: 'selection' },
   { id: 'UG_SEL_DATUM_PRIORITY', name: 'Datum Selection Priority', path: ['S', 'D'], alias: ['A'], selectionType: 'datum', iconHint: 'selection' },
-  { id: 'UG_SEL_TYPE_RESET', name: 'Reset Selection Filter', path: ['S', 'R'], alias: ['Q'], selectionType: 'reset', iconHint: 'sel_deselect' }
+  { id: 'UG_SEL_TYPE_RESET', name: 'Reset Selection Filter', path: ['S', 'R'], alias: ['Q'], selectionType: 'reset', iconHint: 'sel_deselect' },
+  { id: 'UG_SEL_SELECT_ALL', name: 'Select All', path: ['S', 'A'], alias: [], selectionType: 'all', iconHint: 'selection' },
+  { id: 'UG_SEL_DESELECT_ALL', name: 'Deselect All', path: ['S', 'N'], alias: [], selectionType: 'none', iconHint: 'sel_deselect' }
 ];
 
 export const MODULE_SWITCH_PATHS = {
@@ -36,6 +38,7 @@ export const MODULE_SWITCH_PATHS = {
 };
 
 export const SWITCHABLE_MODULE_IDS = Object.keys(MODULE_SWITCH_PATHS);
+export const DEFAULT_MODULE_CYCLE = ['modeling', 'assembly', 'drafting', 'manufacturing'];
 
 export function normalizeToken(value) {
   return String(value ?? '').trim().match(/[A-Za-z0-9]/)?.[0]?.toUpperCase() ?? '';
@@ -107,7 +110,7 @@ export function ensureUniversalSelectionFilters(modules) {
       existingSet.commands = (existingSet.commands ?? []).filter(command => !canonicalIds.has(String(command?.command?.id ?? '').toUpperCase()));
     }
     const set = findOrCreateSet(module, 'selection_filters', 'Selection Filters');
-    set.commands = set.commands.filter(command => !/^UG_SEL_(RESET|SELECT_ALL|DESELECT_ALL)$/i.test(String(command?.command?.id ?? '')));
+    set.commands = set.commands.filter(command => !/^UG_SEL_RESET$/i.test(String(command?.command?.id ?? '')));
     for (const [index, filter] of CANONICAL_SELECTION_FILTERS.entries()) {
       upsertCommand(
         set,
@@ -136,7 +139,9 @@ export function ensureUniversalSelectionFilters(modules) {
           frequency: 'support',
           resolution_status: 'existing',
           resolution_candidates: [],
-          support_kind: 'selection_filter'
+          support_kind: 'selection_filter',
+          path_locked: false,
+          path_source: 'curated'
         })
       );
     }
@@ -181,7 +186,9 @@ export function ensureUniversalModuleSwitches(modules) {
         frequency: 'support',
         resolution_status: 'existing',
         resolution_candidates: [],
-        support_kind: 'module_switch'
+        support_kind: 'module_switch',
+        path_locked: false,
+        path_source: 'curated'
       });
     }
   }
