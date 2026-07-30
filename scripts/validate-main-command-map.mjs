@@ -118,14 +118,20 @@ function validateGeneratedProfile(profile, expectedIntents, expectedFrequencies,
       if (fallback.startsWith('catalog:')) refs.push(fallback.slice('catalog:'.length));
       const selectionSupport = isSelectionSupportCommand(command);
       const moduleSwitchSupport = isModuleSwitchSupportCommand(command);
+      const catalogBackedSupport = command.catalog_backed_support === true;
       if (command.profile_support === true || selectionSupport || moduleSwitchSupport) {
         supportCount += 1;
         if (selectionSupport && command.action !== 'set_selection_filter') fail(`Selection support command has invalid action: ${module.id}/${command.command?.name}.`);
         if (selectionSupport && !/^UG_SEL_/i.test(String(command.command?.id ?? ''))) fail(`Selection support command has invalid ID: ${module.id}/${command.command?.name}.`);
         if (moduleSwitchSupport && command.action !== 'switch_module') fail(`Module switch support command has invalid action: ${module.id}/${command.command?.name}.`);
         if (moduleSwitchSupport && !command.target_module_id) fail(`Module switch support command has no target_module_id: ${module.id}/${command.command?.name}.`);
-        if (refs.length) fail(`Support command must not claim catalog coverage: ${module.id}/${command.command?.name}.`);
+        if (refs.length && !catalogBackedSupport) fail(`Support command claims catalog coverage without catalog_backed_support: ${module.id}/${command.command?.name}.`);
+        if (!refs.length && catalogBackedSupport) fail(`Catalog-backed support command has no catalog reference: ${module.id}/${command.command?.name}.`);
         if (command.frequency !== 'support') fail(`Support command has invalid frequency marker: ${module.id}/${command.command?.name}.`);
+        for (const reference of refs) {
+          seenRefs.add(reference);
+          if (!allowedRefs.has(reference)) fail(`Catalog-backed support contains intent outside selected frequency scope: ${reference}.`);
+        }
       } else {
         for (const reference of refs) {
           seenRefs.add(reference);
