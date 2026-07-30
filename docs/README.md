@@ -1,67 +1,85 @@
 # Документация NXKeys
 
-NXKeys — контекстный клавиатурный слой для Siemens NX / Designcenter NX 2512. **Главный профиль проекта покрывает все команды уровней K3–K5** из иерархического каталога: **885 команд-намерений** в 32 разделах.
+Этот каталог содержит эксплуатационную, разработческую и архитектурную документацию NXKeys.
 
-| Частота | Команд | В главном профиле |
-|---|---:|---|
-| K5 | 69 | да |
-| K4 | 371 | да |
-| K3 | 445 | да |
-| K2 | 280 | нет |
-| K1 | 4 | нет |
+## С чего начать
 
-K1–K2 остаются в исходном каталоге для аудита и трассировки. Они не входят в стандартную установку и не раздувают ежедневное дерево команд.
+| Задача | Документ |
+|---|---|
+| понять назначение проекта и запустить проверки | [корневой README](../README.md) |
+| подготовить локальную среду разработки | [DEVELOPMENT.md](../DEVELOPMENT.md) |
+| установить или обновить NXKeys | [INSTALLATION.md](INSTALLATION.md) |
+| понять компоненты и потоки данных | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| изменить профиль или мнемонический путь | [CONFIGURATION.md](CONFIGURATION.md) и [MNEMONIC_COMMAND_LANGUAGE.md](MNEMONIC_COMMAND_LANGUAGE.md) |
+| использовать CLI | [CLI.md](CLI.md) |
+| интегрироваться с файловым IPC | [api.md](api.md) |
+| диагностировать установленную систему | [OPERATIONS.md](OPERATIONS.md) и [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
+| понять ограничения безопасности | [SAFETY_MODEL.md](SAFETY_MODEL.md) |
+| внести изменение в репозиторий | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 
-## Что является главным профилем
+## Канонические документы
 
-- `config/nx2512-pro-hybrid.json` — bootstrap: 14 модулей, проверенные `BUTTON ID`, короткие aliases, guards и параметры deployment.
-- `config/full-command-map/` — полный версионируемый источник из 1169 намерений K1–K5.
-- `config/nx2512-pro-main.generated.json` — **главный сгенерированный профиль K3–K5** для конкретной установки NX.
-- `docs/generated/main-profile-resolution.md` — отчёт разрешения намерений в реальные `BUTTON ID`.
+- [Аудит документации и карта кодовой базы](DOCUMENTATION_AUDIT.md)
+- [Архитектура](ARCHITECTURE.md)
+- [Установка и обновление](INSTALLATION.md)
+- [Конфигурация](CONFIGURATION.md)
+- [CLI HotkeyStudio](CLI.md)
+- [IPC API и файловая очередь](api.md)
+- [Мнемонический язык](MNEMONIC_COMMAND_LANGUAGE.md)
+- [Архитектура DFA/HFSM](STATE_MACHINE_ARCHITECTURE.md)
+- [Модель безопасности](SAFETY_MODEL.md)
+- [Эксплуатационный runbook](OPERATIONS.md)
+- [Диагностика](TROUBLESHOOTING.md)
+- [Спецификация профиля](NX_PRO_HYBRID_SOURCE_SPEC.md)
+- [ADR](adr/README.md)
 
-При установке главный профиль копируется в managed-пакет под совместимым runtime-именем `nx2512-pro-hybrid.json`. Это техническое имя не меняет область покрытия: установленный профиль остаётся K3–K5.
+Документация отдельных компонентов:
 
-## Рекомендуемый порядок чтения
+- [HotkeyStudio](../NX2512_HotkeyStudio/README.md)
+- [Command Bridge](../NX2512_CommandBridge/README.md)
+- [Control Center](../NX2512_ControlCenter/README.md)
+- [Catalog Studio](../NX2512_Catalog_Studio/README.md)
+- [Экспортированные роли](../roles/README.md)
 
-1. [Корневой README](../README.md) — назначение и быстрый старт.
-2. [Главная карта K3–K5](../FULL_COMMAND_MAP.md) — охват, компиляция и статусы разрешения.
-3. [Установка](INSTALLATION.md) — сборка каталога, компиляция и deployment.
-4. [Конфигурация](CONFIGURATION.md) — bootstrap, generated profile и metadata.
-5. [Мнемонический язык](MNEMONIC_COMMAND_LANGUAGE.md) — грамматика путей.
-6. [Архитектура](ARCHITECTURE.md) — компоненты и поток данных.
-7. [Конечные автоматы](STATE_MACHINE_ARCHITECTURE.md) — DFA/HFSM и guards.
-8. [Модель безопасности](SAFETY_MODEL.md) — запрет выдуманных IDs и подтверждения.
-9. [Диагностика](TROUBLESHOOTING.md) — отчёты, логи и типовые ошибки.
-10. [Интерактивная карта](command-tree.html) — просмотр команд и модулей.
+## Generated-документы
 
-Исторические аудиты находятся в `docs/audit/`. Они фиксируют состояние проекта на дату анализа и не заменяют текущую эксплуатационную документацию.
+Следующие файлы создаются скриптами и не должны редактироваться вручную:
 
-## Быстрый старт
+- `generated/main-profile-resolution.md`;
+- `audit/command-sequence-audit.md`;
+- `audit/command-sequence-audit.json`;
+- интерактивная карта `command-tree.html`, если она пересобирается генератором.
 
-После экспорта `06_ui_commands_buttons.csv` из Catalog Studio:
+После изменения `scripts/sequence-policy.mjs`, компиляторов профиля или каталога намерений generated-документы необходимо пересоздать и проверить в diff.
 
-```powershell
-.\install-nxkeys.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
-  -NxRoot "C:\Program Files\Siemens\NX2512" `
-  -Clean
-```
+## Исторические аудиты
+
+`docs/audit/00-*` … `docs/audit/12-*`, датированные evidence JSON и `BUILD_REPORT.md` фиксируют состояние проекта на момент проведения конкретного анализа. Они полезны для трассировки решений, но не являются текущей инструкцией по установке или разработке.
+
+При противоречии используйте следующий приоритет:
+
+1. исполняемый код и конфигурационные валидаторы;
+2. канонические документы из списка выше;
+3. generated-отчёты одного и того же commit;
+4. исторические аудиты.
 
 ## Источники истины
 
-- состав K1–K5: `config/full-command-map/`;
-- область главного профиля: `selected_frequencies = [K3, K4, K5]`;
-- мнемонические пути: каталог намерений и `MnemonicPathGenerator.cs`;
-- реальные IDs: `06_ui_commands_buttons.csv`, bootstrap и runtime probe;
-- безопасность: `config/nx2512-state-machines.json` и Command Bridge;
-- runtime schema: v6; source/generated profile: schema 6; IPC: schema 3.
+| Область | Источник |
+|---|---|
+| profile schema и runtime migration | `NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs` |
+| поля команд | `NX2512_HotkeyStudio/Models/ModuleConfigTypesV5.cs` |
+| мнемонические пути | `scripts/sequence-policy.mjs` и `MnemonicPathGenerator.cs` |
+| состав K1–K5 | `config/full-command-map/` |
+| IPC | `NXKeys.Protocol/NxProtocol.cs` |
+| guards и state machine | `config/nx2512-state-machines.json`, `NXKeys.StateMachines/` |
+| сборка и установка | `install-nxkeys.ps1` и component `build.ps1` |
+| CI | `.github/workflows/*.yml` |
 
-## Проверка
+## Статусы утверждений
 
-```powershell
-node .\scripts\validate-main-command-map.mjs
-node .\scripts\validate-command-tree.mjs
-node .\scripts\audit-command-sequences.mjs
-```
+В аудиторских документах используются метки:
 
-Первый валидатор подтверждает 885 намерений K3–K5, отсутствие утечки K1–K2, prefix-free пути и актуальность документации. Второй проверяет bootstrap, базовые shortcuts, модули, selection routing, module switching и runtime migration. Аудит сохраняет текущую матрицу последовательностей в `docs/audit/command-sequence-audit.*`.
+- **Подтверждено кодом** — утверждение непосредственно следует из исходного кода или конфигурации;
+- **Предположение** — рабочая гипотеза, которую нельзя доказать доступными файлами;
+- **Требует уточнения** — необходимо проверить на лицензированной целевой установке NX или согласовать с владельцем проекта.
