@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import atexit
+import glob
 import os
 import runpy
 import sys
@@ -18,9 +19,9 @@ _spec.loader.exec_module(_real_json)
 
 
 def _run_fixups() -> None:
-    fix = os.path.join(_here, "fix-ergonomic-v7.py")
-    if os.path.exists(fix):
-        runpy.run_path(fix, run_name="__main__")
+    for fix in sorted(glob.glob(os.path.join(_here, "fix*-ergonomic-v7.py"))):
+        if os.path.exists(fix):
+            runpy.run_path(fix, run_name="__main__")
     wrapper = os.path.join(_here, "json.py")
     try:
         os.remove(wrapper)
