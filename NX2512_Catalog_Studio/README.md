@@ -1,73 +1,69 @@
-﻿# NX 2512 Catalog Studio
+# NX 2512 Catalog Studio
 
-NX Open DLL с полноценной графической панелью управления каталогизацией функций и API Siemens NX 2512.
+## Назначение
 
-## Возможности меню
+Catalog Studio — NXOpen library с WinForms-панелью для инвентаризации конкретной установки Siemens NX 2512. Export используется profile compiler и Control Center для сопоставления intent records с фактическими UI command IDs и NXOpen candidates.
 
-### Обзор
+Catalog Studio не является runtime keyboard layer и не устанавливает main profile.
 
-- состав каталога;
-- быстрый полный запуск;
-- открытие последнего результата;
-- пояснение точности сопоставления UI → API.
+## Возможности
 
-### Состав
+### Обзор и состав
 
 Можно независимо включать:
 
 - NX Open managed API;
 - UI-команды и `BUTTON ID`;
 - Open C / UFUN;
-- сопоставление UI-команда → API.
+- кандидатное сопоставление UI-команда → API.
 
-Для каждой выходной таблицы предусмотрен отдельный переключатель.
+Доступны presets полного каталога, только NX Open API, только UI-команд и сброса выбора. Несовместимые output tables блокируются UI.
 
-Встроены пресеты:
+### Пути и запуск
 
-- полный каталог;
-- только NX Open API;
-- только UI-команды;
-- снять всё.
-
-Несовместимые таблицы автоматически блокируются.
-
-### Пути
-
-- выбор каталога результата;
-- отдельная папка с датой и временем;
+- выбор output directory;
+- отдельная папка с timestamp;
 - настройка глубины сканирования;
-- просмотр обнаруженных переменных NX;
-- добавление и удаление пользовательских/site/group-каталогов.
-
-### Запуск
-
-- фоновое выполнение;
-- общий прогресс;
-- текущий этап;
-- подробный журнал;
-- безопасная остановка через CancellationToken;
+- просмотр обнаруженных NX environment values;
+- добавление user/site/group directories;
+- background execution и progress;
+- безопасная остановка через cancellation;
 - повторный запуск без перезагрузки DLL.
 
 ### Результаты
 
-- количество assemblies, namespace, types, members;
-- число UI-команд и UFUN;
-- список созданных файлов;
-- открытие папки;
-- открытие выбранного CSV/Markdown;
-- копирование пути.
+- assemblies, namespaces, types и members;
+- entry points;
+- UI-команды;
+- UFUN functions;
+- UI→API candidates;
+- Markdown summary и журнал.
 
-### Профили JSON
+Подтверждённые типы файлов, используемые проектом:
 
-- сохранение полного состояния меню;
-- загрузка профиля;
-- восстановление полного профиля;
-- настройка числа кандидатов и порогов уверенности;
-- автоматическое сохранение последнего состояния.
+```text
+04_nxopen_members.csv
+05_nxopen_entry_points.csv
+06_ui_commands_buttons.csv
+07_ufun_functions.csv
+08_ui_command_api_candidates.csv
+```
+
+Для main profile compiler ключевой файл:
+
+```text
+06_ui_commands_buttons.csv
+```
+
+UI→API candidates являются результатом поиска соответствий. Они не доказывают семантическую эквивалентность UI-команды и NXOpen API.
+
+### JSON profiles
+
+UI поддерживает сохранение и загрузку настроек export, включая output selection, depth и candidate thresholds. Эти profiles относятся к Catalog Studio и не являются NXKeys runtime command profile.
 
 ## Безопасность
 
-Программа не изменяет:
+Подтверждённое назначение Catalog Studio — чтение metadata и создание новых output files. Он не должен изменять:
 
 - открытую деталь;
 - пользовательскую роль;
@@ -75,37 +71,55 @@ NX Open DLL с полноценной графической панелью уп
 - MenuScript-файлы;
 - установку NX.
 
-Она только читает метаданные и создаёт новые CSV/Markdown-файлы.
+Перед публикацией export удалите machine/user paths, corporate names и другую чувствительную информацию. Не добавляйте proprietary NX binaries, license materials или закрытые role files в репозиторий.
+
+## Требования
+
+- Windows x64;
+- .NET 8 SDK;
+- Siemens NX / Designcenter NX 2512;
+- `NXOpen.dll` target installation;
+- PowerShell 5.1 или 7;
+- для `-Sign` — найденные `SignDotNet.exe` и `NXSigningResource.res`.
 
 ## Сборка
 
-Требуется:
-
-- NX 2512;
-- .NET 8 SDK x64;
-- Windows PowerShell 5.1 или PowerShell 7.
+Рабочая директория — корень репозитория:
 
 ```powershell
-.\build.ps1
+.\NX2512_Catalog_Studio\build.ps1 `
+  -NxRoot "C:\Program Files\Siemens\NX2512" `
+  -Clean
 ```
 
-Результат:
+С точным NXOpen DLL:
+
+```powershell
+.\NX2512_Catalog_Studio\build.ps1 `
+  -NxOpenDll "D:\Siemens\NX2512\NXBIN\managed\NXOpen.dll" `
+  -Clean
+```
+
+Output:
 
 ```text
-dist\NX2512_CatalogStudio.dll
+NX2512_Catalog_Studio\dist\NX2512_CatalogStudio.dll
 ```
 
-При нестандартной установке:
+Build script выводит SHA-256 DLL и по умолчанию требует path, подтверждающий expected version `2512`.
+
+`-AllowVersionMismatch` используйте только для осознанного compatibility experiment. Export из другой версии нельзя автоматически считать достоверным для NX 2512.
+
+## Подпись
 
 ```powershell
-.\build.ps1 -NxOpenDll "D:\Siemens\NX2512\NXBIN\managed\NXOpen.dll"
+.\NX2512_Catalog_Studio\build.ps1 `
+  -NxRoot "C:\Program Files\Siemens\NX2512" `
+  -Sign `
+  -Clean
 ```
 
-Необязательная подпись:
-
-```powershell
-.\build.ps1 -Sign
-```
+`-Sign` завершится ошибкой, если signing tool/resource не найдены. Не добавляйте proprietary signing resources в version control.
 
 ## Запуск в NX
 
@@ -113,14 +127,45 @@ dist\NX2512_CatalogStudio.dll
 File → Execute → NX Open...
 ```
 
-Выберите тип:
+Выберите динамически загружаемую library и откройте:
 
 ```text
-Динамически загружаемые библиотеки (*.dll)
+NX2512_Catalog_Studio\dist\NX2512_CatalogStudio.dll
 ```
 
-Откройте:
+Точный UI path может зависеть от локализации и роли NX; подтвердите его на target workstation.
 
-```text
-dist\NX2512_CatalogStudio.dll
+## Рекомендуемый workflow
+
+1. Соберите DLL против target NXOpen.
+2. Запустите Catalog Studio в целевой NX.
+3. Создайте новый export directory.
+4. Убедитесь, что `06_ui_commands_buttons.csv` существует и непуст.
+5. Выполните main profile compilation:
+
+```powershell
+.\install-nxkeys.ps1 `
+  -CatalogDir "D:\NX2512_Catalog_Output" `
+  -CompileOnly
 ```
+
+6. Изучите `docs/generated/main-profile-resolution.md`.
+7. Не включайте ambiguous/unresolved commands вручную.
+
+## Когда повторять export
+
+- обновление NX build;
+- изменение локализации;
+- изменение role/profile;
+- изменение лицензий;
+- добавление corporate MenuScript extensions;
+- перенос на другую workstation;
+- неожиданная unavailable/insensitive command.
+
+## Ограничения
+
+- наличие UI ID не гарантирует sensitivity в текущем context;
+- наличие NXOpen member не гарантирует лицензию;
+- display labels зависят от локализации;
+- API candidate score требует engineering review;
+- Catalog Studio export является machine-specific evidence, а не универсальной спецификацией Siemens NX.
