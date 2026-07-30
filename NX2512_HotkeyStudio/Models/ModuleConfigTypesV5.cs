@@ -48,6 +48,8 @@ namespace NX2512_HotkeyStudio.Models
         [JsonPropertyName("fallback")] public string Fallback { get; set; } = string.Empty;
         [JsonPropertyName("notes")] public string Notes { get; set; } = string.Empty;
         [JsonPropertyName("frequency")] public string Frequency { get; set; } = string.Empty;
+        [JsonPropertyName("path_locked")] public bool PathLocked { get; set; }
+        [JsonPropertyName("path_source")] public string PathSource { get; set; } = string.Empty;
     }
 
     public sealed class WorkflowControls
