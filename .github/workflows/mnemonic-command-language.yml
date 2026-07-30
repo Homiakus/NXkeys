@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - agent/mnemonic-command-language
+      - agent/mnemonic-command-language-v7-reference
   pull_request:
     paths:
       - 'NX2512_HotkeyStudio/**'
@@ -11,12 +12,13 @@ on:
       - 'NXKeys.StateMachines.Tests/**'
       - 'config/**'
       - 'scripts/validate-command-tree.mjs'
+      - 'scripts/generate-mnemonic-command-language-v7.mjs'
       - 'docs/**'
       - '.github/workflows/mnemonic-command-language.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   validate:
@@ -39,6 +41,47 @@ jobs:
       - name: Validate mnemonic profile
         shell: pwsh
         run: node .\scripts\validate-command-tree.mjs
+
+      - name: Compile current v7 main profile
+        shell: pwsh
+        run: |
+          $profile = Join-Path $env:RUNNER_TEMP 'nx2512-pro-main-v7.json'
+          $report = Join-Path $env:RUNNER_TEMP 'main-profile-resolution-v7.md'
+          node .\scripts\compile-main-command-map.mjs --out $profile --report $report
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "NXKEYS_V7_PROFILE=$profile" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Generate complete Russian v7 command reference
+        shell: pwsh
+        run: |
+          node .\scripts\generate-mnemonic-command-language-v7.mjs `
+            --profile $env:NXKEYS_V7_PROFILE `
+            --out .\docs\MNEMONIC_COMMAND_LANGUAGE.md
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Commit generated reference on documentation branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/agent/mnemonic-command-language-v7-reference'
+        shell: pwsh
+        run: |
+          git add -- docs/MNEMONIC_COMMAND_LANGUAGE.md
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host 'Mnemonic reference is already current.'
+            exit 0
+          }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Regenerate complete v7 mnemonic command reference [skip ci]'
+          git push origin HEAD:${{ github.ref_name }}
+
+      - name: Verify generated reference is committed
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: |
+          git diff --exit-code -- docs/MNEMONIC_COMMAND_LANGUAGE.md
+          if ($LASTEXITCODE -ne 0) {
+            throw 'docs/MNEMONIC_COMMAND_LANGUAGE.md is stale. Run generate-mnemonic-command-language-v7.mjs.'
+          }
 
       - name: Build HotkeyStudio
         shell: pwsh
