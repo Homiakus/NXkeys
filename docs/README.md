@@ -10,6 +10,7 @@
 | подготовить локальную среду разработки | [DEVELOPMENT.md](../DEVELOPMENT.md) |
 | установить или обновить NXKeys | [INSTALLATION.md](INSTALLATION.md) |
 | понять компоненты и потоки данных | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| изучить текущую карту путей | [Интерактивная карта команд](command-tree.html) |
 | изменить профиль или мнемонический путь | [CONFIGURATION.md](CONFIGURATION.md) и [MNEMONIC_COMMAND_LANGUAGE.md](MNEMONIC_COMMAND_LANGUAGE.md) |
 | использовать CLI | [CLI.md](CLI.md) |
 | интегрироваться с файловым IPC | [api.md](api.md) |
@@ -48,7 +49,7 @@
 - `generated/main-profile-resolution.md`;
 - `audit/command-sequence-audit.md`;
 - `audit/command-sequence-audit.json`;
-- интерактивная карта `command-tree.html`, если она пересобирается генератором.
+- интерактивная карта [`command-tree.html`](command-tree.html), если она пересобирается генератором.
 
 После изменения `scripts/sequence-policy.mjs`, компиляторов профиля или каталога намерений generated-документы необходимо пересоздать и проверить в diff.
 
