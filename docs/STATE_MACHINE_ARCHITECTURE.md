@@ -2,90 +2,106 @@
 
 ## Назначение
 
-Контекстный ввод NXKeys реализован четырьмя слоями:
+Контекстный ввод разделён на четыре слоя:
 
-1. `SequenceAutomaton` — DFA для prefix-free последовательностей.
-2. `LeaderStateMachine` — HFSM пользовательского взаимодействия.
-3. `ContextGuardEvaluator` — единая проверка контекста NX.
-4. `LeaderBehaviorProfile` — декларативные guards, fallback и таймауты.
+1. `SequenceAutomaton` — trie/DFA prefix-free последовательностей;
+2. `LeaderStateMachine` — HFSM пользовательского взаимодействия;
+3. `ContextGuardEvaluator` — проверка контекста NX;
+4. `LeaderBehaviorProfile` — декларативные guards, fallback и timeouts.
 
-Keyboard hook не выполняет команды напрямую. Он помещает события в WinForms queue, поэтому переходы состояния выполняются последовательно.
+Keyboard hook не исполняет команды напрямую. События передаются в WinForms UI queue, поэтому state transitions выполняются последовательно.
 
-## Состояния HFSM
+## Входные данные
 
-```text
-Idle
-Root
-Prefix
-Search
-AwaitingConfirmation
-Dispatching
-AwaitingResult
-SwitchingModule
-Failed
-```
+- profile schema 6;
+- paths/aliases из enabled module commands;
+- active module от `AdaptiveModuleResolver`;
+- context snapshot IPC schema 3;
+- declarative policy `config/nx2512-state-machines.json`;
+- user events: Leader key, tokens, search, Enter, Esc, Backspace, Tab.
 
-Инварианты:
+## DFA
 
-- dispatch возможен только из `Dispatching`;
-- destructive-команда проходит через `AwaitingConfirmation`;
-- `Esc`, потеря фокуса NX и остановка движка возвращают `Idle`;
-- ошибка записи запроса освобождает keyboard capture;
-- результат переводит HFSM в `Idle` или `Root` sticky-режима;
-- смена модуля считается завершённой только после нового подтверждённого контекста.
-
-## DFA последовательностей
-
-При загрузке runtime schema 5 компилируется trie/DFA. Последовательность содержит:
+При загрузке профиля canonical paths и aliases компилируются в automaton.
 
 ```text
-<внутренний префикс модуля> + <2–5 токенов пользовательского пути>
+<internal module prefix> + <2–5 user tokens>
 ```
 
 Пример:
 
 ```text
-Пользователь: CapsLock → E → E → B
-DFA:          M → E → E → B
-Команда:      Modeling → Edit → Edge → Blend
+User: CapsLock → E → E → B
+DFA:             M → E → E → B
+Command:         Modeling → Edit → Edge → Blend
 ```
 
-Компилятор отклоняет:
+DFA отклоняет:
 
-- пустые пути;
-- дубликаты после нормализации;
-- команду, которая одновременно является терминалом и префиксом;
-- конфликтующий alias;
-- недостижимый терминал.
+- пустой path;
+- duplicate normalized terminal;
+- terminal, являющийся префиксом другого terminal;
+- conflict canonical path/alias;
+- недостижимый terminal.
 
-Одинаковый пользовательский путь допустим в разных модулях, потому что внутренний префикс различается.
+Одинаковый user path допустим в разных modules из-за разных internal prefixes.
 
-## Связь с полной картой
+## HFSM states
 
-Полная карта содержит 1169 намерений. `scripts/compile-full-command-map.mjs` заранее резервирует prefix-free пути внутри каждого модуля, а runtime `MnemonicPathGenerator` повторно нормализует профиль и защищает legacy-команды/aliases.
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Root: Leader activated
+    Root --> Prefix: token
+    Prefix --> Prefix: valid partial path
+    Root --> Search: Space
+    Prefix --> Search: search action
+    Prefix --> AwaitingConfirmation: destructive/confirm
+    Prefix --> Dispatching: allowed terminal
+    AwaitingConfirmation --> Dispatching: Enter
+    AwaitingConfirmation --> Idle: Esc/timeout
+    Dispatching --> AwaitingResult: request published
+    AwaitingResult --> Idle: result
+    AwaitingResult --> Failed: error/timeout
+    Prefix --> SwitchingModule: switch command
+    SwitchingModule --> Root: new context confirmed
+    SwitchingModule --> Failed: timeout/reject
+    Failed --> Idle
+    Root --> Idle: Esc/focus lost/timeout
+    Prefix --> Idle: Esc/focus lost/timeout
+```
 
-Восемь клавиш legacy-grid относятся только к быстрым primary aliases. DFA поддерживает многоуровневое дерево и не ограничивает модуль восемью командами.
+Подтверждённые state names в коде включают `Idle`, `Root`, `Prefix`, `Search`, `AwaitingConfirmation`, `Dispatching`, `AwaitingResult`, `SwitchingModule`, `Failed`.
 
-## Декларативная policy
+## Инварианты
 
-Файл:
+- dispatch происходит только после terminal resolution и guard success;
+- destructive command проходит `AwaitingConfirmation`;
+- Enter подтверждает текущее destructive intention, но не произвольный request;
+- Esc, остановка engine и потеря допустимого focus отменяют sequence;
+- ошибка публикации request освобождает keyboard capture;
+- module switch завершается только после нового подтверждённого context;
+- stale result не должен активировать другую sequence;
+- duplicate request не исполняется повторно Bridge.
+
+## Declarative policy
 
 ```text
 config/nx2512-state-machines.json
 ```
 
-Policy задаёт:
+Policy может задавать:
 
-- таймауты состояний;
-- допустимые модули;
+- state timeouts;
+- allowed modules/applications;
 - interaction state;
-- Work/Display Part;
-- минимальный confidence;
-- selection count и selected types;
-- подтверждение;
-- `on_unavailable`.
+- Work Part / Display Part requirements;
+- minimum context confidence;
+- selection minimum и allowed types;
+- confirmation;
+- unavailable fallback/message.
 
-Пример актуального многоуровневого ключа:
+Пример guard:
 
 ```json
 {
@@ -109,52 +125,47 @@ Policy задаёт:
 }
 ```
 
-Policy может использовать `switch_module`, но локальный модуль не меняется заранее. HFSM ждёт новый `context.module_id` и revision.
+`requires_selection` в command row не всегда означает hard preselection. Жёсткий минимум определяется policy/guard.
 
-## Контекст NX
+## Context snapshot
 
-Bridge публикует `NxContextSnapshot` protocol schema 3:
+Bridge публикует IPC schema 3:
 
 ```text
-schema_version
-revision
-status
-application_id
-module_id
-module_label
-selection_count
-selection_state
-selected_types
-work_part_available
-display_part_available
-modal_dialog_active
-active_command_id
-context_confidence
-updated_utc
-last_request_id
-last_result
-last_message
+revision, status, application_id, module_id, module_label,
+selection_count, selection_state, selected_types,
+work_part_available, display_part_available,
+modal_dialog_active, active_command_id,
+context_confidence, updated_utc,
+last_request_id, last_result, last_message
 ```
 
-`revision` изменяется при семантическом изменении контекста. Простое обновление heartbeat не должно создавать ложную ревизию.
+`revision` меняется при семантическом изменении. Heartbeat без изменения context не должен искусственно менять revision.
 
-## Проверки перед выполнением
+Default protocol freshness — 3 секунды. Runtime UI может отображать более старый context для диагностики, но dispatch обязан соблюдать guard freshness.
 
-Клиент проверяет свежесть контекста и policy. Bridge повторно проверяет:
+## Guard evaluation
+
+До публикации request клиент проверяет доступные условия. Bridge повторно проверяет:
 
 - protocol schema;
 - request expiry;
-- `expected_context_revision`;
-- `expected_selection_count`;
-- `expected_application_id`;
-- active module;
-- modal dialog;
-- destructive confirmation;
-- наличие и чувствительность NX `BUTTON ID`.
+- expected context revision;
+- expected selection count;
+- expected application;
+- modal state;
+- exact command ID или special action parameters;
+- destructive confirmation.
 
-`requires_selection` описывает ожидаемый workflow, но не всегда требует preselection. Жёсткий минимум задаётся policy или конкретной опасной операцией.
+Двойная проверка нужна, потому что context может измениться между user input и Bridge claim.
 
-## Selection filters
+## Confirmation
+
+`destructive=true` или `confirm_before_execute=true` переводит HFSM в `AwaitingConfirmation`. Request получает `confirmation_accepted=true` только после явного подтверждения текущей command.
+
+Backspace/Esc не должны подтверждать действие. Timeout отменяет pending intention.
+
+## Selection actions
 
 ```text
 action = set_selection_filter
@@ -162,43 +173,77 @@ selection_filter = none | all | reset | edge | face | body |
                    component | curve | datum | feature | operation
 ```
 
-Bridge применяет global `NXOpen.Select.FilterMember` и не вызывает `UG_SEL_*` как обычную кнопку меню.
+Source policy v7 резервирует `SB`, `SF`, `SE`, `ST`, `SC`, `SU`, `SD`, `SR`, `SA`, `SN`.
 
-## Надёжная очередь
+Selection action не маршрутизируется как обычная menu command без необходимости.
 
-```text
-pending
-   ↓ atomic claim
-processing
-   ↓ execute/reject
-completed | failed
+## Module switching
+
+`switch_module` может содержать target application или command ID. Локальный active module не меняется оптимистически. HFSM ждёт fresh context с новой revision/application/module.
+
+Source policy не добавляет обычные `G*` switches в Sketch и Selection/Object module.
+
+## IPC result lifecycle
+
+```mermaid
+sequenceDiagram
+    participant H as HFSM
+    participant Q as Queue
+    participant B as Bridge
+    participant N as NX
+
+    H->>Q: publish request
+    H->>H: AwaitingResult
+    B->>Q: claim
+    B->>N: execute after validation
+    N-->>B: outcome
+    B->>Q: result + archive
+    Q-->>H: observed result/context
+    H->>H: Idle or Root
 ```
 
-После выполнения создаётся result JSON. Если NX завершился во время `processing`, запрос переводится в `interrupted_unknown` и не повторяется автоматически. Повторный `request_id` не исполняется.
+Если process NX завершился после claim, request получает `interrupted_unknown` при recovery и автоматически не повторяется.
 
-## Протокол
+## Tests
 
-Общий source-файл:
-
-```text
-NXKeys.Protocol/NxProtocol.cs
+```powershell
+dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
 ```
 
-Текущая версия IPC: `schema_version = 3`.
+Test runner покрывает:
 
-## Проверки CI
-
-CI выполняет:
-
-- компиляцию DFA/HFSM-инвариантов;
+- DFA construction/conflicts;
+- declarative policy;
 - deterministic replay;
 - randomized transitions;
-- запрет обхода confirmation;
+- confirmation invariants;
 - typed selection guards;
-- `switch_module` fallback;
-- expiry и at-most-once queue semantics;
-- snake_case round-trip protocol schema 3;
-- проверку 1169 intent paths и конфликтов префиксов;
-- сборку HotkeyStudio, Control Center и CommandBridge contract.
+- switch-module behavior;
+- expiry;
+- protocol snake_case round-trip;
+- at-most-once recovery contracts.
 
-Contract stubs подтверждают форму используемого API, но не заменяют интеграционный тест внутри лицензированной NX.
+Дополнительно:
+
+```powershell
+node .\scripts\validate-command-tree.mjs
+node .\scripts\validate-main-command-map.mjs
+```
+
+## Изменение state machine
+
+1. Обновите implementation и declarative model согласованно.
+2. Добавьте deterministic test.
+3. Добавьте randomized invariant, если изменяется transition space.
+4. Проверьте cancellation/timeouts.
+5. Проверьте release keyboard capture при exception.
+6. Обновите protocol, если меняется request/result contract.
+7. Проверьте target NX для context-dependent behavior.
+
+## Ограничения
+
+- contract tests не заменяют real NX integration;
+- modal dialogs и active command detection зависят от NX runtime;
+- selection type names могут отличаться по фактическим NX objects;
+- source profile schema 6 не гарантирует, что старые error strings в UI уже обновлены;
+- exact timing keyboard hook требует ручной Windows UX-проверки.
