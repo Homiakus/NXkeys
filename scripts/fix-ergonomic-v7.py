@@ -78,6 +78,63 @@ if count != 1:
     raise RuntimeError("Unable to replace ensureUniversalSelectionFilters")
 write(policy_path, policy)
 
+# Keep curated workflow commands even when their full-catalog intent is outside K3-K5 or resolves
+# to a different installation-specific BUTTON ID. They are explicit, exact bootstrap commands.
+compiler_path = "scripts/compile-main-command-map.mjs"
+compiler = read(compiler_path)
+old_runtime_support = '''function isRuntimeSupport(command) {
+  return isSelectionSupportCommand(command) || isModuleSwitchSupportCommand(command);
+}'''
+new_runtime_support = '''function isRuntimeSupport(command) {
+  return command?.profile_support === true || command?.support_kind === 'ergonomic_core' ||
+    isSelectionSupportCommand(command) || isModuleSwitchSupportCommand(command);
+}'''
+if old_runtime_support not in compiler:
+    raise RuntimeError("compile-main isRuntimeSupport block not found")
+write(compiler_path, compiler.replace(old_runtime_support, new_runtime_support, 1))
+
+core_ids = {
+    "UG_CREATE_SKETCH",
+    "UG_MODELING_EXTRUDED_FEATURE", "UG_MODELING_HOLE_FEATURE", "UG_MODELING_REVOLVED_FEATURE",
+    "UG_MODELING_BLEND_FEATURE", "UG_MODELING_CHAMFER_FEATURE",
+    "UG_MODELING_PATTERNFEATURE_FEATURE", "UG_MODELING_MIRRORFEATURE_FEATURE",
+    "UG_SKETCH_LINE_BY_TWO_POINTS", "UG_SKETCH_LINE_FROM_MIDPOINT",
+    "UG_SKETCH_RECTANGLE_BY_TWO_POINTS", "UG_SKETCH_RECTANGLE_FROM_CENTER",
+    "UG_SKETCH_RECTANGLE_BY_THREE_POINTS", "UG_SKETCH_CIRCLE_FROM_CENTER",
+    "UG_SKETCH_CIRCLE_BY_THREE_POINTS", "UG_SKETCH_ARC_FROM_CENTER",
+    "UG_SKETCH_ARC_BY_THREE_POINTS", "UG_SKETCH_TRIM", "UG_SKETCH_EXTEND",
+    "UG_SKETCH_OFFSET_CURVE", "UG_SKETCH_RAPID_DIMENSION", "UG_SKETCH_LINEAR_DIMENSION",
+    "UG_SKETCH_COINCIDENT_CONSTRAINT", "UG_SKETCH_TANGENT_CONSTRAINT",
+    "UG_SKETCH_PARALLEL_CONSTRAINT", "UG_SKETCH_PERPENDICULAR_CONSTRAINT",
+    "UG_SKETCH_HORIZONTAL_CONSTRAINT", "UG_SKETCH_VERTICAL_CONSTRAINT", "UG_SKETCH_CHECKER",
+    "UG_LAYER_SETTINGS", "UG_LAYER_VIEW", "UG_LAYER_CATEGORY", "UG_LAYER_COPY", "UG_LAYER_MOVE",
+    "UG_INFO_OTHER_LAYERS",
+    "UG_ASSEMBLIES_ADD_COMPONENT", "UG_ASSEMBLIES_NEW_COMPONENT", "UG_ASSEMBLIES_MOVE_COMPONENT",
+    "UG_ASSEMBLIES_CONSTRAINTS", "UG_ASSEMBLIES_REPLACE_COMPONENT", "UG_ASSEMBLIES_REMOVE_COMPONENT",
+    "UG_ASSEMBLIES_PATTERN_COMPONENT", "UG_ASSEMBLIES_NAVIGATOR",
+    "UG_CAM_CREATE_OPERATION", "UG_CAM_CREATE_TOOL", "UG_CAM_GENERATE_TOOL_PATH",
+    "UG_CAM_VERIFY_TOOL_PATH", "UG_CAM_POSTPROCESS", "UG_CAM_DELETE_OPERATION",
+    "UG_CAM_OPERATION_NAVIGATOR", "UG_CAM_INFORMATION",
+}
+source_profile_path = ROOT / "config/nx2512-pro-hybrid.json"
+source_profile = json.loads(source_profile_path.read_text(encoding="utf-8-sig"))
+for module in source_profile.get("modules", []):
+    for command_set in module.get("command_sets", []):
+        for command in command_set.get("commands", []):
+            command_id = str(command.get("command", {}).get("id", "")).upper()
+            if command_id not in core_ids:
+                continue
+            command["profile_support"] = True
+            command["support_kind"] = "ergonomic_core"
+            command.setdefault("notes", "")
+            if "Ergonomic core" not in command["notes"]:
+                command["notes"] = "Ergonomic core | " + command["notes"]
+source_profile_path.write_text(
+    json.dumps(source_profile, ensure_ascii=False, indent=2) + "\n",
+    encoding="utf-8",
+    newline="\n",
+)
+
 # Validation accepts hybrid rows that are both runtime support and catalog coverage.
 validator_path = "scripts/validate-main-command-map.mjs"
 validator = read(validator_path)
