@@ -164,6 +164,7 @@ Validator требует точные IDs и ровно 12 enabled bindings. О�
   "destructive": false,
   "confirm_before_execute": false,
   "frequency": "K5",
+  "catalog_backed_support": false,
   "path_locked": false,
   "path_source": "curated"
 }
@@ -177,7 +178,7 @@ Validator требует точные IDs и ровно 12 enabled bindings. О�
 | routing | `path`, `path_labels`, `aliases`, `search_aliases`, `action`, `target_module_id`, `support_kind`, `selection_type` |
 | command | `command.id`, `command.name` |
 | safety | `enabled`, `requires_selection`, `destructive`, `confirm_before_execute` |
-| traceability | `fallback`, `notes`, `frequency`, generated resolution metadata |
+| traceability | `fallback`, `notes`, `frequency`, `catalog_backed_support`, generated resolution metadata |
 | path metadata | `path_locked`, `path_source` |
 
 ### Paths
@@ -200,6 +201,31 @@ Generated rows получают `catalog_refs`, `resolution_status` и `resoluti
 | `unresolved` | disabled |
 
 Не меняйте status вручную без evidence target catalog.
+
+### `catalog_backed_support`
+
+Большинство universal support rows являются чистой runtime-инфраструктурой: у них `frequency: support` и нет `catalog_refs`. Исключение возникает, когда та же функция уже входит в выбранные 885 catalog intents. Подтверждённый пример — `Select All`, нормализованный к пути `SA`.
+
+Для такой строки compiler задаёт:
+
+```json
+{
+  "support_kind": "selection_filter",
+  "frequency": "support",
+  "catalog_backed_support": true,
+  "catalog_refs": ["nx2512-00-L0060"]
+}
+```
+
+Семантика:
+
+- путь и execution action остаются universal support;
+- `frequency` остаётся `support`, поэтому к пути применяется support policy;
+- `catalog_refs` сохраняют coverage и трассировку исходного K3–K5 intent;
+- validator разрешает catalog coverage только при явном `catalog_backed_support: true`;
+- чистая support row не должна получать этот флаг или catalog reference.
+
+Поле не передаётся в IPC: оно относится к profile/coverage layer.
 
 ### `path_locked` и `path_source`
 
@@ -238,7 +264,7 @@ SC component  SU curve      SD datum      SR reset
 SA all        SN none
 ```
 
-Они используют `action: set_selection_filter` и `support_kind: selection_filter`.
+Они используют `action: set_selection_filter` и `support_kind: selection_filter`. Если universal action одновременно представляет selected catalog intent, compiler сохраняет его coverage через `catalog_backed_support`.
 
 ## Module switches
 
@@ -306,7 +332,8 @@ dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csp
 - enabled command имеет exact ID;
 - paths и aliases prefix-free;
 - destructive command требует confirmation;
-- support paths не используются обычными командами.
+- support paths не используются обычными командами;
+- catalog-backed support сохраняет intent coverage только при явном флаге.
 
 ## Порядок изменения
 
