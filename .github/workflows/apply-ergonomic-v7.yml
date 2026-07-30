@@ -59,3 +59,5 @@ jobs:
           if (git diff --cached --quiet) { throw "Migration produced no changes." }
           git commit -m "Implement ergonomic NX command map v7"
           git push origin HEAD:agent/nxkeys-ergonomic-v7
+
+# trigger: 2026-07-30
