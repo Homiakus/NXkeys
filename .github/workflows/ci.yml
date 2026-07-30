@@ -27,9 +27,7 @@ jobs:
 
       - name: Apply ergonomic source migration
         shell: pwsh
-        run: |
-          python .\scripts\apply-ergonomic-v7.py
-          python .\scripts\fix-ergonomic-v7.py
+        run: python .\scripts\apply-ergonomic-v7.py
 
       - name: Regenerate and validate ergonomic profile
         shell: pwsh
