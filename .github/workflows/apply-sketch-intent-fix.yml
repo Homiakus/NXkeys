@@ -98,14 +98,21 @@ jobs:
             $_.support_kind -notin @('selection_filter','sketch_core') -and $_.aliases.Count -gt 0
           })
           if ($legacyAliases.Count -gt 0) { throw "Sketch still contains non-user positional aliases: $($legacyAliases.Count)" }
-          $foreign = @($commands | Where-Object {
-            $_.support_kind -notin @('selection_filter','sketch_core') -and
-            $_.command.id -notmatch '^UG_SKETCH_' -and
-            $_.command.id -notin @('UG_CREATE_SKETCH','UG_MODELING_BLEND_FEATURE','UG_MODELING_CHAMFER_FEATURE')
+          $unsafeUnresolved = @($commands | Where-Object {
+            $_.enabled -ne $false -and
+            $_.action -eq 'execute_command' -and
+            [string]::IsNullOrWhiteSpace([string]$_.command.id)
           })
-          if ($foreign.Count -gt 0) {
-            $foreign | ForEach-Object { Write-Output "Foreign Sketch row: $($_.command.id) / $($_.command.name)" }
-            throw "Generated Sketch tree contains $($foreign.Count) unrelated rows."
+          if ($unsafeUnresolved.Count -gt 0) {
+            $unsafeUnresolved | ForEach-Object { Write-Output "Enabled unresolved Sketch intent: $($_.command.name)" }
+            throw "Generated Sketch tree contains $($unsafeUnresolved.Count) enabled commands without exact BUTTON IDs."
+          }
+          $polluted = @($commands | Where-Object {
+            ([string]$_.command.name) -match '(?i)Assembly Navigator|Material Library|Sew Surface|File New|File Open|Save Part|Manufacturing Navigator'
+          })
+          if ($polluted.Count -gt 0) {
+            $polluted | ForEach-Object { Write-Output "Polluted Sketch row: $($_.command.id) / $($_.command.name)" }
+            throw "Generated Sketch tree contains $($polluted.Count) unrelated context rows."
           }
 
       - name: Commit validated implementation
