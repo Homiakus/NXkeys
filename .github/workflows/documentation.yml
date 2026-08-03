@@ -58,6 +58,29 @@ jobs:
       - name: Regenerate command sequence audit
         run: node .\scripts\audit-command-sequences.mjs
 
+      - name: Ignore timestamp-only JSON changes
+        shell: pwsh
+        run: |
+          $path = 'docs/audit/command-sequence-audit.json'
+          $previousRaw = (git show "HEAD:$path" | Out-String)
+          if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($previousRaw)) {
+            Write-Host 'No previous JSON audit is available for semantic comparison.'
+            exit 0
+          }
+
+          $currentRaw = Get-Content $path -Raw
+          $previous = $previousRaw | ConvertFrom-Json
+          $current = $currentRaw | ConvertFrom-Json
+          $previous.PSObject.Properties.Remove('generated_utc')
+          $current.PSObject.Properties.Remove('generated_utc')
+
+          $previousSemantic = $previous | ConvertTo-Json -Depth 100 -Compress
+          $currentSemantic = $current | ConvertTo-Json -Depth 100 -Compress
+          if ($previousSemantic -eq $currentSemantic) {
+            git checkout -- $path
+            Write-Host 'Restored committed JSON audit because only generated_utc changed.'
+          }
+
       - name: Commit regenerated audit to same-repository PR
         if: >-
           github.event_name == 'pull_request' &&
