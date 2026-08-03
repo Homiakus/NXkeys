@@ -6,6 +6,13 @@ on:
       - fix/sketch-intent-taxonomy
     paths:
       - '.github/sketch-intent-fix.trigger'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/sketch-intent-fix.trigger'
+      - 'scripts/apply-sketch-intent-fix.py'
+      - '.github/workflows/apply-sketch-intent-fix.yml'
 
 permissions:
   contents: write
