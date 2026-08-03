@@ -12,7 +12,16 @@
 - источники истины дополнены отдельным Sketch allocator;
 - обязательный запуск `NX2512_HotkeyStudio.Tests` добавлен во все developer checklists;
 - generated sequence audit переведён на текущую policy v7;
-- аудит документации обновлён после внедрения Sketch intent taxonomy.
+- аудит документации обновлён после внедрения Sketch intent taxonomy;
+- добавлен аудит хрупкости, архитектуры NX-плагина и качества UI с реестром рисков, целевой архитектурой и поэтапным планом исправлений.
+
+### Architecture audit
+
+- подтверждено правильное общее разделение desktop companion и NX-loaded Command Bridge;
+- выявлены P0-риски: неаутентифицированный file IPC, fail-open обработка неизвестного action, неполный selection fingerprint, silent profile schema coercion и неатомарное сохранение профиля;
+- предложена целевая структура Contracts/Domain/Application/Infrastructure/Desktop/NxPlugin/NxOpenAdapter;
+- определена модель bounded execution на NX UI thread и защищённый IPC с session capability, allowlist, nonce и context token;
+- предложено объединение HotkeyStudio и Control Center в единый desktop shell, общий design system и доступный компактный HUD.
 
 ### Fixed
 
@@ -25,6 +34,9 @@
 
 ### Known limitations
 
+- текущий file IPC обеспечивает атомарность, но ещё не подтверждает отправителя session capability/HMAC и не ограничивает command ID профильным allowlist;
+- selection revision не содержит полного fingerprint выбранных объектов;
+- profile schema выше поддерживаемой версии должна быть переведена на fail-closed migration отдельным исправлением;
 - фактическая доступность команд должна быть повторно проверена на целевой NX 2512 после изменения роли, лицензии, MenuScript или maintenance release;
 - contract build не заменяет загрузку Bridge в реальный NX;
 - historical audits могут содержать старые версии schema и policy и не являются текущими инструкциями.
