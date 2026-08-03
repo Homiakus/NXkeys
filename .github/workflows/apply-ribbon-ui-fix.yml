@@ -6,6 +6,10 @@ on:
       - main
     paths:
       - '.github/ribbon-ui-fix.trigger'
+  pull_request:
+    paths:
+      - '.github/ribbon-ui-fix.trigger'
+      - '.github/ribbon-ui-fix-pr.trigger'
 
 permissions:
   contents: write
@@ -16,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}
           fetch-depth: 0
 
       - uses: actions/setup-dotnet@v4
@@ -46,15 +50,17 @@ jobs:
         shell: pwsh
         run: dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
 
-      - name: Commit validated source changes to main
+      - name: Commit validated source changes
         shell: pwsh
         run: |
           Remove-Item .\scripts\apply-ribbon-ui-fix.py -Force
-          Remove-Item .\.github\ribbon-ui-fix.trigger -Force
+          Remove-Item .\.github\ribbon-ui-fix.trigger -Force -ErrorAction SilentlyContinue
+          Remove-Item .\.github\ribbon-ui-fix-pr.trigger -Force -ErrorAction SilentlyContinue
           git add -A
           git diff --check
           if (git diff --cached --quiet) { throw 'Ribbon patch produced no source changes.' }
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'Fix duplicate NXKeys ribbon and compact labels'
-          git push origin HEAD:main
+          $target = if ('${{ github.event_name }}' -eq 'pull_request') { '${{ github.head_ref }}' } else { 'main' }
+          git push origin "HEAD:$target"
