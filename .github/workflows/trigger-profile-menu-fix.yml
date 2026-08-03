@@ -43,6 +43,9 @@ jobs:
           $script = ($lines | ForEach-Object {
             if ($_.Length -ge $indent) { $_.Substring($indent) } else { $_ }
           }) -join "`n"
+          # The embedded CI YAML contains Windows paths such as .\NX...; make that Python
+          # replacement literal raw so \N is not interpreted as a Unicode-name escape.
+          $script = $script.Replace("'''      - name: Run profile editor and command-menu regressions", "r'''      - name: Run profile editor and command-menu regressions")
           [IO.File]::WriteAllText((Join-Path $PWD 'apply-profile-menu-fix.py'), $script, [Text.UTF8Encoding]::new($false))
           python .\apply-profile-menu-fix.py
           Remove-Item .\apply-profile-menu-fix.py -Force
