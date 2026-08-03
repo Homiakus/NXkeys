@@ -58,8 +58,7 @@ jobs:
                   raise RuntimeError(f'{path}: expected one whitespace-tolerant match, found {count}: {old[:120]!r}')
               write(path, updated)
           '@
-          $replacementFunction = ($replacementFunction -split "`r?`n" | ForEach-Object { $_.TrimStart() }) -join "`n"
-          $script = [regex]::Replace($script, '(?s)def replace_once\(path, old, new\):.*?(?=\ndef regex_once)', $replacementFunction + "`n`n", 1)
+          $script = [regex]::Replace($script, '(?s)def replace_once\(path, old, new\):.*?(?=\ndef regex_once)', $replacementFunction.Trim() + "`n`n", 1)
           [IO.File]::WriteAllText((Join-Path $PWD 'apply-profile-menu-fix.py'), $script, [Text.UTF8Encoding]::new($false))
           python .\apply-profile-menu-fix.py
           Remove-Item .\apply-profile-menu-fix.py -Force
