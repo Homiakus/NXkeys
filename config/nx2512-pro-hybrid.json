@@ -1752,528 +1752,1340 @@
       "leader_prefix": "S",
       "command_sets": [
         {
-          "id": "primary",
-          "label": "Primary",
+          "id": "sketch_core_intents",
+          "label": "Sketch Core Intents",
           "commands": [
             {
-              "slot": "S",
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "G",
+                "L"
+              ],
+              "path_labels": [
+                "Create",
+                "Geometry",
+                "Line"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Line",
+                "Линия",
+                "UG_SKETCH_LINE"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 101,
+              "command": {
+                "id": "UG_SKETCH_LINE",
+                "name": "Line",
+                "aliases": [
+                  "Линия"
+                ]
+              },
+              "action": "execute_command",
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K5",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "G",
+                "R"
+              ],
+              "path_labels": [
+                "Create",
+                "Geometry",
+                "Rectangle"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Rectangle",
+                "Прямоугольник",
+                "UG_SKETCH_RECTANGLE"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 102,
+              "command": {
+                "id": "UG_SKETCH_RECTANGLE",
+                "name": "Rectangle",
+                "aliases": [
+                  "Прямоугольник"
+                ]
+              },
+              "action": "execute_command",
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K5",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "G",
+                "C"
+              ],
+              "path_labels": [
+                "Create",
+                "Geometry",
+                "Circle"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Circle",
+                "Окружность",
+                "UG_SKETCH_CIRCLE"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 103,
+              "command": {
+                "id": "UG_SKETCH_CIRCLE",
+                "name": "Circle",
+                "aliases": [
+                  "Окружность"
+                ]
+              },
+              "action": "execute_command",
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K5",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "G",
+                "A"
+              ],
+              "path_labels": [
+                "Create",
+                "Geometry",
+                "Arc"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Arc",
+                "Дуга",
+                "UG_SKETCH_ARC"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 104,
+              "command": {
+                "id": "UG_SKETCH_ARC",
+                "name": "Arc",
+                "aliases": [
+                  "Дуга"
+                ]
+              },
+              "action": "execute_command",
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K5",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "E",
+                "G",
+                "T"
+              ],
+              "path_labels": [
+                "Edit",
+                "Geometry",
+                "Trim"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Trim",
+                "Обрезать",
+                "UG_SKETCH_TRIM"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 105,
               "command": {
                 "id": "UG_SKETCH_TRIM",
-                "name": "Trim"
-              },
-              "requires_selection": true,
-              "input_key": "X",
-              "display_order": 40,
-              "enabled": true,
-              "icon_hint": "sketch",
-              "aliases": [
-                [
-                  "X"
+                "name": "Trim",
+                "aliases": [
+                  "Обрезать"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "all"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "curve",
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K5",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
-              "slot": "SW",
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "E",
+                "G",
+                "E"
+              ],
+              "path_labels": [
+                "Edit",
+                "Geometry",
+                "Extend"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Extend",
+                "Удлинить",
+                "UG_SKETCH_EXTEND"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 106,
               "command": {
                 "id": "UG_SKETCH_EXTEND",
-                "name": "Extend"
-              },
-              "requires_selection": true,
-              "input_key": "Z",
-              "display_order": 41,
-              "enabled": true,
-              "icon_hint": "sketch",
-              "aliases": [
-                [
-                  "Z"
+                "name": "Extend",
+                "aliases": [
+                  "Удлинить"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "all"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "curve",
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K4",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
-              "slot": "W",
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "T",
+                "G",
+                "O"
+              ],
+              "path_labels": [
+                "Transform",
+                "Geometry",
+                "Offset Curve"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Offset Curve",
+                "Смещение кривой",
+                "UG_SKETCH_OFFSET_CURVE"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 107,
               "command": {
                 "id": "UG_SKETCH_OFFSET_CURVE",
-                "name": "Offset Curve"
-              },
-              "requires_selection": true,
-              "input_key": "A",
-              "display_order": 42,
-              "enabled": true,
-              "icon_hint": "sketch",
-              "aliases": [
-                [
-                  "A"
+                "name": "Offset Curve",
+                "aliases": [
+                  "Смещение кривой"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "curve"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "curve",
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K4",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "W",
-              "submenu_label": "Line",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "G",
+                "V",
+                "L",
+                "2"
+              ],
+              "path_labels": [
+                "Create",
+                "Geometry",
+                "Variant",
+                "L",
+                "Line by Two Points"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Line by Two Points",
+                "Линия по двум точкам",
+                "UG_SKETCH_LINE_BY_TWO_POINTS"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 108,
               "command": {
                 "id": "UG_SKETCH_LINE_BY_TWO_POINTS",
-                "name": "Line by Two Points"
-              },
-              "requires_selection": false,
-              "input_key": "W",
-              "display_order": 1,
-              "enabled": true,
-              "notes": "Line submenu",
-              "icon_hint": "sketch",
-              "aliases": [
-                [
-                  "W"
-                ],
-                [
-                  "W",
-                  "W"
+                "name": "Line by Two Points",
+                "aliases": [
+                  "Линия по двум точкам"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "curve"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "W",
-              "submenu_label": "Line",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "G",
+                "V",
+                "L",
+                "M"
+              ],
+              "path_labels": [
+                "Create",
+                "Geometry",
+                "Variant",
+                "L",
+                "Line from Midpoint"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Line from Midpoint",
+                "Линия от середины",
+                "UG_SKETCH_LINE_FROM_MIDPOINT"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 109,
               "command": {
                 "id": "UG_SKETCH_LINE_FROM_MIDPOINT",
-                "name": "Line from Midpoint"
-              },
-              "requires_selection": false,
-              "input_key": "E",
-              "display_order": 2,
-              "enabled": true,
-              "notes": "Line submenu",
-              "icon_hint": "sketch",
-              "aliases": [
-                [
-                  "E"
-                ],
-                [
-                  "W",
-                  "E"
+                "name": "Line from Midpoint",
+                "aliases": [
+                  "Линия от середины"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "curve"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "E",
-              "submenu_label": "Rectangle",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "G",
+                "V",
+                "R",
+                "2"
+              ],
+              "path_labels": [
+                "Create",
+                "Geometry",
+                "Variant",
+                "R",
+                "Rectangle by Two Points"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Rectangle by Two Points",
+                "Прямоугольник по двум точкам",
+                "UG_SKETCH_RECTANGLE_BY_TWO_POINTS"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 110,
               "command": {
                 "id": "UG_SKETCH_RECTANGLE_BY_TWO_POINTS",
-                "name": "Rectangle by Two Points"
-              },
-              "requires_selection": false,
-              "input_key": "W",
-              "display_order": 3,
-              "enabled": true,
-              "notes": "Rectangle submenu",
-              "icon_hint": "sketch",
-              "aliases": [
-                [
-                  "W"
-                ],
-                [
-                  "E",
-                  "W"
+                "name": "Rectangle by Two Points",
+                "aliases": [
+                  "Прямоугольник по двум точкам"
                 ]
-              ],
-              "action": "execute_command"
+              },
+              "action": "execute_command",
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "E",
-              "submenu_label": "Rectangle",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "G",
+                "V",
+                "R",
+                "C"
+              ],
+              "path_labels": [
+                "Create",
+                "Geometry",
+                "Variant",
+                "R",
+                "Rectangle from Center"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Rectangle from Center",
+                "Прямоугольник из центра",
+                "UG_SKETCH_RECTANGLE_FROM_CENTER"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 111,
               "command": {
                 "id": "UG_SKETCH_RECTANGLE_FROM_CENTER",
-                "name": "Rectangle from Center"
-              },
-              "requires_selection": false,
-              "input_key": "E",
-              "display_order": 4,
-              "enabled": true,
-              "notes": "Rectangle submenu",
-              "icon_hint": "sketch",
-              "aliases": [
-                [
-                  "E"
-                ],
-                [
-                  "E",
-                  "E"
+                "name": "Rectangle from Center",
+                "aliases": [
+                  "Прямоугольник из центра"
                 ]
-              ],
-              "action": "execute_command"
+              },
+              "action": "execute_command",
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "E",
-              "submenu_label": "Rectangle",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "G",
+                "V",
+                "R",
+                "3"
+              ],
+              "path_labels": [
+                "Create",
+                "Geometry",
+                "Variant",
+                "R",
+                "Rectangle by Three Points"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Rectangle by Three Points",
+                "Прямоугольник по трём точкам",
+                "UG_SKETCH_RECTANGLE_BY_THREE_POINTS"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 112,
               "command": {
                 "id": "UG_SKETCH_RECTANGLE_BY_THREE_POINTS",
-                "name": "Rectangle by Three Points"
-              },
-              "requires_selection": false,
-              "input_key": "D",
-              "display_order": 5,
-              "enabled": true,
-              "notes": "Rectangle submenu",
-              "icon_hint": "sketch",
-              "aliases": [
-                [
-                  "D"
-                ],
-                [
-                  "E",
-                  "D"
+                "name": "Rectangle by Three Points",
+                "aliases": [
+                  "Прямоугольник по трём точкам"
                 ]
-              ],
-              "action": "execute_command"
+              },
+              "action": "execute_command",
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "D",
-              "submenu_label": "Circle",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "G",
+                "V",
+                "C",
+                "C"
+              ],
+              "path_labels": [
+                "Create",
+                "Geometry",
+                "Variant",
+                "C",
+                "Circle from Center"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Circle from Center",
+                "Окружность из центра",
+                "UG_SKETCH_CIRCLE_FROM_CENTER"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 113,
               "command": {
                 "id": "UG_SKETCH_CIRCLE_FROM_CENTER",
-                "name": "Circle from Center"
-              },
-              "requires_selection": false,
-              "input_key": "W",
-              "display_order": 6,
-              "enabled": true,
-              "notes": "Circle submenu",
-              "icon_hint": "sketch",
-              "aliases": [
-                [
-                  "W"
-                ],
-                [
-                  "D",
-                  "W"
+                "name": "Circle from Center",
+                "aliases": [
+                  "Окружность из центра"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "curve"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "D",
-              "submenu_label": "Circle",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "G",
+                "V",
+                "C",
+                "3"
+              ],
+              "path_labels": [
+                "Create",
+                "Geometry",
+                "Variant",
+                "C",
+                "Circle by Three Points"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Circle by Three Points",
+                "Окружность по трём точкам",
+                "UG_SKETCH_CIRCLE_BY_THREE_POINTS"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 114,
               "command": {
                 "id": "UG_SKETCH_CIRCLE_BY_THREE_POINTS",
-                "name": "Circle by Three Points"
-              },
-              "requires_selection": false,
-              "input_key": "E",
-              "display_order": 7,
-              "enabled": true,
-              "notes": "Circle submenu",
-              "icon_hint": "sketch",
-              "aliases": [
-                [
-                  "E"
-                ],
-                [
-                  "D",
-                  "E"
+                "name": "Circle by Three Points",
+                "aliases": [
+                  "Окружность по трём точкам"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "curve"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "C",
-              "submenu_label": "Arc",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "G",
+                "V",
+                "A",
+                "3"
+              ],
+              "path_labels": [
+                "Create",
+                "Geometry",
+                "Variant",
+                "A",
+                "Arc by Three Points"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Arc by Three Points",
+                "Дуга по трём точкам",
+                "UG_SKETCH_ARC_BY_THREE_POINTS"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 115,
               "command": {
                 "id": "UG_SKETCH_ARC_BY_THREE_POINTS",
-                "name": "Arc by Three Points"
-              },
-              "requires_selection": false,
-              "input_key": "W",
-              "display_order": 8,
-              "enabled": true,
-              "notes": "Arc submenu",
-              "icon_hint": "sketch",
-              "aliases": [
-                [
-                  "W"
-                ],
-                [
-                  "C",
-                  "W"
+                "name": "Arc by Three Points",
+                "aliases": [
+                  "Дуга по трём точкам"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "curve"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "C",
-              "submenu_label": "Arc",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "G",
+                "V",
+                "A",
+                "C"
+              ],
+              "path_labels": [
+                "Create",
+                "Geometry",
+                "Variant",
+                "A",
+                "Arc from Center"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Arc from Center",
+                "Дуга из центра",
+                "UG_SKETCH_ARC_FROM_CENTER"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 116,
               "command": {
                 "id": "UG_SKETCH_ARC_FROM_CENTER",
-                "name": "Arc from Center"
-              },
-              "requires_selection": false,
-              "input_key": "E",
-              "display_order": 9,
-              "enabled": true,
-              "notes": "Arc submenu",
-              "icon_hint": "sketch",
-              "aliases": [
-                [
-                  "E"
-                ],
-                [
-                  "C",
-                  "E"
+                "name": "Arc from Center",
+                "aliases": [
+                  "Дуга из центра"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "curve"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "Q",
-              "submenu_label": "Constraints",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "A",
+                "D",
+                "R"
+              ],
+              "path_labels": [
+                "Annotate",
+                "Dimension",
+                "Rapid Dimension"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Rapid Dimension",
+                "Быстрый размер",
+                "UG_SKETCH_RAPID_DIMENSION"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 117,
               "command": {
                 "id": "UG_SKETCH_RAPID_DIMENSION",
-                "name": "Rapid Dimension"
-              },
-              "requires_selection": false,
-              "input_key": "W",
-              "display_order": 10,
-              "enabled": true,
-              "notes": "Constraints submenu",
-              "icon_hint": "assembly",
-              "aliases": [
-                [
-                  "W"
-                ],
-                [
-                  "Q",
-                  "W"
+                "name": "Rapid Dimension",
+                "aliases": [
+                  "Быстрый размер"
                 ]
-              ],
-              "action": "execute_command"
+              },
+              "action": "execute_command",
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K5",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "Q",
-              "submenu_label": "Constraints",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "A",
+                "D",
+                "L"
+              ],
+              "path_labels": [
+                "Annotate",
+                "Dimension",
+                "Linear Dimension"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Linear Dimension",
+                "Линейный размер",
+                "UG_SKETCH_LINEAR_DIMENSION"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 118,
               "command": {
                 "id": "UG_SKETCH_LINEAR_DIMENSION",
-                "name": "Linear Dimension"
-              },
-              "requires_selection": false,
-              "input_key": "E",
-              "display_order": 11,
-              "enabled": true,
-              "notes": "Constraints submenu",
-              "icon_hint": "assembly",
-              "aliases": [
-                [
-                  "E"
-                ],
-                [
-                  "Q",
-                  "E"
+                "name": "Linear Dimension",
+                "aliases": [
+                  "Линейный размер"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "curve"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K4",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "Q",
-              "submenu_label": "Constraints",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "K",
+                "C"
+              ],
+              "path_labels": [
+                "Create",
+                "Constraint",
+                "Coincident Constraint"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Coincident Constraint",
+                "Совпадение",
+                "UG_SKETCH_COINCIDENT_CONSTRAINT"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 119,
               "command": {
                 "id": "UG_SKETCH_COINCIDENT_CONSTRAINT",
-                "name": "Coincident Constraint"
-              },
-              "requires_selection": true,
-              "input_key": "D",
-              "display_order": 12,
-              "enabled": true,
-              "notes": "Constraints submenu",
-              "icon_hint": "assembly",
-              "aliases": [
-                [
-                  "D"
-                ],
-                [
-                  "Q",
-                  "D"
+                "name": "Coincident Constraint",
+                "aliases": [
+                  "Совпадение"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "all"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "curve",
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "Q",
-              "submenu_label": "Constraints",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "K",
+                "T"
+              ],
+              "path_labels": [
+                "Create",
+                "Constraint",
+                "Tangent Constraint"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Tangent Constraint",
+                "Касательность",
+                "UG_SKETCH_TANGENT_CONSTRAINT"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 120,
               "command": {
                 "id": "UG_SKETCH_TANGENT_CONSTRAINT",
-                "name": "Tangent Constraint"
-              },
-              "requires_selection": true,
-              "input_key": "C",
-              "display_order": 13,
-              "enabled": true,
-              "notes": "Constraints submenu",
-              "icon_hint": "assembly",
-              "aliases": [
-                [
-                  "C"
-                ],
-                [
-                  "Q",
-                  "C"
+                "name": "Tangent Constraint",
+                "aliases": [
+                  "Касательность"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "all"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "curve",
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "Q",
-              "submenu_label": "Constraints",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "K",
+                "P"
+              ],
+              "path_labels": [
+                "Create",
+                "Constraint",
+                "Parallel Constraint"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Parallel Constraint",
+                "Параллельность",
+                "UG_SKETCH_PARALLEL_CONSTRAINT"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 121,
               "command": {
                 "id": "UG_SKETCH_PARALLEL_CONSTRAINT",
-                "name": "Parallel Constraint"
-              },
-              "requires_selection": true,
-              "input_key": "X",
-              "display_order": 14,
-              "enabled": true,
-              "notes": "Constraints submenu",
-              "icon_hint": "assembly",
-              "aliases": [
-                [
-                  "X"
-                ],
-                [
-                  "Q",
-                  "X"
+                "name": "Parallel Constraint",
+                "aliases": [
+                  "Параллельность"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "all"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "curve",
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "Q",
-              "submenu_label": "Constraints",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "K",
+                "N"
+              ],
+              "path_labels": [
+                "Create",
+                "Constraint",
+                "Perpendicular Constraint"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Perpendicular Constraint",
+                "Перпендикулярность",
+                "UG_SKETCH_PERPENDICULAR_CONSTRAINT"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 122,
               "command": {
                 "id": "UG_SKETCH_PERPENDICULAR_CONSTRAINT",
-                "name": "Perpendicular Constraint"
-              },
-              "requires_selection": true,
-              "input_key": "Z",
-              "display_order": 15,
-              "enabled": true,
-              "notes": "Constraints submenu",
-              "icon_hint": "assembly",
-              "aliases": [
-                [
-                  "Z"
-                ],
-                [
-                  "Q",
-                  "Z"
+                "name": "Perpendicular Constraint",
+                "aliases": [
+                  "Перпендикулярность"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "all"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "curve",
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "Q",
-              "submenu_label": "Constraints",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "K",
+                "H"
+              ],
+              "path_labels": [
+                "Create",
+                "Constraint",
+                "Horizontal Constraint"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Horizontal Constraint",
+                "Горизонтальность",
+                "UG_SKETCH_HORIZONTAL_CONSTRAINT"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 123,
               "command": {
                 "id": "UG_SKETCH_HORIZONTAL_CONSTRAINT",
-                "name": "Horizontal Constraint"
-              },
-              "requires_selection": true,
-              "input_key": "A",
-              "display_order": 16,
-              "enabled": true,
-              "notes": "Constraints submenu",
-              "icon_hint": "assembly",
-              "aliases": [
-                [
-                  "A"
-                ],
-                [
-                  "Q",
-                  "A"
+                "name": "Horizontal Constraint",
+                "aliases": [
+                  "Горизонтальность"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "all"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "curve",
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "Q",
-              "submenu_label": "Constraints",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "C",
+                "K",
+                "V"
+              ],
+              "path_labels": [
+                "Create",
+                "Constraint",
+                "Variant"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Vertical Constraint",
+                "Вертикальность",
+                "UG_SKETCH_VERTICAL_CONSTRAINT"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 124,
               "command": {
                 "id": "UG_SKETCH_VERTICAL_CONSTRAINT",
-                "name": "Vertical Constraint"
-              },
-              "requires_selection": true,
-              "input_key": "Q",
-              "display_order": 17,
-              "enabled": true,
-              "notes": "Constraints submenu",
-              "icon_hint": "assembly",
-              "aliases": [
-                [
-                  "Q"
-                ],
-                [
-                  "Q",
-                  "Q"
+                "name": "Vertical Constraint",
+                "aliases": [
+                  "Вертикальность"
                 ]
-              ],
+              },
               "action": "execute_command",
-              "selection_type": "all"
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "curve",
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             },
             {
               "slot": "",
-              "submenu_key": "Q",
-              "submenu_label": "Constraints",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "I",
+                "S",
+                "C"
+              ],
+              "path_labels": [
+                "Inspect",
+                "Sketch",
+                "Sketch Checker"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Sketch Checker",
+                "Проверка эскиза",
+                "UG_SKETCH_CHECKER"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 125,
               "command": {
                 "id": "UG_SKETCH_CHECKER",
-                "name": "Sketch Checker"
-              },
-              "requires_selection": false,
-              "input_key": "S",
-              "display_order": 18,
-              "enabled": true,
-              "notes": "Constraints submenu",
-              "icon_hint": "assembly",
-              "aliases": [
-                [
-                  "S"
-                ],
-                [
-                  "Q",
-                  "S"
+                "name": "Sketch Checker",
+                "aliases": [
+                  "Проверка эскиза"
                 ]
+              },
+              "action": "execute_command",
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K4",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "E",
+                "G",
+                "F"
               ],
-              "action": "execute_command"
+              "path_labels": [
+                "Edit",
+                "Geometry",
+                "Sketch Fillet"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Sketch Fillet",
+                "Скругление эскиза",
+                "UG_MODELING_BLEND_FEATURE"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 126,
+              "command": {
+                "id": "UG_MODELING_BLEND_FEATURE",
+                "name": "Sketch Fillet",
+                "aliases": [
+                  "Скругление эскиза"
+                ]
+              },
+              "action": "execute_command",
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "curve",
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Sketch Core",
+              "input_key": "",
+              "path": [
+                "E",
+                "G",
+                "H"
+              ],
+              "path_labels": [
+                "Edit",
+                "Geometry",
+                "Sketch Chamfer"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Sketch Chamfer",
+                "Фаска эскиза",
+                "UG_MODELING_CHAMFER_FEATURE"
+              ],
+              "icon_hint": "sketch",
+              "display_order": 127,
+              "command": {
+                "id": "UG_MODELING_CHAMFER_FEATURE",
+                "name": "Sketch Chamfer",
+                "aliases": [
+                  "Фаска эскиза"
+                ]
+              },
+              "action": "execute_command",
+              "target_module_id": "",
+              "support_kind": "",
+              "selection_type": "curve",
+              "enabled": true,
+              "requires_selection": true,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "curated:sketch-core",
+              "notes": "Verified Sketch core BUTTON ID; semantic action-object-operation path",
+              "catalog_refs": [],
+              "frequency": "K3",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "catalog_backed_support": false,
+              "path_locked": false,
+              "path_source": "sketch_curated"
             }
           ]
         },

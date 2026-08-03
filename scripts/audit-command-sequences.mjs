@@ -14,7 +14,7 @@ import {
   normalizePath,
   pathKey,
   pathsConflict,
-  targetLengthForFrequency
+  targetLengthForCommand
 } from './sequence-policy.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -67,7 +67,8 @@ function sequenceRows(profile) {
         frequency: command.frequency ?? '',
         enabled: command.enabled !== false,
         resolution_status: command.resolution_status ?? '',
-        catalog_refs: command.catalog_refs ?? []
+        catalog_refs: command.catalog_refs ?? [],
+        target_length: targetLengthForCommand(module.id, command)
       };
       return [
         canonical,
@@ -147,7 +148,7 @@ function lengthStats(rows) {
     bucket.count += 1;
     bucket.total_length += length;
     bucket.by_length[length] = (bucket.by_length[length] ?? 0) + 1;
-    if (length > targetLengthForFrequency(frequency)) bucket.over_target += 1;
+    if (length > row.target_length) bucket.over_target += 1;
     stats[frequency] = bucket;
   }
   for (const bucket of Object.values(stats)) bucket.average_length = bucket.count ? Number((bucket.total_length / bucket.count).toFixed(2)) : 0;
@@ -197,7 +198,7 @@ try {
     if (item.missing.length) fail(`${item.module_id} missing module switches: ${item.missing.join(', ')}`);
     if (item.forbidden.length) fail(`${item.module_id} has forbidden module switches: ${item.forbidden.join(', ')}`);
   }
-  for (const [frequency, value] of overTarget) fail(`${frequency} has ${value.over_target} paths over target length ${targetLengthForFrequency(frequency)}`);
+  for (const [frequency, value] of overTarget) fail(`${frequency} has ${value.over_target} paths over its command-specific target length`);
 
   const audit = {
     schema_version: 1,

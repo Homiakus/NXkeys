@@ -1,0 +1,97 @@
+name: Sketch intent grammar
+
+on:
+  push:
+    paths:
+      - 'NX2512_HotkeyStudio/Models/MnemonicPathGenerator*.cs'
+      - 'NX2512_HotkeyStudio.Tests/**'
+      - 'config/nx2512-pro-*.json'
+      - 'scripts/compile-*-command-map.mjs'
+      - 'scripts/sequence-policy.mjs'
+      - 'scripts/validate-*-command-map.mjs'
+      - 'scripts/validate-command-tree.mjs'
+      - '.github/workflows/sketch-intent.yml'
+  pull_request:
+    paths:
+      - 'NX2512_HotkeyStudio/Models/MnemonicPathGenerator*.cs'
+      - 'NX2512_HotkeyStudio.Tests/**'
+      - 'config/nx2512-pro-*.json'
+      - 'scripts/compile-*-command-map.mjs'
+      - 'scripts/sequence-policy.mjs'
+      - 'scripts/validate-*-command-map.mjs'
+      - 'scripts/validate-command-tree.mjs'
+      - '.github/workflows/sketch-intent.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Validate command trees
+        shell: pwsh
+        run: |
+          node .\scripts\validate-command-tree.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node .\scripts\validate-main-command-map.mjs
+          exit $LASTEXITCODE
+
+      - name: Run Sketch intent regressions
+        shell: pwsh
+        run: dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release -p:Platform=x64 --nologo
+
+      - name: Build Hotkey Studio
+        shell: pwsh
+        run: dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
+
+      - name: Verify generated Sketch scope
+        shell: pwsh
+        run: |
+          $profile = Get-Content .\config\nx2512-pro-main.generated.json -Raw | ConvertFrom-Json
+          $sketch = @($profile.modules | Where-Object { $_.id -eq 'sketch' })[0]
+          if ($null -eq $sketch) { throw 'Generated profile has no Sketch module.' }
+          $commands = @($sketch.command_sets | ForEach-Object { $_.commands })
+
+          foreach ($id in @(
+            'UG_CREATE_SKETCH',
+            'UG_SKETCH_LINE',
+            'UG_SKETCH_RECTANGLE',
+            'UG_SKETCH_CIRCLE',
+            'UG_SKETCH_ARC',
+            'UG_SKETCH_TRIM',
+            'UG_SKETCH_EXTEND',
+            'UG_SKETCH_OFFSET_CURVE'
+          )) {
+            if (-not ($commands | Where-Object { $_.command.id -eq $id })) {
+              throw "Generated Sketch module is missing $id"
+            }
+          }
+
+          $unsafeUnresolved = @($commands | Where-Object {
+            $_.enabled -ne $false -and
+            $_.action -eq 'execute_command' -and
+            [string]::IsNullOrWhiteSpace([string]$_.command.id)
+          })
+          if ($unsafeUnresolved.Count -gt 0) {
+            $unsafeUnresolved | ForEach-Object { Write-Output "Enabled unresolved Sketch intent: $($_.command.name)" }
+            throw "Sketch contains $($unsafeUnresolved.Count) enabled commands without exact BUTTON IDs."
+          }
+
+          $polluted = @($commands | Where-Object {
+            ([string]$_.command.name) -match '(?i)Assembly Navigator|Material Library|Sew Surface|File New|File Open|Save Part|Manufacturing Navigator'
+          })
+          if ($polluted.Count -gt 0) {
+            $polluted | ForEach-Object { Write-Output "Polluted Sketch row: $($_.command.id) / $($_.command.name)" }
+            throw "Sketch contains $($polluted.Count) unrelated context rows."
+          }
