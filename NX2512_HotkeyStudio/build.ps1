@@ -96,7 +96,13 @@ if (Test-Path -LiteralPath $OperationIconsSource -PathType Container) {
         Copy-Item -LiteralPath $_.FullName -Destination $operationIconsTarget -Recurse -Force
     }
 }
-if (Test-Path -LiteralPath (Join-Path $BridgeDistDir 'NX2512_CommandBridge.dll') -PathType Leaf) {
+
+# CommandBridge is a separate NXOpen project. The root installer builds it after HotkeyStudio
+# and stages it from NX2512_CommandBridge\dist. If it has already been built, include it in
+# this dist as a convenience for standalone packaging, but do not fail HotkeyStudio publication.
+$bridgeDll = Join-Path $BridgeDistDir 'NX2512_CommandBridge.dll'
+$bridgePackaged = $false
+if (Test-Path -LiteralPath $bridgeDll -PathType Leaf) {
     $bridgeTarget = Join-Path $DistDir 'custom\application'
     New-Item -ItemType Directory -Force -Path $bridgeTarget | Out-Null
     Get-ChildItem -LiteralPath $BridgeDistDir -File | Where-Object {
@@ -104,6 +110,7 @@ if (Test-Path -LiteralPath (Join-Path $BridgeDistDir 'NX2512_CommandBridge.dll')
     } | ForEach-Object {
         Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $bridgeTarget $_.Name) -Force
     }
+    $bridgePackaged = $true
 }
 
 $required = @(
@@ -112,12 +119,15 @@ $required = @(
     'NX2512_HotkeyStudio.deps.json',
     'NX2512_HotkeyStudio.runtimeconfig.json',
     'nx2512-pro-hybrid.json',
-    'nx2512-state-machines.json',
-    'custom\application\NX2512_CommandBridge.dll'
+    'nx2512-state-machines.json'
 )
 foreach ($name in $required) {
     $path = Join-Path $DistDir $name
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "После публикации отсутствует $path" }
+}
+
+if (-not $bridgePackaged) {
+    Write-Warning 'NX2512_CommandBridge.dll ещё не собран. Это допустимо: install-nxkeys.ps1 соберёт Bridge следующим этапом и добавит его в staging-пакет.'
 }
 
 Write-Host "SUCCESS: $DistDir" -ForegroundColor Green
