@@ -120,6 +120,7 @@ namespace NX2512_HotkeyStudio.UI
             confirmationItem = null;
             timeoutPct = 1.0f;
             targetOpacity = opacity;
+            FitToContent();
             PositionNearCursor();
             if (!Visible) Show();
             Opacity = targetOpacity;
@@ -140,6 +141,8 @@ namespace NX2512_HotkeyStudio.UI
             searchFilter = null;
             confirmationItem = null;
             timeoutPct = 1.0f;
+            FitToContent();
+            PositionNearCursor();
             Invalidate();
         }
 
@@ -154,6 +157,8 @@ namespace NX2512_HotkeyStudio.UI
             bridgeReady = isBridgeReady;
             selectionCount = currentSelectionCount;
             currentPrefix = prefix ?? string.Empty;
+            FitToContent();
+            PositionNearCursor();
             Invalidate();
         }
 
@@ -163,6 +168,8 @@ namespace NX2512_HotkeyStudio.UI
             if (!string.IsNullOrWhiteSpace(moduleId)) activeModuleId = moduleId;
             if (!string.IsNullOrWhiteSpace(moduleLabel)) activeModuleLabel = moduleLabel;
             searchFilter = null;
+            FitToContent();
+            PositionNearCursor();
             Invalidate();
         }
 
@@ -177,6 +184,43 @@ namespace NX2512_HotkeyStudio.UI
             fadeTimer.Stop();
             Opacity = 0;
             Hide();
+        }
+
+        private void FitToContent()
+        {
+            Rectangle working = Screen.PrimaryScreen?.WorkingArea ?? new Rectangle(0, 0, 1280, 720);
+            if (GetCursorPos(out POINT cursor)) working = Screen.FromPoint(new Point(cursor.X, cursor.Y)).WorkingArea;
+            int maxWidth = Math.Max(420, working.Width - 20);
+            int maxHeight = Math.Max(320, working.Height - 20);
+            if (confirmationItem != null)
+            {
+                Size = new Size(Math.Min(900, maxWidth), Math.Min(480, maxHeight));
+                return;
+            }
+            if (searchFilter != null)
+            {
+                int searchRows = Math.Max(3, Math.Min(12, commands.Count));
+                Size = new Size(Math.Min(960, maxWidth), Math.Min(maxHeight, 166 + searchRows * 48));
+                return;
+            }
+
+            int count = Math.Max(1, BuildDisplayRows(commands, currentPrefix).Count);
+            const int rowHeight = 60;
+            const int gutter = 6;
+            const int horizontalPadding = 36;
+            const int verticalPadding = 152;
+            const int minimumCardWidth = 205;
+            int maximumRows = Math.Max(1, (maxHeight - verticalPadding + gutter) / (rowHeight + gutter));
+            int maximumColumns = Math.Max(1, Math.Min(6,
+                (maxWidth - horizontalPadding + gutter) / (minimumCardWidth + gutter)));
+            int columns = Math.Max(1, Math.Min(maximumColumns,
+                (int)Math.Ceiling(count / (double)maximumRows)));
+            int menuRows = Math.Max(1, (int)Math.Ceiling(count / (double)columns));
+            int width = Math.Min(maxWidth, Math.Max(720,
+                horizontalPadding + columns * minimumCardWidth + (columns - 1) * gutter));
+            int height = Math.Min(maxHeight, Math.Max(320,
+                verticalPadding + menuRows * (rowHeight + gutter) - gutter));
+            Size = new Size(width, height);
         }
 
         private void PositionNearCursor()
@@ -245,20 +289,29 @@ namespace NX2512_HotkeyStudio.UI
             using (SolidBrush muted = new SolidBrush(mutedColor))
                 graphics.DrawString($"{triggerKeyName} → клавиша на карточке   ·   Tab модуль   ·   Space поиск", hint, muted, 18, 82);
 
-            int columnCount = 3;
-            int gutter = 12;
-            int left = 18;
-            int top = 110;
-            int bottom = Height - 48;
-            int columnWidth = (Width - left * 2 - gutter * (columnCount - 1)) / columnCount;
-            int rowHeight = 76;
-            int rowsPerColumn = Math.Max(1, (bottom - top) / (rowHeight + 10));
-            List<DisplayRow> visible = BuildDisplayRows(commands, currentPrefix).Take(columnCount * rowsPerColumn).ToList();
+            List<DisplayRow> visible = BuildDisplayRows(commands, currentPrefix);
+            if (visible.Count == 0)
+            {
+                using Font emptyFont = new Font("Segoe UI Semibold", 12f);
+                using SolidBrush emptyBrush = new SolidBrush(warningColor);
+                graphics.DrawString("Для этого префикса нет доступных операций.", emptyFont, emptyBrush, 18, 126);
+                return;
+            }
+
+            const int gutter = 6;
+            const int left = 18;
+            const int top = 108;
+            const int rowHeight = 60;
+            int bottom = Height - 46;
+            int rowsPerColumn = Math.Max(1, (bottom - top + gutter) / (rowHeight + gutter));
+            int columnCount = Math.Max(1, (int)Math.Ceiling(visible.Count / (double)rowsPerColumn));
+            int columnWidth = Math.Max(170, (Width - left * 2 - gutter * (columnCount - 1)) / columnCount);
             for (int index = 0; index < visible.Count; index++)
             {
                 int column = index / rowsPerColumn;
                 int row = index % rowsPerColumn;
-                Rectangle rectangle = new Rectangle(left + column * (columnWidth + gutter), top + row * (rowHeight + 10), columnWidth, rowHeight);
+                Rectangle rectangle = new Rectangle(left + column * (columnWidth + gutter),
+                    top + row * (rowHeight + gutter), columnWidth, rowHeight);
                 DrawCommandRow(graphics, rectangle, visible[index]);
             }
         }
@@ -311,10 +364,14 @@ namespace NX2512_HotkeyStudio.UI
         {
             using (Font title = new Font("Segoe UI Semibold", 11f))
             using (SolidBrush text = new SolidBrush(textColor))
-                DrawEllipsized(graphics, "Поиск в модуле: " + searchFilter, title, text, new Rectangle(18, 84, Width - 36, 28));
+                DrawEllipsized(graphics, $"Поиск в модуле: {searchFilter}   ·   найдено {commands.Count}", title, text,
+                    new Rectangle(18, 84, Width - 36, 28));
+            int maximumRows = Math.Max(1, (Height - 174) / 48);
+            int shown = Math.Min(commands.Count, maximumRows);
             int y = 122;
-            foreach (LeaderSequenceItem item in commands.Take(8))
+            for (int index = 0; index < shown; index++)
             {
+                LeaderSequenceItem item = commands[index];
                 Rectangle row = new Rectangle(18, y, Width - 36, 42);
                 using (GraphicsPath path = Rounded(row, 10))
                 using (Pen pen = new Pen(Color.FromArgb(64, 83, 100), 1f))
@@ -323,17 +380,27 @@ namespace NX2512_HotkeyStudio.UI
                     graphics.DrawPath(pen, path);
                 }
                 Rectangle iconBox = new Rectangle(row.Left + 44, row.Top + 7, 28, 28);
-                CadIconPainter.Draw(graphics, iconBox, item.IconHint, item.Command?.ID, item.Command?.Name ?? item.Notes);
-                using (Font key = new Font("Consolas", 10f, FontStyle.Bold))
-                using (SolidBrush accent = new SolidBrush(accentColor)) DrawCentered(graphics, item.InputKey, key, accent, new Rectangle(row.Left + 10, row.Top + 7, 28, 28));
+                OperationThumbnailRenderer.Draw(graphics, iconBox, item.IconHint, item.Command?.ID, item.Command?.Name ?? item.Notes);
+                using (Font rank = new Font("Consolas", 9f, FontStyle.Bold))
+                using (SolidBrush accent = new SolidBrush(accentColor))
+                    DrawCentered(graphics, "#" + (index + 1), rank, accent, new Rectangle(row.Left + 7, row.Top + 7, 34, 28));
                 using (Font name = new Font("Segoe UI", 9.5f))
                 using (SolidBrush text = new SolidBrush(textColor))
-                    DrawEllipsized(graphics, item.Command?.Name ?? item.Notes, name, text, new Rectangle(row.Left + 82, row.Top + 10, row.Width - 96, 22));
+                    DrawEllipsized(graphics, item.Command?.Name ?? item.Notes, name, text,
+                        new Rectangle(row.Left + 82, row.Top + 3, row.Width - 96, 20));
+                using (Font pathFont = new Font("Consolas", 7.8f))
+                using (SolidBrush muted = new SolidBrush(mutedColor))
+                    DrawEllipsized(graphics, item.DisplayPath(triggerKeyName), pathFont, muted,
+                        new Rectangle(row.Left + 82, row.Top + 21, row.Width - 96, 17));
                 y += 48;
             }
             using (Font hint = new Font("Segoe UI", 8.5f))
             using (SolidBrush muted = new SolidBrush(mutedColor))
-                graphics.DrawString("Enter — первый результат · Backspace — удалить символ · Esc — закрыть", hint, muted, 18, Height - 52);
+            {
+                string overflow = commands.Count > shown ? $" · показано {shown} из {commands.Count}, уточните запрос" : string.Empty;
+                graphics.DrawString("Enter — первый результат · Backspace — удалить символ · Esc — закрыть" + overflow,
+                    hint, muted, 18, Height - 52);
+            }
         }
 
         private List<DisplayRow> BuildDisplayRows(IEnumerable<LeaderSequenceItem> items, string prefix)
@@ -382,7 +449,7 @@ namespace NX2512_HotkeyStudio.UI
             return new DisplayRow
             {
                 Key = key,
-                Name = MenuLabelFor(key, group),
+                Name = MenuLabelFor(key, group, prefixDepth),
                 Status = "Открыть",
                 Details = group.Count + " команд",
                 IconHint = first?.IconHint ?? "menu",
@@ -392,12 +459,9 @@ namespace NX2512_HotkeyStudio.UI
             };
         }
 
-        private static string MenuLabelFor(string key, List<LeaderSequenceItem> group)
+        private static string MenuLabelFor(string key, List<LeaderSequenceItem> group, int prefixDepth)
         {
-            string label = group.Select(item => item.SubmenuLabel)
-                .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
-            if (!string.IsNullOrWhiteSpace(label)) return label + " >";
-            return "Подменю " + key + " >";
+            return CommandMenuPolicy.ResolveMenuLabel(key, group, prefixDepth) + " >";
         }
 
         private string StatusFor(LeaderSequenceItem item)

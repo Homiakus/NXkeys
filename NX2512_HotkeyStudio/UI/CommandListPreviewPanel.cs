@@ -43,6 +43,7 @@ namespace NX2512_HotkeyStudio.UI
         public CommandListPreviewPanel()
         {
             DoubleBuffered = true;
+            AutoScroll = true;
             BackColor = background;
             ForeColor = text;
             MinimumSize = new Size(360, 220);
@@ -57,7 +58,22 @@ namespace NX2512_HotkeyStudio.UI
             selectionCount = currentSelectionCount;
             currentPrefix = prefix ?? string.Empty;
             commands = Ordered(items);
+            UpdateScrollExtent();
             Invalidate();
+        }
+
+        protected override void OnResize(EventArgs eventArgs)
+        {
+            base.OnResize(eventArgs);
+            UpdateScrollExtent();
+        }
+
+        private void UpdateScrollExtent()
+        {
+            int count = BuildDisplayRows(commands, currentPrefix).Count;
+            int columns = Math.Max(1, Math.Min(3, (Math.Max(360, ClientSize.Width) - 24 + 10) / 220));
+            int rows = Math.Max(1, (int)Math.Ceiling(Math.Max(1, count) / (double)columns));
+            AutoScrollMinSize = new Size(0, 60 + rows * 78 + 12);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -66,6 +82,7 @@ namespace NX2512_HotkeyStudio.UI
             Graphics graphics = e.Graphics;
             graphics.SmoothingMode = SmoothingMode.AntiAlias;
             graphics.Clear(background);
+            graphics.TranslateTransform(AutoScrollPosition.X, AutoScrollPosition.Y);
 
             Rectangle header = new Rectangle(0, 0, Width, 52);
             using (LinearGradientBrush brush = new LinearGradientBrush(header, Color.FromArgb(18, 35, 50), Color.FromArgb(14, 20, 29), 0f))
@@ -90,15 +107,15 @@ namespace NX2512_HotkeyStudio.UI
                     bridgeReady ? Color.Black : Color.White);
             }
 
-            int columnCount = 3;
-            int gutter = 10;
-            int left = 12;
-            int top = 60;
-            int columnWidth = Math.Max(120, (Width - left * 2 - gutter * (columnCount - 1)) / columnCount);
-            int rowHeight = 70;
-            int rowsPerColumn = Math.Max(1, (Height - top - 12) / (rowHeight + 8));
+            const int gutter = 10;
+            const int left = 12;
+            const int top = 60;
+            const int rowHeight = 70;
             List<DisplayRow> rows = BuildDisplayRows(commands, currentPrefix);
-            for (int index = 0; index < Math.Min(rows.Count, rowsPerColumn * columnCount); index++)
+            int columnCount = Math.Max(1, Math.Min(3, (Math.Max(360, ClientSize.Width) - left * 2 + gutter) / (210 + gutter)));
+            int rowsPerColumn = Math.Max(1, (int)Math.Ceiling(Math.Max(1, rows.Count) / (double)columnCount));
+            int columnWidth = Math.Max(190, (Math.Max(360, ClientSize.Width) - left * 2 - gutter * (columnCount - 1)) / columnCount);
+            for (int index = 0; index < rows.Count; index++)
             {
                 int column = index / rowsPerColumn;
                 int row = index % rowsPerColumn;
@@ -201,11 +218,11 @@ namespace NX2512_HotkeyStudio.UI
                 };
             }
 
-            string label = group.Select(item => item.SubmenuLabel).FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+            string label = CommandMenuPolicy.ResolveMenuLabel(key, group, prefixDepth);
             return new DisplayRow
             {
                 Key = key,
-                Name = (string.IsNullOrWhiteSpace(label) ? "Подменю " + key : label) + " >",
+                Name = label + " >",
                 Status = "Открыть",
                 Details = group.Count + " команд",
                 IconHint = first?.IconHint ?? "menu",
