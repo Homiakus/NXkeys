@@ -43,9 +43,23 @@ jobs:
           $script = ($lines | ForEach-Object {
             if ($_.Length -ge $indent) { $_.Substring($indent) } else { $_ }
           }) -join "`n"
-          # The embedded CI YAML contains Windows paths such as .\NX...; make that Python
-          # replacement literal raw so \N is not interpreted as a Unicode-name escape.
           $script = $script.Replace("'''      - name: Run profile editor and command-menu regressions", "r'''      - name: Run profile editor and command-menu regressions")
+          $replacementFunction = @'
+          def replace_once(path, old, new):
+              text = read(path)
+              count = text.count(old)
+              if count == 1:
+                  write(path, text.replace(old, new, 1))
+                  return
+              pieces = [piece for piece in re.split(r'(\s+)', old) if piece]
+              pattern = ''.join(r'\s+' if piece.isspace() else re.escape(piece) for piece in pieces)
+              updated, count = re.subn(pattern, lambda match: new, text, count=1, flags=re.S)
+              if count != 1:
+                  raise RuntimeError(f'{path}: expected one whitespace-tolerant match, found {count}: {old[:120]!r}')
+              write(path, updated)
+          '@
+          $replacementFunction = ($replacementFunction -split "`r?`n" | ForEach-Object { $_.TrimStart() }) -join "`n"
+          $script = [regex]::Replace($script, '(?s)def replace_once\(path, old, new\):.*?(?=\ndef regex_once)', $replacementFunction + "`n`n", 1)
           [IO.File]::WriteAllText((Join-Path $PWD 'apply-profile-menu-fix.py'), $script, [Text.UTF8Encoding]::new($false))
           python .\apply-profile-menu-fix.py
           Remove-Item .\apply-profile-menu-fix.py -Force
