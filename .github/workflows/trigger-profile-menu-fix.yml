@@ -6,6 +6,10 @@ on:
       - main
     paths:
       - '.github/profile-menu-fix.trigger'
+  pull_request:
+    paths:
+      - '.github/profile-menu-fix.trigger'
+      - '.github/workflows/trigger-profile-menu-fix.yml'
 
 permissions:
   contents: write
@@ -16,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
@@ -51,7 +55,7 @@ jobs:
         shell: pwsh
         run: dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
 
-      - name: Commit fixes to main
+      - name: Commit validated fixes
         shell: pwsh
         run: |
           Remove-Item .github/workflows/apply-profile-menu-fix.yml -Force
@@ -63,4 +67,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'Fix canonical profile editing and complete command menus'
-          git push origin HEAD:main
+          $target = if ('${{ github.event_name }}' -eq 'pull_request') { '${{ github.head_ref }}' } else { 'main' }
+          git push origin "HEAD:$target"
