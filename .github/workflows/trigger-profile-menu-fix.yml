@@ -94,13 +94,14 @@ jobs:
         shell: pwsh
         run: dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
 
-      - name: Commit validated fixes
+      - name: Commit validated source fixes
         shell: pwsh
         run: |
-          Remove-Item .github/workflows/apply-profile-menu-fix.yml -Force -ErrorAction SilentlyContinue
-          Remove-Item .github/workflows/trigger-profile-menu-fix.yml -Force -ErrorAction SilentlyContinue
-          Remove-Item .github/profile-menu-fix.trigger -Force -ErrorAction SilentlyContinue
-          Remove-Item .github/profile-menu-fix-pr.trigger -Force -ErrorAction SilentlyContinue
+          git checkout origin/main -- .github/workflows/ci.yml
+          git checkout origin/main -- .github/workflows/apply-profile-menu-fix.yml
+          git checkout origin/main -- .github/workflows/trigger-profile-menu-fix.yml
+          git checkout origin/main -- .github/profile-menu-fix.trigger
+          git checkout origin/main -- .github/profile-menu-fix-pr.trigger
           Remove-Item .github/profile-menu-fix-pr-run.txt -Force -ErrorAction SilentlyContinue
           Remove-Item .github/profile-menu-fix-pr-run-2.txt -Force -ErrorAction SilentlyContinue
           git add -A
