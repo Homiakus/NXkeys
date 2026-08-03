@@ -289,7 +289,7 @@ namespace NX2512_HotkeyStudio.UI
             using (SolidBrush text = new SolidBrush(accentColor)) DrawCentered(graphics, row?.Key ?? "?", keyFont, text, keyBox);
 
             Rectangle iconBox = new Rectangle(rectangle.Left + 52, rectangle.Top + 10, 34, 34);
-            CadIconPainter.Draw(graphics, iconBox, row?.IconHint, row?.Item?.Command?.ID, row?.Name);
+            OperationThumbnailRenderer.Draw(graphics, iconBox, row?.IconHint, row?.Item?.Command?.ID, row?.Name);
 
             string name = row?.Name ?? "Не назначено";
             using (Font nameFont = new Font("Segoe UI Semibold", 9.5f))

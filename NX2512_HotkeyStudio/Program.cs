@@ -159,8 +159,8 @@ namespace NX2512_HotkeyStudio
                         break;
                     case "export-icons":
                     case "icons":
-                        CadIconPainter.ExportAllIcons(128);
-                        Console.WriteLine("[OK] Кэш иконок очищен. Внешние картинки используются только из assets/nx-operation-icons.");
+                        int iconCount = OperationThumbnailRenderer.ExportAllIcons(config, 128);
+                        Console.WriteLine($"[OK] Сгенерировано {iconCount} миниатюр операций и manifest.json.");
                         break;
                     default:
                         throw new ArgumentException("Неизвестная команда: " + command);
