@@ -84,3 +84,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'Integrate operation thumbnails from latest branches'
           git push origin HEAD:integration/latest-branches-20260802
+
+# retrigger after workflow registration
