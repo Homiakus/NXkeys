@@ -9,7 +9,7 @@ import {
   ensureUniversalSupport,
   isModuleSwitchSupportCommand,
   isSelectionSupportCommand,
-  targetLengthForFrequency
+  targetLengthForCommand
 } from "./sequence-policy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -135,7 +135,7 @@ try {
       }
       if (item.requires_selection && !item.selection_type)
         fail(`Module ${module.id}, ${item.command?.id}: requires_selection command must declare selection_type or all.`);
-      if (item.frequency && !item.support_kind && (item.path ?? []).length > targetLengthForFrequency(item.frequency))
+      if (item.frequency && !item.support_kind && (item.path ?? []).length > targetLengthForCommand(module.id, item))
         fail(`Module ${module.id}, ${item.command?.id}: ${item.frequency} path exceeds target length.`);
       const known = knownPaths.get(item.command?.id);
       if (!known) continue;

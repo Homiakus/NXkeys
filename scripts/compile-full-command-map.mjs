@@ -6,9 +6,11 @@ import { gunzipSync } from 'node:zlib';
 import {
   SEQUENCE_POLICY_VERSION,
   ensureUniversalSupport,
+  isSketchIntentCommand,
   isSupportCommand,
   pathKey as policyPathKey,
   supportMetadata,
+  targetLengthForCommand,
   targetLengthForFrequency
 } from './sequence-policy.mjs';
 
@@ -326,6 +328,106 @@ function conflicts(candidate, used) {
   return [...used].some(existing => key.startsWith(existing) || existing.startsWith(key));
 }
 
+const SKETCH_KNOWN_PATHS = new Map([
+  ['UG_SKETCH_LINE', ['C', 'G', 'L']],
+  ['UG_SKETCH_RECTANGLE', ['C', 'G', 'R']],
+  ['UG_SKETCH_CIRCLE', ['C', 'G', 'C']],
+  ['UG_SKETCH_ARC', ['C', 'G', 'A']],
+  ['UG_SKETCH_TRIM', ['E', 'G', 'T']],
+  ['UG_SKETCH_EXTEND', ['E', 'G', 'E']],
+  ['UG_SKETCH_OFFSET_CURVE', ['T', 'G', 'O']],
+  ['UG_SKETCH_LINE_BY_TWO_POINTS', ['C', 'G', 'V', 'L', '2']],
+  ['UG_SKETCH_LINE_FROM_MIDPOINT', ['C', 'G', 'V', 'L', 'M']],
+  ['UG_SKETCH_RECTANGLE_BY_TWO_POINTS', ['C', 'G', 'V', 'R', '2']],
+  ['UG_SKETCH_RECTANGLE_FROM_CENTER', ['C', 'G', 'V', 'R', 'C']],
+  ['UG_SKETCH_RECTANGLE_BY_THREE_POINTS', ['C', 'G', 'V', 'R', '3']],
+  ['UG_SKETCH_CIRCLE_FROM_CENTER', ['C', 'G', 'V', 'C', 'C']],
+  ['UG_SKETCH_CIRCLE_BY_THREE_POINTS', ['C', 'G', 'V', 'C', '3']],
+  ['UG_SKETCH_ARC_BY_THREE_POINTS', ['C', 'G', 'V', 'A', '3']],
+  ['UG_SKETCH_ARC_FROM_CENTER', ['C', 'G', 'V', 'A', 'C']],
+  ['UG_SKETCH_RAPID_DIMENSION', ['A', 'D', 'R']],
+  ['UG_SKETCH_LINEAR_DIMENSION', ['A', 'D', 'L']],
+  ['UG_SKETCH_COINCIDENT_CONSTRAINT', ['C', 'K', 'C']],
+  ['UG_SKETCH_TANGENT_CONSTRAINT', ['C', 'K', 'T']],
+  ['UG_SKETCH_PARALLEL_CONSTRAINT', ['C', 'K', 'P']],
+  ['UG_SKETCH_PERPENDICULAR_CONSTRAINT', ['C', 'K', 'N']],
+  ['UG_SKETCH_HORIZONTAL_CONSTRAINT', ['C', 'K', 'H']],
+  ['UG_SKETCH_VERTICAL_CONSTRAINT', ['C', 'K', 'V']],
+  ['UG_SKETCH_CHECKER', ['I', 'S', 'C']],
+  ['UG_MODELING_BLEND_FEATURE', ['E', 'G', 'F']],
+  ['UG_MODELING_CHAMFER_FEATURE', ['E', 'G', 'H']]
+]);
+
+function sketchText(command) {
+  return `${command?.command?.id ?? ''} ${command?.command?.name ?? ''} ${command?.submenu_label ?? ''} ${command?.notes ?? ''}`.toUpperCase();
+}
+
+function sketchLeaf(text, command) {
+  const preferred = [
+    [['RECTANGLE'], 'R'], [['CIRCLE'], 'C'], [['ARC'], 'A'], [['LINE'], 'L'],
+    [['SPLINE'], 'S'], [['ELLIPSE'], 'E'], [['POINT'], 'P'], [['POLYGON'], 'Y'],
+    [['OFFSET'], 'O'], [['TRIM'], 'T'], [['EXTEND'], 'E'], [['FILLET', 'BLEND'], 'F'],
+    [['CHAMFER'], 'H'], [['COINCIDENT'], 'C'], [['TANGENT'], 'T'], [['PARALLEL'], 'P'],
+    [['PERPENDICULAR'], 'N'], [['HORIZONTAL'], 'H'], [['VERTICAL'], 'V'],
+    [['RAPID'], 'R'], [['LINEAR'], 'L'], [['CHECK'], 'C']
+  ];
+  for (const [terms, leaf] of preferred) if (terms.some(term => text.includes(term))) return leaf;
+  return candidateLetters(command?.command?.name ?? command?.fallback ?? 'Sketch').find(value => value !== 'V') ?? 'X';
+}
+
+function sketchPreferredPath(command) {
+  const id = String(command?.command?.id ?? '').toUpperCase();
+  if (SKETCH_KNOWN_PATHS.has(id)) return SKETCH_KNOWN_PATHS.get(id);
+  const text = sketchText(command);
+  let family;
+  if (/DIMENSION|RADIUS DIM|DIAMETER DIM/.test(text)) family = ['A', 'D'];
+  else if (/CONSTRAINT|COINCIDENT|TANGENT|PARALLEL|PERPENDICULAR|HORIZONTAL|VERTICAL|\bFIX\b/.test(text)) family = ['C', 'K'];
+  else if (/TRIM|EXTEND|FILLET|BLEND|CHAMFER|BREAK|JOIN|CORNER/.test(text)) family = ['E', 'G'];
+  else if (/OFFSET|MIRROR|MOVE|ROTATE|SCALE|PATTERN|COPY/.test(text)) family = ['T', 'G'];
+  else if (/DELETE|REMOVE/.test(text)) family = ['X', 'G'];
+  else if (/CHECK|VALIDATE|INSPECT|ANALYSIS|SOLVE/.test(text)) family = ['I', 'S'];
+  else if (/SETTING|PREFERENCE|MANAGE/.test(text)) family = ['M', 'S'];
+  else family = ['C', 'G'];
+  return [...family, sketchLeaf(text, command)];
+}
+
+function reserveSketchPath(preferred, command, used) {
+  const requested = normalizePath(preferred);
+  if (requested.length >= 3 && requested.length <= 5 && !conflicts(requested, used)) {
+    used.add(pathKey(requested));
+    return requested;
+  }
+  const generated = sketchPreferredPath(command);
+  const root = generated[0] ?? 'C';
+  const area = generated[1] ?? 'G';
+  const first = generated[2] ?? 'X';
+  const letters = [first, ...candidateLetters(command?.command?.name ?? command?.fallback ?? 'Sketch')]
+    .filter(value => !(root === 'C' && area === 'G' && value === 'V'))
+    .filter((value, index, array) => array.indexOf(value) === index);
+  for (const leaf of letters) {
+    const candidate = [root, area, leaf];
+    if (!conflicts(candidate, used)) { used.add(pathKey(candidate)); return candidate; }
+  }
+  const variants = [...candidateLetters(command?.command?.name ?? 'Sketch'), '2', '3', 'C', 'M', 'A', 'B']
+    .filter((value, index, array) => array.indexOf(value) === index);
+  for (const leaf of letters) {
+    for (const variant of variants) {
+      const candidate = [root, area, 'V', leaf, variant];
+      if (!conflicts(candidate, used)) { used.add(pathKey(candidate)); return candidate; }
+    }
+  }
+  throw new Error(`Unable to allocate a semantic Sketch path for ${command?.command?.name ?? command?.fallback}`);
+}
+
+function buildSketchPathLabels(tokens, name) {
+  return tokens.map((token, index) => {
+    if (index === 0) return ROOT_LABELS[token] ?? token;
+    if (index === 1) return ({ G: 'Geometry', K: 'Constraint', D: 'Dimension', S: 'Sketch' }[token] ?? OBJECT_LABELS[token] ?? token);
+    if (index === 2 && token === 'V') return 'Variant';
+    return index === tokens.length - 1 ? name : token;
+  });
+}
+
 function reservePath(preferred, name, used, frequency = '') {
   const requested = normalizePath(preferred);
   const targetLength = targetLengthForFrequency(frequency);
@@ -431,7 +533,17 @@ const knownPaths = parseKnownPaths(readText(path.join(repoRoot, 'NX2512_HotkeySt
 const modules = (profile.modules ?? []).filter(module => module && module.enabled !== false);
 ensureUniversalSupport(modules);
 const modulesById = new Map(modules.map(module => [module.id, module]));
-const globalTargets = modules.filter(module => module.id !== 'selection_object').map(module => module.id);
+const globalTargets = modules.filter(module => !['selection_object', 'sketch'].includes(module.id)).map(module => module.id);
+
+// Sketch is rebuilt only from intents whose runtime scope is Sketch. Global/file/modeling rows stay
+// available through direct shortcuts or their own modules instead of polluting the Sketch tree.
+const sketchModule = modulesById.get('sketch');
+if (sketchModule) {
+  for (const set of sketchModule.command_sets ?? [])
+    set.commands = (set.commands ?? []).filter(command =>
+      isSupportCommand(command) || String(command?.path_source ?? '').toLowerCase() === 'sketch_curated');
+  sketchModule.command_sets = (sketchModule.command_sets ?? []).filter(set => (set.commands ?? []).length > 0);
+}
 const reportRows = [];
 const sectionSets = new Map();
 let mergedCount = 0;
@@ -511,16 +623,26 @@ for (const module of modules) {
     command.command ??= { id: '', name: '' };
     const id = String(command.command.id ?? '').toUpperCase();
     const legacy = command.submenu_key ? [command.submenu_key, command.input_key] : [command.input_key];
-    command.__preferred = command.path?.length ? command.path : knownPaths.get(id) ?? legacy;
-    command.__priority = isSupportCommand(command) ? -1 : (knownPaths.has(id) ? 0 : (String(command.fallback ?? '').startsWith('catalog:') ? 2 : 1));
+    const sketchIntent = isSketchIntentCommand(module.id, command);
+    command.__preferred = sketchIntent
+      ? sketchPreferredPath(command)
+      : (command.path?.length ? command.path : knownPaths.get(id) ?? legacy);
+    command.__priority = isSupportCommand(command) ? -1 : ((sketchIntent && SKETCH_KNOWN_PATHS.has(id)) || knownPaths.has(id) ? 0 : (String(command.fallback ?? '').startsWith('catalog:') ? 2 : 1));
   }
   rows.sort((left, right) => left.command.__priority - right.command.__priority ||
     (left.command.display_order ?? 999999) - (right.command.display_order ?? 999999) ||
     String(left.command.command?.id ?? left.command.command?.name).localeCompare(String(right.command.command?.id ?? right.command.command?.name)));
   const used = new Set();
   for (const { command } of rows) {
-    command.path = reservePath(command.__preferred, command.command?.name ?? command.fallback, used, command.frequency);
-    command.path_labels = buildPathLabels(command.path, command.command?.name ?? 'Command');
+    const sketchIntent = isSketchIntentCommand(module.id, command);
+    command.path = sketchIntent
+      ? reserveSketchPath(command.__preferred, command, used)
+      : reservePath(command.__preferred, command.command?.name ?? command.fallback, used, command.frequency);
+    command.path_labels = sketchIntent
+      ? buildSketchPathLabels(command.path, command.command?.name ?? 'Sketch command')
+      : buildPathLabels(command.path, command.command?.name ?? 'Command');
+    if (sketchIntent) command.path_source = SKETCH_KNOWN_PATHS.has(String(command.command?.id ?? '').toUpperCase())
+      ? 'sketch_curated' : 'sketch_generated';
     delete command.__preferred;
     delete command.__priority;
   }
@@ -528,9 +650,12 @@ for (const module of modules) {
   const accepted = new Set(used);
   for (const { command } of rows) {
     const candidates = [];
-    for (const alias of command.aliases ?? []) candidates.push(normalizePath(alias));
-    if (command.input_key) candidates.push(normalizePath([command.input_key]));
-    if (command.submenu_key && command.input_key) candidates.push(normalizePath([command.submenu_key, command.input_key]));
+    const sketchIntent = isSketchIntentCommand(module.id, command);
+    if (!sketchIntent) {
+      for (const alias of command.aliases ?? []) candidates.push(normalizePath(alias));
+      if (command.input_key) candidates.push(normalizePath([command.input_key]));
+      if (command.submenu_key && command.input_key) candidates.push(normalizePath([command.submenu_key, command.input_key]));
+    }
     const clean = [];
     for (const alias of candidates) {
       const key = pathKey(alias);

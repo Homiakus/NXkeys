@@ -63,6 +63,16 @@ export function targetLengthForFrequency(frequency) {
   return FREQUENCY_TARGET_LENGTH[String(frequency ?? '').trim()] ?? 5;
 }
 
+
+export function isSketchIntentCommand(moduleId, command) {
+  return String(moduleId ?? '').trim().toLowerCase() === 'sketch' && !isSupportCommand(command);
+}
+
+export function targetLengthForCommand(moduleId, command) {
+  // Sketch keeps action -> object -> operation and an optional explicit variant branch.
+  return isSketchIntentCommand(moduleId, command) ? 5 : targetLengthForFrequency(command?.frequency);
+}
+
 export function isSelectionSupportCommand(command) {
   const canonicalIds = new Set(CANONICAL_SELECTION_FILTERS.map(filter => filter.id));
   return command?.support_kind === 'selection_filter' ||

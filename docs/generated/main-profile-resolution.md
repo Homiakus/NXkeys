@@ -4,12 +4,12 @@
 - Selected frequencies: **K3, K4, K5**
 - Selected unique intents: **885**
 - Runtime support commands: **272**
-- Generated module rows: **2449**
-- Enabled rows: **683**
-- Existing rows: **336**
-- Resolved rows: **347**
-- Ambiguous rows: **50**
-- Unresolved rows: **1716**
+- Generated module rows: **2342**
+- Enabled rows: **679**
+- Existing rows: **352**
+- Resolved rows: **327**
+- Ambiguous rows: **45**
+- Unresolved rows: **1618**
 
 > Disabled ambiguous/unresolved rows keep their mnemonic path but cannot dispatch a fabricated BUTTON ID.
 
@@ -43,7 +43,7 @@
 | Select Feature | modeling | K4 | unresolved | UG_MODELING_SHEET_FEATURE (0.52)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.45)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.43) |
 | Select Body | modeling | K4 | unresolved | UG_SEL_SELECT_ALL (0.46)<br>UG_SEL_BODY_PRIORITY (0.31)<br>UG_APP_GATEWAY (0.27) |
 | Select Component | modeling | K4 | unresolved | UG_ASSEMBLIES_REPLACE_COMPONENT (0.51)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.48)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.48) |
-| QuickPick | modeling | K5 | unresolved | — |
+| QuickPick | modeling | K5 | unresolved | UG_SKETCH_RAPID_DIMENSION (0.46) |
 | Zoom In/Out | modeling | K5 | unresolved | — |
 | Pan | modeling | K5 | unresolved | — |
 | Rotate | modeling | K5 | unresolved | — |
@@ -61,7 +61,7 @@
 | Perspective | modeling | K3 | unresolved | — |
 | Hide | modeling | K5 | ambiguous | UG_EDIT_BLANK_SELECTED (0.84)<br>UG_EDIT_MD_SHOWHIDE_ALL (0.84) |
 | Show Only | modeling | K5 | unresolved | UG_EDIT_MD_SHOWHIDE_ALL (0.34) |
-| Unblank | modeling | K3 | unresolved | — |
+| Unblank | modeling | K3 | unresolved | UG_SKETCH_TRIM (0.25) |
 | Wireframe | modeling | K3 | unresolved | — |
 | Shaded | modeling | K3 | unresolved | — |
 | Shaded with Edges | modeling | K3 | unresolved | — |
@@ -108,7 +108,7 @@
 | Divide Face | modeling | K3 | unresolved | UG_ANALYSIS_FACE_CURVATURE (0.29) |
 | Simplify Body | modeling | K4 | unresolved | — |
 | Defeature | modeling | K3 | unresolved | UG_MODELING_SHEET_FEATURE (0.29)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.26) |
-| Linear Pattern | modeling | K4 | unresolved | UG_SHEET_METAL_FLAT_PATTERN (0.46)<br>UG_SKETCH_LINEAR_DIMENSION (0.40)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.34) |
+| Linear Pattern | modeling | K4 | unresolved | UG_SKETCH_LINEAR_DIMENSION (0.47)<br>UG_SHEET_METAL_FLAT_PATTERN (0.46)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.34) |
 | Circular Pattern | modeling | K4 | unresolved | UG_SHEET_METAL_FLAT_PATTERN (0.46)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.31) |
 | Pattern Face | modeling | K4 | unresolved | UG_MODELING_PATTERNFEATURE_FEATURE (0.54)<br>UG_ASSEMBLIES_PATTERN_COMPONENT (0.42)<br>UG_ANALYSIS_FACE_CURVATURE (0.32) |
 | Pattern Geometry | modeling | K4 | unresolved | UG_MODELING_EXTRACT_GEOMETRY (0.49)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.49)<br>UG_ASSEMBLIES_PATTERN_COMPONENT (0.42) |
@@ -128,8 +128,7 @@
 | Orient WCS | modeling | K3 | unresolved | — |
 | Move WCS | modeling | K4 | unresolved | UG_ASSEMBLIES_MOVE_COMPONENT (0.34)<br>UG_LAYER_MOVE (0.31) |
 | Datum on Path | modeling | K4 | unresolved | UG_SEL_DATUM_PRIORITY (0.31)<br>UG_CAM_GENERATE_TOOL_PATH (0.30)<br>UG_CAM_VERIFY_TOOL_PATH (0.30) |
-| Line | modeling | K5 | ambiguous | UG_SKETCH_LINE_BY_TWO_POINTS (0.82)<br>UG_SKETCH_LINE_FROM_MIDPOINT (0.82) |
-| Arc/Circle | modeling | K3 | unresolved | UG_SKETCH_ARC_FROM_CENTER (0.31)<br>UG_SKETCH_CIRCLE_FROM_CENTER (0.26) |
+| Arc/Circle | modeling | K3 | ambiguous | UG_SKETCH_CIRCLE (0.90)<br>UG_SKETCH_ARC (0.84)<br>UG_SKETCH_ARC_FROM_CENTER (0.31) |
 | Studio Spline | modeling | K3 | unresolved | UG_MODELING_STUDIO_SURFACE_FEATURE (0.50) |
 | Bridge Curve | modeling | K4 | unresolved | UG_SKETCH_OFFSET_CURVE (0.40)<br>UG_MODELING_THROUGH_CURVES_FEATURE (0.28) |
 | Helix | modeling | K3 | unresolved | — |
@@ -150,7 +149,7 @@
 | Bounded Plane | modeling | K3 | unresolved | — |
 | Fill Surface | modeling | K4 | unresolved | UG_MODELING_STUDIO_SURFACE_FEATURE (0.47)<br>UG_APP_MODELING (0.40)<br>UG_PMI_SURFACE_FINISH (0.28) |
 | Trimmed Sheet | modeling | K3 | unresolved | UG_MODELING_TRIM_SHEET_FEATURE (0.55)<br>UG_MODELING_FF_EXTEND_SHEET (0.45)<br>UG_MODELING_SHEET_FEATURE (0.29) |
-| Variable Offset | modeling | K4 | unresolved | — |
+| Variable Offset | modeling | K4 | unresolved | UG_SKETCH_OFFSET_CURVE (0.30) |
 | Face Analysis | modeling | K4 | unresolved | UG_ANALYSIS_FACE_CURVATURE (0.44)<br>UG_INFO_ANALYSIS_SHEET_BOUNDARY (0.36)<br>UG_SEL_FACE_PRIORITY (0.27) |
 | Match Edge | modeling | K3 | unresolved | — |
 | Match Surface | modeling | K4 | unresolved | UG_MODELING_STUDIO_SURFACE_FEATURE (0.47)<br>UG_APP_MODELING (0.45)<br>UG_PMI_SURFACE_FINISH (0.28) |
@@ -158,8 +157,8 @@
 | X-Form | modeling | K3 | unresolved | — |
 | I-Form | modeling | K3 | unresolved | — |
 | Flattening and Forming | modeling | K4 | unresolved | — |
-| Offset Region | modeling | K4 | unresolved | UG_SKETCH_OFFSET_CURVE (0.42) |
-| Resize Face | modeling | K3 | unresolved | UG_ANALYSIS_FACE_CURVATURE (0.29) |
+| Offset Region | modeling | K4 | unresolved | UG_SKETCH_OFFSET_CURVE (0.43) |
+| Resize Face | modeling | K3 | unresolved | UG_SKETCH_LINEAR_DIMENSION (0.30)<br>UG_ANALYSIS_FACE_CURVATURE (0.29)<br>UG_SKETCH_RAPID_DIMENSION (0.29) |
 | Make Coplanar | modeling | K3 | unresolved | — |
 | Make Collinear | modeling | K3 | unresolved | — |
 | Make Symmetric | modeling | K3 | unresolved | — |
@@ -219,79 +218,19 @@
 | Edit Journal | modeling | K3 | unresolved | UG_ROUTE_EDIT_ROUTE (0.44)<br>UG_PMI_EDIT (0.37)<br>UG_EDIT_UNDO (0.29) |
 | Export Command List | modeling | K3 | unresolved | UG_DRAFTING_PARTS_LIST (0.32)<br>UG_HELP_COMMAND_FINDER (0.30) |
 | Drawing Standards | modeling | K3 | unresolved | — |
-| Close | sketch | K3 | unresolved | — |
-| Close All | sketch | K3 | unresolved | UG_SEL_SELECT_ALL (0.40)<br>UG_SEL_DESELECT_ALL (0.37) |
-| Reopen | sketch | K3 | unresolved | UG_FILE_OPEN (0.28) |
-| Part Cleanup | sketch | K3 | unresolved | UG_NAVIGATOR_PART (0.37)<br>UG_ROUTE_PLACE_PART (0.30)<br>UG_VIEW_PALETTE_MATERIALS_IN_PART (0.30) |
-| Properties | sketch | K3 | unresolved | — |
-| Print | sketch | K3 | unresolved | — |
-| Export | sketch | K4 | unresolved | — |
-| Import | sketch | K4 | unresolved | — |
-| Recently Opened Parts | sketch | K3 | unresolved | — |
-| Switch Window | sketch | K3 | unresolved | UG_APP_PMI (0.37)<br>UG_APP_ROUTING (0.34)<br>UG_APP_DRAFTING (0.33) |
-| Exit | sketch | K3 | unresolved | — |
-| Rename | sketch | K3 | unresolved | — |
-| Object Properties | sketch | K3 | unresolved | UG_INFO_OBJECT (0.43)<br>UG_ROUTE_DELETE (0.26) |
-| Edit Parameters | sketch | K4 | unresolved | UG_ROUTE_EDIT_ROUTE (0.42)<br>UG_PMI_EDIT (0.39)<br>UG_EDIT_PASTE (0.31) |
-| Edit with Rollback | sketch | K4 | unresolved | UG_ROUTE_EDIT_ROUTE (0.31)<br>UG_PMI_EDIT (0.26) |
-| Suppress | sketch | K3 | unresolved | — |
-| Unsuppress | sketch | K3 | unresolved | — |
-| Reorder | sketch | K3 | unresolved | — |
-| Make Current Feature | sketch | K4 | unresolved | UG_MODELING_MIRRORFEATURE_FEATURE (0.38)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.38)<br>UG_MODELING_SHEET_FEATURE (0.38) |
-| Select Similar Faces/Edges | sketch | K3 | unresolved | — |
-| Selection Filter | sketch | K5 | ambiguous | UG_SEL_TYPE_RESET (0.93)<br>UG_APP_GATEWAY (0.89)<br>UG_SEL_BODY_PRIORITY (0.35) |
-| Select Connected | sketch | K3 | unresolved | UG_SEL_SELECT_ALL (0.38) |
-| Select Tangent Faces | sketch | K3 | unresolved | UG_SEL_SELECT_ALL (0.31)<br>UG_SKETCH_TANGENT_CONSTRAINT (0.28) |
-| Select Feature | sketch | K4 | unresolved | UG_MODELING_SHEET_FEATURE (0.52)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.45)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.43) |
-| Select Body | sketch | K4 | unresolved | UG_SEL_SELECT_ALL (0.46)<br>UG_SEL_BODY_PRIORITY (0.31)<br>UG_APP_GATEWAY (0.27) |
-| Select Component | sketch | K4 | unresolved | UG_ASSEMBLIES_REPLACE_COMPONENT (0.51)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.48)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.48) |
-| QuickPick | sketch | K5 | unresolved | — |
-| Zoom In/Out | sketch | K5 | unresolved | — |
-| Pan | sketch | K5 | unresolved | — |
-| Rotate | sketch | K5 | unresolved | — |
-| Orient View | sketch | K5 | unresolved | UG_DRAFTING_PROJECTED_VIEW (0.43)<br>UG_DRAFTING_BASE_VIEW (0.42)<br>UG_PMI_MODEL_VIEW (0.42) |
-| Isometric | sketch | K5 | unresolved | UG_VIEW_POPUP_ORIENT_TFRTRI (0.28) |
-| Front | sketch | K3 | unresolved | — |
-| Back | sketch | K3 | unresolved | — |
-| Top | sketch | K3 | unresolved | — |
-| Bottom | sketch | K3 | unresolved | — |
-| Left | sketch | K3 | unresolved | — |
-| Right | sketch | K3 | unresolved | — |
-| Previous View | sketch | K4 | unresolved | UG_DRAFTING_SECTION_VIEW (0.42)<br>UG_DRAFTING_PROJECTED_VIEW (0.40)<br>UG_DRAFTING_DETAIL_VIEW (0.39) |
-| Named Views | sketch | K4 | unresolved | UG_DRAFTING_UPDATE_VIEWS (0.44)<br>UG_DRAFTING_BASE_VIEW (0.27) |
-| Clip Section | sketch | K4 | unresolved | UG_DRAFTING_SECTION_VIEW (0.27) |
-| Perspective | sketch | K3 | unresolved | — |
-| Hide | sketch | K5 | ambiguous | UG_EDIT_BLANK_SELECTED (0.84)<br>UG_EDIT_MD_SHOWHIDE_ALL (0.84) |
-| Show Only | sketch | K5 | unresolved | UG_EDIT_MD_SHOWHIDE_ALL (0.34) |
-| Unblank | sketch | K3 | unresolved | — |
-| Wireframe | sketch | K3 | unresolved | — |
-| Shaded | sketch | K3 | unresolved | — |
-| Shaded with Edges | sketch | K3 | unresolved | — |
-| Examine Geometry | sketch | K4 | unresolved | UG_MODELING_EXTRACT_GEOMETRY (0.48)<br>UG_ASSY_WAVE_LINKER (0.31)<br>UG_MODELING_WAVE_LINKER (0.31) |
-| Shortcut Keys | sketch | K3 | unresolved | — |
-| Customize | sketch | K3 | unresolved | — |
-| Roles | sketch | K3 | unresolved | UG_MODELING_HOLE_FEATURE (0.25) |
-| Resource Bar | sketch | K3 | unresolved | — |
-| Part Navigator | sketch | K5 | ambiguous | UG_NAVIGATOR_PART (1.00)<br>UG_ASSY_WAVE_PART_NAVIGATOR (0.93)<br>UG_CAM_OPERATION_NAVIGATOR (0.48) |
 | Profile | sketch | K5 | unresolved | — |
-| Line | sketch | K5 | ambiguous | UG_SKETCH_LINE_BY_TWO_POINTS (0.86)<br>UG_SKETCH_LINE_FROM_MIDPOINT (0.86) |
-| Arc | sketch | K5 | ambiguous | UG_SKETCH_ARC_FROM_CENTER (0.86)<br>UG_SKETCH_ARC_BY_THREE_POINTS (0.85) |
-| Circle | sketch | K5 | ambiguous | UG_SKETCH_CIRCLE_FROM_CENTER (0.88)<br>UG_SKETCH_CIRCLE_BY_THREE_POINTS (0.87) |
 | Ellipse | sketch | K3 | unresolved | — |
-| Rectangle | sketch | K5 | ambiguous | UG_SKETCH_RECTANGLE_FROM_CENTER (0.90)<br>UG_SKETCH_RECTANGLE_BY_TWO_POINTS (0.89)<br>UG_SKETCH_RECTANGLE_BY_THREE_POINTS (0.89) |
-| Polygon | sketch | K3 | unresolved | — |
+| Polygon | sketch | K3 | unresolved | UG_SKETCH_RECTANGLE (0.33) |
 | Studio Spline | sketch | K3 | unresolved | UG_MODELING_STUDIO_SURFACE_FEATURE (0.46) |
 | Conic | sketch | K3 | unresolved | — |
 | Point | sketch | K3 | unresolved | — |
 | Slot | sketch | K3 | unresolved | — |
-| Fillet | sketch | K3 | unresolved | — |
 | Pattern Curve | sketch | K4 | unresolved | UG_MODELING_PATTERNFEATURE_FEATURE (0.47)<br>UG_SKETCH_OFFSET_CURVE (0.45)<br>UG_ASSEMBLIES_PATTERN_COMPONENT (0.44) |
 | Mirror Curve | sketch | K4 | unresolved | UG_MODELING_MIRRORFEATURE_FEATURE (0.46)<br>UG_SKETCH_OFFSET_CURVE (0.44) |
 | Project Curve | sketch | K4 | unresolved | UG_SKETCH_OFFSET_CURVE (0.49) |
 | Intersection Curve | sketch | K4 | unresolved | UG_SKETCH_OFFSET_CURVE (0.44)<br>UG_SEL_CURVE_PRIORITY (0.32) |
 | Include Geometry | sketch | K4 | unresolved | UG_MODELING_EXTRACT_GEOMETRY (0.43)<br>UG_ASSY_WAVE_LINKER (0.29)<br>UG_MODELING_WAVE_LINKER (0.29) |
-| Derived Line | sketch | K3 | unresolved | UG_SKETCH_LINE_FROM_MIDPOINT (0.30) |
-| Equation Curve | sketch | K4 | unresolved | UG_SKETCH_OFFSET_CURVE (0.41)<br>UG_SEL_CURVE_PRIORITY (0.27) |
+| Equation Curve | sketch | K4 | unresolved | UG_SKETCH_OFFSET_CURVE (0.41)<br>UG_SEL_CURVE_PRIORITY (0.27)<br>UG_SKETCH_LINE_BY_TWO_POINTS (0.26) |
 | Horizontal Dimension | sketch | K4 | unresolved | UG_SKETCH_LINEAR_DIMENSION (0.50)<br>UG_SKETCH_HORIZONTAL_CONSTRAINT (0.47)<br>UG_SKETCH_RAPID_DIMENSION (0.46) |
 | Vertical Dimension | sketch | K4 | unresolved | UG_SKETCH_LINEAR_DIMENSION (0.48)<br>UG_SKETCH_RAPID_DIMENSION (0.48)<br>UG_DRAFTING_RAPID_DIMENSION (0.45) |
 | Parallel Dimension | sketch | K4 | unresolved | UG_SKETCH_RAPID_DIMENSION (0.51)<br>UG_DRAFTING_RAPID_DIMENSION (0.47)<br>UG_PMI_RAPID_DIMENSION (0.47) |
@@ -307,7 +246,7 @@
 | Equal Radius | sketch | K3 | unresolved | — |
 | Symmetric | sketch | K3 | unresolved | UG_VIEW_POPUP_ORIENT_TFRTRI (0.28) |
 | Fix | sketch | K3 | unresolved | UG_VIEW_FIT (0.28) |
-| Make Reference | sketch | K3 | unresolved | — |
+| Make Reference | sketch | K3 | unresolved | UG_SKETCH_LINEAR_DIMENSION (0.48)<br>UG_SKETCH_RAPID_DIMENSION (0.45) |
 | Convert to Driving | sketch | K3 | unresolved | UG_APP_DRAFTING (0.30)<br>UG_APP_ROUTING (0.28)<br>UG_LAYER_MOVE (0.28) |
 | Corner | sketch | K3 | unresolved | — |
 | Move Curve | sketch | K4 | unresolved | UG_SKETCH_OFFSET_CURVE (0.47)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.40)<br>UG_LAYER_MOVE (0.34) |
@@ -317,45 +256,6 @@
 | Alternate Solution | sketch | K3 | unresolved | UG_SIM_CREATE_SOLUTION (0.50) |
 | Auto Constrain | sketch | K3 | unresolved | UG_SKETCH_TANGENT_CONSTRAINT (0.29)<br>UG_SKETCH_PARALLEL_CONSTRAINT (0.28)<br>UG_SKETCH_VERTICAL_CONSTRAINT (0.28) |
 | Continuous Auto Dimensioning | sketch | K4 | unresolved | — |
-| Check In | sketch | K3 | unresolved | — |
-| Check Out | sketch | K3 | unresolved | — |
-| Cancel Check Out | sketch | K3 | unresolved | — |
-| Impact Analysis | sketch | K3 | unresolved | UG_INFO_ANALYSIS_SHEET_BOUNDARY (0.33) |
-| Assign Project | sketch | K3 | unresolved | UG_MOLD_INITIALIZE_PROJECT (0.40)<br>UG_MATERIAL_ASSIGN (0.39) |
-| Create Live Share Session | sketch | K3 | unresolved | UG_CAM_CREATE_OPERATION (0.32)<br>UG_SIM_CREATE_SOLUTION (0.30)<br>UG_SIM_CREATE_CONSTRAINT (0.28) |
-| Task Assignment | sketch | K3 | unresolved | — |
-| Import Parasolid | sketch | K4 | unresolved | — |
-| Import STEP | sketch | K4 | unresolved | — |
-| Import IGES | sketch | K4 | unresolved | — |
-| Import JT | sketch | K4 | unresolved | — |
-| Import CATIA | sketch | K4 | unresolved | — |
-| Import Creo | sketch | K4 | unresolved | — |
-| Import SolidWorks | sketch | K4 | unresolved | — |
-| Import DXF/DWG | sketch | K4 | unresolved | — |
-| Import STL | sketch | K4 | unresolved | — |
-| Import OBJ | sketch | K4 | unresolved | — |
-| Import IFC | sketch | K4 | unresolved | — |
-| Import XML | sketch | K4 | unresolved | — |
-| Export Parasolid | sketch | K4 | unresolved | — |
-| Export STEP AP203/214/242 | sketch | K4 | unresolved | — |
-| Export IGES | sketch | K4 | unresolved | — |
-| Export JT | sketch | K4 | unresolved | — |
-| Export DXF/DWG | sketch | K4 | unresolved | — |
-| Export STL | sketch | K4 | unresolved | — |
-| Export 3MF | sketch | K4 | unresolved | — |
-| Export PDF | sketch | K4 | unresolved | — |
-| Export CGM | sketch | K4 | unresolved | — |
-| Export QIF | sketch | K4 | unresolved | — |
-| Publish Technical Data Package | sketch | K3 | unresolved | — |
-| Heal Geometry | sketch | K4 | unresolved | UG_MODELING_EXTRACT_GEOMETRY (0.46)<br>UG_ASSY_WAVE_LINKER (0.33)<br>UG_MODELING_WAVE_LINKER (0.33) |
-| Optimize Geometry | sketch | K4 | unresolved | UG_MODELING_EXTRACT_GEOMETRY (0.44)<br>UG_ASSY_WAVE_LINKER (0.27)<br>UG_MODELING_WAVE_LINKER (0.27) |
-| Remove Parameters | sketch | K3 | unresolved | UG_ROUTE_REMOVE_PART (0.47)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.39) |
-| Feature Recognition | sketch | K4 | unresolved | UG_SEL_FEATURE_PRIORITY (0.35)<br>UG_PMI_FEATURE_CONTROL_FRAME (0.32)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.30) |
-| Compare Imported Geometry | sketch | K4 | unresolved | UG_MODELING_EXTRACT_GEOMETRY (0.33) |
-| Edit Journal | sketch | K3 | unresolved | UG_ROUTE_EDIT_ROUTE (0.44)<br>UG_PMI_EDIT (0.37)<br>UG_EDIT_UNDO (0.29) |
-| User Defined Feature | sketch | K3 | unresolved | UG_MODELING_SHEET_FEATURE (0.38)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.35)<br>UG_MODELING_SEW_FEATURE (0.35) |
-| Export Command List | sketch | K3 | unresolved | UG_DRAFTING_PARTS_LIST (0.32)<br>UG_HELP_COMMAND_FINDER (0.30) |
-| Drawing Standards | sketch | K3 | unresolved | — |
 | Close | assembly | K3 | unresolved | — |
 | Close All | assembly | K3 | unresolved | UG_SEL_SELECT_ALL (0.40)<br>UG_SEL_DESELECT_ALL (0.37) |
 | Reopen | assembly | K3 | unresolved | UG_FILE_OPEN (0.28) |
@@ -382,7 +282,7 @@
 | Select Feature | assembly | K4 | unresolved | UG_MODELING_SHEET_FEATURE (0.52)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.45)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.43) |
 | Select Body | assembly | K4 | unresolved | UG_SEL_SELECT_ALL (0.46)<br>UG_SEL_BODY_PRIORITY (0.31)<br>UG_APP_GATEWAY (0.27) |
 | Select Component | assembly | K4 | unresolved | UG_ASSEMBLIES_REPLACE_COMPONENT (0.51)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.48)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.48) |
-| QuickPick | assembly | K5 | unresolved | — |
+| QuickPick | assembly | K5 | unresolved | UG_SKETCH_RAPID_DIMENSION (0.46) |
 | Zoom In/Out | assembly | K5 | unresolved | — |
 | Pan | assembly | K5 | unresolved | — |
 | Rotate | assembly | K5 | unresolved | — |
@@ -400,7 +300,7 @@
 | Perspective | assembly | K3 | unresolved | — |
 | Hide | assembly | K5 | ambiguous | UG_EDIT_BLANK_SELECTED (0.84)<br>UG_EDIT_MD_SHOWHIDE_ALL (0.84) |
 | Show Only | assembly | K5 | unresolved | UG_EDIT_MD_SHOWHIDE_ALL (0.34) |
-| Unblank | assembly | K3 | unresolved | — |
+| Unblank | assembly | K3 | unresolved | UG_SKETCH_TRIM (0.25) |
 | Wireframe | assembly | K3 | unresolved | — |
 | Shaded | assembly | K3 | unresolved | — |
 | Shaded with Edges | assembly | K3 | unresolved | — |
@@ -447,7 +347,7 @@
 | Assembly Family | assembly | K3 | unresolved | UG_ASSEMBLIES_NAVIGATOR (0.48)<br>UG_ASSEMBLIES_CONSTRAINTS (0.44)<br>UG_APP_ASSEMBLIES (0.27) |
 | Product Configurator | assembly | K3 | unresolved | — |
 | Clearance Analysis | assembly | K4 | unresolved | UG_INFO_ANALYSIS_SHEET_BOUNDARY (0.35) |
-| Interference Check | assembly | K5 | unresolved | — |
+| Interference Check | assembly | K5 | unresolved | UG_SKETCH_CHECKER (0.40) |
 | Assembly Weight | assembly | K3 | unresolved | UG_ASSEMBLIES_NAVIGATOR (0.51)<br>UG_ASSEMBLIES_CONSTRAINTS (0.44)<br>UG_APP_ASSEMBLIES (0.26) |
 | Component Where-Used | assembly | K4 | unresolved | UG_SEL_COMPONENT_PRIORITY (0.30)<br>UG_ASSEMBLIES_ADD_COMPONENT (0.29)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.26) |
 | Assembly Load Options | assembly | K3 | unresolved | UG_ASSEMBLIES_CONSTRAINTS (0.42)<br>UG_ASSEMBLIES_NAVIGATOR (0.42)<br>UG_SIM_CREATE_LOAD (0.27) |
@@ -464,7 +364,7 @@
 | Add Workpiece | assembly | K3 | unresolved | UG_ASSEMBLIES_ADD_COMPONENT (0.42)<br>UG_ROUTE_ADD_STOCK (0.35) |
 | Fixture Component Library | assembly | K3 | unresolved | UG_ASSEMBLIES_PATTERN_COMPONENT (0.38)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.36)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.36) |
 | Place Standard Component | assembly | K3 | unresolved | UG_ASSEMBLIES_PATTERN_COMPONENT (0.42)<br>UG_ASSEMBLIES_ADD_COMPONENT (0.41)<br>UG_ASSEMBLIES_REPLACE_COMPONENT (0.41) |
-| Accessibility Check | assembly | K3 | unresolved | — |
+| Accessibility Check | assembly | K3 | unresolved | UG_SKETCH_CHECKER (0.40) |
 | Fixture Drawing | assembly | K3 | unresolved | — |
 | Fixture BOM | assembly | K3 | unresolved | — |
 | Check In | assembly | K3 | unresolved | — |
@@ -502,7 +402,6 @@
 | Remove Parameters | assembly | K3 | unresolved | UG_ROUTE_REMOVE_PART (0.47)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.39) |
 | Feature Recognition | assembly | K4 | unresolved | UG_SEL_FEATURE_PRIORITY (0.35)<br>UG_PMI_FEATURE_CONTROL_FRAME (0.32)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.30) |
 | Compare Imported Geometry | assembly | K4 | unresolved | UG_MODELING_EXTRACT_GEOMETRY (0.33) |
-| Create Line Layout | assembly | K3 | unresolved | UG_SIM_CREATE_CONSTRAINT (0.38)<br>UG_ASSEMBLIES_NEW_COMPONENT (0.36)<br>UG_CAM_CREATE_OPERATION (0.35) |
 | Place Equipment | assembly | K3 | unresolved | UG_ROUTE_PLACE_PART (0.42)<br>UG_ASSEMBLIES_REPLACE_COMPONENT (0.26) |
 | Resource Library | assembly | K3 | unresolved | UG_NAVIGATOR_REUSE_LIBRARY (0.51)<br>UG_MOLD_LIBRARY (0.43)<br>UG_MATERIAL_LIBRARY_MANAGER (0.29) |
 | Assign Process | assembly | K3 | unresolved | UG_MATERIAL_ASSIGN (0.39) |
@@ -540,7 +439,7 @@
 | Select Feature | drafting | K4 | unresolved | UG_MODELING_SHEET_FEATURE (0.52)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.45)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.43) |
 | Select Body | drafting | K4 | unresolved | UG_SEL_SELECT_ALL (0.46)<br>UG_SEL_BODY_PRIORITY (0.31)<br>UG_APP_GATEWAY (0.27) |
 | Select Component | drafting | K4 | unresolved | UG_ASSEMBLIES_REPLACE_COMPONENT (0.51)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.48)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.48) |
-| QuickPick | drafting | K5 | unresolved | — |
+| QuickPick | drafting | K5 | unresolved | UG_SKETCH_RAPID_DIMENSION (0.46) |
 | Zoom In/Out | drafting | K5 | unresolved | — |
 | Pan | drafting | K5 | unresolved | — |
 | Rotate | drafting | K5 | unresolved | — |
@@ -558,7 +457,7 @@
 | Perspective | drafting | K3 | unresolved | — |
 | Hide | drafting | K5 | ambiguous | UG_EDIT_BLANK_SELECTED (0.84)<br>UG_EDIT_MD_SHOWHIDE_ALL (0.84) |
 | Show Only | drafting | K5 | unresolved | UG_EDIT_MD_SHOWHIDE_ALL (0.34) |
-| Unblank | drafting | K3 | unresolved | — |
+| Unblank | drafting | K3 | unresolved | UG_SKETCH_TRIM (0.25) |
 | Wireframe | drafting | K3 | unresolved | — |
 | Shaded | drafting | K3 | unresolved | — |
 | Shaded with Edges | drafting | K3 | unresolved | — |
@@ -573,7 +472,7 @@
 | Auxiliary View | drafting | K4 | unresolved | UG_DRAFTING_BASE_VIEW (0.41)<br>UG_DRAFTING_DETAIL_VIEW (0.41)<br>UG_DRAFTING_SECTION_VIEW (0.41) |
 | Half Section | drafting | K4 | unresolved | UG_DRAFTING_SECTION_VIEW (0.31) |
 | Revolved Section | drafting | K4 | unresolved | UG_DRAFTING_SECTION_VIEW (0.31)<br>UG_MODELING_REVOLVED_FEATURE (0.28) |
-| Break-out Section | drafting | K4 | unresolved | UG_DRAFTING_SECTION_VIEW (0.29) |
+| Break-out Section | drafting | K4 | unresolved | UG_DRAFTING_SECTION_VIEW (0.29)<br>UG_SKETCH_RAPID_DIMENSION (0.27) |
 | Broken View | drafting | K4 | unresolved | UG_DRAFTING_BASE_VIEW (0.50)<br>UG_DRAFTING_PROJECTED_VIEW (0.47)<br>UG_PMI_MODEL_VIEW (0.46) |
 | View Break | drafting | K4 | unresolved | UG_DRAFTING_VIEW_STYLE (0.44)<br>UG_VIEW_REFRESH (0.34)<br>UG_DRAFTING_BASE_VIEW (0.31) |
 | View Dependent Edit | drafting | K4 | unresolved | UG_DRAFTING_VIEW_STYLE (0.31)<br>UG_PMI_EDIT (0.27)<br>UG_VIEW_POPUP_ORIENT_TFRTRI (0.25) |
@@ -581,7 +480,6 @@
 | Align Views | drafting | K4 | unresolved | UG_DRAFTING_UPDATE_VIEWS (0.44) |
 | Move View | drafting | K4 | unresolved | UG_PMI_MODEL_VIEW (0.53)<br>UG_DRAFTING_BASE_VIEW (0.51)<br>UG_DRAFTING_PROJECTED_VIEW (0.44) |
 | View Boundary | drafting | K4 | unresolved | UG_DRAFTING_VIEW_STYLE (0.39)<br>UG_INFO_ANALYSIS_SHEET_BOUNDARY (0.33)<br>UG_DRAFTING_SECTION_VIEW (0.29) |
-| Hidden Line Settings | drafting | K3 | unresolved | UG_LAYER_SETTINGS (0.35) |
 | Drawing View Wizard | drafting | K4 | unresolved | UG_DRAFTING_VIEW_STYLE (0.34)<br>UG_DRAFTING_DETAIL_VIEW (0.33)<br>UG_DRAFTING_BASE_VIEW (0.31) |
 | Horizontal Dimension | drafting | K4 | unresolved | UG_SKETCH_LINEAR_DIMENSION (0.47)<br>UG_DRAFTING_RAPID_DIMENSION (0.46)<br>UG_SKETCH_HORIZONTAL_CONSTRAINT (0.43) |
 | Vertical Dimension | drafting | K4 | unresolved | UG_DRAFTING_RAPID_DIMENSION (0.48)<br>UG_PMI_RAPID_DIMENSION (0.45)<br>UG_SKETCH_LINEAR_DIMENSION (0.45) |
@@ -590,23 +488,20 @@
 | Angular Dimension | drafting | K4 | unresolved | UG_SKETCH_LINEAR_DIMENSION (0.49)<br>UG_DRAFTING_RAPID_DIMENSION (0.48)<br>UG_PMI_RAPID_DIMENSION (0.44) |
 | Radial Dimension | drafting | K4 | unresolved | UG_DRAFTING_RAPID_DIMENSION (0.57)<br>UG_PMI_RAPID_DIMENSION (0.53)<br>UG_SKETCH_RAPID_DIMENSION (0.53) |
 | Diameter Dimension | drafting | K4 | unresolved | UG_SKETCH_LINEAR_DIMENSION (0.50)<br>UG_DRAFTING_RAPID_DIMENSION (0.48)<br>UG_PMI_RAPID_DIMENSION (0.45) |
-| Arc Length Dimension | drafting | K4 | unresolved | UG_DRAFTING_RAPID_DIMENSION (0.41)<br>UG_SKETCH_LINEAR_DIMENSION (0.40)<br>UG_PMI_RAPID_DIMENSION (0.38) |
-| Ordinate Dimension | drafting | K4 | unresolved | UG_DRAFTING_RAPID_DIMENSION (0.48)<br>UG_SKETCH_LINEAR_DIMENSION (0.47)<br>UG_PMI_RAPID_DIMENSION (0.45) |
-| Baseline Dimension | drafting | K4 | unresolved | UG_DRAFTING_RAPID_DIMENSION (0.51)<br>UG_PMI_RAPID_DIMENSION (0.47)<br>UG_SKETCH_LINEAR_DIMENSION (0.47) |
+| Ordinate Dimension | drafting | K4 | unresolved | UG_SKETCH_LINEAR_DIMENSION (0.49)<br>UG_DRAFTING_RAPID_DIMENSION (0.48)<br>UG_PMI_RAPID_DIMENSION (0.45) |
+| Baseline Dimension | drafting | K4 | unresolved | UG_DRAFTING_RAPID_DIMENSION (0.51)<br>UG_SKETCH_RAPID_DIMENSION (0.49)<br>UG_PMI_RAPID_DIMENSION (0.47) |
 | Chain Dimension | drafting | K4 | unresolved | UG_DRAFTING_RAPID_DIMENSION (0.54)<br>UG_PMI_RAPID_DIMENSION (0.50)<br>UG_SKETCH_RAPID_DIMENSION (0.50) |
 | Coordinate Dimension | drafting | K4 | unresolved | UG_DRAFTING_RAPID_DIMENSION (0.46)<br>UG_SKETCH_LINEAR_DIMENSION (0.45)<br>UG_PMI_RAPID_DIMENSION (0.42) |
 | Feature Parameters | drafting | K4 | unresolved | UG_MODELING_PATTERNFEATURE_FEATURE (0.33)<br>UG_PMI_FEATURE_CONTROL_FRAME (0.32)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.31) |
 | Retrieve Dimensions | drafting | K4 | unresolved | UG_DRAFTING_RAPID_DIMENSION (0.30)<br>UG_PMI_RAPID_DIMENSION (0.27)<br>UG_SKETCH_RAPID_DIMENSION (0.27) |
 | Reassociate Dimension | drafting | K4 | unresolved | UG_DRAFTING_RAPID_DIMENSION (0.49)<br>UG_PMI_RAPID_DIMENSION (0.45)<br>UG_SKETCH_RAPID_DIMENSION (0.45) |
-| Convert to Reference | drafting | K3 | unresolved | UG_LAYER_MOVE (0.30)<br>UG_LAYER_COPY (0.28)<br>UG_APP_DRAFTING (0.28) |
+| Convert to Reference | drafting | K3 | unresolved | UG_SKETCH_LINEAR_DIMENSION (0.44)<br>UG_SKETCH_RAPID_DIMENSION (0.42)<br>UG_LAYER_MOVE (0.30) |
 | Edit Dimension | drafting | K4 | unresolved | UG_DRAFTING_RAPID_DIMENSION (0.54)<br>UG_PMI_RAPID_DIMENSION (0.50)<br>UG_SKETCH_RAPID_DIMENSION (0.50) |
 | Label | drafting | K3 | unresolved | — |
 | ID Symbol | drafting | K3 | unresolved | UG_PMI_SURFACE_FINISH (0.30)<br>UG_PMI_DATUM_FEATURE_SYMBOL (0.29) |
 | Balloon | drafting | K3 | unresolved | — |
 | Weld Symbol | drafting | K3 | unresolved | UG_PMI_DATUM_FEATURE_SYMBOL (0.31)<br>UG_PMI_SURFACE_FINISH (0.30) |
-| Centerline | drafting | K3 | unresolved | — |
 | Center Mark | drafting | K3 | unresolved | — |
-| Bolt Circle Centerline | drafting | K3 | unresolved | UG_SKETCH_CIRCLE_FROM_CENTER (0.27) |
 | Intersection Symbol | drafting | K3 | unresolved | UG_PMI_DATUM_FEATURE_SYMBOL (0.35)<br>UG_PMI_SURFACE_FINISH (0.32) |
 | Custom Symbol | drafting | K3 | unresolved | UG_PMI_DATUM_FEATURE_SYMBOL (0.33)<br>UG_PMI_SURFACE_FINISH (0.30) |
 | Tabular Note | drafting | K3 | unresolved | UG_PMI_NOTE (0.37) |
@@ -687,7 +582,7 @@
 | Select Feature | pmi | K4 | unresolved | UG_MODELING_SHEET_FEATURE (0.52)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.45)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.43) |
 | Select Body | pmi | K4 | unresolved | UG_SEL_SELECT_ALL (0.46)<br>UG_SEL_BODY_PRIORITY (0.31)<br>UG_APP_GATEWAY (0.27) |
 | Select Component | pmi | K4 | unresolved | UG_ASSEMBLIES_REPLACE_COMPONENT (0.51)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.48)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.48) |
-| QuickPick | pmi | K5 | unresolved | — |
+| QuickPick | pmi | K5 | unresolved | UG_SKETCH_RAPID_DIMENSION (0.46) |
 | Zoom In/Out | pmi | K5 | unresolved | — |
 | Pan | pmi | K5 | unresolved | — |
 | Rotate | pmi | K5 | unresolved | — |
@@ -705,7 +600,7 @@
 | Perspective | pmi | K3 | unresolved | — |
 | Hide | pmi | K5 | ambiguous | UG_EDIT_BLANK_SELECTED (0.84)<br>UG_EDIT_MD_SHOWHIDE_ALL (0.84) |
 | Show Only | pmi | K5 | unresolved | UG_EDIT_MD_SHOWHIDE_ALL (0.34) |
-| Unblank | pmi | K3 | unresolved | — |
+| Unblank | pmi | K3 | unresolved | UG_SKETCH_TRIM (0.25) |
 | Wireframe | pmi | K3 | unresolved | — |
 | Shaded | pmi | K3 | unresolved | — |
 | Shaded with Edges | pmi | K3 | unresolved | — |
@@ -793,7 +688,7 @@
 | Select Feature | surface | K4 | unresolved | UG_MODELING_SHEET_FEATURE (0.52)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.45)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.43) |
 | Select Body | surface | K4 | unresolved | UG_SEL_SELECT_ALL (0.46)<br>UG_SEL_BODY_PRIORITY (0.31)<br>UG_APP_GATEWAY (0.27) |
 | Select Component | surface | K4 | unresolved | UG_ASSEMBLIES_REPLACE_COMPONENT (0.51)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.48)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.48) |
-| QuickPick | surface | K5 | unresolved | — |
+| QuickPick | surface | K5 | unresolved | UG_SKETCH_RAPID_DIMENSION (0.46) |
 | Zoom In/Out | surface | K5 | unresolved | — |
 | Pan | surface | K5 | unresolved | — |
 | Rotate | surface | K5 | unresolved | — |
@@ -811,7 +706,7 @@
 | Perspective | surface | K3 | unresolved | — |
 | Hide | surface | K5 | ambiguous | UG_EDIT_BLANK_SELECTED (0.84)<br>UG_EDIT_MD_SHOWHIDE_ALL (0.84) |
 | Show Only | surface | K5 | unresolved | UG_EDIT_MD_SHOWHIDE_ALL (0.34) |
-| Unblank | surface | K3 | unresolved | — |
+| Unblank | surface | K3 | unresolved | UG_SKETCH_TRIM (0.25) |
 | Wireframe | surface | K3 | unresolved | — |
 | Shaded | surface | K3 | unresolved | — |
 | Shaded with Edges | surface | K3 | unresolved | — |
@@ -893,7 +788,7 @@
 | Select Feature | sheet_metal | K4 | unresolved | UG_MODELING_SHEET_FEATURE (0.52)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.45)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.43) |
 | Select Body | sheet_metal | K4 | unresolved | UG_SEL_SELECT_ALL (0.46)<br>UG_SEL_BODY_PRIORITY (0.31)<br>UG_APP_GATEWAY (0.27) |
 | Select Component | sheet_metal | K4 | unresolved | UG_ASSEMBLIES_REPLACE_COMPONENT (0.51)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.48)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.48) |
-| QuickPick | sheet_metal | K5 | unresolved | — |
+| QuickPick | sheet_metal | K5 | unresolved | UG_SKETCH_RAPID_DIMENSION (0.46) |
 | Zoom In/Out | sheet_metal | K5 | unresolved | — |
 | Pan | sheet_metal | K5 | unresolved | — |
 | Rotate | sheet_metal | K5 | unresolved | — |
@@ -911,7 +806,7 @@
 | Perspective | sheet_metal | K3 | unresolved | — |
 | Hide | sheet_metal | K5 | ambiguous | UG_EDIT_BLANK_SELECTED (0.84)<br>UG_EDIT_MD_SHOWHIDE_ALL (0.84) |
 | Show Only | sheet_metal | K5 | unresolved | UG_EDIT_MD_SHOWHIDE_ALL (0.34) |
-| Unblank | sheet_metal | K3 | unresolved | — |
+| Unblank | sheet_metal | K3 | unresolved | UG_SKETCH_TRIM (0.25) |
 | Wireframe | sheet_metal | K3 | unresolved | — |
 | Shaded | sheet_metal | K3 | unresolved | — |
 | Shaded with Edges | sheet_metal | K3 | unresolved | — |
@@ -1000,7 +895,7 @@
 | Select Feature | manufacturing | K4 | unresolved | UG_MODELING_SHEET_FEATURE (0.52)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.45)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.43) |
 | Select Body | manufacturing | K4 | unresolved | UG_SEL_SELECT_ALL (0.46)<br>UG_SEL_BODY_PRIORITY (0.31)<br>UG_APP_GATEWAY (0.27) |
 | Select Component | manufacturing | K4 | unresolved | UG_ASSEMBLIES_REPLACE_COMPONENT (0.51)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.48)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.48) |
-| QuickPick | manufacturing | K5 | unresolved | — |
+| QuickPick | manufacturing | K5 | unresolved | UG_SKETCH_RAPID_DIMENSION (0.46) |
 | Zoom In/Out | manufacturing | K5 | unresolved | — |
 | Pan | manufacturing | K5 | unresolved | — |
 | Rotate | manufacturing | K5 | unresolved | — |
@@ -1018,7 +913,7 @@
 | Perspective | manufacturing | K3 | unresolved | — |
 | Hide | manufacturing | K5 | ambiguous | UG_EDIT_BLANK_SELECTED (0.84)<br>UG_EDIT_MD_SHOWHIDE_ALL (0.84) |
 | Show Only | manufacturing | K5 | unresolved | UG_EDIT_MD_SHOWHIDE_ALL (0.34) |
-| Unblank | manufacturing | K3 | unresolved | — |
+| Unblank | manufacturing | K3 | unresolved | UG_SKETCH_TRIM (0.25) |
 | Wireframe | manufacturing | K3 | unresolved | — |
 | Shaded | manufacturing | K3 | unresolved | — |
 | Shaded with Edges | manufacturing | K3 | unresolved | — |
@@ -1107,8 +1002,8 @@
 | Generate Group | manufacturing | K4 | unresolved | UG_CAM_GENERATE_TOOL_PATH (0.44) |
 | Background Generate | manufacturing | K4 | unresolved | — |
 | Replay Tool Path | manufacturing | K4 | ambiguous | UG_CAM_VERIFY_TOOL_PATH (0.64)<br>UG_CAM_GENERATE_TOOL_PATH (0.61)<br>UG_CAM_INFORMATION (0.43) |
-| Gouge Check | manufacturing | K4 | unresolved | — |
-| Collision Check | manufacturing | K4 | unresolved | — |
+| Gouge Check | manufacturing | K4 | unresolved | UG_SKETCH_CHECKER (0.46) |
+| Collision Check | manufacturing | K4 | unresolved | UG_SKETCH_CHECKER (0.39) |
 | Compare Tool Path | manufacturing | K4 | unresolved | UG_CAM_GENERATE_TOOL_PATH (0.61)<br>UG_CAM_VERIFY_TOOL_PATH (0.57)<br>UG_CAM_INFORMATION (0.44) |
 | Tool Path Statistics | manufacturing | K4 | unresolved | UG_CAM_INFORMATION (0.57)<br>UG_CAM_GENERATE_TOOL_PATH (0.41)<br>UG_CAM_VERIFY_TOOL_PATH (0.37) |
 | List Tool Path | manufacturing | K4 | unresolved | UG_CAM_VERIFY_TOOL_PATH (0.61)<br>UG_CAM_GENERATE_TOOL_PATH (0.58)<br>UG_CAM_INFORMATION (0.43) |
@@ -1124,7 +1019,7 @@
 | Operation List | manufacturing | K4 | unresolved | UG_CAM_OPERATION_NAVIGATOR (0.49)<br>UG_DRAFTING_PARTS_LIST (0.43)<br>UG_CAM_CREATE_OPERATION (0.33) |
 | Send to Shop Floor | manufacturing | K3 | unresolved | — |
 | Spot Drilling | manufacturing | K4 | unresolved | — |
-| Drilling | manufacturing | K4 | unresolved | UG_APP_DRAFTING (0.26) |
+| Drilling | manufacturing | K4 | unresolved | UG_APP_DRAFTING (0.26)<br>UG_SKETCH_COINCIDENT_CONSTRAINT (0.25) |
 | Peck Drilling | manufacturing | K4 | unresolved | — |
 | Chip Break Drilling | manufacturing | K4 | unresolved | — |
 | Counterboring | manufacturing | K3 | unresolved | — |
@@ -1148,7 +1043,7 @@
 | Trochoidal Milling | manufacturing | K4 | unresolved | — |
 | High Speed Milling | manufacturing | K4 | unresolved | — |
 | Volume-Based Milling | manufacturing | K4 | unresolved | — |
-| Feature-Based Machining | manufacturing | K4 | unresolved | UG_SEL_FEATURE_PRIORITY (0.29)<br>UG_PMI_FEATURE_CONTROL_FRAME (0.26) |
+| Feature-Based Machining | manufacturing | K4 | unresolved | UG_SEL_FEATURE_PRIORITY (0.29)<br>UG_SKETCH_CIRCLE_BY_THREE_POINTS (0.26)<br>UG_PMI_FEATURE_CONTROL_FRAME (0.26) |
 | Floor Wall IPW | manufacturing | K3 | unresolved | — |
 | Deburring | manufacturing | K3 | unresolved | — |
 | Engraving | manufacturing | K3 | unresolved | — |
@@ -1191,7 +1086,7 @@
 | Automatic Tool Axis | manufacturing | K4 | unresolved | UG_CAM_CREATE_TOOL (0.33)<br>UG_CAM_GENERATE_TOOL_PATH (0.33)<br>UG_CAM_VERIFY_TOOL_PATH (0.28) |
 | Blade Finish | manufacturing | K3 | unresolved | UG_PMI_SURFACE_FINISH (0.32) |
 | Hub Finish | manufacturing | K3 | unresolved | UG_PMI_SURFACE_FINISH (0.30) |
-| Fillet Finish | manufacturing | K3 | unresolved | UG_PMI_SURFACE_FINISH (0.29) |
+| Fillet Finish | manufacturing | K3 | unresolved | UG_MODELING_BLEND_FEATURE (0.29)<br>UG_PMI_SURFACE_FINISH (0.29) |
 | Blade Blend | manufacturing | K3 | unresolved | UG_MODELING_BLEND_FEATURE (0.46) |
 | Multi-Axis Deburring | manufacturing | K3 | unresolved | — |
 | Geodesic Milling | manufacturing | K4 | unresolved | — |
@@ -1225,7 +1120,7 @@
 | Wire Thread Point | manufacturing | K3 | unresolved | — |
 | No-Core Cutting | manufacturing | K3 | unresolved | — |
 | Probe Geometry | manufacturing | K4 | unresolved | UG_MODELING_EXTRACT_GEOMETRY (0.46)<br>UG_ASSY_WAVE_LINKER (0.33)<br>UG_MODELING_WAVE_LINKER (0.33) |
-| Set Work Offset | manufacturing | K4 | unresolved | — |
+| Set Work Offset | manufacturing | K4 | unresolved | UG_SKETCH_OFFSET_CURVE (0.29) |
 | Tool Setting | manufacturing | K4 | unresolved | UG_CAM_INFORMATION (0.34)<br>UG_CAM_CREATE_TOOL (0.30)<br>UG_CAM_VERIFY_TOOL_PATH (0.26) |
 | Update Workpiece | manufacturing | K4 | unresolved | UG_DRAFTING_UPDATE_VIEWS (0.43) |
 | In-Process Inspection | manufacturing | K4 | unresolved | — |
@@ -1246,9 +1141,9 @@
 | Automatic Fixture Alignment | manufacturing | K4 | unresolved | — |
 | AI-Powered Kinematics Tree Creation | manufacturing | K3 | unresolved | — |
 | Create Build Setup | manufacturing | K3 | unresolved | UG_CAM_CREATE_TOOL (0.37)<br>UG_CAM_CREATE_OPERATION (0.34)<br>UG_ROUTE_CREATE_ROUTE (0.33) |
-| Build Volume Check | manufacturing | K3 | unresolved | — |
+| Build Volume Check | manufacturing | K3 | unresolved | UG_SKETCH_CHECKER (0.47) |
 | Overhang Analysis | manufacturing | K3 | unresolved | UG_INFO_ANALYSIS_SHEET_BOUNDARY (0.35) |
-| Wall Thickness Check | manufacturing | K3 | unresolved | — |
+| Wall Thickness Check | manufacturing | K3 | unresolved | UG_SKETCH_CHECKER (0.46) |
 | Generate Supports | manufacturing | K3 | unresolved | UG_CAM_GENERATE_TOOL_PATH (0.41) |
 | Edit Supports | manufacturing | K3 | unresolved | UG_ROUTE_EDIT_ROUTE (0.42)<br>UG_PMI_EDIT (0.39)<br>UG_EDIT_CUT (0.27) |
 | Scan Path | manufacturing | K3 | unresolved | UG_CAM_GENERATE_TOOL_PATH (0.32)<br>UG_CAM_VERIFY_TOOL_PATH (0.31)<br>UG_CAM_INFORMATION (0.28) |
@@ -1257,6 +1152,8 @@
 | Probe Assembly | manufacturing | K3 | unresolved | UG_APP_ASSEMBLIES (0.35)<br>UG_ASSEMBLIES_NAVIGATOR (0.26)<br>UG_ASSEMBLIES_CONSTRAINTS (0.26) |
 | Part Setup | manufacturing | K3 | unresolved | UG_NAVIGATOR_PART (0.37)<br>UG_VIEW_PALETTE_MATERIALS_IN_PART (0.30)<br>UG_ASSY_WAVE_PART_NAVIGATOR (0.28) |
 | Recognize Features | manufacturing | K3 | unresolved | — |
+| Measure Line | manufacturing | K3 | ambiguous | UG_INFO_GEOMETRIC_MEASUREMENT (0.90)<br>UG_SKETCH_LINE (0.85) |
+| Measure Circle | manufacturing | K3 | ambiguous | UG_SKETCH_CIRCLE (0.89)<br>UG_INFO_GEOMETRIC_MEASUREMENT (0.88) |
 | Construct Feature | manufacturing | K3 | unresolved | UG_MODELING_SHEET_FEATURE (0.44)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.42)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.42) |
 | Generate Inspection Path | manufacturing | K3 | unresolved | UG_CAM_GENERATE_TOOL_PATH (0.61)<br>UG_CAM_VERIFY_TOOL_PATH (0.33)<br>UG_CAM_INFORMATION (0.27) |
 | Optimize Path | manufacturing | K3 | unresolved | UG_CAM_VERIFY_TOOL_PATH (0.34)<br>UG_CAM_GENERATE_TOOL_PATH (0.32)<br>UG_CAM_INFORMATION (0.30) |
@@ -1293,7 +1190,7 @@
 | Select Feature | simulation | K4 | unresolved | UG_MODELING_SHEET_FEATURE (0.52)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.45)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.43) |
 | Select Body | simulation | K4 | unresolved | UG_SEL_SELECT_ALL (0.46)<br>UG_SEL_BODY_PRIORITY (0.31)<br>UG_APP_GATEWAY (0.27) |
 | Select Component | simulation | K4 | unresolved | UG_ASSEMBLIES_REPLACE_COMPONENT (0.51)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.48)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.48) |
-| QuickPick | simulation | K5 | unresolved | — |
+| QuickPick | simulation | K5 | unresolved | UG_SKETCH_RAPID_DIMENSION (0.46) |
 | Zoom In/Out | simulation | K5 | unresolved | — |
 | Pan | simulation | K5 | unresolved | — |
 | Rotate | simulation | K5 | unresolved | — |
@@ -1311,7 +1208,7 @@
 | Perspective | simulation | K3 | unresolved | — |
 | Hide | simulation | K5 | ambiguous | UG_EDIT_BLANK_SELECTED (0.84)<br>UG_EDIT_MD_SHOWHIDE_ALL (0.84) |
 | Show Only | simulation | K5 | unresolved | UG_EDIT_MD_SHOWHIDE_ALL (0.34) |
-| Unblank | simulation | K3 | unresolved | — |
+| Unblank | simulation | K3 | unresolved | UG_SKETCH_TRIM (0.25) |
 | Wireframe | simulation | K3 | unresolved | — |
 | Shaded | simulation | K3 | unresolved | — |
 | Shaded with Edges | simulation | K3 | unresolved | — |
@@ -1391,7 +1288,7 @@
 | Select Feature | routing | K4 | unresolved | UG_MODELING_SHEET_FEATURE (0.52)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.45)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.43) |
 | Select Body | routing | K4 | unresolved | UG_SEL_SELECT_ALL (0.46)<br>UG_SEL_BODY_PRIORITY (0.31)<br>UG_APP_GATEWAY (0.27) |
 | Select Component | routing | K4 | unresolved | UG_ASSEMBLIES_REPLACE_COMPONENT (0.51)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.48)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.48) |
-| QuickPick | routing | K5 | unresolved | — |
+| QuickPick | routing | K5 | unresolved | UG_SKETCH_RAPID_DIMENSION (0.46) |
 | Zoom In/Out | routing | K5 | unresolved | — |
 | Pan | routing | K5 | unresolved | — |
 | Rotate | routing | K5 | unresolved | — |
@@ -1409,7 +1306,7 @@
 | Perspective | routing | K3 | unresolved | — |
 | Hide | routing | K5 | ambiguous | UG_EDIT_BLANK_SELECTED (0.84)<br>UG_EDIT_MD_SHOWHIDE_ALL (0.84) |
 | Show Only | routing | K5 | unresolved | UG_EDIT_MD_SHOWHIDE_ALL (0.34) |
-| Unblank | routing | K3 | unresolved | — |
+| Unblank | routing | K3 | unresolved | UG_SKETCH_TRIM (0.25) |
 | Wireframe | routing | K3 | unresolved | — |
 | Shaded | routing | K3 | unresolved | — |
 | Shaded with Edges | routing | K3 | unresolved | — |
@@ -1441,7 +1338,7 @@
 | Harness Flattening | routing | K3 | unresolved | — |
 | Place Cable Trays | routing | K3 | unresolved | UG_ROUTE_PLACE_PART (0.38) |
 | Automatic Tray Placement | routing | K3 | unresolved | — |
-| Tray Fill Check | routing | K3 | unresolved | — |
+| Tray Fill Check | routing | K3 | unresolved | UG_SKETCH_CHECKER (0.39) |
 | Check In | routing | K3 | unresolved | — |
 | Check Out | routing | K3 | unresolved | — |
 | Cancel Check Out | routing | K3 | unresolved | — |
@@ -1507,7 +1404,7 @@
 | Select Feature | mold | K4 | unresolved | UG_MODELING_SHEET_FEATURE (0.52)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.45)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.43) |
 | Select Body | mold | K4 | unresolved | UG_SEL_SELECT_ALL (0.46)<br>UG_SEL_BODY_PRIORITY (0.31)<br>UG_APP_GATEWAY (0.27) |
 | Select Component | mold | K4 | unresolved | UG_ASSEMBLIES_REPLACE_COMPONENT (0.51)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.48)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.48) |
-| QuickPick | mold | K5 | unresolved | — |
+| QuickPick | mold | K5 | unresolved | UG_SKETCH_RAPID_DIMENSION (0.46) |
 | Zoom In/Out | mold | K5 | unresolved | — |
 | Pan | mold | K5 | unresolved | — |
 | Rotate | mold | K5 | unresolved | — |
@@ -1525,7 +1422,7 @@
 | Perspective | mold | K3 | unresolved | — |
 | Hide | mold | K5 | ambiguous | UG_EDIT_BLANK_SELECTED (0.84)<br>UG_EDIT_MD_SHOWHIDE_ALL (0.84) |
 | Show Only | mold | K5 | unresolved | UG_EDIT_MD_SHOWHIDE_ALL (0.34) |
-| Unblank | mold | K3 | unresolved | — |
+| Unblank | mold | K3 | unresolved | UG_SKETCH_TRIM (0.25) |
 | Wireframe | mold | K3 | unresolved | — |
 | Shaded | mold | K3 | unresolved | — |
 | Shaded with Edges | mold | K3 | unresolved | — |
@@ -1608,7 +1505,7 @@
 | Select Feature | reuse | K4 | unresolved | UG_MODELING_SHEET_FEATURE (0.52)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.45)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.43) |
 | Select Body | reuse | K4 | unresolved | UG_SEL_SELECT_ALL (0.46)<br>UG_SEL_BODY_PRIORITY (0.31)<br>UG_APP_GATEWAY (0.27) |
 | Select Component | reuse | K4 | unresolved | UG_ASSEMBLIES_REPLACE_COMPONENT (0.51)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.48)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.48) |
-| QuickPick | reuse | K5 | unresolved | — |
+| QuickPick | reuse | K5 | unresolved | UG_SKETCH_RAPID_DIMENSION (0.46) |
 | Zoom In/Out | reuse | K5 | unresolved | — |
 | Pan | reuse | K5 | unresolved | — |
 | Rotate | reuse | K5 | unresolved | — |
@@ -1626,7 +1523,7 @@
 | Perspective | reuse | K3 | unresolved | — |
 | Hide | reuse | K5 | ambiguous | UG_EDIT_BLANK_SELECTED (0.84)<br>UG_EDIT_MD_SHOWHIDE_ALL (0.84) |
 | Show Only | reuse | K5 | unresolved | UG_EDIT_MD_SHOWHIDE_ALL (0.34) |
-| Unblank | reuse | K3 | unresolved | — |
+| Unblank | reuse | K3 | unresolved | UG_SKETCH_TRIM (0.25) |
 | Wireframe | reuse | K3 | unresolved | — |
 | Shaded | reuse | K3 | unresolved | — |
 | Shaded with Edges | reuse | K3 | unresolved | — |
@@ -1700,7 +1597,7 @@
 | Select Feature | inspect_view | K4 | unresolved | UG_MODELING_SHEET_FEATURE (0.52)<br>UG_MODELING_PATTERNFEATURE_FEATURE (0.45)<br>UG_MODELING_MIRRORFEATURE_FEATURE (0.43) |
 | Select Body | inspect_view | K4 | unresolved | UG_SEL_SELECT_ALL (0.46)<br>UG_SEL_BODY_PRIORITY (0.31)<br>UG_APP_GATEWAY (0.27) |
 | Select Component | inspect_view | K4 | unresolved | UG_ASSEMBLIES_REPLACE_COMPONENT (0.51)<br>UG_ASSEMBLIES_MOVE_COMPONENT (0.48)<br>UG_ASSEMBLIES_REMOVE_COMPONENT (0.48) |
-| QuickPick | inspect_view | K5 | unresolved | — |
+| QuickPick | inspect_view | K5 | unresolved | UG_SKETCH_RAPID_DIMENSION (0.46) |
 | Zoom In/Out | inspect_view | K5 | unresolved | — |
 | Pan | inspect_view | K5 | unresolved | — |
 | Rotate | inspect_view | K5 | unresolved | — |
@@ -1718,7 +1615,7 @@
 | Perspective | inspect_view | K3 | unresolved | — |
 | Hide | inspect_view | K5 | ambiguous | UG_EDIT_BLANK_SELECTED (0.84)<br>UG_EDIT_MD_SHOWHIDE_ALL (0.84) |
 | Show Only | inspect_view | K5 | unresolved | UG_EDIT_MD_SHOWHIDE_ALL (0.34) |
-| Unblank | inspect_view | K3 | unresolved | — |
+| Unblank | inspect_view | K3 | unresolved | UG_SKETCH_TRIM (0.25) |
 | Wireframe | inspect_view | K3 | unresolved | — |
 | Shaded | inspect_view | K3 | unresolved | — |
 | Shaded with Edges | inspect_view | K3 | unresolved | — |
@@ -1729,13 +1626,13 @@
 | Resource Bar | inspect_view | K3 | unresolved | — |
 | Part Navigator | inspect_view | K5 | ambiguous | UG_NAVIGATOR_PART (1.00)<br>UG_ASSY_WAVE_PART_NAVIGATOR (0.93)<br>UG_CAM_OPERATION_NAVIGATOR (0.48) |
 | Geometry Checker | inspect_view | K3 | unresolved | UG_SKETCH_CHECKER (0.46)<br>UG_ASSY_WAVE_LINKER (0.38)<br>UG_MODELING_WAVE_LINKER (0.38) |
-| Face and Edge Check | inspect_view | K3 | unresolved | UG_ANALYSIS_FACE_CURVATURE (0.28) |
+| Face and Edge Check | inspect_view | K3 | unresolved | UG_SKETCH_CHECKER (0.30)<br>UG_ANALYSIS_FACE_CURVATURE (0.28) |
 | Body Consistency | inspect_view | K3 | unresolved | UG_SEL_BODY_PRIORITY (0.31) |
 | Draft Analysis | inspect_view | K3 | unresolved | UG_INFO_ANALYSIS_SHEET_BOUNDARY (0.36) |
 | Undercut Analysis | inspect_view | K3 | unresolved | UG_INFO_ANALYSIS_SHEET_BOUNDARY (0.38) |
-| Moldability Check | inspect_view | K3 | unresolved | — |
+| Moldability Check | inspect_view | K3 | unresolved | UG_SKETCH_CHECKER (0.30) |
 | Sharp Edge Check | inspect_view | K3 | unresolved | UG_MODELING_BLEND_FEATURE (0.30) |
-| Check-Mate | inspect_view | K3 | unresolved | — |
+| Check-Mate | inspect_view | K3 | unresolved | UG_SKETCH_CHECKER (0.38) |
 | Milling Checker | inspect_view | K3 | unresolved | UG_SKETCH_CHECKER (0.42) |
 | Assembly Checker | inspect_view | K3 | unresolved | UG_SKETCH_CHECKER (0.46)<br>UG_ASSEMBLIES_NAVIGATOR (0.43)<br>UG_ASSEMBLIES_CONSTRAINTS (0.40) |
 | Compare Body | inspect_view | K3 | unresolved | — |

@@ -182,6 +182,7 @@ NXKeys не должен использоваться как единствен�
 - [CLI](docs/CLI.md)
 - [IPC API](docs/api.md)
 - [Мнемонический язык](docs/MNEMONIC_COMMAND_LANGUAGE.md)
+- [Язык намерений Sketch](docs/SKETCH_INTENT_LANGUAGE.md)
 - [Конечные автоматы](docs/STATE_MACHINE_ARCHITECTURE.md)
 - [Модель безопасности](docs/SAFETY_MODEL.md)
 - [Эксплуатация](docs/OPERATIONS.md)

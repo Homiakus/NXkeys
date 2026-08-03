@@ -13,7 +13,7 @@ import {
   isModuleSwitchSupportCommand,
   isSelectionSupportCommand,
   supportMetadata,
-  targetLengthForFrequency
+  targetLengthForCommand
 } from './sequence-policy.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -140,7 +140,7 @@ function validateGeneratedProfile(profile, expectedIntents, expectedFrequencies,
         if (!expectedFrequencies.includes(command.frequency))
           fail(`Profile row has frequency outside scope: ${module.id}/${command.command?.name}/${command.frequency}.`);
         if (!refs.length) fail(`Non-support profile row has no catalog reference: ${module.id}/${command.command?.name}.`);
-        const targetLength = targetLengthForFrequency(command.frequency);
+        const targetLength = targetLengthForCommand(module.id, command);
         if (normalizePath(command.path).length > targetLength)
           fail(`Path exceeds ${command.frequency} target length ${targetLength}: ${module.id}/${command.command?.name}/${canonical}.`);
       }

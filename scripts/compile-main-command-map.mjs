@@ -112,6 +112,8 @@ try {
         const refs = originalRefs.filter(ref => selectedIds.has(ref));
         if (fallbackRef && selectedIds.has(fallbackRef) && !refs.includes(fallbackRef)) refs.push(fallbackRef);
         const runtimeSupport = isRuntimeSupport(command);
+        const curatedSketchCore = module.id === 'sketch' &&
+          String(command.path_source ?? '').toLowerCase() === 'sketch_curated';
 
         if (refs.length) {
           command.catalog_refs = refs;
@@ -126,6 +128,21 @@ try {
             delete command.profile_support;
             delete command.catalog_backed_support;
           }
+          return true;
+        }
+
+        // Verified core Sketch commands are runtime vocabulary, not optional catalog noise.
+        // Preserve them even when their source intent is K1/K2 or absent from the selected K3-K5 slice.
+        if (curatedSketchCore) {
+          command.catalog_refs = [];
+          command.profile_support = true;
+          command.frequency = 'support';
+          command.resolution_status = 'existing';
+          command.resolution_candidates = [];
+          command.support_kind = 'sketch_core';
+          command.notes = ['Verified Sketch core outside frequency filtering', command.notes].filter(Boolean).join(' | ');
+          if (fallback.startsWith('catalog:')) delete command.fallback;
+          delete command.catalog_backed_support;
           return true;
         }
 

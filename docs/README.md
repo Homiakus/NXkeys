@@ -11,7 +11,7 @@
 | установить или обновить NXKeys | [INSTALLATION.md](INSTALLATION.md) |
 | понять компоненты и потоки данных | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | изучить текущую карту путей | [Интерактивная карта команд](command-tree.html) |
-| изменить профиль или мнемонический путь | [CONFIGURATION.md](CONFIGURATION.md) и [MNEMONIC_COMMAND_LANGUAGE.md](MNEMONIC_COMMAND_LANGUAGE.md) |
+| изменить профиль или мнемонический путь | [CONFIGURATION.md](CONFIGURATION.md) и [MNEMONIC_COMMAND_LANGUAGE.md](MNEMONIC_COMMAND_LANGUAGE.md) и [SKETCH_INTENT_LANGUAGE.md](SKETCH_INTENT_LANGUAGE.md) |
 | использовать CLI | [CLI.md](CLI.md) |
 | интегрироваться с файловым IPC | [api.md](api.md) |
 | диагностировать установленную систему | [OPERATIONS.md](OPERATIONS.md) и [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |

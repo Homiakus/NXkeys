@@ -10,7 +10,7 @@ namespace NX2512_HotkeyStudio.Models
     /// Exact BUTTON IDs keep explicit paths; every other catalog command receives a deterministic
     /// path from its action/object/name tokens. Paths are scoped by the active NX module.
     /// </summary>
-    public static class MnemonicPathGenerator
+    public static partial class MnemonicPathGenerator
     {
         private sealed class MnemonicDefinition
         {
@@ -70,8 +70,10 @@ namespace NX2512_HotkeyStudio.Models
                     command.Aliases ??= new List<List<string>>();
                     command.SearchAliases ??= new List<string>();
 
-                    MnemonicDefinition definition = ResolveDefinition(command);
-                    IReadOnlyList<string> requested = NormalizePath(command.Path);
+                    MnemonicDefinition definition = ResolveDefinitionForModule(module, command);
+                    IReadOnlyList<string> requested = ShouldRegenerateSketchPath(module, command)
+                        ? Array.Empty<string>()
+                        : NormalizePath(command.Path);
                     bool locked = command.PathLocked || string.Equals(command.PathSource, "user", StringComparison.OrdinalIgnoreCase);
                     List<string> canonical;
                     if (locked)
@@ -87,13 +89,14 @@ namespace NX2512_HotkeyStudio.Models
                     else
                     {
                         if (requested.Count == 0) requested = NormalizePath(definition?.Path);
-                        if (requested.Count == 0) requested = GenerateCandidate(module, command);
-                        canonical = ReserveUnique(requested, command, usedCanonical);
+                        if (requested.Count == 0) requested = GenerateCandidateForModule(module, command);
+                        canonical = ReserveUniqueForModule(module, requested, command, usedCanonical);
                     }
                     command.Path = canonical;
+                    NormalizeSketchAliases(module, command, locked);
 
-                    if (command.PathLabels.Count != canonical.Count)
-                        command.PathLabels = BuildLabels(canonical, command.Command?.Name);
+                    if (command.PathLabels.Count != canonical.Count || IsSketchIntentCommand(module, command))
+                        command.PathLabels = BuildPathLabelsForModule(module, command, canonical);
 
                     MergeSearchAliases(command, definition);
                     if ((command.Aliases == null || command.Aliases.Count == 0) && definition?.Aliases != null)

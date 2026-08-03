@@ -69,8 +69,80 @@ internal static class Program
         Assert(!overlay.Contains("Ð", StringComparison.Ordinal) && !overlay.Contains("Ñ", StringComparison.Ordinal),
             "Generated menu labels must not contain UTF-8 mojibake.");
 
-        Console.WriteLine("[OK] Canonical profile editor, command menus and single NX ribbon regressions.");
+        VerifySketchIntentGrammar();
+
+        Console.WriteLine("[OK] Canonical profile editor, command menus, Sketch intent grammar and single NX ribbon regressions.");
     }
+
+
+    private static void VerifySketchIntentGrammar()
+    {
+        var commands = new List<ModuleCommand>
+        {
+            SketchCommand("UG_SKETCH_LINE", "Line", new[] { "C", "L" }, "K5", 1),
+            SketchCommand("UG_SKETCH_LINE_BY_TWO_POINTS", "Line by Two Points", new[] { "C", "L", "2" }, "K3", 2),
+            SketchCommand("UG_SKETCH_RECTANGLE", "Rectangle", new[] { "C", "R" }, "K5", 3),
+            SketchCommand("UG_SKETCH_TRIM", "Trim", new[] { "E", "T" }, "K5", 4),
+            SketchCommand("UG_MODELING_CHAMFER_FEATURE", "Sketch Chamfer", new[] { "C", "G", "C", "H" }, "K3", 5),
+            SketchCommand("UG_SKETCH_STUDIO_SPLINE", "Studio Spline", new[] { "M", "Z", "S" }, "K4", 6),
+            SketchCommand("UG_SKETCH_USER_CUSTOM", "User Custom", new[] { "U", "S", "X" }, "K3", 7, true)
+        };
+        commands[0].Aliases = new List<List<string>> { new List<string> { "Q", "W" } };
+        var module = new ModuleConfig
+        {
+            ID = "sketch",
+            Label = "Sketch",
+            Enabled = true,
+            CommandSets = new List<ModuleCommandSet>
+            {
+                new ModuleCommandSet { ID = "sketch", Label = "Sketch", Commands = commands }
+            }
+        };
+
+        MnemonicPathGenerator.Apply(new[] { module });
+        Assert(PathOf(commands, "UG_SKETCH_LINE").SequenceEqual(new[] { "C", "G", "L" }),
+            "Line must use Create -> Geometry -> Line.");
+        Assert(PathOf(commands, "UG_SKETCH_LINE_BY_TWO_POINTS").SequenceEqual(new[] { "C", "G", "V", "L", "2" }),
+            "Line variants must live under the explicit variant branch.");
+        Assert(PathOf(commands, "UG_SKETCH_RECTANGLE").SequenceEqual(new[] { "C", "G", "R" }),
+            "Rectangle must use Create -> Geometry -> Rectangle.");
+        Assert(PathOf(commands, "UG_SKETCH_TRIM").SequenceEqual(new[] { "E", "G", "T" }),
+            "Trim must use Edit -> Geometry -> Trim.");
+        Assert(PathOf(commands, "UG_MODELING_CHAMFER_FEATURE").SequenceEqual(new[] { "E", "G", "H" }),
+            "The shared NX chamfer BUTTON ID must keep Sketch semantics in Sketch context.");
+        Assert(PathOf(commands, "UG_SKETCH_STUDIO_SPLINE").Take(2).SequenceEqual(new[] { "C", "G" }),
+            "Unknown Sketch geometry must remain in the Create -> Geometry family.");
+        Assert(PathOf(commands, "UG_SKETCH_USER_CUSTOM").SequenceEqual(new[] { "U", "S", "X" }),
+            "User-locked paths must remain untouched.");
+        Assert(commands.First(item => item.Command.ID == "UG_SKETCH_LINE").Aliases.Count == 0,
+            "Legacy positional aliases must be removed from generated Sketch intents.");
+
+        List<string> paths = commands.Select(item => string.Concat(item.Path)).OrderBy(value => value.Length).ToList();
+        for (int left = 0; left < paths.Count; left++)
+            for (int right = left + 1; right < paths.Count; right++)
+                Assert(!paths[right].StartsWith(paths[left], StringComparison.OrdinalIgnoreCase),
+                    "Sketch paths must remain prefix-free: " + paths[left] + " / " + paths[right]);
+    }
+
+    private static ModuleCommand SketchCommand(
+        string id,
+        string name,
+        IEnumerable<string> path,
+        string frequency,
+        int order,
+        bool locked = false) => new ModuleCommand
+    {
+        Enabled = true,
+        Path = path.ToList(),
+        PathLocked = locked,
+        PathSource = locked ? "user" : "generated",
+        Frequency = frequency,
+        DisplayOrder = order,
+        Command = new CommandRef { ID = id, Name = name }
+    };
+
+    private static IReadOnlyList<string> PathOf(IEnumerable<ModuleCommand> commands, string id) =>
+        commands.First(item => string.Equals(item.Command.ID, id, StringComparison.OrdinalIgnoreCase)).Path;
 
     private static ModuleCommand Command(string id, string name, IEnumerable<string> path) => new ModuleCommand
     {
