@@ -278,9 +278,8 @@ namespace NX2512_HotkeyStudio.UI
             moduleGrid.EnableHeadersVisualStyles = false;
             moduleGrid.Columns.Clear();
             moduleGrid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Enabled", HeaderText = "Enabled", Width = 72 });
-            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "SubmenuKey", HeaderText = "Menu Key", Width = 72 });
-            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "SubmenuLabel", HeaderText = "Menu Label", Width = 140 });
-            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Key", HeaderText = "Key", Width = 54 });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Path", HeaderText = "Путь", Width = 145 });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "PathLabels", HeaderText = "Подсказки пути", Width = 190 });
             moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Icon", HeaderText = "Icon", Width = 72 });
             moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "CommandName", HeaderText = "Command Name", Width = 180, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "ButtonId", HeaderText = "BUTTON ID", Width = 240 });
@@ -482,11 +481,11 @@ namespace NX2512_HotkeyStudio.UI
                 {
                     int rowIndex = moduleGrid.Rows.Add(
                         command.Enabled,
-                        command.SubmenuKey,
-                        command.SubmenuLabel,
-                        command.InputKey,
+                        EditableCommandPathPolicy.FormatPath(EditableCommandPathPolicy.EffectivePath(command)),
+                        EditableCommandPathPolicy.FormatLabels(command.PathLabels),
                         string.IsNullOrWhiteSpace(command.IconHint)
-                            ? CommandIconHints.FromCommand(command.Command?.ID, command.Command?.Name, command.SubmenuKey, command.SubmenuLabel)
+                            ? CommandIconHints.FromCommand(command.Command?.ID, command.Command?.Name,
+                                command.Path?.FirstOrDefault(), command.PathLabels?.FirstOrDefault())
                             : command.IconHint,
                         command.Command?.Name ?? string.Empty,
                         command.Command?.ID ?? string.Empty,
@@ -512,12 +511,9 @@ namespace NX2512_HotkeyStudio.UI
             int order = 1;
             foreach (DataGridViewRow row in moduleGrid.Rows)
             {
-                if (row.IsNewRow || row.Tag is not ModuleCommand command) continue;
-                command.Enabled = ReadBool(row, "Enabled");
-                command.SubmenuKey = LeaderKeyConfig.NormalizeInputKey(ReadText(row, "SubmenuKey"));
-                command.SubmenuLabel = ReadText(row, "SubmenuLabel").Trim();
-                command.InputKey = LeaderKeyConfig.NormalizeInputKey(ReadText(row, "Key"));
-                command.IconHint = ReadText(row, "Icon").Trim();
+                if (row.IsNewRow || row.Tag is not ModuleCommand command) continue;                command.Enabled = ReadBool(row, "Enabled");
+                    EditableCommandPathPolicy.ApplyEditedPath(command, ReadText(row, "Path"), ReadText(row, "PathLabels"));
+                    command.IconHint = ReadText(row, "Icon").Trim();
                 command.DisplayOrder = order++;
                 command.Command ??= new CommandRef();
                 command.Command.Name = ReadText(row, "CommandName").Trim();
@@ -582,7 +578,7 @@ namespace NX2512_HotkeyStudio.UI
                 adaptive_keys = config.LeaderKey.Sequences
                     .GroupBy(item => item.ModuleID)
                     .ToDictionary(group => group.Key, group => group.OrderBy(item => item.DisplayOrder)
-                        .Select(item => new { item.SubmenuKey, item.SubmenuLabel, item.InputKey, item.IconHint, item.Sequence, command_id = item.Command?.ID, command_name = item.Command?.Name }).ToList())
+                        .Select(item => new { item.Path, item.PathLabels, item.IconHint, item.Sequence, command_id = item.Command?.ID, command_name = item.Command?.Name }).ToList())
             };
             contextBox.Text = JsonSerializer.Serialize(snapshot, new JsonSerializerOptions { WriteIndented = true });
         }
@@ -677,6 +673,7 @@ namespace NX2512_HotkeyStudio.UI
         {
             try
             {
+                EditableCommandPathPolicy.Normalize(config);
                 ValidateEditableCommands();
                 config.Save(configPath);
                 dirty = false;
@@ -691,41 +688,14 @@ namespace NX2512_HotkeyStudio.UI
 
         private void ValidateEditableCommands()
         {
-            var reserved = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "CAPSLOCK", "TAB", "SPACE", "ESC", "ESCAPE", "ENTER", "BACKSPACE", "SHIFT", "CTRL", "CONTROL", "ALT"
-            };
-            var problems = new List<string>();
-            foreach (ModuleConfig module in config.Modules.Where(module => module != null && module.Enabled))
-            {
-                var levelKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                var sequences = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                var rootBranches = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                foreach (ModuleCommand command in ModuleCommands(module).Where(command => command.Enabled))
-                {
-                    string submenuKey = LeaderKeyConfig.NormalizeInputKey(command.SubmenuKey);
-                    string key = LeaderKeyConfig.NormalizeInputKey(command.InputKey);
-                    if (!string.IsNullOrWhiteSpace(submenuKey) && reserved.Contains(submenuKey))
-                        problems.Add($"{module.Label}: Menu Key {submenuKey} конфликтует со служебной клавишей");
-                    if (string.IsNullOrWhiteSpace(key)) problems.Add($"{module.Label}: пустая Key");
-                    else if (reserved.Contains(key)) problems.Add($"{module.Label}: Key {key} конфликтует со служебной клавишей");
-                    string rootKey = string.IsNullOrWhiteSpace(submenuKey) ? key : submenuKey;
-                    string branchKind = string.IsNullOrWhiteSpace(submenuKey) ? "command" : "submenu";
-                    if (!string.IsNullOrWhiteSpace(rootKey) && rootBranches.TryGetValue(rootKey, out string existingKind) &&
-                        !string.Equals(existingKind, branchKind, StringComparison.OrdinalIgnoreCase))
-                        problems.Add($"{module.Label}: root key {rootKey} одновременно команда и подменю");
-                    else if (!string.IsNullOrWhiteSpace(rootKey)) rootBranches[rootKey] = branchKind;
-                    if (!string.IsNullOrWhiteSpace(key) &&
-                        !levelKeys.Add((string.IsNullOrWhiteSpace(submenuKey) ? "$root" : submenuKey) + "|" + key))
-                        problems.Add($"{module.Label}: Key {key} повторяется в уровне {(string.IsNullOrWhiteSpace(submenuKey) ? "root" : submenuKey)}");
-                    string sequence = LeaderKeyConfig.NormalizeInputKey(module.LeaderPrefix) + submenuKey + key;
-                    if (!string.IsNullOrWhiteSpace(key) && !sequences.Add(sequence))
-                        problems.Add($"{module.Label}: sequence {sequence} повторяется");
-                    if (string.IsNullOrWhiteSpace(command.Command?.Name)) problems.Add($"{module.Label}: пустое Command Name для {key}");
-                    if (string.IsNullOrWhiteSpace(command.Command?.ID)) problems.Add($"{module.Label}: пустой BUTTON ID для {key}");
-                }
-            }
-            if (problems.Count > 0) throw new InvalidOperationException("Профиль не сохранён:\n- " + string.Join("\n- ", problems));
+            List<string> problems = EditableCommandPathPolicy.Validate(config);
+            if (problems.Count == 0) return;
+            const int maximumVisible = 60;
+            string omitted = problems.Count > maximumVisible
+                ? $"\n- … и ещё {problems.Count - maximumVisible} ошибок"
+                : string.Empty;
+            throw new InvalidOperationException("Профиль не сохранён:\n- " +
+                string.Join("\n- ", problems.Take(maximumVisible)) + omitted);
         }
 
         private void MarkDirty()

@@ -72,9 +72,24 @@ namespace NX2512_HotkeyStudio.Models
 
                     MnemonicDefinition definition = ResolveDefinition(command);
                     IReadOnlyList<string> requested = NormalizePath(command.Path);
-                    if (requested.Count == 0) requested = NormalizePath(definition?.Path);
-                    if (requested.Count == 0) requested = GenerateCandidate(module, command);
-                    List<string> canonical = ReserveUnique(requested, command, usedCanonical);
+                    bool locked = command.PathLocked || string.Equals(command.PathSource, "user", StringComparison.OrdinalIgnoreCase);
+                    List<string> canonical;
+                    if (locked)
+                    {
+                        if (requested.Count == 0)
+                            throw new InvalidOperationException("Locked mnemonic path is empty for " + (command.Command?.ID ?? command.Command?.Name));
+                        string lockedKey = string.Concat(requested);
+                        if (usedCanonical.ContainsKey(lockedKey) || CreatesPrefixConflict(lockedKey, usedCanonical.Keys))
+                            throw new InvalidOperationException("Locked mnemonic path conflicts in module " + module.ID + ": " + string.Join(" → ", requested));
+                        canonical = requested.ToList();
+                        usedCanonical[lockedKey] = command;
+                    }
+                    else
+                    {
+                        if (requested.Count == 0) requested = NormalizePath(definition?.Path);
+                        if (requested.Count == 0) requested = GenerateCandidate(module, command);
+                        canonical = ReserveUnique(requested, command, usedCanonical);
+                    }
                     command.Path = canonical;
 
                     if (command.PathLabels.Count != canonical.Count)
@@ -331,6 +346,9 @@ namespace NX2512_HotkeyStudio.Models
                 if (!result.Contains(fallback, StringComparer.OrdinalIgnoreCase)) result.Add(fallback);
             return result;
         }
+
+        public static List<string> BuildPathLabels(IReadOnlyList<string> path, string commandName) =>
+            BuildLabels(path ?? Array.Empty<string>(), commandName);
 
         private static List<string> BuildLabels(IReadOnlyList<string> path, string commandName)
         {
