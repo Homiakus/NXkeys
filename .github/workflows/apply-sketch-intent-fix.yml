@@ -1,0 +1,110 @@
+name: Apply Sketch intent taxonomy fix
+
+on:
+  push:
+    branches:
+      - fix/sketch-intent-taxonomy
+    paths:
+      - '.github/sketch-intent-fix.trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-validate-commit:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/sketch-intent-taxonomy
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Apply reviewed Sketch intent patch
+        shell: pwsh
+        run: python .\scripts\apply-sketch-intent-fix.py
+
+      - name: Rebuild generated main profile and language reference
+        shell: pwsh
+        run: |
+          node .\scripts\compile-main-command-map.mjs --profile .\config\nx2512-pro-hybrid.json --out .\config\nx2512-pro-main.generated.json --report .\docs\generated\main-profile-resolution.md
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node .\scripts\generate-mnemonic-command-language-v7.mjs --profile .\config\nx2512-pro-main.generated.json --out .\docs\MNEMONIC_COMMAND_LANGUAGE.md
+          exit $LASTEXITCODE
+
+      - name: Validate command maps and sequence invariants
+        shell: pwsh
+        run: |
+          node .\scripts\validate-command-tree.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node .\scripts\validate-main-command-map.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node .\scripts\validate-full-command-map.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node .\scripts\audit-command-sequences.mjs
+          exit $LASTEXITCODE
+
+      - name: Run Hotkey Studio regressions
+        shell: pwsh
+        run: dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release -p:Platform=x64 --nologo
+
+      - name: Run state-machine regressions
+        shell: pwsh
+        run: dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release --nologo
+
+      - name: Build Hotkey Studio
+        shell: pwsh
+        run: dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
+
+      - name: Verify Sketch policy markers
+        shell: pwsh
+        run: |
+          $runtime = Get-Content .\NX2512_HotkeyStudio\Models\MnemonicPathGenerator.Sketch.cs -Raw
+          $compiler = Get-Content .\scripts\compile-full-command-map.mjs -Raw
+          $profile = Get-Content .\config\nx2512-pro-main.generated.json -Raw | ConvertFrom-Json
+          foreach ($required in @('C G L','C G R','C G C','C G A','E G T','E G E','T G O','C G V L 2')) {
+            if ($runtime -notmatch [regex]::Escape($required)) { throw "Missing runtime Sketch path: $required" }
+          }
+          foreach ($required in @('SKETCH_KNOWN_PATHS','reserveSketchPath','isSketchIntentCommand')) {
+            if ($compiler -notmatch $required) { throw "Missing compiler Sketch policy marker: $required" }
+          }
+          $sketch = @($profile.modules | Where-Object { $_.id -eq 'sketch' })[0]
+          if ($null -eq $sketch) { throw 'Generated profile has no Sketch module.' }
+          $commands = @($sketch.command_sets | ForEach-Object { $_.commands })
+          foreach ($id in @('UG_SKETCH_LINE','UG_SKETCH_RECTANGLE','UG_SKETCH_CIRCLE','UG_SKETCH_ARC','UG_SKETCH_TRIM','UG_SKETCH_OFFSET_CURVE')) {
+            if (-not ($commands | Where-Object { $_.command.id -eq $id })) { throw "Generated Sketch module is missing $id" }
+          }
+          $legacyAliases = @($commands | Where-Object {
+            $_.support_kind -ne 'selection_filter' -and $_.aliases.Count -gt 0
+          })
+          if ($legacyAliases.Count -gt 0) { throw "Sketch still contains non-user positional aliases: $($legacyAliases.Count)" }
+          $foreign = @($commands | Where-Object {
+            $_.support_kind -ne 'selection_filter' -and
+            $_.command.id -notmatch '^UG_SKETCH_' -and
+            $_.command.id -notin @('UG_MODELING_BLEND_FEATURE','UG_MODELING_CHAMFER_FEATURE')
+          })
+          if ($foreign.Count -gt 0) {
+            $foreign | ForEach-Object { Write-Error "Foreign Sketch row: $($_.command.id) / $($_.command.name)" }
+            throw "Generated Sketch tree contains $($foreign.Count) unrelated rows."
+          }
+
+      - name: Commit validated implementation
+        shell: pwsh
+        run: |
+          Remove-Item .\scripts\apply-sketch-intent-fix.py -Force
+          Remove-Item .\.github\sketch-intent-fix.trigger -Force
+          Remove-Item .\.github\workflows\apply-sketch-intent-fix.yml -Force
+          git add -A
+          git diff --check
+          if (git diff --cached --quiet) { throw 'Sketch intent patch produced no source changes.' }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Fix and complete Sketch intent taxonomy'
+          git push origin HEAD:fix/sketch-intent-taxonomy
