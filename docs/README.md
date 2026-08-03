@@ -13,6 +13,7 @@
 | подготовить среду разработки | [DEVELOPMENT.md](../DEVELOPMENT.md) |
 | установить или обновить NXKeys | [INSTALLATION.md](INSTALLATION.md) |
 | понять компоненты и потоки данных | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| оценить хрупкость, целевую архитектуру NX-плагина и UI | [NX_PLUGIN_FRAGILITY_ARCHITECTURE_UI_AUDIT.md](NX_PLUGIN_FRAGILITY_ARCHITECTURE_UI_AUDIT.md) |
 | изучить текущую карту путей | [Интерактивная карта команд](command-tree.html) |
 | изменить профиль или мнемонический путь | [CONFIGURATION.md](CONFIGURATION.md), [MNEMONIC_COMMAND_LANGUAGE.md](MNEMONIC_COMMAND_LANGUAGE.md), [SKETCH_INTENT_LANGUAGE.md](SKETCH_INTENT_LANGUAGE.md) |
 | использовать CLI | [CLI.md](CLI.md) |
@@ -40,12 +41,14 @@
 - [CLI HotkeyStudio](CLI.md)
 - [Модель безопасности](SAFETY_MODEL.md)
 - [IPC API и файловая очередь](api.md)
+- [Аудит хрупкости и целевой архитектуры](NX_PLUGIN_FRAGILITY_ARCHITECTURE_UI_AUDIT.md)
 
 ### Разработчик и reviewer
 
 - [Локальная разработка](../DEVELOPMENT.md)
 - [Внесение изменений](../CONTRIBUTING.md)
 - [Архитектура](ARCHITECTURE.md)
+- [Аудит хрупкости, архитектуры NX-плагина и UI](NX_PLUGIN_FRAGILITY_ARCHITECTURE_UI_AUDIT.md)
 - [Конфигурация](CONFIGURATION.md)
 - [Архитектура DFA/HFSM](STATE_MACHINE_ARCHITECTURE.md)
 - [Спецификация профиля](NX_PRO_HYBRID_SOURCE_SPEC.md)
@@ -61,6 +64,7 @@
 - `../DEVELOPMENT.md` — сборка и проверки;
 - `../CONTRIBUTING.md` — правила изменений;
 - `ARCHITECTURE.md` — компоненты и границы;
+- `NX_PLUGIN_FRAGILITY_ARCHITECTURE_UI_AUDIT.md` — текущие риски, целевая архитектура и план улучшения UI;
 - `INSTALLATION.md` — production compile/install/update;
 - `CONFIGURATION.md` — profile schema, поля и generation;
 - `CLI.md` — подтверждённые CLI-команды и flags;
@@ -131,7 +135,8 @@
 | изменение Sketch | `SKETCH_INTENT_LANGUAGE.md`, тесты и шпаргалка |
 | profile schema | `CONFIGURATION.md`, `NX_PRO_HYBRID_SOURCE_SPEC.md`, migration notes |
 | CLI или flags | `CLI.md`, при необходимости `CHEATSHEET.md` |
-| IPC | `api.md`, architecture и safety docs |
+| IPC | `api.md`, architecture, safety docs и аудит хрупкости |
+| architecture/UI boundary | `ARCHITECTURE.md`, аудит хрупкости и соответствующий ADR |
 | installation/deployment | `INSTALLATION.md`, `OPERATIONS.md`, `TROUBLESHOOTING.md` |
 | safety/confirmation | `SAFETY_MODEL.md`, runbook и changelog |
 | source/generated counts | generated reports и разделы, где число действительно необходимо |
