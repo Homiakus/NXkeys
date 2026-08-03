@@ -1,0 +1,96 @@
+name: Documentation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '*.md'
+      - 'docs/**'
+      - 'scripts/**'
+      - 'config/**'
+      - 'NX2512_HotkeyStudio/Models/**'
+      - 'NX2512_HotkeyStudio.Tests/**'
+      - '.github/workflows/documentation.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '*.md'
+      - 'docs/**'
+      - 'scripts/**'
+      - 'config/**'
+      - 'NX2512_HotkeyStudio/Models/**'
+      - 'NX2512_HotkeyStudio.Tests/**'
+      - '.github/workflows/documentation.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: documentation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout pull request head
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Checkout main
+        if: github.event_name == 'push'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Regenerate command sequence audit
+        run: node .\scripts\audit-command-sequences.mjs
+
+      - name: Commit regenerated audit to same-repository PR
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        shell: pwsh
+        run: |
+          git add docs/audit/command-sequence-audit.md docs/audit/command-sequence-audit.json
+          if (git diff --cached --quiet) {
+            Write-Host "Generated command sequence audit is current."
+            exit 0
+          }
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: regenerate command sequence audit"
+          git push
+
+      - name: Reject stale generated audit on main or fork PR
+        if: >-
+          github.event_name == 'push' ||
+          github.event.pull_request.head.repo.full_name != github.repository
+        shell: pwsh
+        run: |
+          if (-not (git diff --quiet -- docs/audit/command-sequence-audit.md docs/audit/command-sequence-audit.json)) {
+            git diff -- docs/audit/command-sequence-audit.md
+            throw "Generated command sequence audit is stale. Run node scripts/audit-command-sequences.mjs."
+          }
+
+      - name: Validate main command map
+        run: node .\scripts\validate-main-command-map.mjs
+
+      - name: Validate command tree
+        run: node .\scripts\validate-command-tree.mjs
+
+      - name: Validate documentation
+        run: node .\scripts\validate-documentation.mjs
