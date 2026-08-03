@@ -477,6 +477,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -517,6 +519,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -557,6 +561,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -597,6 +603,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -637,6 +645,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -676,6 +686,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -715,6 +727,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -754,6 +768,109 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "catalog:nx2512-00-L0060",
+              "notes": "Catalog-backed runtime support | Universal runtime selection filter",
+              "catalog_refs": [
+                "nx2512-00-L0060"
+              ],
+              "frequency": "support",
+              "resolution_status": "resolved",
+              "resolution_candidates": [
+                {
+                  "id": "UG_SEL_SELECT_ALL",
+                  "label": "Select All",
+                  "score": 1
+                },
+                {
+                  "id": "UG_SEL_DESELECT_ALL",
+                  "label": "Deselect All",
+                  "score": 0.5433333333333332
+                },
+                {
+                  "id": "UG_APP_GATEWAY",
+                  "label": "Switch to Inspect / View",
+                  "score": 0.252
+                }
+              ],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "catalog_backed_support": true,
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -991,6 +1108,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -1033,6 +1152,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -1075,6 +1196,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -1117,6 +1240,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -1159,6 +1284,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -1201,6 +1328,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -1243,6 +1372,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -1285,6 +1416,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -1327,6 +1460,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -1369,6 +1504,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -1411,6 +1548,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -3158,73 +3297,6 @@
                   "id": "UG_MODELING_SWEPT_FEATURE",
                   "label": "Swept",
                   "score": 0.2982666666666666
-                }
-              ]
-            },
-            {
-              "slot": "",
-              "submenu_key": "",
-              "submenu_label": "Выбор",
-              "input_key": "",
-              "path": [
-                "S",
-                "A",
-                "S",
-                "A"
-              ],
-              "path_labels": [
-                "Select",
-                "Annotation/Additive",
-                "S",
-                "Select All"
-              ],
-              "aliases": [],
-              "search_aliases": [
-                "Select All",
-                "Выбрать всё",
-                "Gateway / общая работа с NX",
-                "Выбор"
-              ],
-              "icon_hint": "selection",
-              "display_order": 1030,
-              "command": {
-                "id": "UG_SEL_SELECT_ALL",
-                "name": "Select All",
-                "aliases": [
-                  "Select All",
-                  "Выбрать всё"
-                ]
-              },
-              "action": "set_selection_filter",
-              "target_module_id": "",
-              "support_kind": "",
-              "selection_type": "all",
-              "enabled": true,
-              "requires_selection": false,
-              "destructive": false,
-              "confirm_before_execute": false,
-              "fallback": "catalog:nx2512-00-L0060",
-              "notes": "K3 | Gateway / общая работа с NX → Выбор | resolved: UG_SEL_SELECT_ALL",
-              "catalog_refs": [
-                "nx2512-00-L0060"
-              ],
-              "frequency": "K3",
-              "resolution_status": "resolved",
-              "resolution_candidates": [
-                {
-                  "id": "UG_SEL_SELECT_ALL",
-                  "label": "Select All",
-                  "score": 1
-                },
-                {
-                  "id": "UG_SEL_DESELECT_ALL",
-                  "label": "Deselect All",
-                  "score": 0.5433333333333332
-                },
-                {
-                  "id": "UG_APP_GATEWAY",
-                  "label": "Switch to Inspect / View",
-                  "score": 0.252
                 }
               ]
             },
@@ -15569,6 +15641,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -15609,6 +15683,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -15649,6 +15725,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -15689,6 +15767,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -15729,6 +15809,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -15768,6 +15850,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -15807,6 +15891,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -15846,6 +15932,109 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "catalog:nx2512-00-L0060",
+              "notes": "Catalog-backed runtime support | Universal runtime selection filter",
+              "catalog_refs": [
+                "nx2512-00-L0060"
+              ],
+              "frequency": "support",
+              "resolution_status": "resolved",
+              "resolution_candidates": [
+                {
+                  "id": "UG_SEL_SELECT_ALL",
+                  "label": "Select All",
+                  "score": 1
+                },
+                {
+                  "id": "UG_SEL_DESELECT_ALL",
+                  "label": "Deselect All",
+                  "score": 0.5433333333333332
+                },
+                {
+                  "id": "UG_APP_GATEWAY",
+                  "label": "Switch to Inspect / View",
+                  "score": 0.252
+                }
+              ],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "catalog_backed_support": true,
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -17583,73 +17772,6 @@
                   "id": "UG_MODELING_SWEPT_FEATURE",
                   "label": "Swept",
                   "score": 0.2982666666666666
-                }
-              ]
-            },
-            {
-              "slot": "",
-              "submenu_key": "",
-              "submenu_label": "Выбор",
-              "input_key": "",
-              "path": [
-                "S",
-                "A",
-                "S",
-                "A"
-              ],
-              "path_labels": [
-                "Select",
-                "Annotation/Additive",
-                "S",
-                "Select All"
-              ],
-              "aliases": [],
-              "search_aliases": [
-                "Select All",
-                "Выбрать всё",
-                "Gateway / общая работа с NX",
-                "Выбор"
-              ],
-              "icon_hint": "selection",
-              "display_order": 1030,
-              "command": {
-                "id": "UG_SEL_SELECT_ALL",
-                "name": "Select All",
-                "aliases": [
-                  "Select All",
-                  "Выбрать всё"
-                ]
-              },
-              "action": "set_selection_filter",
-              "target_module_id": "",
-              "support_kind": "",
-              "selection_type": "all",
-              "enabled": true,
-              "requires_selection": false,
-              "destructive": false,
-              "confirm_before_execute": false,
-              "fallback": "catalog:nx2512-00-L0060",
-              "notes": "K3 | Gateway / общая работа с NX → Выбор | resolved: UG_SEL_SELECT_ALL",
-              "catalog_refs": [
-                "nx2512-00-L0060"
-              ],
-              "frequency": "K3",
-              "resolution_status": "resolved",
-              "resolution_candidates": [
-                {
-                  "id": "UG_SEL_SELECT_ALL",
-                  "label": "Select All",
-                  "score": 1
-                },
-                {
-                  "id": "UG_SEL_DESELECT_ALL",
-                  "label": "Deselect All",
-                  "score": 0.5433333333333332
-                },
-                {
-                  "id": "UG_APP_GATEWAY",
-                  "label": "Switch to Inspect / View",
-                  "score": 0.252
                 }
               ]
             },
@@ -20604,11 +20726,11 @@
               "input_key": "",
               "path": [
                 "C",
-                "A"
+                "R"
               ],
               "path_labels": [
                 "Create",
-                "Annotation/Additive"
+                "Routing"
               ],
               "aliases": [],
               "search_aliases": [
@@ -20662,11 +20784,11 @@
               "input_key": "",
               "path": [
                 "C",
-                "R"
+                "E"
               ],
               "path_labels": [
                 "Create",
-                "Routing"
+                "Edge"
               ],
               "aliases": [],
               "search_aliases": [
@@ -20771,11 +20893,11 @@
               "input_key": "",
               "path": [
                 "C",
-                "E"
+                "N"
               ],
               "path_labels": [
                 "Create",
-                "Edge"
+                "Simulation"
               ],
               "aliases": [],
               "search_aliases": [
@@ -22210,11 +22332,11 @@
               "input_key": "",
               "path": [
                 "C",
-                "N"
+                "M"
               ],
               "path_labels": [
                 "Create",
-                "Simulation"
+                "Material/Mold"
               ],
               "aliases": [],
               "search_aliases": [
@@ -25827,6 +25949,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -25867,6 +25991,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -25907,6 +26033,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -25947,6 +26075,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -25987,6 +26117,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -26026,6 +26158,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -26065,6 +26199,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -26104,6 +26240,109 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "catalog:nx2512-00-L0060",
+              "notes": "Catalog-backed runtime support | Universal runtime selection filter",
+              "catalog_refs": [
+                "nx2512-00-L0060"
+              ],
+              "frequency": "support",
+              "resolution_status": "resolved",
+              "resolution_candidates": [
+                {
+                  "id": "UG_SEL_SELECT_ALL",
+                  "label": "Select All",
+                  "score": 1
+                },
+                {
+                  "id": "UG_SEL_DESELECT_ALL",
+                  "label": "Deselect All",
+                  "score": 0.5433333333333332
+                },
+                {
+                  "id": "UG_APP_GATEWAY",
+                  "label": "Switch to Inspect / View",
+                  "score": 0.252
+                }
+              ],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "catalog_backed_support": true,
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -26341,6 +26580,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -26383,6 +26624,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -26425,6 +26668,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -26467,6 +26712,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -26509,6 +26756,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -26551,6 +26800,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -26593,6 +26844,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -26635,6 +26888,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -26677,6 +26932,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -26719,6 +26976,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -26761,6 +27020,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -28505,73 +28766,6 @@
                   "id": "UG_MODELING_SWEPT_FEATURE",
                   "label": "Swept",
                   "score": 0.2982666666666666
-                }
-              ]
-            },
-            {
-              "slot": "",
-              "submenu_key": "",
-              "submenu_label": "Выбор",
-              "input_key": "",
-              "path": [
-                "S",
-                "A",
-                "S",
-                "A"
-              ],
-              "path_labels": [
-                "Select",
-                "Annotation/Additive",
-                "S",
-                "Select All"
-              ],
-              "aliases": [],
-              "search_aliases": [
-                "Select All",
-                "Выбрать всё",
-                "Gateway / общая работа с NX",
-                "Выбор"
-              ],
-              "icon_hint": "selection",
-              "display_order": 1030,
-              "command": {
-                "id": "UG_SEL_SELECT_ALL",
-                "name": "Select All",
-                "aliases": [
-                  "Select All",
-                  "Выбрать всё"
-                ]
-              },
-              "action": "set_selection_filter",
-              "target_module_id": "",
-              "support_kind": "",
-              "selection_type": "all",
-              "enabled": true,
-              "requires_selection": false,
-              "destructive": false,
-              "confirm_before_execute": false,
-              "fallback": "catalog:nx2512-00-L0060",
-              "notes": "K3 | Gateway / общая работа с NX → Выбор | resolved: UG_SEL_SELECT_ALL",
-              "catalog_refs": [
-                "nx2512-00-L0060"
-              ],
-              "frequency": "K3",
-              "resolution_status": "resolved",
-              "resolution_candidates": [
-                {
-                  "id": "UG_SEL_SELECT_ALL",
-                  "label": "Select All",
-                  "score": 1
-                },
-                {
-                  "id": "UG_SEL_DESELECT_ALL",
-                  "label": "Deselect All",
-                  "score": 0.5433333333333332
-                },
-                {
-                  "id": "UG_APP_GATEWAY",
-                  "label": "Switch to Inspect / View",
-                  "score": 0.252
                 }
               ]
             },
@@ -38032,6 +38226,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38072,6 +38268,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38112,6 +38310,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38152,6 +38352,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38192,6 +38394,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38231,6 +38435,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38270,6 +38476,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38309,6 +38517,109 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "catalog:nx2512-00-L0060",
+              "notes": "Catalog-backed runtime support | Universal runtime selection filter",
+              "catalog_refs": [
+                "nx2512-00-L0060"
+              ],
+              "frequency": "support",
+              "resolution_status": "resolved",
+              "resolution_candidates": [
+                {
+                  "id": "UG_SEL_SELECT_ALL",
+                  "label": "Select All",
+                  "score": 1
+                },
+                {
+                  "id": "UG_SEL_DESELECT_ALL",
+                  "label": "Deselect All",
+                  "score": 0.5433333333333332
+                },
+                {
+                  "id": "UG_APP_GATEWAY",
+                  "label": "Switch to Inspect / View",
+                  "score": 0.252
+                }
+              ],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "catalog_backed_support": true,
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -38357,6 +38668,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38399,6 +38712,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38441,6 +38756,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38483,6 +38800,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38525,6 +38844,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38567,6 +38888,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38609,6 +38932,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38651,6 +38976,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38693,6 +39020,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38735,6 +39064,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -38777,6 +39108,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -40532,73 +40865,6 @@
               "submenu_label": "Выбор",
               "input_key": "",
               "path": [
-                "S",
-                "A",
-                "S",
-                "A"
-              ],
-              "path_labels": [
-                "Select",
-                "Annotation/Additive",
-                "S",
-                "Select All"
-              ],
-              "aliases": [],
-              "search_aliases": [
-                "Select All",
-                "Выбрать всё",
-                "Gateway / общая работа с NX",
-                "Выбор"
-              ],
-              "icon_hint": "selection",
-              "display_order": 1030,
-              "command": {
-                "id": "UG_SEL_SELECT_ALL",
-                "name": "Select All",
-                "aliases": [
-                  "Select All",
-                  "Выбрать всё"
-                ]
-              },
-              "action": "set_selection_filter",
-              "target_module_id": "",
-              "support_kind": "",
-              "selection_type": "all",
-              "enabled": true,
-              "requires_selection": false,
-              "destructive": false,
-              "confirm_before_execute": false,
-              "fallback": "catalog:nx2512-00-L0060",
-              "notes": "K3 | Gateway / общая работа с NX → Выбор | resolved: UG_SEL_SELECT_ALL",
-              "catalog_refs": [
-                "nx2512-00-L0060"
-              ],
-              "frequency": "K3",
-              "resolution_status": "resolved",
-              "resolution_candidates": [
-                {
-                  "id": "UG_SEL_SELECT_ALL",
-                  "label": "Select All",
-                  "score": 1
-                },
-                {
-                  "id": "UG_SEL_DESELECT_ALL",
-                  "label": "Deselect All",
-                  "score": 0.5433333333333332
-                },
-                {
-                  "id": "UG_APP_GATEWAY",
-                  "label": "Switch to Inspect / View",
-                  "score": 0.252
-                }
-              ]
-            },
-            {
-              "slot": "",
-              "submenu_key": "",
-              "submenu_label": "Выбор",
-              "input_key": "",
-              "path": [
                 "C",
                 "W"
               ],
@@ -41498,13 +41764,13 @@
               "path": [
                 "C",
                 "Z",
-                "F",
-                "R"
+                "R",
+                "F"
               ],
               "path_labels": [
                 "Create",
                 "Other",
-                "F",
+                "R",
                 "Front"
               ],
               "aliases": [],
@@ -43508,12 +43774,12 @@
               "input_key": "",
               "path": [
                 "C",
-                "A",
-                "S"
+                "Z",
+                "E"
               ],
               "path_labels": [
                 "Create",
-                "Annotation/Additive",
+                "Other",
                 "Half Section"
               ],
               "aliases": [],
@@ -43563,12 +43829,12 @@
               "input_key": "",
               "path": [
                 "C",
-                "A",
-                "E"
+                "Z",
+                "C"
               ],
               "path_labels": [
                 "Create",
-                "Annotation/Additive",
+                "Other",
                 "Revolved Section"
               ],
               "aliases": [],
@@ -43623,12 +43889,12 @@
               "input_key": "",
               "path": [
                 "C",
-                "A",
-                "C"
+                "Z",
+                "I"
               ],
               "path_labels": [
                 "Create",
-                "Annotation/Additive",
+                "Other",
                 "Break-out Section"
               ],
               "aliases": [],
@@ -45367,12 +45633,12 @@
               "input_key": "",
               "path": [
                 "C",
-                "A",
+                "Z",
                 "P"
               ],
               "path_labels": [
                 "Create",
-                "Annotation/Additive",
+                "Other",
                 "Feature Parameters"
               ],
               "aliases": [],
@@ -46006,12 +46272,12 @@
               "input_key": "",
               "path": [
                 "C",
-                "A",
+                "Z",
                 "F"
               ],
               "path_labels": [
                 "Create",
-                "Annotation/Additive",
+                "Other",
                 "Feature Control Frame"
               ],
               "aliases": [],
@@ -47263,12 +47529,12 @@
               "input_key": "",
               "path": [
                 "C",
-                "A",
+                "Z",
                 "D"
               ],
               "path_labels": [
                 "Create",
-                "Annotation/Additive",
+                "Other",
                 "Export PDF"
               ],
               "aliases": [],
@@ -47315,12 +47581,12 @@
               "input_key": "",
               "path": [
                 "C",
-                "A",
-                "W"
+                "Z",
+                "G"
               ],
               "path_labels": [
                 "Create",
-                "Annotation/Additive",
+                "Other",
                 "Export DXF/DWG"
               ],
               "aliases": [],
@@ -47367,13 +47633,13 @@
               "input_key": "",
               "path": [
                 "C",
-                "A",
+                "Z",
                 "L",
                 "P"
               ],
               "path_labels": [
                 "Create",
-                "Annotation/Additive",
+                "Other",
                 "L",
                 "Plot"
               ],
@@ -49811,6 +50077,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -49851,6 +50119,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -49891,6 +50161,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -49931,6 +50203,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -49971,6 +50245,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -50010,6 +50286,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -50049,6 +50327,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -50088,6 +50368,109 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "catalog:nx2512-00-L0060",
+              "notes": "Catalog-backed runtime support | Universal runtime selection filter",
+              "catalog_refs": [
+                "nx2512-00-L0060"
+              ],
+              "frequency": "support",
+              "resolution_status": "resolved",
+              "resolution_candidates": [
+                {
+                  "id": "UG_SEL_SELECT_ALL",
+                  "label": "Select All",
+                  "score": 1
+                },
+                {
+                  "id": "UG_SEL_DESELECT_ALL",
+                  "label": "Deselect All",
+                  "score": 0.5433333333333332
+                },
+                {
+                  "id": "UG_APP_GATEWAY",
+                  "label": "Switch to Inspect / View",
+                  "score": 0.252
+                }
+              ],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "catalog_backed_support": true,
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -50136,6 +50519,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -50178,6 +50563,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -50220,6 +50607,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -50262,6 +50651,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -50304,6 +50695,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -50346,6 +50739,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -50388,6 +50783,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -50430,6 +50827,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -50472,6 +50871,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -50514,6 +50915,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -50556,6 +50959,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -52289,73 +52694,6 @@
                   "id": "UG_MODELING_SWEPT_FEATURE",
                   "label": "Swept",
                   "score": 0.2982666666666666
-                }
-              ]
-            },
-            {
-              "slot": "",
-              "submenu_key": "",
-              "submenu_label": "Выбор",
-              "input_key": "",
-              "path": [
-                "S",
-                "A",
-                "S",
-                "A"
-              ],
-              "path_labels": [
-                "Select",
-                "Annotation/Additive",
-                "S",
-                "Select All"
-              ],
-              "aliases": [],
-              "search_aliases": [
-                "Select All",
-                "Выбрать всё",
-                "Gateway / общая работа с NX",
-                "Выбор"
-              ],
-              "icon_hint": "selection",
-              "display_order": 1030,
-              "command": {
-                "id": "UG_SEL_SELECT_ALL",
-                "name": "Select All",
-                "aliases": [
-                  "Select All",
-                  "Выбрать всё"
-                ]
-              },
-              "action": "set_selection_filter",
-              "target_module_id": "",
-              "support_kind": "",
-              "selection_type": "all",
-              "enabled": true,
-              "requires_selection": false,
-              "destructive": false,
-              "confirm_before_execute": false,
-              "fallback": "catalog:nx2512-00-L0060",
-              "notes": "K3 | Gateway / общая работа с NX → Выбор | resolved: UG_SEL_SELECT_ALL",
-              "catalog_refs": [
-                "nx2512-00-L0060"
-              ],
-              "frequency": "K3",
-              "resolution_status": "resolved",
-              "resolution_candidates": [
-                {
-                  "id": "UG_SEL_SELECT_ALL",
-                  "label": "Select All",
-                  "score": 1
-                },
-                {
-                  "id": "UG_SEL_DESELECT_ALL",
-                  "label": "Deselect All",
-                  "score": 0.5433333333333332
-                },
-                {
-                  "id": "UG_APP_GATEWAY",
-                  "label": "Switch to Inspect / View",
-                  "score": 0.252
                 }
               ]
             },
@@ -58427,6 +58765,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -58467,6 +58807,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -58507,6 +58849,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -58547,6 +58891,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -58587,6 +58933,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -58626,6 +58974,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -58665,6 +59015,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -58704,6 +59056,109 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "catalog:nx2512-00-L0060",
+              "notes": "Catalog-backed runtime support | Universal runtime selection filter",
+              "catalog_refs": [
+                "nx2512-00-L0060"
+              ],
+              "frequency": "support",
+              "resolution_status": "resolved",
+              "resolution_candidates": [
+                {
+                  "id": "UG_SEL_SELECT_ALL",
+                  "label": "Select All",
+                  "score": 1
+                },
+                {
+                  "id": "UG_SEL_DESELECT_ALL",
+                  "label": "Deselect All",
+                  "score": 0.5433333333333332
+                },
+                {
+                  "id": "UG_APP_GATEWAY",
+                  "label": "Switch to Inspect / View",
+                  "score": 0.252
+                }
+              ],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "catalog_backed_support": true,
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -58752,6 +59207,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -58794,6 +59251,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -58836,6 +59295,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -58878,6 +59339,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -58920,6 +59383,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -58962,6 +59427,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -59004,6 +59471,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -59046,6 +59515,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -59088,6 +59559,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -59130,6 +59603,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -59172,6 +59647,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -60909,73 +61386,6 @@
                   "id": "UG_MODELING_SWEPT_FEATURE",
                   "label": "Swept",
                   "score": 0.2982666666666666
-                }
-              ]
-            },
-            {
-              "slot": "",
-              "submenu_key": "",
-              "submenu_label": "Выбор",
-              "input_key": "",
-              "path": [
-                "S",
-                "A",
-                "S",
-                "A"
-              ],
-              "path_labels": [
-                "Select",
-                "Annotation/Additive",
-                "S",
-                "Select All"
-              ],
-              "aliases": [],
-              "search_aliases": [
-                "Select All",
-                "Выбрать всё",
-                "Gateway / общая работа с NX",
-                "Выбор"
-              ],
-              "icon_hint": "selection",
-              "display_order": 1030,
-              "command": {
-                "id": "UG_SEL_SELECT_ALL",
-                "name": "Select All",
-                "aliases": [
-                  "Select All",
-                  "Выбрать всё"
-                ]
-              },
-              "action": "set_selection_filter",
-              "target_module_id": "",
-              "support_kind": "",
-              "selection_type": "all",
-              "enabled": true,
-              "requires_selection": false,
-              "destructive": false,
-              "confirm_before_execute": false,
-              "fallback": "catalog:nx2512-00-L0060",
-              "notes": "K3 | Gateway / общая работа с NX → Выбор | resolved: UG_SEL_SELECT_ALL",
-              "catalog_refs": [
-                "nx2512-00-L0060"
-              ],
-              "frequency": "K3",
-              "resolution_status": "resolved",
-              "resolution_candidates": [
-                {
-                  "id": "UG_SEL_SELECT_ALL",
-                  "label": "Select All",
-                  "score": 1
-                },
-                {
-                  "id": "UG_SEL_DESELECT_ALL",
-                  "label": "Deselect All",
-                  "score": 0.5433333333333332
-                },
-                {
-                  "id": "UG_APP_GATEWAY",
-                  "label": "Switch to Inspect / View",
-                  "score": 0.252
                 }
               ]
             },
@@ -66706,6 +67116,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -66746,6 +67158,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -66786,6 +67200,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -66826,6 +67242,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -66866,6 +67284,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -66905,6 +67325,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -66944,6 +67366,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -66983,6 +67407,109 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "catalog:nx2512-00-L0060",
+              "notes": "Catalog-backed runtime support | Universal runtime selection filter",
+              "catalog_refs": [
+                "nx2512-00-L0060"
+              ],
+              "frequency": "support",
+              "resolution_status": "resolved",
+              "resolution_candidates": [
+                {
+                  "id": "UG_SEL_SELECT_ALL",
+                  "label": "Select All",
+                  "score": 1
+                },
+                {
+                  "id": "UG_SEL_DESELECT_ALL",
+                  "label": "Deselect All",
+                  "score": 0.5433333333333332
+                },
+                {
+                  "id": "UG_APP_GATEWAY",
+                  "label": "Switch to Inspect / View",
+                  "score": 0.252
+                }
+              ],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "catalog_backed_support": true,
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -67031,6 +67558,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -67073,6 +67602,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -67115,6 +67646,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -67157,6 +67690,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -67199,6 +67734,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -67241,6 +67778,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -67283,6 +67822,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -67325,6 +67866,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -67367,6 +67910,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -67409,6 +67954,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -67451,6 +67998,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -69184,73 +69733,6 @@
                   "id": "UG_MODELING_SWEPT_FEATURE",
                   "label": "Swept",
                   "score": 0.2982666666666666
-                }
-              ]
-            },
-            {
-              "slot": "",
-              "submenu_key": "",
-              "submenu_label": "Выбор",
-              "input_key": "",
-              "path": [
-                "S",
-                "A",
-                "S",
-                "A"
-              ],
-              "path_labels": [
-                "Select",
-                "Annotation/Additive",
-                "S",
-                "Select All"
-              ],
-              "aliases": [],
-              "search_aliases": [
-                "Select All",
-                "Выбрать всё",
-                "Gateway / общая работа с NX",
-                "Выбор"
-              ],
-              "icon_hint": "selection",
-              "display_order": 1030,
-              "command": {
-                "id": "UG_SEL_SELECT_ALL",
-                "name": "Select All",
-                "aliases": [
-                  "Select All",
-                  "Выбрать всё"
-                ]
-              },
-              "action": "set_selection_filter",
-              "target_module_id": "",
-              "support_kind": "",
-              "selection_type": "all",
-              "enabled": true,
-              "requires_selection": false,
-              "destructive": false,
-              "confirm_before_execute": false,
-              "fallback": "catalog:nx2512-00-L0060",
-              "notes": "K3 | Gateway / общая работа с NX → Выбор | resolved: UG_SEL_SELECT_ALL",
-              "catalog_refs": [
-                "nx2512-00-L0060"
-              ],
-              "frequency": "K3",
-              "resolution_status": "resolved",
-              "resolution_candidates": [
-                {
-                  "id": "UG_SEL_SELECT_ALL",
-                  "label": "Select All",
-                  "score": 1
-                },
-                {
-                  "id": "UG_SEL_DESELECT_ALL",
-                  "label": "Deselect All",
-                  "score": 0.5433333333333332
-                },
-                {
-                  "id": "UG_APP_GATEWAY",
-                  "label": "Switch to Inspect / View",
-                  "score": 0.252
                 }
               ]
             },
@@ -75426,6 +75908,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -75466,6 +75950,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -75506,6 +75992,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -75546,6 +76034,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -75586,6 +76076,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -75625,6 +76117,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -75664,6 +76158,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -75703,6 +76199,109 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "catalog:nx2512-00-L0060",
+              "notes": "Catalog-backed runtime support | Universal runtime selection filter",
+              "catalog_refs": [
+                "nx2512-00-L0060"
+              ],
+              "frequency": "support",
+              "resolution_status": "resolved",
+              "resolution_candidates": [
+                {
+                  "id": "UG_SEL_SELECT_ALL",
+                  "label": "Select All",
+                  "score": 1
+                },
+                {
+                  "id": "UG_SEL_DESELECT_ALL",
+                  "label": "Deselect All",
+                  "score": 0.5433333333333332
+                },
+                {
+                  "id": "UG_APP_GATEWAY",
+                  "label": "Switch to Inspect / View",
+                  "score": 0.252
+                }
+              ],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "catalog_backed_support": true,
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -75751,6 +76350,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -75793,6 +76394,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -75835,6 +76438,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -75877,6 +76482,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -75919,6 +76526,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -75961,6 +76570,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -76003,6 +76614,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -76045,6 +76658,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -76087,6 +76702,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -76129,6 +76746,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -76171,6 +76790,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -77942,73 +78563,6 @@
                   "id": "UG_MODELING_SWEPT_FEATURE",
                   "label": "Swept",
                   "score": 0.2982666666666666
-                }
-              ]
-            },
-            {
-              "slot": "",
-              "submenu_key": "",
-              "submenu_label": "Выбор",
-              "input_key": "",
-              "path": [
-                "S",
-                "A",
-                "S",
-                "A"
-              ],
-              "path_labels": [
-                "Select",
-                "Annotation/Additive",
-                "S",
-                "Select All"
-              ],
-              "aliases": [],
-              "search_aliases": [
-                "Select All",
-                "Выбрать всё",
-                "Gateway / общая работа с NX",
-                "Выбор"
-              ],
-              "icon_hint": "selection",
-              "display_order": 1030,
-              "command": {
-                "id": "UG_SEL_SELECT_ALL",
-                "name": "Select All",
-                "aliases": [
-                  "Select All",
-                  "Выбрать всё"
-                ]
-              },
-              "action": "set_selection_filter",
-              "target_module_id": "",
-              "support_kind": "",
-              "selection_type": "all",
-              "enabled": true,
-              "requires_selection": false,
-              "destructive": false,
-              "confirm_before_execute": false,
-              "fallback": "catalog:nx2512-00-L0060",
-              "notes": "K3 | Gateway / общая работа с NX → Выбор | resolved: UG_SEL_SELECT_ALL",
-              "catalog_refs": [
-                "nx2512-00-L0060"
-              ],
-              "frequency": "K3",
-              "resolution_status": "resolved",
-              "resolution_candidates": [
-                {
-                  "id": "UG_SEL_SELECT_ALL",
-                  "label": "Select All",
-                  "score": 1
-                },
-                {
-                  "id": "UG_SEL_DESELECT_ALL",
-                  "label": "Deselect All",
-                  "score": 0.5433333333333332
-                },
-                {
-                  "id": "UG_APP_GATEWAY",
-                  "label": "Switch to Inspect / View",
-                  "score": 0.252
                 }
               ]
             },
@@ -95346,6 +95900,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95386,6 +95942,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95426,6 +95984,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95466,6 +96026,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95506,6 +96068,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95545,6 +96109,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95584,6 +96150,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95623,6 +96191,109 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "catalog:nx2512-00-L0060",
+              "notes": "Catalog-backed runtime support | Universal runtime selection filter",
+              "catalog_refs": [
+                "nx2512-00-L0060"
+              ],
+              "frequency": "support",
+              "resolution_status": "resolved",
+              "resolution_candidates": [
+                {
+                  "id": "UG_SEL_SELECT_ALL",
+                  "label": "Select All",
+                  "score": 1
+                },
+                {
+                  "id": "UG_SEL_DESELECT_ALL",
+                  "label": "Deselect All",
+                  "score": 0.5433333333333332
+                },
+                {
+                  "id": "UG_APP_GATEWAY",
+                  "label": "Switch to Inspect / View",
+                  "score": 0.252
+                }
+              ],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "catalog_backed_support": true,
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -95671,6 +96342,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95713,6 +96386,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95755,6 +96430,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95797,6 +96474,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95839,6 +96518,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95881,6 +96562,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95923,6 +96606,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -95965,6 +96650,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -96007,6 +96694,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -96049,6 +96738,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -96091,6 +96782,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -97824,73 +98517,6 @@
                   "id": "UG_MODELING_SWEPT_FEATURE",
                   "label": "Swept",
                   "score": 0.2982666666666666
-                }
-              ]
-            },
-            {
-              "slot": "",
-              "submenu_key": "",
-              "submenu_label": "Выбор",
-              "input_key": "",
-              "path": [
-                "S",
-                "A",
-                "S",
-                "A"
-              ],
-              "path_labels": [
-                "Select",
-                "Annotation/Additive",
-                "S",
-                "Select All"
-              ],
-              "aliases": [],
-              "search_aliases": [
-                "Select All",
-                "Выбрать всё",
-                "Gateway / общая работа с NX",
-                "Выбор"
-              ],
-              "icon_hint": "selection",
-              "display_order": 1030,
-              "command": {
-                "id": "UG_SEL_SELECT_ALL",
-                "name": "Select All",
-                "aliases": [
-                  "Select All",
-                  "Выбрать всё"
-                ]
-              },
-              "action": "set_selection_filter",
-              "target_module_id": "",
-              "support_kind": "",
-              "selection_type": "all",
-              "enabled": true,
-              "requires_selection": false,
-              "destructive": false,
-              "confirm_before_execute": false,
-              "fallback": "catalog:nx2512-00-L0060",
-              "notes": "K3 | Gateway / общая работа с NX → Выбор | resolved: UG_SEL_SELECT_ALL",
-              "catalog_refs": [
-                "nx2512-00-L0060"
-              ],
-              "frequency": "K3",
-              "resolution_status": "resolved",
-              "resolution_candidates": [
-                {
-                  "id": "UG_SEL_SELECT_ALL",
-                  "label": "Select All",
-                  "score": 1
-                },
-                {
-                  "id": "UG_SEL_DESELECT_ALL",
-                  "label": "Deselect All",
-                  "score": 0.5433333333333332
-                },
-                {
-                  "id": "UG_APP_GATEWAY",
-                  "label": "Switch to Inspect / View",
-                  "score": 0.252
                 }
               ]
             },
@@ -103327,6 +103953,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103367,6 +103995,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103407,6 +104037,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103447,6 +104079,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103487,6 +104121,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103526,6 +104162,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103565,6 +104203,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103604,6 +104244,109 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "catalog:nx2512-00-L0060",
+              "notes": "Catalog-backed runtime support | Universal runtime selection filter",
+              "catalog_refs": [
+                "nx2512-00-L0060"
+              ],
+              "frequency": "support",
+              "resolution_status": "resolved",
+              "resolution_candidates": [
+                {
+                  "id": "UG_SEL_SELECT_ALL",
+                  "label": "Select All",
+                  "score": 1
+                },
+                {
+                  "id": "UG_SEL_DESELECT_ALL",
+                  "label": "Deselect All",
+                  "score": 0.5433333333333332
+                },
+                {
+                  "id": "UG_APP_GATEWAY",
+                  "label": "Switch to Inspect / View",
+                  "score": 0.252
+                }
+              ],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "catalog_backed_support": true,
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -103652,6 +104395,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103694,6 +104439,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103736,6 +104483,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103778,6 +104527,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103820,6 +104571,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103862,6 +104615,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103904,6 +104659,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103946,6 +104703,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -103988,6 +104747,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -104030,6 +104791,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -104072,6 +104835,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -105805,73 +106570,6 @@
                   "id": "UG_MODELING_SWEPT_FEATURE",
                   "label": "Swept",
                   "score": 0.2982666666666666
-                }
-              ]
-            },
-            {
-              "slot": "",
-              "submenu_key": "",
-              "submenu_label": "Выбор",
-              "input_key": "",
-              "path": [
-                "S",
-                "A",
-                "S",
-                "A"
-              ],
-              "path_labels": [
-                "Select",
-                "Annotation/Additive",
-                "S",
-                "Select All"
-              ],
-              "aliases": [],
-              "search_aliases": [
-                "Select All",
-                "Выбрать всё",
-                "Gateway / общая работа с NX",
-                "Выбор"
-              ],
-              "icon_hint": "selection",
-              "display_order": 1030,
-              "command": {
-                "id": "UG_SEL_SELECT_ALL",
-                "name": "Select All",
-                "aliases": [
-                  "Select All",
-                  "Выбрать всё"
-                ]
-              },
-              "action": "set_selection_filter",
-              "target_module_id": "",
-              "support_kind": "",
-              "selection_type": "all",
-              "enabled": true,
-              "requires_selection": false,
-              "destructive": false,
-              "confirm_before_execute": false,
-              "fallback": "catalog:nx2512-00-L0060",
-              "notes": "K3 | Gateway / общая работа с NX → Выбор | resolved: UG_SEL_SELECT_ALL",
-              "catalog_refs": [
-                "nx2512-00-L0060"
-              ],
-              "frequency": "K3",
-              "resolution_status": "resolved",
-              "resolution_candidates": [
-                {
-                  "id": "UG_SEL_SELECT_ALL",
-                  "label": "Select All",
-                  "score": 1
-                },
-                {
-                  "id": "UG_SEL_DESELECT_ALL",
-                  "label": "Deselect All",
-                  "score": 0.5433333333333332
-                },
-                {
-                  "id": "UG_APP_GATEWAY",
-                  "label": "Switch to Inspect / View",
-                  "score": 0.252
                 }
               ]
             },
@@ -112706,6 +113404,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -112746,6 +113446,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -112786,6 +113488,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -112826,6 +113530,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -112866,6 +113572,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -112905,6 +113613,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -112944,6 +113654,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -112983,6 +113695,109 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "catalog:nx2512-00-L0060",
+              "notes": "Catalog-backed runtime support | Universal runtime selection filter",
+              "catalog_refs": [
+                "nx2512-00-L0060"
+              ],
+              "frequency": "support",
+              "resolution_status": "resolved",
+              "resolution_candidates": [
+                {
+                  "id": "UG_SEL_SELECT_ALL",
+                  "label": "Select All",
+                  "score": 1
+                },
+                {
+                  "id": "UG_SEL_DESELECT_ALL",
+                  "label": "Deselect All",
+                  "score": 0.5433333333333332
+                },
+                {
+                  "id": "UG_APP_GATEWAY",
+                  "label": "Switch to Inspect / View",
+                  "score": 0.252
+                }
+              ],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "catalog_backed_support": true,
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -113031,6 +113846,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -113073,6 +113890,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -113115,6 +113934,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -113157,6 +113978,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -113199,6 +114022,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -113241,6 +114066,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -113283,6 +114110,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -113325,6 +114154,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -113367,6 +114198,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -113409,6 +114242,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -113451,6 +114286,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -115184,73 +116021,6 @@
                   "id": "UG_MODELING_SWEPT_FEATURE",
                   "label": "Swept",
                   "score": 0.2982666666666666
-                }
-              ]
-            },
-            {
-              "slot": "",
-              "submenu_key": "",
-              "submenu_label": "Выбор",
-              "input_key": "",
-              "path": [
-                "S",
-                "A",
-                "S",
-                "A"
-              ],
-              "path_labels": [
-                "Select",
-                "Annotation/Additive",
-                "S",
-                "Select All"
-              ],
-              "aliases": [],
-              "search_aliases": [
-                "Select All",
-                "Выбрать всё",
-                "Gateway / общая работа с NX",
-                "Выбор"
-              ],
-              "icon_hint": "selection",
-              "display_order": 1030,
-              "command": {
-                "id": "UG_SEL_SELECT_ALL",
-                "name": "Select All",
-                "aliases": [
-                  "Select All",
-                  "Выбрать всё"
-                ]
-              },
-              "action": "set_selection_filter",
-              "target_module_id": "",
-              "support_kind": "",
-              "selection_type": "all",
-              "enabled": true,
-              "requires_selection": false,
-              "destructive": false,
-              "confirm_before_execute": false,
-              "fallback": "catalog:nx2512-00-L0060",
-              "notes": "K3 | Gateway / общая работа с NX → Выбор | resolved: UG_SEL_SELECT_ALL",
-              "catalog_refs": [
-                "nx2512-00-L0060"
-              ],
-              "frequency": "K3",
-              "resolution_status": "resolved",
-              "resolution_candidates": [
-                {
-                  "id": "UG_SEL_SELECT_ALL",
-                  "label": "Select All",
-                  "score": 1
-                },
-                {
-                  "id": "UG_SEL_DESELECT_ALL",
-                  "label": "Deselect All",
-                  "score": 0.5433333333333332
-                },
-                {
-                  "id": "UG_APP_GATEWAY",
-                  "label": "Switch to Inspect / View",
-                  "score": 0.252
                 }
               ]
             },
@@ -120914,6 +121684,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -120954,6 +121726,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -120994,6 +121768,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121034,6 +121810,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121074,6 +121852,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121113,6 +121893,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121152,6 +121934,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121191,6 +121975,109 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "catalog:nx2512-00-L0060",
+              "notes": "Catalog-backed runtime support | Universal runtime selection filter",
+              "catalog_refs": [
+                "nx2512-00-L0060"
+              ],
+              "frequency": "support",
+              "resolution_status": "resolved",
+              "resolution_candidates": [
+                {
+                  "id": "UG_SEL_SELECT_ALL",
+                  "label": "Select All",
+                  "score": 1
+                },
+                {
+                  "id": "UG_SEL_DESELECT_ALL",
+                  "label": "Deselect All",
+                  "score": 0.5433333333333332
+                },
+                {
+                  "id": "UG_APP_GATEWAY",
+                  "label": "Switch to Inspect / View",
+                  "score": 0.252
+                }
+              ],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "catalog_backed_support": true,
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -121239,6 +122126,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121281,6 +122170,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121323,6 +122214,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121365,6 +122258,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121407,6 +122302,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121449,6 +122346,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121491,6 +122390,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121533,6 +122434,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121575,6 +122478,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121617,6 +122522,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -121659,6 +122566,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -123392,73 +124301,6 @@
                   "id": "UG_MODELING_SWEPT_FEATURE",
                   "label": "Swept",
                   "score": 0.2982666666666666
-                }
-              ]
-            },
-            {
-              "slot": "",
-              "submenu_key": "",
-              "submenu_label": "Выбор",
-              "input_key": "",
-              "path": [
-                "S",
-                "A",
-                "S",
-                "A"
-              ],
-              "path_labels": [
-                "Select",
-                "Annotation/Additive",
-                "S",
-                "Select All"
-              ],
-              "aliases": [],
-              "search_aliases": [
-                "Select All",
-                "Выбрать всё",
-                "Gateway / общая работа с NX",
-                "Выбор"
-              ],
-              "icon_hint": "selection",
-              "display_order": 1030,
-              "command": {
-                "id": "UG_SEL_SELECT_ALL",
-                "name": "Select All",
-                "aliases": [
-                  "Select All",
-                  "Выбрать всё"
-                ]
-              },
-              "action": "set_selection_filter",
-              "target_module_id": "",
-              "support_kind": "",
-              "selection_type": "all",
-              "enabled": true,
-              "requires_selection": false,
-              "destructive": false,
-              "confirm_before_execute": false,
-              "fallback": "catalog:nx2512-00-L0060",
-              "notes": "K3 | Gateway / общая работа с NX → Выбор | resolved: UG_SEL_SELECT_ALL",
-              "catalog_refs": [
-                "nx2512-00-L0060"
-              ],
-              "frequency": "K3",
-              "resolution_status": "resolved",
-              "resolution_candidates": [
-                {
-                  "id": "UG_SEL_SELECT_ALL",
-                  "label": "Select All",
-                  "score": 1
-                },
-                {
-                  "id": "UG_SEL_DESELECT_ALL",
-                  "label": "Deselect All",
-                  "score": 0.5433333333333332
-                },
-                {
-                  "id": "UG_APP_GATEWAY",
-                  "label": "Switch to Inspect / View",
-                  "score": 0.252
                 }
               ]
             },
@@ -128607,6 +129449,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -128647,6 +129491,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -128687,6 +129533,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -128727,6 +129575,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -128767,6 +129617,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -128806,6 +129658,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -128845,6 +129699,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -128884,6 +129740,109 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "catalog:nx2512-00-L0060",
+              "notes": "Catalog-backed runtime support | Universal runtime selection filter",
+              "catalog_refs": [
+                "nx2512-00-L0060"
+              ],
+              "frequency": "support",
+              "resolution_status": "resolved",
+              "resolution_candidates": [
+                {
+                  "id": "UG_SEL_SELECT_ALL",
+                  "label": "Select All",
+                  "score": 1
+                },
+                {
+                  "id": "UG_SEL_DESELECT_ALL",
+                  "label": "Deselect All",
+                  "score": 0.5433333333333332
+                },
+                {
+                  "id": "UG_APP_GATEWAY",
+                  "label": "Switch to Inspect / View",
+                  "score": 0.252
+                }
+              ],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "catalog_backed_support": true,
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -128932,6 +129891,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -128974,6 +129935,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -129016,6 +129979,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -129058,6 +130023,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -129100,6 +130067,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -129142,6 +130111,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -129184,6 +130155,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -129226,6 +130199,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -129268,6 +130243,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -129310,6 +130287,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -129352,6 +130331,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "module_switch",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -131085,73 +132066,6 @@
                   "id": "UG_MODELING_SWEPT_FEATURE",
                   "label": "Swept",
                   "score": 0.2982666666666666
-                }
-              ]
-            },
-            {
-              "slot": "",
-              "submenu_key": "",
-              "submenu_label": "Выбор",
-              "input_key": "",
-              "path": [
-                "S",
-                "A",
-                "S",
-                "A"
-              ],
-              "path_labels": [
-                "Select",
-                "Annotation/Additive",
-                "S",
-                "Select All"
-              ],
-              "aliases": [],
-              "search_aliases": [
-                "Select All",
-                "Выбрать всё",
-                "Gateway / общая работа с NX",
-                "Выбор"
-              ],
-              "icon_hint": "selection",
-              "display_order": 1030,
-              "command": {
-                "id": "UG_SEL_SELECT_ALL",
-                "name": "Select All",
-                "aliases": [
-                  "Select All",
-                  "Выбрать всё"
-                ]
-              },
-              "action": "set_selection_filter",
-              "target_module_id": "",
-              "support_kind": "",
-              "selection_type": "all",
-              "enabled": true,
-              "requires_selection": false,
-              "destructive": false,
-              "confirm_before_execute": false,
-              "fallback": "catalog:nx2512-00-L0060",
-              "notes": "K3 | Gateway / общая работа с NX → Выбор | resolved: UG_SEL_SELECT_ALL",
-              "catalog_refs": [
-                "nx2512-00-L0060"
-              ],
-              "frequency": "K3",
-              "resolution_status": "resolved",
-              "resolution_candidates": [
-                {
-                  "id": "UG_SEL_SELECT_ALL",
-                  "label": "Select All",
-                  "score": 1
-                },
-                {
-                  "id": "UG_SEL_DESELECT_ALL",
-                  "label": "Deselect All",
-                  "score": 0.5433333333333332
-                },
-                {
-                  "id": "UG_APP_GATEWAY",
-                  "label": "Switch to Inspect / View",
-                  "score": 0.252
                 }
               ]
             },
@@ -136902,6 +137816,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -136941,6 +137857,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -136980,6 +137898,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -137019,6 +137939,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -137058,6 +137980,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -137097,6 +138021,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -137136,6 +138062,8 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             },
             {
@@ -137175,6 +138103,90 @@
               "resolution_status": "existing",
               "resolution_candidates": [],
               "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "A",
+              "path": [
+                "S",
+                "A"
+              ],
+              "path_labels": [
+                "Select",
+                "Select All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Select All",
+                "UG_SEL_SELECT_ALL"
+              ],
+              "icon_hint": "selection",
+              "display_order": 9008,
+              "command": {
+                "id": "UG_SEL_SELECT_ALL",
+                "name": "Select All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "all",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
+              "profile_support": true
+            },
+            {
+              "slot": "",
+              "submenu_key": "",
+              "submenu_label": "Selection Filters",
+              "input_key": "N",
+              "path": [
+                "S",
+                "N"
+              ],
+              "path_labels": [
+                "Select",
+                "Deselect All"
+              ],
+              "aliases": [],
+              "search_aliases": [
+                "Deselect All",
+                "UG_SEL_DESELECT_ALL"
+              ],
+              "icon_hint": "sel_deselect",
+              "display_order": 9009,
+              "command": {
+                "id": "UG_SEL_DESELECT_ALL",
+                "name": "Deselect All"
+              },
+              "action": "set_selection_filter",
+              "selection_type": "none",
+              "enabled": true,
+              "requires_selection": false,
+              "destructive": false,
+              "confirm_before_execute": false,
+              "fallback": "",
+              "notes": "Runtime support infrastructure | Universal runtime selection filter",
+              "catalog_refs": [],
+              "frequency": "support",
+              "resolution_status": "existing",
+              "resolution_candidates": [],
+              "support_kind": "selection_filter",
+              "path_locked": false,
+              "path_source": "curated",
               "profile_support": true
             }
           ]
@@ -137253,8 +138265,8 @@
       "K4": 371,
       "K5": 69
     },
-    "support_commands": 244,
-    "generated_utc": "2026-07-29T13:42:06.875Z",
+    "support_commands": 272,
+    "generated_utc": "2026-08-03T07:41:35.328Z",
     "catalog_items": 170,
     "global_commands_duplicated": true,
     "source_files": [
@@ -137262,8 +138274,8 @@
       "nx2512-full-command-map.json.gz.b64.part2",
       "nx2512-full-command-map.json.gz.b64.part3"
     ],
-    "sequence_policy_version": 6,
-    "selection_filter_support_commands": 112,
+    "sequence_policy_version": 7,
+    "selection_filter_support_commands": 140,
     "module_switch_support_commands": 132
   }
 }

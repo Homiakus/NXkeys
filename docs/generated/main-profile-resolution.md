@@ -3,10 +3,10 @@
 - Source intents: **1169**
 - Selected frequencies: **K3, K4, K5**
 - Selected unique intents: **885**
-- Runtime support commands: **244**
-- Generated module rows: **2434**
-- Enabled rows: **668**
-- Existing rows: **321**
+- Runtime support commands: **272**
+- Generated module rows: **2449**
+- Enabled rows: **683**
+- Existing rows: **336**
 - Resolved rows: **347**
 - Ambiguous rows: **50**
 - Unresolved rows: **1716**
