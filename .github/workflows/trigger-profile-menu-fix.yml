@@ -72,6 +72,14 @@ jobs:
           python .\apply-profile-menu-fix.py
           Remove-Item .\apply-profile-menu-fix.py -Force
 
+          $hudPath = '.\NX2512_HotkeyStudio\UI\LeaderHudForm.cs'
+          $hud = Get-Content $hudPath -Raw
+          $hud = $hud.Replace('int rows = Math.Max(3, Math.Min(12, commands.Count));', 'int searchRows = Math.Max(3, Math.Min(12, commands.Count));')
+          $hud = $hud.Replace('Math.Min(maxHeight, 166 + rows * 48)', 'Math.Min(maxHeight, 166 + searchRows * 48)')
+          $hud = $hud.Replace('int rows = Math.Max(1, (int)Math.Ceiling(count / (double)columns));', 'int menuRows = Math.Max(1, (int)Math.Ceiling(count / (double)columns));')
+          $hud = $hud.Replace('verticalPadding + rows * (rowHeight + gutter) - gutter', 'verticalPadding + menuRows * (rowHeight + gutter) - gutter')
+          [IO.File]::WriteAllText((Resolve-Path $hudPath), $hud, [Text.UTF8Encoding]::new($false))
+
       - name: Validate generated profiles
         shell: pwsh
         run: |
