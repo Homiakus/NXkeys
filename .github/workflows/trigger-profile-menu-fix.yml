@@ -1,0 +1,66 @@
+name: Trigger profile editor and command menu fix
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/profile-menu-fix.trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-test-commit:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Extract and run reviewed patch
+        shell: pwsh
+        run: |
+          $workflow = Get-Content .github/workflows/apply-profile-menu-fix.yml -Raw
+          $match = [regex]::Match($workflow, "(?s)@'\r?\n(.*?)\r?\n\s*'@ \| Set-Content -LiteralPath \.\\apply-profile-menu-fix\.py")
+          if (-not $match.Success) { throw 'Embedded patch script was not found.' }
+          [IO.File]::WriteAllText((Join-Path $PWD 'apply-profile-menu-fix.py'), $match.Groups[1].Value, [Text.UTF8Encoding]::new($false))
+          python .\apply-profile-menu-fix.py
+          Remove-Item .\apply-profile-menu-fix.py -Force
+
+      - name: Validate generated profiles
+        shell: pwsh
+        run: |
+          node .\scripts\validate-command-tree.mjs
+          node .\scripts\validate-main-command-map.mjs
+
+      - name: Run profile editor regressions
+        shell: pwsh
+        run: dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release -p:Platform=x64 --nologo
+
+      - name: Build HotkeyStudio
+        shell: pwsh
+        run: dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
+
+      - name: Commit fixes to main
+        shell: pwsh
+        run: |
+          Remove-Item .github/workflows/apply-profile-menu-fix.yml -Force
+          Remove-Item .github/workflows/trigger-profile-menu-fix.yml -Force
+          Remove-Item .github/profile-menu-fix.trigger -Force
+          git add -A
+          git diff --check
+          if (git diff --cached --quiet) { throw 'Patch produced no changes.' }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Fix canonical profile editing and complete command menus'
+          git push origin HEAD:main
