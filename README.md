@@ -3,23 +3,27 @@
 [![CI](https://github.com/Homiakus/NXkeys/actions/workflows/ci.yml/badge.svg)](https://github.com/Homiakus/NXkeys/actions/workflows/ci.yml)
 [![Main K3–K5 Profile](https://github.com/Homiakus/NXkeys/actions/workflows/full-command-map.yml/badge.svg)](https://github.com/Homiakus/NXkeys/actions/workflows/full-command-map.yml)
 [![Mnemonic Command Language](https://github.com/Homiakus/NXkeys/actions/workflows/mnemonic-command-language.yml/badge.svg)](https://github.com/Homiakus/NXkeys/actions/workflows/mnemonic-command-language.yml)
+[![Sketch Intent Grammar](https://github.com/Homiakus/NXkeys/actions/workflows/sketch-intent.yml/badge.svg)](https://github.com/Homiakus/NXkeys/actions/workflows/sketch-intent.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/)
 
 NXKeys — сторонний контекстный клавиатурный слой для Siemens NX / Designcenter NX 2512 под Windows x64. Пользователь вызывает команды через мнемонические последовательности вместо большого числа глобальных сочетаний:
 
 ```text
-CapsLock → действие → объект → команда → вариант
+CapsLock → действие → объект/область → команда → вариант
 ```
 
 Примеры:
 
 ```text
-CapsLock → C → E    Create → Extrude
-CapsLock → S → F    Select → Face
-CapsLock → S → A    Select All
-CapsLock → G → D    Go → Drafting
+CapsLock → C → E        Create → Extrude
+CapsLock → S → F        Select → Face
+CapsLock → S → A        Select All
+CapsLock → G → D        Go → Drafting
+CapsLock → C → G → L    Sketch → Create Geometry → Line
 ```
+
+**Начните с [подробной шпаргалки](docs/CHEATSHEET.md)**: в ней собраны все основные клавиши, выбор, переходы, Sketch, установка, CLI, диагностика и восстановление.
 
 Интерактивная карта команд публикуется через GitHub Pages: <https://homiakus.github.io/NXkeys/>.
 
@@ -31,6 +35,7 @@ CapsLock → G → D    Go → Drafting
 - исходный каталог из **1169 намерений K1–K5** в 32 разделах;
 - 14 контекстных модулей NX;
 - prefix-free мнемонические пути длиной 2–5 токенов;
+- отдельная смысловая грамматика Sketch `действие → область → операция → вариант`;
 - универсальные фильтры выбора `SB`, `SF`, `SE`, `ST`, `SC`, `SU`, `SD`, `SR`, `SA`, `SN`;
 - явные переходы между приложениями через `G*`;
 - HUD, поиск, WinForms-редактор профиля и системный tray;
@@ -40,11 +45,28 @@ CapsLock → G → D    Go → Drafting
 - Catalog Studio для экспорта фактических `BUTTON ID` целевой установки NX;
 - Control Center для диагностики профиля и Bridge.
 
+## Sketch без случайных сокращений
+
+В контексте Sketch команды распределяются по смысловым семействам, а не по позиции клавиш:
+
+```text
+C → G → L    линия
+C → G → R    прямоугольник
+C → G → C    окружность
+C → G → A    дуга
+E → G → T    обрезать
+E → G → E    удлинить
+T → G → O    смещение
+```
+
+Варианты построения находятся в prefix-free ветви `C → G → V → …`. Sketch допускает пути длиной до пяти токенов, чтобы не разрушать смысловую структуру. Подробности: [SKETCH_INTENT_LANGUAGE.md](docs/SKETCH_INTENT_LANGUAGE.md).
+
 ## Состав репозитория
 
 | Компонент | Назначение |
 |---|---|
 | `NX2512_HotkeyStudio/` | desktop UI, HUD, Leader runtime, CLI, генерация MenuScript и deployment |
+| `NX2512_HotkeyStudio.Tests/` | регрессионные тесты профиля, путей и Sketch-грамматики |
 | `NX2512_CommandBridge/` | NXOpen-библиотека, выполняемая внутри процесса NX |
 | `NX2512_ControlCenter/` | диагностика профиля, Bridge и покрытия команд |
 | `NX2512_Catalog_Studio/` | экспорт UI-команд и NXOpen-каталога целевой установки |
@@ -88,6 +110,8 @@ node .\scripts\validate-full-command-map.mjs
 node .\scripts\audit-command-sequences.mjs
 
 dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
+dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release
+
 dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64
 dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64
 ```
@@ -111,7 +135,7 @@ config/nx2512-pro-main.generated.json
 docs/generated/main-profile-resolution.md
 ```
 
-`install-nxkeys.ps1` принимает только главный scope `K3|K4|K5` с 885 уникальными намерениями.
+`install-nxkeys.ps1` принимает только главный scope `K3|K4|K5` с 885 уникальными намерениями. Подтверждённое ядро Sketch сохраняется как runtime vocabulary независимо от частотной фильтрации, при этом traceability выбранных намерений остаётся проверяемой валидаторами.
 
 ### Источники истины
 
@@ -120,7 +144,7 @@ docs/generated/main-profile-resolution.md
 | состав и частоты K1–K5 | `config/full-command-map/` |
 | safety, deployment и bootstrap IDs | `config/nx2512-pro-hybrid.json` |
 | правила универсальных путей | `scripts/sequence-policy.mjs` |
-| runtime-нормализация путей | `NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs` |
+| runtime-нормализация путей | `NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs` и `MnemonicPathGenerator.Sketch.cs` |
 | IPC-поля и таймауты | `NXKeys.Protocol/NxProtocol.cs` |
 | контекстные guards | `config/nx2512-state-machines.json` и `NXKeys.StateMachines/` |
 | фактические NX IDs | `06_ui_commands_buttons.csv` целевой установки |
@@ -172,8 +196,9 @@ NXKeys не должен использоваться как единствен�
 
 ## Документация
 
+- [Подробная шпаргалка](docs/CHEATSHEET.md)
 - [Оглавление документации](docs/README.md)
-- [Аудит и карта кодовой базы](docs/DOCUMENTATION_AUDIT.md)
+- [Актуальность и аудит документации](docs/DOCUMENTATION_AUDIT.md)
 - [Локальная разработка](DEVELOPMENT.md)
 - [Внесение изменений](CONTRIBUTING.md)
 - [Архитектура](docs/ARCHITECTURE.md)
@@ -193,7 +218,7 @@ NXKeys не должен использоваться как единствен�
 
 ## Участие в разработке
 
-Изменения profile schema, sequence policy, IPC или deployment должны сопровождаться обновлением документации и соответствующих валидаторов. Порядок работы и обязательные проверки описаны в [CONTRIBUTING.md](CONTRIBUTING.md).
+Изменения profile schema, sequence policy, IPC, Sketch grammar или deployment должны сопровождаться обновлением документации и соответствующих валидаторов. Порядок работы и обязательные проверки описаны в [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Лицензия
 
