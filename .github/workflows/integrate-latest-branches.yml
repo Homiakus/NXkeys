@@ -1,0 +1,87 @@
+name: Integrate latest branch changes
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  integrate-and-validate:
+    if: contains(github.event.head_commit.message, 'Integrate latest branches trigger')
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Port operation thumbnail renderer onto current main
+        shell: pwsh
+        run: |
+          git fetch origin agent/operation-thumbnails
+          $source = (& git show 'origin/agent/operation-thumbnails:NX2512_HotkeyStudio/UI/OperationThumbnailRenderer.cs') -join "`n"
+          if ([string]::IsNullOrWhiteSpace($source)) { throw 'OperationThumbnailRenderer.cs was not found in the source branch.' }
+          [IO.File]::WriteAllText(
+            'NX2512_HotkeyStudio/UI/OperationThumbnailRenderer.cs',
+            $source + "`n",
+            [Text.UTF8Encoding]::new($false))
+
+          @'
+          from pathlib import Path
+
+          replacements = {
+              "NX2512_HotkeyStudio/Program.cs": [
+                  (
+                      '                        CadIconPainter.ExportAllIcons(128);\n'
+                      '                        Console.WriteLine("[OK] Кэш иконок очищен. Внешние картинки используются только из assets/nx-operation-icons.");',
+                      '                        int iconCount = OperationThumbnailRenderer.ExportAllIcons(config, 128);\n'
+                      '                        Console.WriteLine($"[OK] Сгенерировано {iconCount} миниатюр операций и manifest.json.");'
+                  )
+              ],
+              "NX2512_HotkeyStudio/UI/CommandListPreviewPanel.cs": [
+                  (
+                      '            CadIconPainter.Draw(graphics, iconBox, row.IconHint, row.Item?.Command?.ID, row.Name);',
+                      '            OperationThumbnailRenderer.Draw(graphics, iconBox, row.IconHint, row.Item?.Command?.ID, row.Name);'
+                  )
+              ],
+              "NX2512_HotkeyStudio/UI/LeaderHudForm.cs": [
+                  (
+                      '            CadIconPainter.Draw(graphics, iconBox, row?.IconHint, row?.Item?.Command?.ID, row?.Name);',
+                      '            OperationThumbnailRenderer.Draw(graphics, iconBox, row?.IconHint, row?.Item?.Command?.ID, row?.Name);'
+                  )
+              ],
+          }
+
+          for relative, pairs in replacements.items():
+              path = Path(relative)
+              text = path.read_text(encoding="utf-8-sig")
+              for old, new in pairs:
+                  count = text.count(old)
+                  if count != 1:
+                      raise RuntimeError(f"{relative}: expected one exact match, found {count}")
+                  text = text.replace(old, new, 1)
+              path.write_text(text, encoding="utf-8", newline="\n")
+          '@ | python -
+
+      - name: Build current HotkeyStudio
+        shell: pwsh
+        run: dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
+
+      - name: Commit validated integration to main
+        shell: pwsh
+        run: |
+          Remove-Item .github/workflows/integrate-latest-branches.yml -Force
+          git add -A
+          git diff --check
+          if (git diff --cached --quiet) { throw 'Integration produced no changes.' }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Integrate operation thumbnails from latest branches'
+          git push origin HEAD:main
