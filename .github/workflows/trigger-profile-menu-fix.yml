@@ -37,7 +37,13 @@ jobs:
           $workflow = Get-Content .github/workflows/apply-profile-menu-fix.yml -Raw
           $match = [regex]::Match($workflow, "(?s)@'\r?\n(.*?)\r?\n\s*'@ \| Set-Content -LiteralPath \.\\apply-profile-menu-fix\.py")
           if (-not $match.Success) { throw 'Embedded patch script was not found.' }
-          [IO.File]::WriteAllText((Join-Path $PWD 'apply-profile-menu-fix.py'), $match.Groups[1].Value, [Text.UTF8Encoding]::new($false))
+          $lines = $match.Groups[1].Value -split "`r?`n"
+          $nonEmpty = @($lines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+          $indent = if ($nonEmpty.Count -gt 0) { ($nonEmpty | ForEach-Object { ([regex]::Match($_, '^\s*')).Value.Length } | Measure-Object -Minimum).Minimum } else { 0 }
+          $script = ($lines | ForEach-Object {
+            if ($_.Length -ge $indent) { $_.Substring($indent) } else { $_ }
+          }) -join "`n"
+          [IO.File]::WriteAllText((Join-Path $PWD 'apply-profile-menu-fix.py'), $script, [Text.UTF8Encoding]::new($false))
           python .\apply-profile-menu-fix.py
           Remove-Item .\apply-profile-menu-fix.py -Force
 
@@ -58,9 +64,12 @@ jobs:
       - name: Commit validated fixes
         shell: pwsh
         run: |
-          Remove-Item .github/workflows/apply-profile-menu-fix.yml -Force
-          Remove-Item .github/workflows/trigger-profile-menu-fix.yml -Force
-          Remove-Item .github/profile-menu-fix.trigger -Force
+          Remove-Item .github/workflows/apply-profile-menu-fix.yml -Force -ErrorAction SilentlyContinue
+          Remove-Item .github/workflows/trigger-profile-menu-fix.yml -Force -ErrorAction SilentlyContinue
+          Remove-Item .github/profile-menu-fix.trigger -Force -ErrorAction SilentlyContinue
+          Remove-Item .github/profile-menu-fix-pr.trigger -Force -ErrorAction SilentlyContinue
+          Remove-Item .github/profile-menu-fix-pr-run.txt -Force -ErrorAction SilentlyContinue
+          Remove-Item .github/profile-menu-fix-pr-run-2.txt -Force -ErrorAction SilentlyContinue
           git add -A
           git diff --check
           if (git diff --cached --quiet) { throw 'Patch produced no changes.' }
