@@ -91,7 +91,7 @@ jobs:
           $sketch = @($profile.modules | Where-Object { $_.id -eq 'sketch' })[0]
           if ($null -eq $sketch) { throw 'Generated profile has no Sketch module.' }
           $commands = @($sketch.command_sets | ForEach-Object { $_.commands })
-          foreach ($id in @('UG_SKETCH_LINE','UG_SKETCH_RECTANGLE','UG_SKETCH_CIRCLE','UG_SKETCH_ARC','UG_SKETCH_TRIM','UG_SKETCH_OFFSET_CURVE')) {
+          foreach ($id in @('UG_SKETCH_LINE','UG_SKETCH_RECTANGLE','UG_SKETCH_CIRCLE','UG_SKETCH_ARC','UG_SKETCH_TRIM','UG_SKETCH_OFFSET_CURVE','UG_CREATE_SKETCH')) {
             if (-not ($commands | Where-Object { $_.command.id -eq $id })) { throw "Generated Sketch module is missing $id" }
           }
           $legacyAliases = @($commands | Where-Object {
@@ -101,10 +101,10 @@ jobs:
           $foreign = @($commands | Where-Object {
             $_.support_kind -notin @('selection_filter','sketch_core') -and
             $_.command.id -notmatch '^UG_SKETCH_' -and
-            $_.command.id -notin @('UG_MODELING_BLEND_FEATURE','UG_MODELING_CHAMFER_FEATURE')
+            $_.command.id -notin @('UG_CREATE_SKETCH','UG_MODELING_BLEND_FEATURE','UG_MODELING_CHAMFER_FEATURE')
           })
           if ($foreign.Count -gt 0) {
-            $foreign | ForEach-Object { Write-Error "Foreign Sketch row: $($_.command.id) / $($_.command.name)" }
+            $foreign | ForEach-Object { Write-Output "Foreign Sketch row: $($_.command.id) / $($_.command.name)" }
             throw "Generated Sketch tree contains $($foreign.Count) unrelated rows."
           }
 
