@@ -13,6 +13,6 @@
     <Deterministic>true</Deterministic>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj" />
+    <Compile Remove="ControlCenterForm.cs" />
   </ItemGroup>
 </Project>

@@ -12,19 +12,20 @@ using NX2512_HotkeyStudio.Services;
 
 namespace NX2512_HotkeyStudio.UI
 {
-    public sealed class HotkeyStudioForm : Form
+    public sealed partial class HotkeyStudioForm : Form
     {
-        private readonly Color background = Color.FromArgb(13, 17, 23);
-        private readonly Color surface = Color.FromArgb(22, 27, 34);
-        private readonly Color raised = Color.FromArgb(33, 38, 45);
-        private readonly Color border = Color.FromArgb(48, 54, 61);
-        private readonly Color text = Color.FromArgb(240, 246, 252);
-        private readonly Color muted = Color.FromArgb(139, 148, 158);
-        private readonly Color accent = Color.FromArgb(56, 189, 248);
-        private readonly Color success = Color.FromArgb(16, 185, 129);
-        private readonly Color danger = Color.FromArgb(239, 68, 68);
+        private readonly Color background = NxKeysTheme.Background;
+        private readonly Color surface = NxKeysTheme.Surface;
+        private readonly Color raised = NxKeysTheme.Raised;
+        private readonly Color border = NxKeysTheme.Border;
+        private readonly Color text = NxKeysTheme.Text;
+        private readonly Color muted = NxKeysTheme.Muted;
+        private readonly Color accent = NxKeysTheme.Accent;
+        private readonly Color success = NxKeysTheme.Success;
+        private readonly Color danger = NxKeysTheme.Danger;
 
         private Config config;
+        private readonly ProfileDraftSession draftSession;
         private readonly string configPath;
         private LeaderKeyEngine engine;
         private readonly bool externalEngine;
@@ -48,12 +49,15 @@ namespace NX2512_HotkeyStudio.UI
         private readonly Label engineState = new Label();
         private readonly Button engineButton = new Button();
         private readonly CheckBox dryRun = new CheckBox();
+        private Button undoButton;
+        private Button redoButton;
         private bool refreshingModules;
 
         public HotkeyStudioForm(string initialConfigPath = null, LeaderKeyEngine existingEngine = null)
         {
             configPath = ResolveConfig(initialConfigPath);
-            config = Config.Load(configPath);
+            draftSession = new ProfileDraftSession(Config.Load(configPath));
+            config = draftSession.Draft;
             engine = existingEngine;
             externalEngine = existingEngine != null;
 
@@ -65,6 +69,10 @@ namespace NX2512_HotkeyStudio.UI
             ForeColor = text;
             Font = new Font("Segoe UI", 9.5f);
             AutoScaleMode = AutoScaleMode.Dpi;
+            KeyPreview = true;
+            KeyDown += UnifiedShellKeyDown;
+            AccessibleName = "NXKeys Control Center";
+            AccessibleDescription = "Единый центр команд, профиля, установки и диагностики Siemens NX.";
 
             BuildInterface();
             RefreshAll();
@@ -90,11 +98,11 @@ namespace NX2512_HotkeyStudio.UI
         private void BuildInterface()
         {
             var root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, BackColor = background };
-            root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 250));
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, NxKeysTheme.SidebarWidth));
             root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             Controls.Add(root);
 
-            Panel sidebar = new Panel { Dock = DockStyle.Fill, BackColor = Color.FromArgb(10, 13, 18), Padding = new Padding(14) };
+            Panel sidebar = new Panel { Dock = DockStyle.Fill, BackColor = NxKeysTheme.Sidebar, Padding = new Padding(14) };
             root.Controls.Add(sidebar, 0, 0);
             var brand = new Label
             {
@@ -108,14 +116,14 @@ namespace NX2512_HotkeyStudio.UI
             var nav = new FlowLayoutPanel
             {
                 Dock = DockStyle.Top,
-                Height = 360,
+                Height = 500,
                 FlowDirection = FlowDirection.TopDown,
                 WrapContents = false,
                 Padding = new Padding(0, 12, 0, 0)
             };
             sidebar.Controls.Add(nav);
 
-            string[] names = { "Обзор", "Базовые сочетания", "Модульные команды", "NX / Bridge", "Развёртывание", "Backups / Profile" };
+            string[] names = { "Главная", "Базовые сочетания", "Команды", "Живой контекст NX", "Установка", "Backups / Profile", "Диагностика", "Настройки" };
             for (int index = 0; index < names.Length; index++)
             {
                 int target = index;
@@ -126,9 +134,9 @@ namespace NX2512_HotkeyStudio.UI
             }
 
             var workspace = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1, BackColor = background };
-            workspace.RowStyles.Add(new RowStyle(SizeType.Absolute, 90));
+            workspace.RowStyles.Add(new RowStyle(SizeType.Absolute, NxKeysTheme.HeaderHeight));
             workspace.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            workspace.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+            workspace.RowStyles.Add(new RowStyle(SizeType.Absolute, NxKeysTheme.FooterHeight));
             root.Controls.Add(workspace, 1, 0);
 
             Panel header = new Panel { Dock = DockStyle.Fill, BackColor = surface, Padding = new Padding(24, 14, 24, 10) };
@@ -144,12 +152,12 @@ namespace NX2512_HotkeyStudio.UI
             workspace.Controls.Add(header, 0, 0);
 
             content.Dock = DockStyle.Fill;
-            content.Padding = new Padding(18);
+            content.Padding = new Padding(NxKeysTheme.ContentPadding);
             content.BackColor = background;
             workspace.Controls.Add(content, 0, 1);
 
             status.Dock = DockStyle.Fill;
-            status.BackColor = Color.FromArgb(10, 13, 18);
+            status.BackColor = NxKeysTheme.Sidebar;
             status.ForeColor = muted;
             status.Padding = new Padding(18, 7, 0, 0);
             workspace.Controls.Add(status, 0, 2);
@@ -160,6 +168,8 @@ namespace NX2512_HotkeyStudio.UI
             pages.Add(BuildContextPage());
             pages.Add(BuildDeploymentPage());
             pages.Add(BuildBackupPage());
+            pages.Add(BuildDiagnosticsPage());
+            pages.Add(BuildSettingsPage());
             foreach (Control page in pages) content.Controls.Add(page);
             ShowPage(0);
         }
@@ -232,15 +242,35 @@ namespace NX2512_HotkeyStudio.UI
             moduleBox.BackColor = raised;
             moduleBox.ForeColor = text;
             moduleBox.SelectedIndexChanged += (_, _) => RefreshModuleCommands();
-            Button save = CreateActionButton("Сохранить профиль", success);
-            save.Dock = DockStyle.Right;
-            save.Width = 170;
+            Button save = CreateActionButton("Сохранить", success);
+            save.Width = 118;
             save.Click += (_, _) => SaveConfig();
-            var hint = new Label { Dock = DockStyle.Fill, Text = "В runtime этот выбор выполняется автоматически по контексту NX", ForeColor = muted, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(18, 0, 0, 0) };
+            Button diff = CreateActionButton("Diff", text);
+            diff.Width = 86;
+            diff.Click += (_, _) => ShowDraftDiff();
+            undoButton = CreateActionButton("Отменить", text);
+            undoButton.Width = 104;
+            undoButton.Click += (_, _) => UndoDraft();
+            redoButton = CreateActionButton("Повторить", text);
+            redoButton.Width = 104;
+            redoButton.Click += (_, _) => RedoDraft();
+            var history = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Right,
+                Width = 440,
+                FlowDirection = FlowDirection.RightToLeft,
+                WrapContents = false
+            };
+            history.Controls.Add(save);
+            history.Controls.Add(diff);
+            history.Controls.Add(redoButton);
+            history.Controls.Add(undoButton);
+            var hint = new Label { Dock = DockStyle.Fill, Text = "Изменения сохраняются в draft · Ctrl+Z / Ctrl+Y · Ctrl+S", ForeColor = muted, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(18, 0, 0, 0) };
             bar.Controls.Add(hint);
-            bar.Controls.Add(save);
+            bar.Controls.Add(history);
             bar.Controls.Add(moduleBox);
             bar.Controls.Add(label);
+            UpdateHistoryButtons();
 
             var split = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 1, ColumnCount = 2 };
             split.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62));
@@ -508,23 +538,29 @@ namespace NX2512_HotkeyStudio.UI
             ModuleConfig module = ActiveModule();
             if (module == null) return;
 
-            int order = 1;
-            foreach (DataGridViewRow row in moduleGrid.Rows)
+            bool changed = draftSession.CaptureMutation("Редактирование команд " + module.ID, draft =>
             {
-                if (row.IsNewRow || row.Tag is not ModuleCommand command) continue;                command.Enabled = ReadBool(row, "Enabled");
+                int order = 1;
+                foreach (DataGridViewRow row in moduleGrid.Rows)
+                {
+                    if (row.IsNewRow || row.Tag is not ModuleCommand command) continue;
+                    command.Enabled = ReadBool(row, "Enabled");
                     EditableCommandPathPolicy.ApplyEditedPath(command, ReadText(row, "Path"), ReadText(row, "PathLabels"));
                     command.IconHint = ReadText(row, "Icon").Trim();
-                command.DisplayOrder = order++;
-                command.Command ??= new CommandRef();
-                command.Command.Name = ReadText(row, "CommandName").Trim();
-                command.Command.ID = ReadText(row, "ButtonId").Trim();
-                command.RequiresSelection = ReadBool(row, "RequiresSelection");
-                command.ConfirmBeforeExecute = ReadBool(row, "Confirm");
-                command.Notes = ReadText(row, "Notes").Trim();
-            }
-            config.LeaderKey.RebuildFromModules(config.Modules);
+                    command.DisplayOrder = order++;
+                    command.Command ??= new CommandRef();
+                    command.Command.Name = ReadText(row, "CommandName").Trim();
+                    command.Command.ID = ReadText(row, "ButtonId").Trim();
+                    command.RequiresSelection = ReadBool(row, "RequiresSelection");
+                    command.ConfirmBeforeExecute = ReadBool(row, "Confirm");
+                    command.Notes = ReadText(row, "Notes").Trim();
+                }
+                draft.LeaderKey.RebuildFromModules(draft.Modules);
+            });
+            config = draftSession.Draft;
             RefreshModulePreview();
-            MarkDirty();
+            if (changed) MarkDirty();
+            UpdateHistoryButtons();
         }
 
         private void RefreshModulePreview()
@@ -669,21 +705,29 @@ namespace NX2512_HotkeyStudio.UI
             MessageBox.Show(result.Success ? "Восстановление завершено." : result.ErrorMessage, "NXKeys restore");
         }
 
-        private void SaveConfig()
+        private bool SaveConfig()
         {
             try
             {
+                moduleGrid.EndEdit();
+                PersistModuleGrid();
                 EditableCommandPathPolicy.Normalize(config);
                 ValidateEditableCommands();
                 config.Save(configPath);
                 NxCommandBridgeClient.ConfigureSecurity(configPath);
+                draftSession.AcceptSavedState();
                 dirty = false;
-                status.Text = "Профиль сохранён";
+                UpdateHistoryButtons();
+                status.Text = "Профиль сохранён атомарно";
                 RefreshAll();
+                return true;
             }
             catch (Exception exception)
             {
+                dirty = draftSession.IsDirty;
+                status.Text = "Профиль не сохранён: " + exception.Message;
                 MessageBox.Show(exception.Message, "NXKeys", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             }
         }
 
@@ -701,8 +745,8 @@ namespace NX2512_HotkeyStudio.UI
 
         private void MarkDirty()
         {
-            dirty = true;
-            status.Text = "Есть несохранённые изменения";
+            dirty = draftSession.IsDirty;
+            status.Text = dirty ? "Есть несохранённые изменения в draft" : "Изменений нет";
         }
 
         private void ShowPage(int index)
@@ -716,8 +760,9 @@ namespace NX2512_HotkeyStudio.UI
             }
             string[] headings =
             {
-                "Адаптивный контур NXKeys", "Только базовые глобальные сочетания", "Команды активного модуля NX",
-                "Контекст Command Bridge", "Транзакционное развёртывание", "Резервные копии и профиль"
+                "NXKeys Control Center", "Только базовые глобальные сочетания", "Команды активного модуля NX",
+                "Живой контекст Command Bridge", "Транзакционная установка", "Резервные копии и профиль",
+                "Диагностика системы", "Настройки Leader и HUD"
             };
             string[] descriptions =
             {
@@ -726,10 +771,14 @@ namespace NX2512_HotkeyStudio.UI
                 "Редактирование команд и preview ровно в 3-колоночном виде CapsLock.",
                 "Фактический application_id, module_id, selection и revision.",
                 "План, SHA-256, backup, atomic commit и rollback.",
-                "Сохранение схемы v4 и безопасное восстановление."
+                "Сохранение schema 6 и безопасное восстановление.",
+                "Typed transport state, package hashes, queue и журнал Bridge.",
+                "Параметры редактируются через undoable draft и сохраняются атомарно."
             };
             title.Text = headings[index];
             subtitle.Text = descriptions[index];
+            if (index == 6) _ = RefreshDiagnosticsAsync();
+            if (index == 7) RefreshSettingsControls();
         }
 
         private void OnFormClosing(object sender, FormClosingEventArgs eventArgs)
@@ -738,7 +787,11 @@ namespace NX2512_HotkeyStudio.UI
             {
                 DialogResult answer = MessageBox.Show("Сохранить изменения профиля?", "NXKeys", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                 if (answer == DialogResult.Cancel) { eventArgs.Cancel = true; return; }
-                if (answer == DialogResult.Yes) SaveConfig();
+                if (answer == DialogResult.Yes && !SaveConfig())
+                {
+                    eventArgs.Cancel = true;
+                    return;
+                }
             }
             if (engine != null)
             {
@@ -768,6 +821,8 @@ namespace NX2512_HotkeyStudio.UI
         {
             var button = new Button { Width = 218, Height = 42, Text = caption, TextAlign = ContentAlignment.MiddleLeft, FlatStyle = FlatStyle.Flat, BackColor = raised, ForeColor = text, Margin = new Padding(0, 0, 0, 6) };
             button.FlatAppearance.BorderColor = border;
+            button.AccessibleName = caption;
+            button.TabStop = true;
             return button;
         }
 
@@ -782,6 +837,7 @@ namespace NX2512_HotkeyStudio.UI
         {
             button.FlatStyle = FlatStyle.Flat;
             button.FlatAppearance.BorderColor = color;
+            button.AccessibleName = button.Text;
             button.BackColor = color == text ? raised : color;
             button.ForeColor = color == accent || color == success ? Color.FromArgb(13, 17, 23) : text;
         }

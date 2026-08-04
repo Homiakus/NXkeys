@@ -1,0 +1,93 @@
+name: Desktop UI
+
+on:
+  push:
+    paths:
+      - 'NX2512_HotkeyStudio/UI/**'
+      - 'NX2512_HotkeyStudio/Services/ProfileDraftSession.cs'
+      - 'NX2512_HotkeyStudio.Tests/**'
+      - 'NX2512_ControlCenter/**'
+      - '.github/workflows/desktop-ui.yml'
+  pull_request:
+    paths:
+      - 'NX2512_HotkeyStudio/UI/**'
+      - 'NX2512_HotkeyStudio/Services/ProfileDraftSession.cs'
+      - 'NX2512_HotkeyStudio.Tests/**'
+      - 'NX2512_ControlCenter/**'
+      - '.github/workflows/desktop-ui.yml'
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Validate unified shell invariants
+        shell: pwsh
+        run: |
+          $form = Get-Content .\NX2512_HotkeyStudio\UI\HotkeyStudioForm.cs -Raw
+          $shell = Get-Content .\NX2512_HotkeyStudio\UI\HotkeyStudioForm.UnifiedShell.cs -Raw
+          $draft = Get-Content .\NX2512_HotkeyStudio\Services\ProfileDraftSession.cs -Raw
+          $hud = Get-Content .\NX2512_HotkeyStudio\UI\LeaderHudForm.cs -Raw
+          $theme = Get-Content .\NX2512_HotkeyStudio\UI\NxKeysTheme.cs -Raw
+          $launcher = Get-Content .\NX2512_ControlCenter\Program.cs -Raw
+          $launcherProject = Get-Content .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -Raw
+
+          foreach ($required in @(
+            'public sealed partial class HotkeyStudioForm',
+            'BuildDiagnosticsPage()',
+            'BuildSettingsPage()',
+            'ProfileDraftSession',
+            'UnifiedShellKeyDown',
+            'private bool SaveConfig()',
+            'answer == DialogResult.Yes && !SaveConfig()',
+            'moduleGrid.EndEdit()'
+          )) {
+            if (($form + $shell) -notmatch [regex]::Escape($required)) {
+              throw "Missing unified shell invariant: $required"
+            }
+          }
+          foreach ($required in @('CaptureMutation', 'Undo()', 'Redo()', 'BuildDiff', 'AcceptSavedState')) {
+            if ($draft -notmatch [regex]::Escape($required)) {
+              throw "Missing profile draft invariant: $required"
+            }
+          }
+          foreach ($required in @('MaximumRootRows = 10', 'reduceMotion', 'NxKeysTheme')) {
+            if ($hud -notmatch [regex]::Escape($required)) {
+              throw "Missing compact HUD invariant: $required"
+            }
+          }
+          foreach ($required in @('HighContrast', 'ApplyButton', 'ApplyInput')) {
+            if ($theme -notmatch [regex]::Escape($required)) {
+              throw "Missing design-system invariant: $required"
+            }
+          }
+          if ($launcher -notmatch [regex]::Escape('NX2512_HotkeyStudio.exe')) {
+            throw 'Control Center must launch the unified shell.'
+          }
+          if ($launcherProject -notmatch [regex]::Escape('<Compile Remove="ControlCenterForm.cs"')) {
+            throw 'Legacy ControlCenterForm must be excluded from the compatibility launcher.'
+          }
+          if ($launcherProject -match [regex]::Escape('<ProjectReference Include="..\NX2512_HotkeyStudio')) {
+            throw 'Compatibility launcher must not depend on the HotkeyStudio executable project.'
+          }
+
+      - name: Run profile draft and runtime regressions
+        shell: pwsh
+        run: dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release --nologo
+
+      - name: Build and publish unified shell
+        shell: pwsh
+        run: |
+          dotnet publish .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 -o .\artifacts\studio --nologo
+          dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64 -o .\artifacts\control-center --nologo
+
+      - name: Verify desktop artifacts
+        shell: pwsh
+        run: |
+          if (!(Test-Path .\artifacts\studio\NX2512_HotkeyStudio.exe)) { throw 'Unified shell executable is missing.' }
+          if (!(Test-Path .\artifacts\control-center\NX2512_ControlCenter.exe)) { throw 'Compatibility launcher executable is missing.' }

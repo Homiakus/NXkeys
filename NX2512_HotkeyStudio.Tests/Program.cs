@@ -73,12 +73,41 @@ internal static class Program
         VerifyPhaseZeroHardening();
         VerifyAuthenticatedIpc();
         VerifyBridgeInbox();
+        VerifyProfileDraftSession();
 
-        Console.WriteLine("[OK] Canonical profile editor, Sketch grammar, authenticated IPC and background Bridge inbox regressions.");
+        Console.WriteLine("[OK] Profile draft, Sketch grammar, authenticated IPC and background Bridge inbox regressions.");
     }
 
 
 
+
+
+    private static void VerifyProfileDraftSession()
+    {
+        string sourceConfig = FindRepositoryFile(Path.Combine("config", "nx2512-pro-hybrid.json"));
+        Config source = Config.Load(sourceConfig);
+        var session = new ProfileDraftSession(source);
+        string initialTrigger = session.Draft.LeaderKey.TriggerKey;
+        string changedTrigger = string.Equals(initialTrigger, "F12", StringComparison.OrdinalIgnoreCase) ? "CapsLock" : "F12";
+
+        Assert(!session.IsDirty && !session.CanUndo && !session.CanRedo,
+            "A new draft session must start clean.");
+        Assert(session.CaptureMutation("Trigger", draft => draft.LeaderKey.TriggerKey = changedTrigger),
+            "A real draft mutation must be captured.");
+        Assert(session.IsDirty && session.CanUndo && session.Draft.LeaderKey.TriggerKey == changedTrigger,
+            "Captured draft mutation must be visible and undoable.");
+        Assert(session.Undo() && session.Draft.LeaderKey.TriggerKey == initialTrigger && session.CanRedo,
+            "Undo must restore the previous immutable snapshot.");
+        Assert(session.Redo() && session.Draft.LeaderKey.TriggerKey == changedTrigger,
+            "Redo must restore the changed snapshot.");
+        Assert(session.BuildDiff().Contains("Draft SHA-256", StringComparison.Ordinal),
+            "Draft diff must contain a reproducible digest.");
+        session.AcceptSavedState();
+        Assert(!session.IsDirty && !session.CanUndo && !session.CanRedo,
+            "Accepting an atomic save must reset draft history.");
+        Assert(!session.CaptureMutation("No-op", _ => { }),
+            "No-op UI events must not pollute undo history.");
+    }
 
     private static void VerifyBridgeInbox()
     {
