@@ -565,3 +565,15 @@ managed launcher и не сохраняется на диск.
 - `NXK-FR-016` — single instance использует `Local\` и digest активного профиля;
 - `NXK-FR-017` — instance signal threads получили cancellation и bounded join;
 - `NXK-FR-018` — Leader восстанавливает исходное состояние CapsLock, а не принудительно выключает его.
+
+## 20. Статус реализации UI-фазы
+
+Реализованы ключевые рекомендации UI-аудита:
+
+- HotkeyStudio стал единым desktop shell; Control Center сохранён как compatibility launcher;
+- добавлены страницы typed diagnostics и Leader/HUD settings;
+- профиль редактируется через draft session с undo/redo, diff и atomic commit;
+- общая тема учитывает Windows high contrast и централизует визуальные tokens;
+- HUD ограничен десятью ближайшими действиями, стал компактнее и поддерживает reduced motion;
+- добавлены клавиатурные команды Ctrl+Z, Ctrl+Y и Ctrl+S;
+- `NXK-FR-020` закрыт: grid больше не считается единственным live source без истории.

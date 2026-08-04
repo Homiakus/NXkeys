@@ -352,3 +352,18 @@ flowchart LR
     Ready -->|one request per tick| Adapter[NX CommandBridge UI thread]
     Adapter --> NX[Siemens NX]
 ```
+
+## Unified desktop shell
+
+HotkeyStudio is the canonical desktop shell for runtime control, command editing, live NX context,
+deployment, backups, diagnostics and Leader/HUD settings. The former Control Center executable is
+kept only as a compatibility launcher that opens the same shell; it no longer contains a second
+mutable profile model or duplicate diagnostics UI.
+
+Profile editing uses `ProfileDraftSession`: changes are made against a cloned draft, recorded as
+bounded immutable snapshots, support undo/redo and a digest-backed diff, and reach disk only through
+the existing atomic `Config.Save` path.
+
+The UI design system is centralized in `NxKeysTheme`, including high-contrast-aware colors,
+consistent spacing and accessible button/input styling. HUD root views show at most ten immediate
+choices and direct the user to module search for the remainder.

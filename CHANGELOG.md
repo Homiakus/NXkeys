@@ -23,6 +23,14 @@
 - определена модель bounded execution на NX UI thread и защищённый IPC с session capability, allowlist, nonce и context token;
 - предложено объединение HotkeyStudio и Control Center в единый desktop shell, общий design system и доступный компактный HUD.
 
+### UI
+
+- HotkeyStudio и Control Center объединены в один canonical desktop shell;
+- добавлены typed diagnostics, Leader/HUD settings и compatibility launcher;
+- редактор профиля переведён на draft session с undo/redo, diff и atomic save;
+- введена общая high-contrast-aware тема и compact HUD с десятью ближайшими действиями;
+- добавлены Ctrl+Z, Ctrl+Y и Ctrl+S для работы с профилем.
+
 ### Architecture
 
 - добавлены отдельные class libraries `NXKeys.Protocol` и `NXKeys.BridgeCore`;

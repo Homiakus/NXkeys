@@ -23,16 +23,17 @@ namespace NX2512_HotkeyStudio.UI
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT { public int X; public int Y; }
 
-        private readonly Color backColor = Color.FromArgb(13, 17, 23);
-        private readonly Color cardColor = Color.FromArgb(22, 31, 40);
-        private readonly Color cardHighlightColor = Color.FromArgb(28, 42, 54);
-        private readonly Color borderColor = Color.FromArgb(55, 70, 84);
-        private readonly Color textColor = Color.FromArgb(240, 246, 252);
-        private readonly Color mutedColor = Color.FromArgb(154, 166, 179);
-        private readonly Color accentColor = Color.FromArgb(56, 189, 248);
-        private readonly Color stickyColor = Color.FromArgb(16, 185, 129);
-        private readonly Color warningColor = Color.FromArgb(245, 158, 11);
-        private readonly Color dangerColor = Color.FromArgb(239, 68, 68);
+        private const int MaximumRootRows = 10;
+        private readonly Color backColor = NxKeysTheme.Background;
+        private readonly Color cardColor = NxKeysTheme.Surface;
+        private readonly Color cardHighlightColor = NxKeysTheme.Raised;
+        private readonly Color borderColor = NxKeysTheme.Border;
+        private readonly Color textColor = NxKeysTheme.Text;
+        private readonly Color mutedColor = NxKeysTheme.Muted;
+        private readonly Color accentColor = NxKeysTheme.Accent;
+        private readonly Color stickyColor = NxKeysTheme.Success;
+        private readonly Color warningColor = NxKeysTheme.Warning;
+        private readonly Color dangerColor = NxKeysTheme.Danger;
         private readonly Color keyColor = Color.FromArgb(10, 17, 25);
         private readonly Color headerStartColor = Color.FromArgb(18, 35, 50);
         private readonly Color headerEndColor = Color.FromArgb(14, 20, 29);
@@ -49,7 +50,9 @@ namespace NX2512_HotkeyStudio.UI
         private float timeoutPct = 1.0f;
         private List<LeaderSequenceItem> commands = new List<LeaderSequenceItem>();
         private readonly Timer fadeTimer;
+        private readonly bool reduceMotion;
         private double targetOpacity = 0.95;
+        private int hiddenRows;
 
         private sealed class DisplayRow
         {
@@ -70,10 +73,13 @@ namespace NX2512_HotkeyStudio.UI
             ShowInTaskbar = false;
             TopMost = true;
             DoubleBuffered = true;
-            Size = new Size(900, 480);
+            Size = new Size(620, 420);
             BackColor = backColor;
             ForeColor = textColor;
             Opacity = 0;
+            AccessibleName = "NXKeys command palette";
+            AccessibleDescription = "Контекстное меню команд активного модуля Siemens NX.";
+            reduceMotion = NxKeysTheme.HighContrast || !SystemInformation.IsMenuAnimationEnabled;
             fadeTimer = new Timer { Interval = 15 };
             fadeTimer.Tick += (_, _) =>
             {
@@ -123,7 +129,8 @@ namespace NX2512_HotkeyStudio.UI
             FitToContent();
             PositionNearCursor();
             if (!Visible) Show();
-            Opacity = targetOpacity;
+            if (reduceMotion) { fadeTimer.Stop(); Opacity = targetOpacity; }
+            else { Opacity = 0; fadeTimer.Start(); }
             Invalidate();
         }
 
@@ -204,7 +211,9 @@ namespace NX2512_HotkeyStudio.UI
                 return;
             }
 
-            int count = Math.Max(1, BuildDisplayRows(commands, currentPrefix).Count);
+            int allRows = BuildDisplayRows(commands, currentPrefix).Count;
+            hiddenRows = Math.Max(0, allRows - MaximumRootRows);
+            int count = Math.Max(1, Math.Min(MaximumRootRows, allRows));
             const int rowHeight = 60;
             const int gutter = 6;
             const int horizontalPadding = 36;
@@ -216,7 +225,7 @@ namespace NX2512_HotkeyStudio.UI
             int columns = Math.Max(1, Math.Min(maximumColumns,
                 (int)Math.Ceiling(count / (double)maximumRows)));
             int menuRows = Math.Max(1, (int)Math.Ceiling(count / (double)columns));
-            int width = Math.Min(maxWidth, Math.Max(720,
+            int width = Math.Min(maxWidth, Math.Max(520,
                 horizontalPadding + columns * minimumCardWidth + (columns - 1) * gutter));
             int height = Math.Min(maxHeight, Math.Max(320,
                 verticalPadding + menuRows * (rowHeight + gutter) - gutter));
@@ -289,7 +298,9 @@ namespace NX2512_HotkeyStudio.UI
             using (SolidBrush muted = new SolidBrush(mutedColor))
                 graphics.DrawString($"{triggerKeyName} → клавиша на карточке   ·   Tab модуль   ·   Space поиск", hint, muted, 18, 82);
 
-            List<DisplayRow> visible = BuildDisplayRows(commands, currentPrefix);
+            List<DisplayRow> allRows = BuildDisplayRows(commands, currentPrefix);
+            hiddenRows = Math.Max(0, allRows.Count - MaximumRootRows);
+            List<DisplayRow> visible = allRows.Take(MaximumRootRows).ToList();
             if (visible.Count == 0)
             {
                 using Font emptyFont = new Font("Segoe UI Semibold", 12f);
@@ -542,6 +553,14 @@ namespace NX2512_HotkeyStudio.UI
             using (Pen line = new Pen(Color.FromArgb(44, borderColor), 1f))
                 graphics.DrawLine(line, 18, Height - 40, Width - 18, Height - 40);
             if (confirmationItem != null || searchFilter != null) return;
+            if (hiddenRows > 0)
+            {
+                using Font overflowFont = new Font("Segoe UI", 8.3f);
+                using SolidBrush overflowBrush = new SolidBrush(warningColor);
+                graphics.DrawString("Показано 10 из " + (10 + hiddenRows) + " · Space — поиск",
+                    overflowFont, overflowBrush, 18, Height - 32);
+                return;
+            }
             using (Font font = new Font("Segoe UI", 8.3f))
             using (SolidBrush muted = new SolidBrush(mutedColor))
                 graphics.DrawString("Tab: другой модуль   Space: поиск   Backspace: закрыть   Esc: отмена", font, muted, 18, Height - 29);
