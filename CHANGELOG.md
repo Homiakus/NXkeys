@@ -25,6 +25,9 @@
 
 ### Fixed
 
+- protocol actions проверяются fail-closed; неизвестное действие больше не может попасть в обычный NX dispatch;
+- profile schema проверяется до migration, а сохранение выполняется атомарно;
+- IPC получил typed read errors, payload/queue limits и selection fingerprint против TOCTOU;
 - universal selection normalization сохраняет catalog traceability заменяемой команды;
 - `Select All` может одновременно быть universal support action `SA` и одним из selected intents;
 - флаг `catalog_backed_support` позволяет сохранять `catalog_refs` без нарушения support frequency/path policy;

@@ -8,8 +8,28 @@ namespace NXKeys.Protocol
     public static class NxProtocolConstants
     {
         public const int SchemaVersion = 3;
+        public const int MaxRequestPayloadBytes = 64 * 1024;
+        public const int MaxPendingRequestCount = 256;
+        public const int MaxRequestsPerPoll = 8;
+        public const int MaxTextFieldLength = 1024;
         public static readonly TimeSpan DefaultContextFreshness = TimeSpan.FromSeconds(3);
         public static readonly TimeSpan DefaultRequestLifetime = TimeSpan.FromSeconds(15);
+    }
+
+    public static class NxProtocolActions
+    {
+        public const string ExecuteCommand = "execute_command";
+        public const string SwitchModule = "switch_module";
+        public const string SetSelectionFilter = "set_selection_filter";
+        public const string ProbeCommand = "probe_command";
+
+        public static bool IsSupported(string action)
+        {
+            return string.Equals(action, ExecuteCommand, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(action, SwitchModule, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(action, SetSelectionFilter, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(action, ProbeCommand, StringComparison.OrdinalIgnoreCase);
+        }
     }
 
     public class NxCommandRequest
@@ -56,6 +76,9 @@ namespace NXKeys.Protocol
         [JsonPropertyName("expected_selection_count")]
         public int ExpectedSelectionCount { get; set; } = -1;
 
+        [JsonPropertyName("expected_selection_fingerprint")]
+        public string ExpectedSelectionFingerprint { get; set; } = string.Empty;
+
         [JsonPropertyName("expected_application_id")]
         public string ExpectedApplicationId { get; set; } = string.Empty;
 
@@ -83,7 +106,19 @@ namespace NXKeys.Protocol
                 throw new InvalidOperationException("request_id is required.");
             if (string.IsNullOrWhiteSpace(Action))
                 throw new InvalidOperationException("action is required.");
-            if (!string.Equals(Action, "switch_module", StringComparison.OrdinalIgnoreCase) &&
+            if (!NxProtocolActions.IsSupported(Action))
+                throw new InvalidOperationException("Unsupported NXKeys action: " + Action);
+            RequireMaxLength(nameof(RequestId), RequestId);
+            RequireMaxLength(nameof(Action), Action);
+            RequireMaxLength(nameof(CommandId), CommandId);
+            RequireMaxLength(nameof(CommandName), CommandName);
+            RequireMaxLength(nameof(Sequence), Sequence);
+            RequireMaxLength(nameof(ModuleId), ModuleId);
+            RequireMaxLength(nameof(TargetApplicationId), TargetApplicationId);
+            RequireMaxLength(nameof(SelectionFilter), SelectionFilter);
+            RequireMaxLength(nameof(ExpectedApplicationId), ExpectedApplicationId);
+            RequireMaxLength(nameof(ExpectedSelectionFingerprint), ExpectedSelectionFingerprint);
+            if (!string.Equals(Action, NxProtocolActions.SwitchModule, StringComparison.OrdinalIgnoreCase) &&
                 string.IsNullOrWhiteSpace(CommandId))
                 throw new InvalidOperationException("command_id is required for execute_command.");
             if (string.Equals(Action, "switch_module", StringComparison.OrdinalIgnoreCase) &&
@@ -96,6 +131,12 @@ namespace NXKeys.Protocol
                 throw new InvalidOperationException("Request has expired.");
             if (Destructive && !ConfirmationAccepted)
                 throw new InvalidOperationException("Destructive request has no explicit confirmation.");
+        }
+
+        private static void RequireMaxLength(string field, string value)
+        {
+            if ((value ?? string.Empty).Length > NxProtocolConstants.MaxTextFieldLength)
+                throw new InvalidOperationException(field + " exceeds the protocol length limit.");
         }
     }
 
@@ -127,6 +168,9 @@ namespace NXKeys.Protocol
 
         [JsonPropertyName("selected_types")]
         public List<string> SelectedTypes { get; set; } = new List<string>();
+
+        [JsonPropertyName("selection_fingerprint")]
+        public string SelectionFingerprint { get; set; } = string.Empty;
 
         [JsonPropertyName("work_part_available")]
         public bool WorkPartAvailable { get; set; }
@@ -174,6 +218,7 @@ namespace NXKeys.Protocol
                 ModuleId ?? string.Empty,
                 SelectionCount.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 SelectionState ?? string.Empty,
+                SelectionFingerprint ?? string.Empty,
                 WorkPartAvailable ? "1" : "0",
                 DisplayPartAvailable ? "1" : "0",
                 ModalDialogActive ? "1" : "0",

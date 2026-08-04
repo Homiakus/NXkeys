@@ -195,3 +195,18 @@ CI подтверждает структуру, schemas, paths, state machines, 
 - ACL IPC root;
 - правильность IDs после NX/role/license change;
 - отсутствие конфликтов с corporate custom directories.
+
+## Phase-zero runtime hardening
+
+The first remediation phase closes the immediate fail-open paths:
+
+- unsupported protocol actions are rejected rather than dispatched as NX commands;
+- profile schemas outside the known migration range are rejected before defaults are applied;
+- profile saves use the existing atomic writer;
+- queue depth, payload size, field length, and work per poll are bounded;
+- the selected-object fingerprint participates in context revision and dispatch validation;
+- transport read failures are classified instead of being collapsed into `null`.
+
+The file queue is still a same-user local trust boundary, not authenticated IPC. Command allowlisting,
+session capabilities and anti-replay protection remain mandatory before the bridge is treated as a
+hardened production boundary.

@@ -70,10 +70,122 @@ internal static class Program
             "Generated menu labels must not contain UTF-8 mojibake.");
 
         VerifySketchIntentGrammar();
+        VerifyPhaseZeroHardening();
 
-        Console.WriteLine("[OK] Canonical profile editor, command menus, Sketch intent grammar and single NX ribbon regressions.");
+        Console.WriteLine("[OK] Canonical profile editor, command menus, Sketch grammar, runtime hardening and single NX ribbon regressions.");
     }
 
+
+    private static void VerifyPhaseZeroHardening()
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        var request = new NXKeys.Protocol.NxCommandRequest
+        {
+            RequestId = "phase-zero-test",
+            Action = "unexpected_action",
+            CommandId = "UG_TEST",
+            CreatedUtc = now.ToString("O"),
+            ExpiresUtc = now.AddMinutes(1).ToString("O"),
+            ConfirmationAccepted = true
+        };
+        AssertThrows<InvalidOperationException>(() => request.Validate(),
+            "Unknown protocol actions must be rejected fail-closed.");
+
+        request.Action = NXKeys.Protocol.NxProtocolActions.ExecuteCommand;
+        request.Validate();
+        request.CommandName = new string('X', NXKeys.Protocol.NxProtocolConstants.MaxTextFieldLength + 1);
+        AssertThrows<InvalidOperationException>(() => request.Validate(),
+            "Oversized protocol fields must be rejected.");
+
+        var firstContext = new NXKeys.Protocol.NxContextSnapshot
+        {
+            Status = "running",
+            ModuleId = "modeling",
+            SelectionCount = 1,
+            SelectionState = "single",
+            SelectionFingerprint = "AAA"
+        };
+        var secondContext = new NXKeys.Protocol.NxContextSnapshot
+        {
+            Status = "running",
+            ModuleId = "modeling",
+            SelectionCount = 1,
+            SelectionState = "single",
+            SelectionFingerprint = "BBB"
+        };
+        Assert(firstContext.SemanticFingerprint() != secondContext.SemanticFingerprint(),
+            "Selection identity must participate in the semantic context revision.");
+
+        string sourceConfig = FindRepositoryFile(Path.Combine("config", "nx2512-pro-hybrid.json"));
+        string sourceJson = File.ReadAllText(sourceConfig);
+        string futureJson = sourceJson.Replace("\"schema_version\": 6", "\"schema_version\": 999");
+        Assert(futureJson != sourceJson, "Test profile schema marker was not found.");
+
+        string tempRoot = Path.Combine(Path.GetTempPath(), "nxkeys-phase-zero-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tempRoot);
+        try
+        {
+            string futurePath = Path.Combine(tempRoot, "future.json");
+            File.WriteAllText(futurePath, futureJson);
+            AssertThrows<InvalidOperationException>(() => Config.Load(futurePath),
+                "Future profile schema must be rejected before migration.");
+
+            Config loaded = Config.Load(sourceConfig);
+            string savedPath = Path.Combine(tempRoot, "saved.json");
+            loaded.Save(savedPath);
+            Config roundTrip = Config.Load(savedPath);
+            Assert(roundTrip.SchemaVersion == Config.CurrentSchemaVersion,
+                "Atomic profile save must produce a readable current-schema profile.");
+            Assert(!Directory.EnumerateFiles(tempRoot, ".nxkeys-*.tmp").Any(),
+                "Atomic profile save must not leave temporary files.");
+
+            string previousBridgeRoot = Environment.GetEnvironmentVariable("NXKEYS_BRIDGE_ROOT");
+            string isolatedBridgeRoot = Path.Combine(tempRoot, "bridge");
+            Environment.SetEnvironmentVariable("NXKEYS_BRIDGE_ROOT", isolatedBridgeRoot);
+            try
+            {
+                Directory.CreateDirectory(isolatedBridgeRoot);
+                File.WriteAllText(Path.Combine(isolatedBridgeRoot, "context.json"), "{ broken json");
+                NxTransportReadResult<NxBridgeContext> read = NxCommandBridgeClient.ReadContextDetailed();
+                Assert(read.Status == NxTransportReadStatus.Corrupt,
+                    "Corrupt context must be distinguishable from an offline Bridge.");
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("NXKEYS_BRIDGE_ROOT", previousBridgeRoot);
+            }
+        }
+        finally
+        {
+            try { Directory.Delete(tempRoot, true); } catch { }
+        }
+    }
+
+    private static string FindRepositoryFile(string relativePath)
+    {
+        string current = Directory.GetCurrentDirectory();
+        for (int depth = 0; depth < 8 && !string.IsNullOrWhiteSpace(current); depth++)
+        {
+            string candidate = Path.Combine(current, relativePath);
+            if (File.Exists(candidate)) return candidate;
+            current = Path.GetDirectoryName(current);
+        }
+        throw new FileNotFoundException("Repository file was not found.", relativePath);
+    }
+
+    private static void AssertThrows<TException>(Action action, string message)
+        where TException : Exception
+    {
+        try
+        {
+            action();
+        }
+        catch (TException)
+        {
+            return;
+        }
+        throw new InvalidOperationException(message);
+    }
 
     private static void VerifySketchIntentGrammar()
     {

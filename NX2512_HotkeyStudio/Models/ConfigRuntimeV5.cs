@@ -77,6 +77,7 @@ namespace NX2512_HotkeyStudio.Models
             string json;
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (var reader = new StreamReader(stream, Encoding.UTF8)) json = reader.ReadToEnd();
+            ValidateSourceSchemaVersion(json);
             Config config = JsonSerializer.Deserialize<Config>(json, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
@@ -87,6 +88,32 @@ namespace NX2512_HotkeyStudio.Models
             config.ApplyDefaults();
             config.Validate();
             return config;
+        }
+
+        private static void ValidateSourceSchemaVersion(string json)
+        {
+            try
+            {
+                using (JsonDocument document = JsonDocument.Parse(json, new JsonDocumentOptions
+                {
+                    AllowTrailingCommas = true,
+                    CommentHandling = JsonCommentHandling.Skip
+                }))
+                {
+                    if (document.RootElement.ValueKind != JsonValueKind.Object ||
+                        !document.RootElement.TryGetProperty("schema_version", out JsonElement schemaElement) ||
+                        !schemaElement.TryGetInt32(out int sourceVersion))
+                        throw new InvalidOperationException("Configuration schema_version is required and must be an integer.");
+                    if (sourceVersion < MinimumSupportedSchemaVersion || sourceVersion > CurrentSchemaVersion)
+                        throw new InvalidOperationException(
+                            $"Unsupported configuration schema_version {sourceVersion}. Supported range is " +
+                            $"{MinimumSupportedSchemaVersion}..{CurrentSchemaVersion}.");
+                }
+            }
+            catch (JsonException exception)
+            {
+                throw new InvalidOperationException("Configuration JSON is invalid: " + exception.Message, exception);
+            }
         }
 
         public void Save(string path)
@@ -100,13 +127,16 @@ namespace NX2512_HotkeyStudio.Models
             }) + Environment.NewLine;
             string directory = Path.GetDirectoryName(Path.GetFullPath(path));
             if (!string.IsNullOrWhiteSpace(directory)) Directory.CreateDirectory(directory);
-            File.WriteAllText(path, json, new UTF8Encoding(false));
+            NX2512_HotkeyStudio.Services.AtomicFileWriter.WriteAllText(
+                path, json, true, new UTF8Encoding(false));
         }
 
         public void ApplyDefaults()
         {
             if (SchemaVersion < MinimumSupportedSchemaVersion || SchemaVersion > CurrentSchemaVersion)
-                SchemaVersion = CurrentSchemaVersion;
+                throw new InvalidOperationException(
+                    $"Unsupported configuration schema_version {SchemaVersion}. Supported range is " +
+                    $"{MinimumSupportedSchemaVersion}..{CurrentSchemaVersion}.");
             Profile ??= new ProfileConfig();
             if (string.IsNullOrWhiteSpace(Profile.NXVersion)) Profile.NXVersion = "2512";
             Scan ??= new ScanConfig();
