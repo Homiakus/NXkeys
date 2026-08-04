@@ -8,6 +8,7 @@ on:
       - scripts/apply-bridge-core-architecture.py
       - scripts/fix-bridge-core-migration.py
       - scripts/fix-bridge-core-null-snapshot.py
+      - scripts/fix-bridge-core-legacy-nullable.py
       - .github/workflows/apply-bridge-core-architecture.yml
   pull_request:
     branches:
@@ -16,6 +17,7 @@ on:
       - scripts/apply-bridge-core-architecture.py
       - scripts/fix-bridge-core-migration.py
       - scripts/fix-bridge-core-null-snapshot.py
+      - scripts/fix-bridge-core-legacy-nullable.py
       - .github/workflows/apply-bridge-core-architecture.yml
 
 permissions:
@@ -47,6 +49,8 @@ jobs:
           python .\scripts\fix-bridge-core-migration.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python .\scripts\fix-bridge-core-null-snapshot.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python .\scripts\fix-bridge-core-legacy-nullable.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Validate profiles and documentation
@@ -93,10 +97,20 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          $temporary = @(
+            'scripts/apply-bridge-core-architecture.py',
+            'scripts/fix-bridge-core-migration.py',
+            'scripts/fix-bridge-core-null-snapshot.py',
+            'scripts/fix-bridge-core-legacy-nullable.py',
+            '.github/workflows/apply-bridge-core-architecture.yml',
+            '.github/workflows/runtime-hardening.yml'
+          )
           git add -A
-          git reset -- scripts/apply-bridge-core-architecture.py scripts/fix-bridge-core-migration.py scripts/fix-bridge-core-null-snapshot.py .github/workflows/apply-bridge-core-architecture.yml .github/workflows/runtime-hardening.yml
+          git reset -- $temporary
           if (git diff --cached --quiet) { throw 'Migration produced no source changes.' }
           git commit -m "Extract BridgeCore architecture"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git restore -- .github/workflows/runtime-hardening.yml
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           git fetch origin agent/bridge-core-architecture
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
