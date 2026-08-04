@@ -132,6 +132,7 @@ namespace NX2512_HotkeyStudio.Services
         private DateTime deadlineUtc = DateTime.MaxValue;
         private int timeoutMs;
         private int capsLockRestoreAttempts;
+        private bool capsLockStateBeforeTrigger;
         private NxBridgeContext currentContext;
         private ModuleConfig activeModule;
 
@@ -285,6 +286,7 @@ namespace NX2512_HotkeyStudio.Services
         private void ScheduleCapsLockRestore()
         {
             if (triggerVk != VK_CAPITAL) return;
+            capsLockStateBeforeTrigger = IsCapsLockOn();
             capsLockRestoreAttempts = 0;
             capsLockRestore.Stop();
             capsLockRestore.Start();
@@ -293,15 +295,16 @@ namespace NX2512_HotkeyStudio.Services
         private void CapsLockRestoreTick(object sender, EventArgs eventArgs)
         {
             capsLockRestoreAttempts++;
-            EnsureCapsLockOff();
-            if (capsLockRestoreAttempts >= 4 || !IsCapsLockOn()) capsLockRestore.Stop();
+            EnsureCapsLockState(capsLockStateBeforeTrigger);
+            if (capsLockRestoreAttempts >= 4 || IsCapsLockOn() == capsLockStateBeforeTrigger)
+                capsLockRestore.Stop();
         }
 
         private static bool IsCapsLockOn() => (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
 
-        private static void EnsureCapsLockOff()
+        private static void EnsureCapsLockState(bool desiredState)
         {
-            if (!IsCapsLockOn()) return;
+            if (IsCapsLockOn() == desiredState) return;
             keybd_event(VK_CAPITAL, 0, 0, UIntPtr.Zero);
             keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
         }
@@ -501,7 +504,7 @@ namespace NX2512_HotkeyStudio.Services
         private void ContextWatchTick(object sender, EventArgs eventArgs)
         {
             if (!running) return;
-            if (triggerVk == VK_CAPITAL && GetActiveNxWindow() != IntPtr.Zero) EnsureCapsLockOff();
+            // Background context polling never changes the user's CapsLock state.
             ModuleConfig previous = activeModule;
             RefreshContext();
             LeaderTransition contextTransition = stateMachine.UpdateContext(currentContext);

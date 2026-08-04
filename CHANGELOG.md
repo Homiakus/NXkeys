@@ -23,6 +23,14 @@
 - определена модель bounded execution на NX UI thread и защищённый IPC с session capability, allowlist, nonce и context token;
 - предложено объединение HotkeyStudio и Control Center в единый desktop shell, общий design system и доступный компактный HUD.
 
+### Architecture
+
+- добавлены отдельные class libraries `NXKeys.Protocol` и `NXKeys.BridgeCore`;
+- filesystem admission вынесен с NX UI thread в bounded background inbox;
+- NX adapter исполняет не более одного admitted request за UI tick;
+- single-instance scope привязан к local session и активному профилю;
+- signal threads получили cancellation, а CapsLock сохраняет исходное состояние пользователя.
+
 ### Security
 
 - IPC повышен до schema 4: ephemeral 256-bit launch capability и HMAC-SHA-256 для каждого request;

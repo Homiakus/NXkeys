@@ -72,11 +72,74 @@ internal static class Program
         VerifySketchIntentGrammar();
         VerifyPhaseZeroHardening();
         VerifyAuthenticatedIpc();
+        VerifyBridgeInbox();
 
-        Console.WriteLine("[OK] Canonical profile editor, command menus, Sketch grammar, authenticated IPC and single NX ribbon regressions.");
+        Console.WriteLine("[OK] Canonical profile editor, Sketch grammar, authenticated IPC and background Bridge inbox regressions.");
     }
 
 
+
+
+    private static void VerifyBridgeInbox()
+    {
+        string tempRoot = Path.Combine(Path.GetTempPath(), "nxkeys-inbox-" + Guid.NewGuid().ToString("N"));
+        string pending = Path.Combine(tempRoot, "pending");
+        string processing = Path.Combine(tempRoot, "processing");
+        Directory.CreateDirectory(pending);
+        Directory.CreateDirectory(processing);
+        int admitted = 0;
+        try
+        {
+            using (var inbox = new NXKeys.BridgeCore.BridgeRequestInbox(
+                pending,
+                processing,
+                _ => false,
+                (_, _) => { },
+                _ => System.Threading.Interlocked.Increment(ref admitted)))
+            {
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+                var request = new NXKeys.Protocol.NxCommandRequest
+                {
+                    RequestId = "inbox-test",
+                    Action = NXKeys.Protocol.NxProtocolActions.ExecuteCommand,
+                    CommandId = "UG_TEST",
+                    CommandName = "Inbox test",
+                    ModuleId = "modeling",
+                    CreatedUtc = now.ToString("O"),
+                    ExpiresUtc = now.AddMinutes(1).ToString("O"),
+                    ConfirmationAccepted = true
+                };
+                string requestPath = Path.Combine(pending, request.RequestId + ".request.json");
+                File.WriteAllText(requestPath,
+                    System.Text.Json.JsonSerializer.Serialize(request, NXKeys.Protocol.NxProtocolJson.WriteOptions));
+                inbox.Start();
+                inbox.Signal();
+
+                NXKeys.BridgeCore.BridgeRequestClaim claim = null;
+                bool claimed = System.Threading.SpinWait.SpinUntil(
+                    () => inbox.TryDequeue(out claim), TimeSpan.FromSeconds(5));
+                Assert(claimed && claim != null, "Background inbox must claim a valid request.");
+                Assert(claim.RequestId == request.RequestId && File.Exists(claim.ProcessingPath),
+                    "Claimed request must be atomically moved to processing.");
+                Assert(admitted == 1, "Admission callback must run exactly once.");
+
+                string oversizedId = "oversized";
+                File.WriteAllText(
+                    Path.Combine(pending, oversizedId + ".request.json"),
+                    new string('X', NXKeys.Protocol.NxProtocolConstants.MaxRequestPayloadBytes + 1));
+                inbox.Signal();
+                NXKeys.BridgeCore.BridgeRequestRejection rejection = null;
+                bool rejected = System.Threading.SpinWait.SpinUntil(
+                    () => inbox.TryDequeueRejected(out rejection), TimeSpan.FromSeconds(5));
+                Assert(rejected && rejection != null && rejection.RequestId == oversizedId,
+                    "Oversized requests must be rejected off the NX UI thread.");
+            }
+        }
+        finally
+        {
+            try { Directory.Delete(tempRoot, true); } catch { }
+        }
+    }
 
     private static void VerifyAuthenticatedIpc()
     {

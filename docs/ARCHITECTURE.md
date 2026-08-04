@@ -328,3 +328,27 @@ flowchart LR
 The profile permission digest is derived from enabled command/action/module/selection rows and
 confirmation policy. Bridge does not trust the digest supplied by the request; it rebuilds the same
 permission set from the configured profile and compares it before dispatch.
+
+## BridgeCore and bounded NX UI thread
+
+`NXKeys.Protocol` is now a real class library rather than linked source. `NXKeys.BridgeCore` owns
+transport admission that does not require NXOpen:
+
+- authenticated session and profile permission validation;
+- source process verification and replay protection;
+- background enumeration, atomic claim, payload parsing and rejection;
+- bounded ready/rejected queues.
+
+The NX-loaded assembly is now the UI-thread adapter. Its WinForms timer dequeues at most one
+admitted request per tick and performs only current-context validation plus the actual NX call.
+Directory enumeration, JSON parsing, HMAC verification and process inspection no longer execute on
+the NX UI thread.
+
+```mermaid
+flowchart LR
+    Files[(pending files)] --> Inbox[BridgeRequestInbox background thread]
+    Inbox --> Security[BridgeSecurityGate]
+    Security --> Ready[(bounded admitted queue)]
+    Ready -->|one request per tick| Adapter[NX CommandBridge UI thread]
+    Adapter --> NX[Siemens NX]
+```

@@ -10,5 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj" />
+    <ProjectReference Include="..\NXKeys.BridgeCore\NXKeys.BridgeCore.csproj" />
   </ItemGroup>
 </Project>
