@@ -1,0 +1,61 @@
+name: Apply unified UI safe close
+
+on:
+  push:
+    branches:
+      - agent/unified-desktop-ui
+    paths:
+      - scripts/fix-unified-ui-safe-close.py
+      - .github/workflows/apply-unified-ui-safe-close.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/fix-unified-ui-safe-close.py
+      - .github/workflows/apply-unified-ui-safe-close.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-test-commit:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/unified-desktop-ui
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Apply safe-close fix
+        shell: pwsh
+        run: |
+          python .\scripts\fix-unified-ui-safe-close.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Run draft regressions and build shell
+        shell: pwsh
+        run: |
+          dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release --nologo
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Commit safe-close source
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add NX2512_HotkeyStudio/UI/HotkeyStudioForm.cs
+          if (git diff --cached --quiet) { throw 'Safe-close migration produced no source change.' }
+          git commit -m "Preserve UI draft when save fails"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git fetch origin agent/unified-desktop-ui
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git rebase origin/agent/unified-desktop-ui
+          if ($LASTEXITCODE -ne 0) { git rebase --abort; exit 1 }
+          git push origin HEAD:agent/unified-desktop-ui
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
