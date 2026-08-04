@@ -163,7 +163,9 @@ try {
     }
   }
   if (!protocolSource.includes("selection_filter")) fail("Protocol request must carry selection_filter.");
-  if (!bridgeSource.includes("set_selection_filter") || !bridgeSource.includes("SetEnabledGlobalFilterMembers"))
+  const hasSelectionDispatch = bridgeSource.includes("set_selection_filter") ||
+    bridgeSource.includes("NxProtocolActions.SetSelectionFilter");
+  if (!hasSelectionDispatch || !bridgeSource.includes("SetEnabledGlobalFilterMembers"))
     fail("CommandBridge must implement direct NXOpen selection filter actions.");
   if (!runtimeSource.includes("SelectionIntent") || !runtimeSource.includes("AddAlias(command, command.InputKey)"))
     fail("Runtime config must preserve short aliases and infer selection intent.");

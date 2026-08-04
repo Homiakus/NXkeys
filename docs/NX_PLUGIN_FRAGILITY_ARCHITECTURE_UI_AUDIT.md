@@ -554,3 +554,14 @@ IPC trust boundary
 
 IPC повышен до schema 4. Старая schema 3 намеренно отклоняется fail-closed. Секрет создаётся
 managed launcher и не сохраняется на диск.
+
+## 19. Статус реализации архитектурной фазы
+
+Реализованы следующие пункты аудита:
+
+- `NXK-FR-006` — security/admission и inbox вынесены из static NX entrypoint в `NXKeys.BridgeCore`;
+- `NXK-FR-007` — filesystem scan, claim, JSON и HMAC выполняются background worker; NX UI thread получает один admitted request за tick;
+- `NXK-FR-014` — `NXKeys.Protocol` стал отдельной class library, linked-source dependency удалена из основных executables;
+- `NXK-FR-016` — single instance использует `Local\` и digest активного профиля;
+- `NXK-FR-017` — instance signal threads получили cancellation и bounded join;
+- `NXK-FR-018` — Leader восстанавливает исходное состояние CapsLock, а не принудительно выключает его.

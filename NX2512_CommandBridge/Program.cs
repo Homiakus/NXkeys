@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Windows.Forms;
+using NXKeys.BridgeCore;
 using NXKeys.Protocol;
 using NXOpen;
 using NXOpen.MenuBar;
@@ -30,22 +31,14 @@ namespace NX2512_CommandBridge
         private static FileSystemWatcher pendingWatcher;
         private static bool isInitialized;
         private static bool isProcessing;
-        private static volatile bool pendingWake = true;
-        private static DateTime lastFullPollUtc = DateTime.MinValue;
         private static DateTime lastContextWriteUtc = DateTime.MinValue;
         private static long contextRevision;
         private static string lastContextFingerprint = string.Empty;
         private static string lastRequestId = string.Empty;
         private static string lastResult = string.Empty;
         private static string lastMessage = string.Empty;
-        private static string securityStatus = "authentication_required";
-        private static string securitySessionId = string.Empty;
-        private static string securityProfilePath = string.Empty;
-        private static string expectedClientExecutable = string.Empty;
-        private static byte[] securitySecret = Array.Empty<byte>();
-        private static NxBridgePermissionSet securityPermissions;
-        private static readonly NxReplayGuard replayGuard = new NxReplayGuard();
-        private static readonly object securitySync = new object();
+        private static BridgeSecurityGate securityGate;
+        private static BridgeRequestInbox requestInbox;
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -106,11 +99,20 @@ namespace NX2512_CommandBridge
                 }
 
                 EnsureDirectories();
-                InitializeSecurity();
+                securityGate = BridgeSecurityGate.CreateFromEnvironment(WriteLog);
                 LoadPreviousContextRevision();
                 RecoverInterruptedRequests();
+                requestInbox = new BridgeRequestInbox(
+                    PendingDirectory,
+                    ProcessingDirectory,
+                    ResultExists,
+                    ArchiveDuplicate,
+                    securityGate.Validate,
+                    WriteLog);
+                requestInbox.Start();
+                AppDomain.CurrentDomain.ProcessExit += (_, _) => requestInbox?.Dispose();
 
-                pollTimer = new Timer { Interval = 150 };
+                pollTimer = new Timer { Interval = 100 };
                 pollTimer.Tick += PollTimerTick;
                 pollTimer.Start();
 
@@ -122,6 +124,7 @@ namespace NX2512_CommandBridge
                 pendingWatcher.Renamed += PendingWatcherChanged;
                 pendingWatcher.Changed += PendingWatcherChanged;
                 pendingWatcher.EnableRaisingEvents = true;
+                requestInbox.Signal();
 
                 isInitialized = true;
                 WriteStatus("running");
@@ -169,6 +172,9 @@ namespace NX2512_CommandBridge
                 listingWindow.WriteLine("Pending: " + PendingDirectory);
                 listingWindow.WriteLine("Processing: " + ProcessingDirectory);
                 listingWindow.WriteLine("Context revision: " + contextRevision);
+                listingWindow.WriteLine("Security: " + (securityGate?.Status ?? "not_initialized"));
+                listingWindow.WriteLine("Admitted queue: " + (requestInbox?.ReadyCount ?? 0));
+                listingWindow.WriteLine("Rejected queue: " + (requestInbox?.RejectedCount ?? 0));
                 listingWindow.WriteLine("Log: " + LogPath);
             }
             catch (Exception ex)
@@ -181,207 +187,102 @@ namespace NX2512_CommandBridge
         private static void PollTimerTick(object sender, EventArgs e)
         {
             if (isProcessing) return;
-            bool fullPollDue = (DateTime.UtcNow - lastFullPollUtc).TotalSeconds >= 5;
             bool contextDue = (DateTime.UtcNow - lastContextWriteUtc).TotalSeconds >= 1;
-            if (!pendingWake && !fullPollDue)
+
+            if (requestInbox != null && requestInbox.TryDequeueRejected(out BridgeRequestRejection rejection) && rejection != null)
             {
-                if (contextDue) WriteContext(lastResult, lastMessage);
+                isProcessing = true;
+                try
+                {
+                    FailClaim(
+                        rejection.ProcessingPath,
+                        rejection.RequestId,
+                        "rejected",
+                        rejection.Message,
+                        BuildCurrentContext().Revision);
+                    WriteContext(lastResult, lastMessage);
+                }
+                catch (Exception exception)
+                {
+                    WriteLog("Rejected request finalization failed: " + exception);
+                }
+                finally
+                {
+                    isProcessing = false;
+                }
                 return;
             }
 
-            isProcessing = true;
-            try
+            if (requestInbox != null && requestInbox.TryDequeue(out BridgeRequestClaim claim) && claim != null)
             {
-                pendingWake = false;
-                lastFullPollUtc = DateTime.UtcNow;
-                ProcessPendingRequests();
-                WriteContext(lastResult, lastMessage);
+                isProcessing = true;
+                try
+                {
+                    ProcessClaim(claim);
+                    WriteContext(lastResult, lastMessage);
+                }
+                catch (Exception exception)
+                {
+                    WriteLog("NX request dispatch failed: " + exception);
+                }
+                finally
+                {
+                    isProcessing = false;
+                }
+                return;
             }
-            catch (Exception ex)
-            {
-                WriteLog("PollTimerTick failed: " + ex);
-            }
-            finally
-            {
-                isProcessing = false;
-            }
+
+            if (contextDue) WriteContext(lastResult, lastMessage);
         }
 
         private static void PendingWatcherChanged(object sender, FileSystemEventArgs e)
         {
-            pendingWake = true;
+            requestInbox?.Signal();
         }
 
-        private static void ProcessPendingRequests()
+        private static void ProcessClaim(BridgeRequestClaim claim)
         {
-            EnsureDirectories();
-            string[] files = Directory.GetFiles(PendingDirectory, "*.request.json");
-            Array.Sort(files, StringComparer.OrdinalIgnoreCase);
-            if (files.Length > NxProtocolConstants.MaxPendingRequestCount)
-                WriteLog("Pending queue exceeds limit: " + files.Length + ". Processing remains bounded.");
-            foreach (string file in files.Take(NxProtocolConstants.MaxRequestsPerPoll))
-                ProcessRequestFile(file);
-        }
-
-        private static void ProcessRequestFile(string pendingPath)
-        {
-            string fileName = Path.GetFileName(pendingPath);
-            string requestIdFromName = fileName.EndsWith(".request.json", StringComparison.OrdinalIgnoreCase)
-                ? fileName.Substring(0, fileName.Length - ".request.json".Length)
-                : Path.GetFileNameWithoutExtension(fileName);
-
-            if (ResultExists(requestIdFromName))
-            {
-                ArchiveDuplicate(pendingPath, requestIdFromName);
-                return;
-            }
-
-            string processingPath = Path.Combine(ProcessingDirectory, fileName);
+            NxCommandRequest request = claim.Request;
             try
             {
-                File.Move(pendingPath, processingPath);
-            }
-            catch (IOException)
-            {
-                return;
-            }
-
-            NxCommandRequest request = null;
-            try
-            {
-                long payloadLength = new FileInfo(processingPath).Length;
-                if (payloadLength <= 0 || payloadLength > NxProtocolConstants.MaxRequestPayloadBytes)
-                    throw new InvalidOperationException(
-                        "Request payload size is outside the allowed range: " + payloadLength + " bytes.");
-                using (FileStream stream = new FileStream(processingPath, FileMode.Open, FileAccess.Read, FileShare.None))
-                {
-                    request = JsonSerializer.Deserialize<NxCommandRequest>(stream, NxProtocolJson.ReadOptions);
-                }
-                if (request == null) throw new InvalidOperationException("Request JSON is empty.");
-                request.Validate();
-                ValidateAuthenticatedRequest(request);
-                if (!string.Equals(request.RequestId, requestIdFromName, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("request_id does not match the file name.");
-
                 NxContextSnapshot before = BuildCurrentContext();
                 ValidateExpectedContext(request, before);
 
-                if (string.Equals(request.Action, "switch_module", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(request.Action, NxProtocolActions.SwitchModule, StringComparison.OrdinalIgnoreCase))
                 {
                     SwitchModule(request);
-                    CompleteClaim(processingPath, request, "executed", "Switched module: " + request.TargetApplicationId, before.Revision);
+                    CompleteClaim(claim.ProcessingPath, request, "executed",
+                        "Switched module: " + request.TargetApplicationId, before.Revision);
                 }
-                else if (string.Equals(request.Action, "set_selection_filter", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(request.Action, NxProtocolActions.SetSelectionFilter, StringComparison.OrdinalIgnoreCase))
                 {
                     string message = ApplySelectionCommand(request);
-                    CompleteClaim(processingPath, request, "executed", message, before.Revision);
+                    CompleteClaim(claim.ProcessingPath, request, "executed", message, before.Revision);
                 }
-                else if (string.Equals(request.Action, "probe_command", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(request.Action, NxProtocolActions.ProbeCommand, StringComparison.OrdinalIgnoreCase))
                 {
                     string message = ProbeNxCommand(request.CommandId);
-                    CompleteClaim(processingPath, request, "completed", message, before.Revision);
+                    CompleteClaim(claim.ProcessingPath, request, "completed", message, before.Revision);
                 }
                 else if (string.Equals(request.Action, NxProtocolActions.ExecuteCommand, StringComparison.OrdinalIgnoreCase))
                 {
                     ExecuteNxCommand(request);
                     NxContextSnapshot after = BuildCurrentContext();
-                    CompleteClaim(processingPath, request, "executed", "OK", after.Revision);
+                    CompleteClaim(claim.ProcessingPath, request, "executed", "OK", after.Revision);
                 }
                 else
                 {
                     throw new InvalidOperationException("Unsupported NXKeys action: " + request.Action);
                 }
             }
-            catch (Exception ex)
-            {
-                string requestId = request?.RequestId;
-                if (string.IsNullOrWhiteSpace(requestId)) requestId = requestIdFromName;
-                FailClaim(processingPath, requestId, "rejected", ex.Message, BuildCurrentContext().Revision);
-            }
-        }
-
-        private static void InitializeSecurity()
-        {
-            if (!NxBridgeSecurityEnvironment.TryRead(
-                    out securitySessionId,
-                    out securitySecret,
-                    out securityProfilePath,
-                    out expectedClientExecutable,
-                    out string error))
-            {
-                securityStatus = "authentication_required";
-                WriteLog("Secure IPC is unavailable: " + error);
-                return;
-            }
-            try
-            {
-                securityPermissions = NxBridgePermissionSet.FromProfileFile(securityProfilePath);
-                securityStatus = "authenticated";
-                WriteLog("Secure IPC initialized. Profile digest=" + securityPermissions.ProfileDigest);
-            }
             catch (Exception exception)
             {
-                securityStatus = "profile_invalid";
-                WriteLog("Secure IPC profile load failed: " + exception.Message);
-            }
-        }
-
-        private static void ValidateAuthenticatedRequest(NxCommandRequest request)
-        {
-            if (!string.Equals(securityStatus, "authenticated", StringComparison.OrdinalIgnoreCase) ||
-                securityPermissions == null)
-                throw new InvalidOperationException(
-                    "NXKeys authenticated session is not ready. Start NX through the managed NXKeys launcher.");
-
-            RefreshSecurityProfileIfNeeded(request.ProfileDigest);
-            if (!NxRequestAuthenticator.Verify(
-                    request,
-                    securitySessionId,
-                    securitySecret,
-                    securityPermissions.ProfileDigest,
-                    out string authenticationError))
-                throw new InvalidOperationException(authenticationError);
-
-            ValidateSourceProcess(request.SourceProcessId);
-            if (!securityPermissions.TryGetPermission(request, out NxCommandPermission permission))
-                throw new InvalidOperationException("NX command/action is not present in the active profile allowlist.");
-            if (request.Destructive != permission.Destructive)
-                throw new InvalidOperationException("Request destructive policy differs from the active profile.");
-            if (permission.ConfirmationRequired && !request.ConfirmationAccepted)
-                throw new InvalidOperationException("Request requires confirmation according to the active profile.");
-            if (!replayGuard.TryAccept(request, out string replayError))
-                throw new InvalidOperationException(replayError);
-        }
-
-        private static void RefreshSecurityProfileIfNeeded(string requestedDigest)
-        {
-            if (securityPermissions != null &&
-                string.Equals(securityPermissions.ProfileDigest, requestedDigest, StringComparison.OrdinalIgnoreCase)) return;
-            lock (securitySync)
-            {
-                NxBridgePermissionSet refreshed = NxBridgePermissionSet.FromProfileFile(securityProfilePath);
-                if (!string.Equals(refreshed.ProfileDigest, requestedDigest, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("Request profile digest does not match the installed NXKeys profile.");
-                securityPermissions = refreshed;
-                WriteLog("Secure IPC permission set reloaded. Digest=" + refreshed.ProfileDigest);
-            }
-        }
-
-        private static void ValidateSourceProcess(int processId)
-        {
-            if (processId <= 0) throw new InvalidOperationException("Request source_process_id is invalid.");
-            try
-            {
-                using (Process source = Process.GetProcessById(processId))
-                {
-                    string actual = Path.GetFullPath(source.MainModule?.FileName ?? string.Empty);
-                    if (!string.Equals(actual, expectedClientExecutable, StringComparison.OrdinalIgnoreCase))
-                        throw new InvalidOperationException("Request source process is not the trusted managed HotkeyStudio executable.");
-                }
-            }
-            catch (ArgumentException)
-            {
-                throw new InvalidOperationException("Request source process is no longer running.");
+                FailClaim(
+                    claim.ProcessingPath,
+                    request?.RequestId ?? claim.RequestId,
+                    "rejected",
+                    exception.Message,
+                    BuildCurrentContext().Revision);
             }
         }
 
@@ -812,9 +713,9 @@ namespace NX2512_CommandBridge
                 LastRequestId = lastRequestId,
                 LastResult = lastResult,
                 LastMessage = lastMessage,
-                SecurityStatus = securityStatus,
-                SecuritySessionId = securitySessionId,
-                SecurityProfileDigest = securityPermissions?.ProfileDigest ?? string.Empty
+                SecurityStatus = securityGate?.Status ?? "not_initialized",
+                SecuritySessionId = securityGate?.SessionId ?? string.Empty,
+                SecurityProfileDigest = securityGate?.ProfileDigest ?? string.Empty
             };
 
             string fingerprint = snapshot.SemanticFingerprint();
@@ -860,9 +761,11 @@ namespace NX2512_CommandBridge
                         pending_directory = PendingDirectory,
                         processing_directory = ProcessingDirectory,
                         log_path = LogPath,
-                        security_status = securityStatus,
-                        security_session_id = securitySessionId,
-                        security_profile_digest = securityPermissions?.ProfileDigest ?? string.Empty
+                        security_status = securityGate?.Status ?? "not_initialized",
+                        security_session_id = securityGate?.SessionId ?? string.Empty,
+                        security_profile_digest = securityGate?.ProfileDigest ?? string.Empty,
+                        admitted_queue = requestInbox?.ReadyCount ?? 0,
+                        rejected_queue = requestInbox?.RejectedCount ?? 0
                     });
             }
             catch { }

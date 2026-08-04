@@ -4,8 +4,10 @@ on:
   push:
     paths:
       - 'NXKeys.Protocol/**'
+      - 'NXKeys.BridgeCore/**'
       - 'NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs'
       - 'NX2512_HotkeyStudio/Program.cs'
+      - 'NX2512_HotkeyStudio/Services/LeaderKeyEngine.cs'
       - 'NX2512_HotkeyStudio/Services/NxCommandBridgeClient.cs'
       - 'NX2512_HotkeyStudio/Services/NxRuntimeService.cs'
       - 'NX2512_HotkeyStudio/Services/NxTransportReadResult.cs'
@@ -16,8 +18,10 @@ on:
   pull_request:
     paths:
       - 'NXKeys.Protocol/**'
+      - 'NXKeys.BridgeCore/**'
       - 'NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs'
       - 'NX2512_HotkeyStudio/Program.cs'
+      - 'NX2512_HotkeyStudio/Services/LeaderKeyEngine.cs'
       - 'NX2512_HotkeyStudio/Services/NxCommandBridgeClient.cs'
       - 'NX2512_HotkeyStudio/Services/NxRuntimeService.cs'
       - 'NX2512_HotkeyStudio/Services/NxTransportReadResult.cs'
@@ -41,9 +45,13 @@ jobs:
         run: |
           $protocol = Get-Content .\NXKeys.Protocol\NxProtocol.cs -Raw
           $security = Get-Content .\NXKeys.Protocol\NxBridgeSecurity.cs -Raw
+          $gate = Get-Content .\NXKeys.BridgeCore\BridgeSecurityGate.cs -Raw
+          $inbox = Get-Content .\NXKeys.BridgeCore\BridgeRequestInbox.cs -Raw
           $config = Get-Content .\NX2512_HotkeyStudio\Models\ConfigRuntimeV5.cs -Raw
           $client = Get-Content .\NX2512_HotkeyStudio\Services\NxCommandBridgeClient.cs -Raw
           $runtime = Get-Content .\NX2512_HotkeyStudio\Services\NxRuntimeService.cs -Raw
+          $leader = Get-Content .\NX2512_HotkeyStudio\Services\LeaderKeyEngine.cs -Raw
+          $desktop = Get-Content .\NX2512_HotkeyStudio\Program.cs -Raw
           $bridge = Get-Content .\NX2512_CommandBridge\Program.cs -Raw
 
           foreach ($required in @(
@@ -72,6 +80,16 @@ jobs:
               throw "Missing authenticated IPC invariant: $required"
             }
           }
+          foreach ($required in @('BridgeSecurityGate', 'ValidateSourceProcess', 'NxReplayGuard', 'activePermissions')) {
+            if ($gate -notmatch [regex]::Escape($required)) {
+              throw "Missing BridgeCore security invariant: $required"
+            }
+          }
+          foreach ($required in @('BridgeRequestInbox', 'AutoResetEvent', 'MaxRequestsPerPoll', 'TryDequeueRejected', 'File.Move')) {
+            if ($inbox -notmatch [regex]::Escape($required)) {
+              throw "Missing background inbox invariant: $required"
+            }
+          }
           foreach ($required in @('ValidateSourceSchemaVersion', 'AtomicFileWriter.WriteAllText')) {
             if ($config -notmatch [regex]::Escape($required)) {
               throw "Missing profile hardening invariant: $required"
@@ -97,26 +115,42 @@ jobs:
               throw "Missing secure launch invariant: $required"
             }
           }
-          foreach ($required in @(
-            'Take(NxProtocolConstants.MaxRequestsPerPoll)',
-            'Unsupported NXKeys action',
-            'ExpectedSelectionFingerprint',
-            'AskSelectionSnapshot',
-            'ValidateAuthenticatedRequest',
-            'ValidateSourceProcess',
-            'NxRequestAuthenticator.Verify',
-            'replayGuard.TryAccept'
-          )) {
+          foreach ($required in @('BridgeRequestInbox', 'ProcessClaim', 'TryDequeueRejected', 'TryDequeue(out')) {
             if ($bridge -notmatch [regex]::Escape($required)) {
-              throw "Missing Bridge hardening invariant: $required"
+              throw "Missing bounded NX adapter invariant: $required"
             }
           }
+          if ($bridge -match [regex]::Escape('Directory.GetFiles(PendingDirectory')) {
+            throw 'NX UI adapter must not enumerate the pending directory.'
+          }
+          if ($bridge -match [regex]::Escape('NxRequestAuthenticator.Verify')) {
+            throw 'NX UI adapter must not perform cryptographic admission directly.'
+          }
+          foreach ($required in @('Local\\', 'signalCancellation', 'thread.Join(500)')) {
+            if ($desktop -notmatch [regex]::Escape($required)) {
+              throw "Missing desktop lifecycle invariant: $required"
+            }
+          }
+          foreach ($required in @('capsLockStateBeforeTrigger', 'EnsureCapsLockState')) {
+            if ($leader -notmatch [regex]::Escape($required)) {
+              throw "Missing CapsLock preservation invariant: $required"
+            }
+          }
+          if ($leader -match [regex]::Escape('EnsureCapsLockOff')) {
+            throw 'Leader must not force CapsLock off.'
+          }
+
+      - name: Build strict architecture libraries
+        shell: pwsh
+        run: |
+          dotnet build .\NXKeys.Protocol\NXKeys.Protocol.csproj -c Release --nologo -warnaserror
+          dotnet build .\NXKeys.BridgeCore\NXKeys.BridgeCore.csproj -c Release --nologo -warnaserror
 
       - name: Run state-machine and protocol tests
         shell: pwsh
         run: dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release --nologo
 
-      - name: Run profile, transport and authentication regression tests
+      - name: Run profile, transport, authentication and inbox regressions
         shell: pwsh
         run: dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release --nologo
 

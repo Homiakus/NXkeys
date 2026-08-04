@@ -178,7 +178,8 @@ namespace NXKeys.Protocol
                             if (string.Equals(action, NxProtocolActions.SwitchModule, StringComparison.OrdinalIgnoreCase))
                             {
                                 string targetModule = ReadString(command, "target_module_id");
-                                applications.TryGetValue(targetModule, out targetApplication);
+                                if (applications.TryGetValue(targetModule, out string? resolvedApplication))
+                                    targetApplication = resolvedApplication ?? string.Empty;
                             }
                             string selectionFilter = ReadString(command, "selection_type");
                             if (string.IsNullOrWhiteSpace(selectionFilter) &&
@@ -207,7 +208,7 @@ namespace NXKeys.Protocol
             }
         }
 
-        public bool TryGetPermission(NxCommandRequest request, out NxCommandPermission permission)
+        public bool TryGetPermission(NxCommandRequest request, out NxCommandPermission? permission)
         {
             permission = null;
             if (request == null) return false;
@@ -264,8 +265,10 @@ namespace NXKeys.Protocol
             if (!element.TryGetProperty(property, out JsonElement array) || array.ValueKind != JsonValueKind.Array)
                 return string.Empty;
             foreach (JsonElement item in array.EnumerateArray())
-                if (item.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(item.GetString()))
-                    return item.GetString().Trim();
+            {
+                string? value = item.ValueKind == JsonValueKind.String ? item.GetString() : null;
+                if (!string.IsNullOrWhiteSpace(value)) return value.Trim();
+            }
             return string.Empty;
         }
 
@@ -309,13 +312,14 @@ namespace NXKeys.Protocol
         }
 
         public static bool Verify(
-            NxCommandRequest request,
+            NxCommandRequest? request,
             string expectedSessionId,
             byte[] secret,
             string expectedProfileDigest,
             out string error)
         {
             error = string.Empty;
+            if (request == null) { error = "Request is null."; return false; }
             try { ValidateEnvelope(request); }
             catch (Exception exception) { error = exception.Message; return false; }
             if (!string.Equals(request.SessionId, expectedSessionId, StringComparison.Ordinal))

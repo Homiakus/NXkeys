@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using NX2512_HotkeyStudio.Models;
@@ -13,10 +15,10 @@ namespace NX2512_HotkeyStudio
 {
     public static class Program
     {
-        private const string SingleInstanceMutexName = @"Global\NXKeys_HotkeyStudio_SingleInstance";
-        private const string ShowUiEventName = @"Global\NXKeys_HotkeyStudio_ShowUI";
-        private const string ToggleEventName = @"Global\NXKeys_HotkeyStudio_ToggleEngine";
-        private const string StartEventName = @"Global\NXKeys_HotkeyStudio_StartEngine";
+        private static string singleInstanceMutexName = string.Empty;
+        private static string showUiEventName = string.Empty;
+        private static string toggleEventName = string.Empty;
+        private static string startEventName = string.Empty;
 
         private static Mutex singleMutex;
         private static EventWaitHandle showUiEvent;
@@ -27,6 +29,8 @@ namespace NX2512_HotkeyStudio
         private static NotifyIcon trayIcon;
         private static Control uiInvoker;
         private static string activeConfigPath = string.Empty;
+        private static readonly CancellationTokenSource signalCancellation = new CancellationTokenSource();
+        private static readonly List<Thread> signalThreads = new List<Thread>();
 
         [STAThread]
         public static void Main(string[] args)
@@ -64,14 +68,15 @@ namespace NX2512_HotkeyStudio
                               HasFlag(args, "--daemon") || HasFlag(args, "--ensure-background") || HasFlag(args, "--start");
             bool openGui = !background || HasFlag(args, "--gui");
 
-            singleMutex = new Mutex(true, SingleInstanceMutexName, out bool createdNew);
+            activeConfigPath = ResolveConfigPath(GetArgValue(args, "--config"));
+            ConfigureInstanceScope(activeConfigPath);
+            singleMutex = new Mutex(true, singleInstanceMutexName, out bool createdNew);
             if (!createdNew)
             {
-                SignalExisting(openGui ? ShowUiEventName : toggle ? ToggleEventName : StartEventName);
+                SignalExisting(openGui ? showUiEventName : toggle ? toggleEventName : startEventName);
                 return;
             }
 
-            activeConfigPath = ResolveConfigPath(GetArgValue(args, "--config"));
             Config config = Config.Load(activeConfigPath);
             NxCommandBridgeClient.ConfigureSecurity(activeConfigPath);
             if (config.SchemaVersion != Config.CurrentSchemaVersion || !config.LeaderKey.AdaptiveModuleMode)
@@ -79,9 +84,9 @@ namespace NX2512_HotkeyStudio
 
             uiInvoker = new Control();
             uiInvoker.CreateControl();
-            showUiEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ShowUiEventName);
-            toggleEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ToggleEventName);
-            startEvent = new EventWaitHandle(false, EventResetMode.AutoReset, StartEventName);
+            showUiEvent = new EventWaitHandle(false, EventResetMode.AutoReset, showUiEventName);
+            toggleEvent = new EventWaitHandle(false, EventResetMode.AutoReset, toggleEventName);
+            startEvent = new EventWaitHandle(false, EventResetMode.AutoReset, startEventName);
 
             globalEngine = new LeaderKeyEngine(config.LeaderKey);
             globalEngine.StatusChanged += AppendRuntimeLog;
@@ -335,6 +340,18 @@ namespace NX2512_HotkeyStudio
                 "Канонический профиль NXKeys schema v4 не найден. Передайте --config с существующим nx2512-pro-hybrid.json.");
         }
 
+        private static void ConfigureInstanceScope(string configPath)
+        {
+            string normalized = Path.GetFullPath(configPath).ToUpperInvariant();
+            string digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(normalized)))
+                .Substring(0, 16);
+            string scope = "Local\\NXKeys_" + digest;
+            singleInstanceMutexName = scope + "_HotkeyStudio";
+            showUiEventName = scope + "_ShowUI";
+            toggleEventName = scope + "_ToggleEngine";
+            startEventName = scope + "_StartEngine";
+        }
+
         private static void SetupTrayIcon()
         {
             trayIcon = new NotifyIcon
@@ -356,17 +373,20 @@ namespace NX2512_HotkeyStudio
         {
             var thread = new Thread(() =>
             {
-                while (true)
+                WaitHandle[] handles = { handle, signalCancellation.Token.WaitHandle };
+                while (!signalCancellation.IsCancellationRequested)
                 {
-                    handle.WaitOne();
+                    int signaled = WaitHandle.WaitAny(handles);
+                    if (signaled == 1 || signalCancellation.IsCancellationRequested) return;
                     try
                     {
                         if (uiInvoker != null && uiInvoker.IsHandleCreated) uiInvoker.BeginInvoke(action);
                     }
                     catch (ObjectDisposedException) { return; }
-                    catch { }
+                    catch (InvalidOperationException) { return; }
                 }
-            }) { IsBackground = true };
+            }) { IsBackground = true, Name = "NXKeys instance signal" };
+            lock (signalThreads) signalThreads.Add(thread);
             thread.Start();
         }
 
@@ -400,6 +420,13 @@ namespace NX2512_HotkeyStudio
 
         private static void Cleanup()
         {
+            try { signalCancellation.Cancel(); } catch { }
+            lock (signalThreads)
+            {
+                foreach (Thread thread in signalThreads)
+                    try { if (thread.IsAlive) thread.Join(500); } catch { }
+                signalThreads.Clear();
+            }
             try { globalEngine?.Stop(); globalEngine?.Dispose(); } catch { }
             try { if (trayIcon != null) { trayIcon.Visible = false; trayIcon.Dispose(); } } catch { }
             try { uiInvoker?.Dispose(); } catch { }
