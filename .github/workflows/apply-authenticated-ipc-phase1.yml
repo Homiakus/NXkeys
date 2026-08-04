@@ -75,7 +75,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git reset -- scripts/apply-authenticated-ipc-phase1.py .github/workflows/apply-authenticated-ipc-phase1.yml
+          git reset -- scripts/apply-authenticated-ipc-phase1.py .github/workflows/apply-authenticated-ipc-phase1.yml .github/workflows/runtime-hardening.yml
           if (git diff --cached --quiet) { throw 'Migration produced no source changes.' }
           git commit -m "Authenticate NX Bridge IPC"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
