@@ -38,6 +38,14 @@ namespace NX2512_CommandBridge
         private static string lastRequestId = string.Empty;
         private static string lastResult = string.Empty;
         private static string lastMessage = string.Empty;
+        private static string securityStatus = "authentication_required";
+        private static string securitySessionId = string.Empty;
+        private static string securityProfilePath = string.Empty;
+        private static string expectedClientExecutable = string.Empty;
+        private static byte[] securitySecret = Array.Empty<byte>();
+        private static NxBridgePermissionSet securityPermissions;
+        private static readonly NxReplayGuard replayGuard = new NxReplayGuard();
+        private static readonly object securitySync = new object();
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -98,6 +106,7 @@ namespace NX2512_CommandBridge
                 }
 
                 EnsureDirectories();
+                InitializeSecurity();
                 LoadPreviousContextRevision();
                 RecoverInterruptedRequests();
 
@@ -250,6 +259,7 @@ namespace NX2512_CommandBridge
                 }
                 if (request == null) throw new InvalidOperationException("Request JSON is empty.");
                 request.Validate();
+                ValidateAuthenticatedRequest(request);
                 if (!string.Equals(request.RequestId, requestIdFromName, StringComparison.OrdinalIgnoreCase))
                     throw new InvalidOperationException("request_id does not match the file name.");
 
@@ -287,6 +297,91 @@ namespace NX2512_CommandBridge
                 string requestId = request?.RequestId;
                 if (string.IsNullOrWhiteSpace(requestId)) requestId = requestIdFromName;
                 FailClaim(processingPath, requestId, "rejected", ex.Message, BuildCurrentContext().Revision);
+            }
+        }
+
+        private static void InitializeSecurity()
+        {
+            if (!NxBridgeSecurityEnvironment.TryRead(
+                    out securitySessionId,
+                    out securitySecret,
+                    out securityProfilePath,
+                    out expectedClientExecutable,
+                    out string error))
+            {
+                securityStatus = "authentication_required";
+                WriteLog("Secure IPC is unavailable: " + error);
+                return;
+            }
+            try
+            {
+                securityPermissions = NxBridgePermissionSet.FromProfileFile(securityProfilePath);
+                securityStatus = "authenticated";
+                WriteLog("Secure IPC initialized. Profile digest=" + securityPermissions.ProfileDigest);
+            }
+            catch (Exception exception)
+            {
+                securityStatus = "profile_invalid";
+                WriteLog("Secure IPC profile load failed: " + exception.Message);
+            }
+        }
+
+        private static void ValidateAuthenticatedRequest(NxCommandRequest request)
+        {
+            if (!string.Equals(securityStatus, "authenticated", StringComparison.OrdinalIgnoreCase) ||
+                securityPermissions == null)
+                throw new InvalidOperationException(
+                    "NXKeys authenticated session is not ready. Start NX through the managed NXKeys launcher.");
+
+            RefreshSecurityProfileIfNeeded(request.ProfileDigest);
+            if (!NxRequestAuthenticator.Verify(
+                    request,
+                    securitySessionId,
+                    securitySecret,
+                    securityPermissions.ProfileDigest,
+                    out string authenticationError))
+                throw new InvalidOperationException(authenticationError);
+
+            ValidateSourceProcess(request.SourceProcessId);
+            if (!securityPermissions.TryGetPermission(request, out NxCommandPermission permission))
+                throw new InvalidOperationException("NX command/action is not present in the active profile allowlist.");
+            if (request.Destructive != permission.Destructive)
+                throw new InvalidOperationException("Request destructive policy differs from the active profile.");
+            if (permission.ConfirmationRequired && !request.ConfirmationAccepted)
+                throw new InvalidOperationException("Request requires confirmation according to the active profile.");
+            if (!replayGuard.TryAccept(request, out string replayError))
+                throw new InvalidOperationException(replayError);
+        }
+
+        private static void RefreshSecurityProfileIfNeeded(string requestedDigest)
+        {
+            if (securityPermissions != null &&
+                string.Equals(securityPermissions.ProfileDigest, requestedDigest, StringComparison.OrdinalIgnoreCase)) return;
+            lock (securitySync)
+            {
+                NxBridgePermissionSet refreshed = NxBridgePermissionSet.FromProfileFile(securityProfilePath);
+                if (!string.Equals(refreshed.ProfileDigest, requestedDigest, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Request profile digest does not match the installed NXKeys profile.");
+                securityPermissions = refreshed;
+                WriteLog("Secure IPC permission set reloaded. Digest=" + refreshed.ProfileDigest);
+            }
+        }
+
+        private static void ValidateSourceProcess(int processId)
+        {
+            if (processId <= 0) throw new InvalidOperationException("Request source_process_id is invalid.");
+            try
+            {
+                using (Process source = Process.GetProcessById(processId))
+                {
+                    string actual = Path.GetFullPath(source.MainModule?.FileName ?? string.Empty);
+                    if (!string.Equals(actual, expectedClientExecutable, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("Request source process is not the trusted managed HotkeyStudio executable.");
+                }
+            }
+            catch (ArgumentException)
+            {
+                throw new InvalidOperationException("Request source process is no longer running.");
             }
         }
 
@@ -716,7 +811,10 @@ namespace NX2512_CommandBridge
                 UpdatedUtc = DateTimeOffset.UtcNow.ToString("O"),
                 LastRequestId = lastRequestId,
                 LastResult = lastResult,
-                LastMessage = lastMessage
+                LastMessage = lastMessage,
+                SecurityStatus = securityStatus,
+                SecuritySessionId = securitySessionId,
+                SecurityProfileDigest = securityPermissions?.ProfileDigest ?? string.Empty
             };
 
             string fingerprint = snapshot.SemanticFingerprint();
@@ -761,7 +859,10 @@ namespace NX2512_CommandBridge
                         updated_utc = DateTimeOffset.UtcNow.ToString("O"),
                         pending_directory = PendingDirectory,
                         processing_directory = ProcessingDirectory,
-                        log_path = LogPath
+                        log_path = LogPath,
+                        security_status = securityStatus,
+                        security_session_id = securitySessionId,
+                        security_profile_digest = securityPermissions?.ProfileDigest ?? string.Empty
                     });
             }
             catch { }

@@ -7,7 +7,7 @@ namespace NXKeys.Protocol
 {
     public static class NxProtocolConstants
     {
-        public const int SchemaVersion = 3;
+        public const int SchemaVersion = 4;
         public const int MaxRequestPayloadBytes = 64 * 1024;
         public const int MaxPendingRequestCount = 256;
         public const int MaxRequestsPerPoll = 8;
@@ -82,6 +82,24 @@ namespace NXKeys.Protocol
         [JsonPropertyName("expected_application_id")]
         public string ExpectedApplicationId { get; set; } = string.Empty;
 
+        [JsonPropertyName("session_id")]
+        public string SessionId { get; set; } = string.Empty;
+
+        [JsonPropertyName("client_instance_id")]
+        public string ClientInstanceId { get; set; } = string.Empty;
+
+        [JsonPropertyName("nonce")]
+        public string Nonce { get; set; } = string.Empty;
+
+        [JsonPropertyName("sequence_number")]
+        public long SequenceNumber { get; set; }
+
+        [JsonPropertyName("profile_digest")]
+        public string ProfileDigest { get; set; } = string.Empty;
+
+        [JsonPropertyName("payload_hmac")]
+        public string PayloadHmac { get; set; } = string.Empty;
+
         [JsonPropertyName("destructive")]
         public bool Destructive { get; set; }
 
@@ -118,6 +136,11 @@ namespace NXKeys.Protocol
             RequireMaxLength(nameof(SelectionFilter), SelectionFilter);
             RequireMaxLength(nameof(ExpectedApplicationId), ExpectedApplicationId);
             RequireMaxLength(nameof(ExpectedSelectionFingerprint), ExpectedSelectionFingerprint);
+            RequireMaxLength(nameof(SessionId), SessionId);
+            RequireMaxLength(nameof(ClientInstanceId), ClientInstanceId);
+            RequireMaxLength(nameof(Nonce), Nonce);
+            RequireMaxLength(nameof(ProfileDigest), ProfileDigest);
+            RequireMaxLength(nameof(PayloadHmac), PayloadHmac);
             if (!string.Equals(Action, NxProtocolActions.SwitchModule, StringComparison.OrdinalIgnoreCase) &&
                 string.IsNullOrWhiteSpace(CommandId))
                 throw new InvalidOperationException("command_id is required for execute_command.");
@@ -199,6 +222,15 @@ namespace NXKeys.Protocol
         [JsonPropertyName("last_message")]
         public string LastMessage { get; set; } = string.Empty;
 
+        [JsonPropertyName("security_status")]
+        public string SecurityStatus { get; set; } = string.Empty;
+
+        [JsonPropertyName("security_session_id")]
+        public string SecuritySessionId { get; set; } = string.Empty;
+
+        [JsonPropertyName("security_profile_digest")]
+        public string SecurityProfileDigest { get; set; } = string.Empty;
+
         [JsonIgnore]
         public bool IsFresh => IsFreshFor(NxProtocolConstants.DefaultContextFreshness);
 
@@ -222,7 +254,10 @@ namespace NXKeys.Protocol
                 WorkPartAvailable ? "1" : "0",
                 DisplayPartAvailable ? "1" : "0",
                 ModalDialogActive ? "1" : "0",
-                ActiveCommandId ?? string.Empty
+                ActiveCommandId ?? string.Empty,
+                SecurityStatus ?? string.Empty,
+                SecuritySessionId ?? string.Empty,
+                SecurityProfileDigest ?? string.Empty
             });
         }
     }

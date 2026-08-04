@@ -16,7 +16,7 @@ Keyboard hook не исполняет команды напрямую. Собы�
 - profile schema 6;
 - paths/aliases из enabled module commands;
 - active module от `AdaptiveModuleResolver`;
-- context snapshot IPC schema 3;
+- context snapshot IPC schema 4;
 - declarative policy `config/nx2512-state-machines.json`;
 - user events: Leader key, tokens, search, Enter, Esc, Backspace, Tab.
 
@@ -129,7 +129,7 @@ Policy может задавать:
 
 ## Context snapshot
 
-Bridge публикует IPC schema 3:
+Bridge публикует IPC schema 4:
 
 ```text
 revision, status, application_id, module_id, module_label,

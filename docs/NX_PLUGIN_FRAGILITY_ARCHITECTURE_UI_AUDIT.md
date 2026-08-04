@@ -543,3 +543,14 @@ IPC trust boundary
 
 `NXK-FR-001` и `NXK-FR-009` остаются открытыми: файловый IPC пока не аутентифицирует sender,
 а Bridge ещё не проверяет подписанный allowlist установленного профиля. Это следующий обязательный этап.
+
+## 18. Статус реализации фазы 1
+
+Закрыты два главных риска границы доверия:
+
+- `NXK-FR-001` — запросы подписываются ephemeral HMAC-сессией, проверяется источник процесса и anti-replay;
+- `NXK-FR-009` — Bridge независимо строит allowlist из активного профиля и проверяет его digest,
+  action/command/module/target/selection и confirmation policy.
+
+IPC повышен до schema 4. Старая schema 3 намеренно отклоняется fail-closed. Секрет создаётся
+managed launcher и не сохраняется на диск.

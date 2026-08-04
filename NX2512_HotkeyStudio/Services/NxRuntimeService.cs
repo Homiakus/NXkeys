@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using NX2512_HotkeyStudio.Models;
 
 namespace NX2512_HotkeyStudio.Services
@@ -152,7 +153,11 @@ namespace NX2512_HotkeyStudio.Services
                 if (!File.Exists(customDirs))
                     throw new FileNotFoundException("Файл custom_dirs.dat не найден. Сначала примените профиль NXKeys.", customDirs);
 
-                string studioExe = Path.Combine(managedRoot, "NX2512_HotkeyStudio.exe");
+                string studioExe = Path.GetFullPath(Path.Combine(managedRoot, "NX2512_HotkeyStudio.exe"));
+                string fullConfigPath = Path.GetFullPath(configPath);
+                string sessionId = Guid.NewGuid().ToString("N");
+                string sessionSecret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+                StopOtherHotkeyStudioProcesses(studioExe);
                 if (File.Exists(studioExe))
                 {
                     var leader = new ProcessStartInfo(studioExe)
@@ -163,7 +168,8 @@ namespace NX2512_HotkeyStudio.Services
                     };
                     leader.ArgumentList.Add("--ensure-background");
                     leader.ArgumentList.Add("--config");
-                    leader.ArgumentList.Add(configPath);
+                    leader.ArgumentList.Add(fullConfigPath);
+                    ApplySecurityEnvironment(leader, sessionId, sessionSecret, fullConfigPath, studioExe);
                     Process.Start(leader);
                 }
 
@@ -173,6 +179,7 @@ namespace NX2512_HotkeyStudio.Services
                     WorkingDirectory = Path.GetDirectoryName(executable) ?? managedRoot
                 };
                 start.Environment["UGII_CUSTOM_DIRECTORY_FILE"] = customDirs;
+                ApplySecurityEnvironment(start, sessionId, sessionSecret, fullConfigPath, studioExe);
                 foreach (string argument in nxArguments ?? Array.Empty<string>()) start.ArgumentList.Add(argument);
 
                 Process process = Process.Start(start);
@@ -183,6 +190,39 @@ namespace NX2512_HotkeyStudio.Services
             {
                 error = ex.Message;
                 return -1;
+            }
+        }
+
+        private static void ApplySecurityEnvironment(
+            ProcessStartInfo start,
+            string sessionId,
+            string sessionSecret,
+            string configPath,
+            string clientExecutable)
+        {
+            start.Environment[NXKeys.Protocol.NxBridgeSecurityEnvironment.SessionIdVariable] = sessionId;
+            start.Environment[NXKeys.Protocol.NxBridgeSecurityEnvironment.SessionSecretVariable] = sessionSecret;
+            start.Environment[NXKeys.Protocol.NxBridgeSecurityEnvironment.ConfigPathVariable] = configPath;
+            start.Environment[NXKeys.Protocol.NxBridgeSecurityEnvironment.ClientExecutableVariable] = clientExecutable;
+        }
+
+        private static void StopOtherHotkeyStudioProcesses(string expectedExecutable)
+        {
+            int currentPid = Process.GetCurrentProcess().Id;
+            foreach (Process process in Process.GetProcessesByName("NX2512_HotkeyStudio"))
+            {
+                using (process)
+                {
+                    if (process.Id == currentPid) continue;
+                    try
+                    {
+                        string path = process.MainModule?.FileName ?? string.Empty;
+                        if (!string.Equals(Path.GetFullPath(path), expectedExecutable, StringComparison.OrdinalIgnoreCase)) continue;
+                        process.Kill(true);
+                        process.WaitForExit(2000);
+                    }
+                    catch { }
+                }
             }
         }
 

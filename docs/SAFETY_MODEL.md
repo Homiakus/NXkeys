@@ -210,3 +210,19 @@ The first remediation phase closes the immediate fail-open paths:
 The file queue is still a same-user local trust boundary, not authenticated IPC. Command allowlisting,
 session capabilities and anti-replay protection remain mandatory before the bridge is treated as a
 hardened production boundary.
+
+## Authenticated local IPC
+
+IPC schema 4 closes the former same-user file-injection path. Queue files are transport artifacts,
+not authorities: a request is admitted only when its HMAC, session, source executable, anti-replay
+state and profile permission all agree.
+
+The secure session is created by `NX2512_HotkeyStudio.exe launch`. Starting NX and HotkeyStudio
+independently does not create a shared capability and therefore leaves Bridge in
+`authentication_required`; commands are rejected until NX is restarted through the managed
+launcher.
+
+This protects against ordinary local processes writing forged JSON into `%LOCALAPPDATA%\NXKeys\bridge`.
+It is not a defence against an attacker who can inject code into Siemens NX or the trusted
+HotkeyStudio process, replace managed binaries while bypassing package integrity, or read their
+memory with equivalent/higher privileges.

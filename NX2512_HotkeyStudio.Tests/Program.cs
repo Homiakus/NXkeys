@@ -71,10 +71,78 @@ internal static class Program
 
         VerifySketchIntentGrammar();
         VerifyPhaseZeroHardening();
+        VerifyAuthenticatedIpc();
 
-        Console.WriteLine("[OK] Canonical profile editor, command menus, Sketch grammar, runtime hardening and single NX ribbon regressions.");
+        Console.WriteLine("[OK] Canonical profile editor, command menus, Sketch grammar, authenticated IPC and single NX ribbon regressions.");
     }
 
+
+
+    private static void VerifyAuthenticatedIpc()
+    {
+        Assert(NXKeys.Protocol.NxProtocolConstants.SchemaVersion == 4,
+            "Authenticated transport requires IPC schema 4.");
+        string sourceConfig = FindRepositoryFile(Path.Combine("config", "nx2512-pro-hybrid.json"));
+        NXKeys.Protocol.NxBridgePermissionSet permissions =
+            NXKeys.Protocol.NxBridgePermissionSet.FromProfileFile(sourceConfig);
+        Assert(permissions.Permissions.Count > 0, "Profile permission set must not be empty.");
+        NXKeys.Protocol.NxCommandPermission permission = permissions.Permissions
+            .First(item => string.Equals(item.Action, NXKeys.Protocol.NxProtocolActions.ExecuteCommand,
+                StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(item.CommandId));
+
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        var request = new NXKeys.Protocol.NxCommandRequest
+        {
+            RequestId = "authenticated-test",
+            Action = permission.Action,
+            CommandId = permission.CommandId,
+            CommandName = "Authenticated test",
+            ModuleId = permission.ModuleId,
+            TargetApplicationId = permission.TargetApplicationId,
+            SelectionFilter = permission.SelectionFilter,
+            CreatedUtc = now.ToString("O"),
+            ExpiresUtc = now.AddMinutes(1).ToString("O"),
+            SourceProcessId = Environment.ProcessId,
+            Destructive = permission.Destructive,
+            ConfirmationAccepted = permission.ConfirmationRequired
+        };
+        byte[] secret = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
+        string sessionId = Guid.NewGuid().ToString("N");
+        string clientId = Guid.NewGuid().ToString("N");
+        NXKeys.Protocol.NxRequestAuthenticator.Sign(
+            request, sessionId, clientId, secret, permissions.ProfileDigest, 1);
+        request.Validate();
+        Assert(NXKeys.Protocol.NxRequestAuthenticator.Verify(
+                request, sessionId, secret, permissions.ProfileDigest, out string verificationError),
+            "Signed request must verify: " + verificationError);
+        Assert(permissions.TryGetPermission(request, out NXKeys.Protocol.NxCommandPermission resolved) &&
+               resolved.CommandId == permission.CommandId,
+            "Signed request must be admitted by the exact profile allowlist.");
+
+        string originalName = request.CommandName;
+        request.CommandName = originalName + " tampered";
+        Assert(!NXKeys.Protocol.NxRequestAuthenticator.Verify(
+                request, sessionId, secret, permissions.ProfileDigest, out _),
+            "Any signed payload mutation must invalidate the HMAC.");
+        request.CommandName = originalName;
+        NXKeys.Protocol.NxRequestAuthenticator.Sign(
+            request, sessionId, clientId, secret, permissions.ProfileDigest, 2);
+
+        var replay = new NXKeys.Protocol.NxReplayGuard(128);
+        Assert(replay.TryAccept(request, out _), "First authenticated request must pass anti-replay.");
+        Assert(!replay.TryAccept(request, out string replayError) &&
+               replayError.IndexOf("nonce", StringComparison.OrdinalIgnoreCase) >= 0,
+            "Repeated nonce must be rejected.");
+
+        var unauthorized = new NXKeys.Protocol.NxCommandRequest
+        {
+            Action = NXKeys.Protocol.NxProtocolActions.ExecuteCommand,
+            CommandId = "UG_NOT_IN_PROFILE",
+            ModuleId = permission.ModuleId
+        };
+        Assert(!permissions.TryGetPermission(unauthorized, out _),
+            "Unknown command must not be admitted by the profile allowlist.");
+    }
 
     private static void VerifyPhaseZeroHardening()
     {
