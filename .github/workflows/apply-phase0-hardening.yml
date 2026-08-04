@@ -73,17 +73,22 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- \
-            NXKeys.Protocol/NxProtocol.cs \
-            NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs \
-            NX2512_HotkeyStudio/Services/NxTransportReadResult.cs \
-            NX2512_HotkeyStudio/Services/NxCommandBridgeClient.cs \
-            NX2512_CommandBridge/Program.cs \
-            NX2512_HotkeyStudio.Tests/Program.cs \
-            docs/api.md \
-            docs/SAFETY_MODEL.md \
-            docs/NX_PLUGIN_FRAGILITY_ARCHITECTURE_UI_AUDIT.md \
-            CHANGELOG.md
+          $paths = @(
+            'NXKeys.Protocol/NxProtocol.cs',
+            'NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs',
+            'NX2512_HotkeyStudio/Services/NxTransportReadResult.cs',
+            'NX2512_HotkeyStudio/Services/NxCommandBridgeClient.cs',
+            'NX2512_CommandBridge/Program.cs',
+            'NX2512_HotkeyStudio.Tests/Program.cs',
+            'docs/api.md',
+            'docs/SAFETY_MODEL.md',
+            'docs/NX_PLUGIN_FRAGILITY_ARCHITECTURE_UI_AUDIT.md',
+            'CHANGELOG.md'
+          )
+          git add -- $paths
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (git diff --cached --quiet) { throw 'Migration produced no source changes.' }
           git commit -m "Harden NX runtime phase zero"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           git push origin HEAD:agent/harden-nx-runtime-phase0
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
