@@ -42,7 +42,10 @@ jobs:
             'BuildDiagnosticsPage()',
             'BuildSettingsPage()',
             'ProfileDraftSession',
-            'UnifiedShellKeyDown'
+            'UnifiedShellKeyDown',
+            'private bool SaveConfig()',
+            'answer == DialogResult.Yes && !SaveConfig()',
+            'moduleGrid.EndEdit()'
           )) {
             if (($form + $shell) -notmatch [regex]::Escape($required)) {
               throw "Missing unified shell invariant: $required"
