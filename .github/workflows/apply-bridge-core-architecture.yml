@@ -7,6 +7,7 @@ on:
     paths:
       - scripts/apply-bridge-core-architecture.py
       - scripts/fix-bridge-core-migration.py
+      - scripts/fix-bridge-core-null-snapshot.py
       - .github/workflows/apply-bridge-core-architecture.yml
   pull_request:
     branches:
@@ -14,6 +15,7 @@ on:
     paths:
       - scripts/apply-bridge-core-architecture.py
       - scripts/fix-bridge-core-migration.py
+      - scripts/fix-bridge-core-null-snapshot.py
       - .github/workflows/apply-bridge-core-architecture.yml
 
 permissions:
@@ -43,6 +45,8 @@ jobs:
           python .\scripts\apply-bridge-core-architecture.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python .\scripts\fix-bridge-core-migration.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python .\scripts\fix-bridge-core-null-snapshot.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Validate profiles and documentation
@@ -90,7 +94,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git reset -- scripts/apply-bridge-core-architecture.py scripts/fix-bridge-core-migration.py .github/workflows/apply-bridge-core-architecture.yml .github/workflows/runtime-hardening.yml
+          git reset -- scripts/apply-bridge-core-architecture.py scripts/fix-bridge-core-migration.py scripts/fix-bridge-core-null-snapshot.py .github/workflows/apply-bridge-core-architecture.yml .github/workflows/runtime-hardening.yml
           if (git diff --cached --quiet) { throw 'Migration produced no source changes.' }
           git commit -m "Extract BridgeCore architecture"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
