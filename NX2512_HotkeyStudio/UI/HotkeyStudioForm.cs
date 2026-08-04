@@ -705,10 +705,12 @@ namespace NX2512_HotkeyStudio.UI
             MessageBox.Show(result.Success ? "Восстановление завершено." : result.ErrorMessage, "NXKeys restore");
         }
 
-        private void SaveConfig()
+        private bool SaveConfig()
         {
             try
             {
+                moduleGrid.EndEdit();
+                PersistModuleGrid();
                 EditableCommandPathPolicy.Normalize(config);
                 ValidateEditableCommands();
                 config.Save(configPath);
@@ -718,10 +720,14 @@ namespace NX2512_HotkeyStudio.UI
                 UpdateHistoryButtons();
                 status.Text = "Профиль сохранён атомарно";
                 RefreshAll();
+                return true;
             }
             catch (Exception exception)
             {
+                dirty = draftSession.IsDirty;
+                status.Text = "Профиль не сохранён: " + exception.Message;
                 MessageBox.Show(exception.Message, "NXKeys", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             }
         }
 
@@ -781,7 +787,11 @@ namespace NX2512_HotkeyStudio.UI
             {
                 DialogResult answer = MessageBox.Show("Сохранить изменения профиля?", "NXKeys", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                 if (answer == DialogResult.Cancel) { eventArgs.Cancel = true; return; }
-                if (answer == DialogResult.Yes) SaveConfig();
+                if (answer == DialogResult.Yes && !SaveConfig())
+                {
+                    eventArgs.Cancel = true;
+                    return;
+                }
             }
             if (engine != null)
             {
