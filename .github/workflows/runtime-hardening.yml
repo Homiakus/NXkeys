@@ -5,7 +5,9 @@ on:
     paths:
       - 'NXKeys.Protocol/**'
       - 'NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs'
+      - 'NX2512_HotkeyStudio/Program.cs'
       - 'NX2512_HotkeyStudio/Services/NxCommandBridgeClient.cs'
+      - 'NX2512_HotkeyStudio/Services/NxRuntimeService.cs'
       - 'NX2512_HotkeyStudio/Services/NxTransportReadResult.cs'
       - 'NX2512_CommandBridge/**'
       - 'NX2512_HotkeyStudio.Tests/**'
@@ -15,7 +17,9 @@ on:
     paths:
       - 'NXKeys.Protocol/**'
       - 'NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs'
+      - 'NX2512_HotkeyStudio/Program.cs'
       - 'NX2512_HotkeyStudio/Services/NxCommandBridgeClient.cs'
+      - 'NX2512_HotkeyStudio/Services/NxRuntimeService.cs'
       - 'NX2512_HotkeyStudio/Services/NxTransportReadResult.cs'
       - 'NX2512_CommandBridge/**'
       - 'NX2512_HotkeyStudio.Tests/**'
@@ -32,23 +36,40 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Validate phase-zero source invariants
+      - name: Validate runtime hardening source invariants
         shell: pwsh
         run: |
           $protocol = Get-Content .\NXKeys.Protocol\NxProtocol.cs -Raw
+          $security = Get-Content .\NXKeys.Protocol\NxBridgeSecurity.cs -Raw
           $config = Get-Content .\NX2512_HotkeyStudio\Models\ConfigRuntimeV5.cs -Raw
           $client = Get-Content .\NX2512_HotkeyStudio\Services\NxCommandBridgeClient.cs -Raw
+          $runtime = Get-Content .\NX2512_HotkeyStudio\Services\NxRuntimeService.cs -Raw
           $bridge = Get-Content .\NX2512_CommandBridge\Program.cs -Raw
+
           foreach ($required in @(
             'NxProtocolActions.IsSupported',
             'expected_selection_fingerprint',
             'selection_fingerprint',
             'MaxRequestPayloadBytes',
             'MaxPendingRequestCount',
-            'MaxRequestsPerPoll'
+            'MaxRequestsPerPoll',
+            'session_id',
+            'client_instance_id',
+            'payload_hmac'
           )) {
             if ($protocol -notmatch [regex]::Escape($required)) {
               throw "Missing protocol hardening invariant: $required"
+            }
+          }
+          foreach ($required in @(
+            'NxRequestAuthenticator',
+            'NxBridgePermissionSet',
+            'NxReplayGuard',
+            'FixedTimeEquals',
+            'HMACSHA256'
+          )) {
+            if ($security -notmatch [regex]::Escape($required)) {
+              throw "Missing authenticated IPC invariant: $required"
             }
           }
           foreach ($required in @('ValidateSourceSchemaVersion', 'AtomicFileWriter.WriteAllText')) {
@@ -56,16 +77,35 @@ jobs:
               throw "Missing profile hardening invariant: $required"
             }
           }
-          foreach ($required in @('ReadContextDetailed', 'ReadResultDetailed', 'NxTransportReadStatus')) {
+          foreach ($required in @(
+            'ReadContextDetailed',
+            'ReadResultDetailed',
+            'NxTransportReadStatus',
+            'PrepareAuthenticatedRequest',
+            'NxRequestAuthenticator.Sign'
+          )) {
             if ($client -notmatch [regex]::Escape($required)) {
-              throw "Missing typed transport invariant: $required"
+              throw "Missing client transport invariant: $required"
+            }
+          }
+          foreach ($required in @(
+            'NXKEYS_SESSION_SECRET',
+            'RandomNumberGenerator.GetBytes(32)',
+            'ApplySecurityEnvironment'
+          )) {
+            if ($runtime -notmatch [regex]::Escape($required)) {
+              throw "Missing secure launch invariant: $required"
             }
           }
           foreach ($required in @(
             'Take(NxProtocolConstants.MaxRequestsPerPoll)',
             'Unsupported NXKeys action',
             'ExpectedSelectionFingerprint',
-            'AskSelectionSnapshot'
+            'AskSelectionSnapshot',
+            'ValidateAuthenticatedRequest',
+            'ValidateSourceProcess',
+            'NxRequestAuthenticator.Verify',
+            'replayGuard.TryAccept'
           )) {
             if ($bridge -notmatch [regex]::Escape($required)) {
               throw "Missing Bridge hardening invariant: $required"
@@ -76,7 +116,7 @@ jobs:
         shell: pwsh
         run: dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release --nologo
 
-      - name: Run profile and transport regression tests
+      - name: Run profile, transport and authentication regression tests
         shell: pwsh
         run: dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release --nologo
 
