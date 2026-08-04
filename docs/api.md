@@ -296,3 +296,27 @@ The transport enforces:
 
 These controls reduce accidental and malformed input. They do not authenticate the local sender;
 session capability/HMAC or a protected named pipe remains the next security phase.
+
+## Authenticated request envelope (schema 4)
+
+Every command request now carries `session_id`, `client_instance_id`, `nonce`,
+`sequence_number`, `profile_digest`, and `payload_hmac`.
+
+The managed launcher creates a random 256-bit secret and passes it only through the inherited
+environment of the trusted HotkeyStudio and Siemens NX processes. The secret is never written to
+the bridge queue. HotkeyStudio signs a length-prefixed canonical representation of all
+security-relevant request fields with HMAC-SHA-256.
+
+Before invoking NX, Command Bridge independently verifies:
+
+1. protocol schema and request expiry;
+2. active session id and HMAC using constant-time comparison;
+3. exact path of `source_process_id` against the managed HotkeyStudio executable;
+4. monotonic sequence and previously unseen nonce;
+5. `profile_digest` against a permission set rebuilt from the active profile;
+6. exact action, command id, module, target application and selection filter;
+7. destructive and confirmation policy from the profile;
+8. the current NX context and selected-object fingerprint.
+
+Unsigned schema-3 requests and requests produced outside the managed launch session are rejected.
+Changing the profile causes both sides to rebuild the permission digest before the next command.

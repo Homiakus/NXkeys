@@ -676,6 +676,7 @@ namespace NX2512_HotkeyStudio.UI
                 EditableCommandPathPolicy.Normalize(config);
                 ValidateEditableCommands();
                 config.Save(configPath);
+                NxCommandBridgeClient.ConfigureSecurity(configPath);
                 dirty = false;
                 status.Text = "Профиль сохранён";
                 RefreshAll();

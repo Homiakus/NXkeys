@@ -70,7 +70,7 @@ T → G → O    смещение
 | `NX2512_CommandBridge/` | NXOpen-библиотека, выполняемая внутри процесса NX |
 | `NX2512_ControlCenter/` | диагностика профиля, Bridge и покрытия команд |
 | `NX2512_Catalog_Studio/` | экспорт UI-команд и NXOpen-каталога целевой установки |
-| `NXKeys.Protocol/` | общий JSON-контракт IPC schema 3 |
+| `NXKeys.Protocol/` | общий JSON-контракт IPC schema 4 |
 | `NXKeys.StateMachines/` | DFA/HFSM и контекстные guards |
 | `NXKeys.StateMachines.Tests/` | исполняемый набор инвариантных и randomized-тестов |
 | `config/full-command-map/` | версионируемый каталог 1169 намерений |

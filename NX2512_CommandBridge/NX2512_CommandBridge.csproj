@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <Compile Include="..\NXKeys.Protocol\NxProtocol.cs" Link="Protocol\NxProtocol.cs" />
+    <Compile Include="..\NXKeys.Protocol\NxBridgeSecurity.cs" Link="Protocol\NxBridgeSecurity.cs" />
   </ItemGroup>
 
   <ItemGroup>

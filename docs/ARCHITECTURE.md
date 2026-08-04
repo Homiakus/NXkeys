@@ -100,7 +100,7 @@ Installer копирует generated main profile в managed package под comp
 |---|---:|---|
 | source/runtime profile schema | 6 | `ConfigRuntimeV5.cs` |
 | minimum accepted profile schema | 3 | `ConfigRuntimeV5.cs` и installer |
-| IPC schema | 3 | `NxProtocol.cs` |
+| IPC schema | 4 | `NxProtocol.cs` |
 | `full_command_catalog` schema | 2 | profile compiler/output |
 | source sequence policy | 7 | `scripts/sequence-policy.mjs` |
 | MenuScript | 139 | `MenuScriptDefaults` |
@@ -305,9 +305,26 @@ CI и validators должны подтверждать:
 - prefix-free canonical paths и aliases;
 - enabled command имеет ID;
 - destructive request требует confirmation;
-- IPC schema 3 round-trip;
+- IPC schema 4 round-trip;
 - state-machine transitions и expiry;
 - contract build HotkeyStudio, Control Center и Bridge;
 - deployment не выходит за managed boundaries.
 
 Фактическое выполнение критичных команд подтверждается только runtime-тестом в целевой NX.
+
+### Authenticated admission pipeline
+
+```mermaid
+flowchart LR
+    L[Managed launcher] -->|ephemeral secret in child environment| H[HotkeyStudio]
+    L -->|same session secret| N[Siemens NX / Bridge]
+    H -->|schema 4 + HMAC + nonce + sequence| Q[(file queue)]
+    Q --> V[Bridge authentication]
+    V --> P[Profile allowlist]
+    P --> C[Context and selection guards]
+    C --> X[NX command invocation]
+```
+
+The profile permission digest is derived from enabled command/action/module/selection rows and
+confirmation policy. Bridge does not trust the digest supplied by the request; it rebuilds the same
+permission set from the configured profile and compares it before dispatch.

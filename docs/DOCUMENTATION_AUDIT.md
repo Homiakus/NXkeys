@@ -9,7 +9,7 @@
 Каноническая документация приведена к текущей архитектуре:
 
 - profile schema 6;
-- IPC schema 3;
+- IPC schema 4;
 - sequence policy v7;
 - main scope K3–K5;
 - полный source catalog K1–K5;

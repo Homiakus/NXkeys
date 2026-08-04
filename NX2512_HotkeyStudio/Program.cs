@@ -73,6 +73,7 @@ namespace NX2512_HotkeyStudio
 
             activeConfigPath = ResolveConfigPath(GetArgValue(args, "--config"));
             Config config = Config.Load(activeConfigPath);
+            NxCommandBridgeClient.ConfigureSecurity(activeConfigPath);
             if (config.SchemaVersion != Config.CurrentSchemaVersion || !config.LeaderKey.AdaptiveModuleMode)
                 throw new InvalidOperationException("NXKeys требует канонический адаптивный профиль schema v4.");
 
@@ -118,6 +119,7 @@ namespace NX2512_HotkeyStudio
                 string command = args[0].ToLowerInvariant();
                 string configPath = ResolveConfigPath(GetArgValue(args, "--config"));
                 Config config = Config.Load(configPath);
+                NxCommandBridgeClient.ConfigureSecurity(configPath);
 
                 switch (command)
                 {

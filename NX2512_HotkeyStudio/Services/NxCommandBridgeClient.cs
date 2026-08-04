@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using NX2512_HotkeyStudio.Models;
 using NXKeys.Protocol;
 
@@ -13,6 +14,26 @@ namespace NX2512_HotkeyStudio.Services
 
     public static class NxCommandBridgeClient
     {
+        private static readonly string ClientInstanceId = Guid.NewGuid().ToString("N");
+        private static readonly object SecuritySync = new object();
+        private static NxBridgePermissionSet securityPermissions;
+        private static string securityProfilePath = string.Empty;
+        private static DateTime securityProfileWriteUtc = DateTime.MinValue;
+        private static long securitySequence;
+
+        public static void ConfigureSecurity(string configPath)
+        {
+            if (string.IsNullOrWhiteSpace(configPath))
+                throw new ArgumentException("NXKeys security profile path is required.", nameof(configPath));
+            string fullPath = Path.GetFullPath(configPath);
+            NxBridgePermissionSet permissions = NxBridgePermissionSet.FromProfileFile(fullPath);
+            lock (SecuritySync)
+            {
+                securityPermissions = permissions;
+                securityProfilePath = fullPath;
+                securityProfileWriteUtc = File.GetLastWriteTimeUtc(fullPath);
+            }
+        }
         public static string BridgeRoot
         {
             get
@@ -196,6 +217,9 @@ namespace NX2512_HotkeyStudio.Services
                 throw new InvalidOperationException("NXKeys Bridge context устарел: в NX нажмите Start NXKeys Bridge. Возраст context: " + ContextAgeText(context) + ".");
             if (!string.Equals(context.Status, "running", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("NXKeys Bridge не готов: " + context.Status + ". В NX нажмите Start NXKeys Bridge.");
+            if (!string.Equals(context.SecurityStatus, "authenticated", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException(
+                    "NXKeys Bridge не имеет authenticated session. Запустите NX через managed launcher NXKeys.");
             return context;
         }
 
@@ -235,8 +259,58 @@ namespace NX2512_HotkeyStudio.Services
             };
         }
 
+        private static void PrepareAuthenticatedRequest(NxCommandRequest request)
+        {
+            if (!NxBridgeSecurityEnvironment.TryRead(
+                    out string sessionId,
+                    out byte[] secret,
+                    out string environmentProfilePath,
+                    out string clientExecutable,
+                    out string error))
+                throw new InvalidOperationException(error + " Запустите NX через launch-nx2512-with-nxkeys.cmd.");
+
+            string actualClient = Path.GetFullPath(Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty);
+            if (!string.Equals(actualClient, clientExecutable, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("NXKeys request source is not the trusted managed HotkeyStudio executable.");
+
+            NxBridgePermissionSet permissions;
+            lock (SecuritySync)
+            {
+                string fullEnvironmentProfile = Path.GetFullPath(environmentProfilePath);
+                if (securityPermissions == null ||
+                    !string.Equals(securityProfilePath, fullEnvironmentProfile, StringComparison.OrdinalIgnoreCase) ||
+                    File.GetLastWriteTimeUtc(fullEnvironmentProfile) != securityProfileWriteUtc)
+                {
+                    securityPermissions = NxBridgePermissionSet.FromProfileFile(fullEnvironmentProfile);
+                    securityProfilePath = fullEnvironmentProfile;
+                    securityProfileWriteUtc = File.GetLastWriteTimeUtc(fullEnvironmentProfile);
+                }
+                permissions = securityPermissions;
+            }
+
+            if (!permissions.TryGetPermission(request, out NxCommandPermission permission))
+                throw new InvalidOperationException(
+                    "NXKeys request is not present in the active profile allowlist: " +
+                    NxBridgePermissionSet.PermissionKey(request.Action, request.CommandId, request.ModuleId,
+                        request.TargetApplicationId, request.SelectionFilter));
+            if (request.Destructive != permission.Destructive)
+                throw new InvalidOperationException("NXKeys request destructive policy differs from the active profile.");
+            if (permission.ConfirmationRequired && !request.ConfirmationAccepted)
+                throw new InvalidOperationException("NXKeys request has not passed the confirmation policy.");
+
+            NxRequestAuthenticator.Sign(
+                request,
+                sessionId,
+                ClientInstanceId,
+                secret,
+                permissions.ProfileDigest,
+                Interlocked.Increment(ref securitySequence));
+            request.Validate();
+        }
+
         private static void WriteRequest(NxCommandRequest request)
         {
+            PrepareAuthenticatedRequest(request);
             Directory.CreateDirectory(PendingDirectory);
             Directory.CreateDirectory(ProcessingDirectory);
             Directory.CreateDirectory(CompletedDirectory);

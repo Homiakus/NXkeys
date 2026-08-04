@@ -23,6 +23,13 @@
 - определена модель bounded execution на NX UI thread и защищённый IPC с session capability, allowlist, nonce и context token;
 - предложено объединение HotkeyStudio и Control Center в единый desktop shell, общий design system и доступный компактный HUD.
 
+### Security
+
+- IPC повышен до schema 4: ephemeral 256-bit launch capability и HMAC-SHA-256 для каждого request;
+- добавлены client instance, nonce, monotonic sequence и replay protection;
+- Bridge проверяет точный source process и профильный allowlist/digest до NX dispatch;
+- unsigned requests и запуск вне managed launcher отклоняются fail-closed.
+
 ### Fixed
 
 - protocol actions проверяются fail-closed; неизвестное действие больше не может попасть в обычный NX dispatch;
