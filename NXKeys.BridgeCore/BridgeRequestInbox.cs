@@ -53,6 +53,7 @@ namespace NXKeys.BridgeCore
 
         public int ReadyCount => ready.Count;
         public int RejectedCount => rejected.Count;
+        public int BufferedCount => ready.Count + rejected.Count;
         public bool IsRunning => worker != null && worker.IsAlive && !cancellation.IsCancellationRequested;
 
         public BridgeRequestInbox(
@@ -120,7 +121,7 @@ namespace NXKeys.BridgeCore
             if (files.Length > NxProtocolConstants.MaxPendingRequestCount)
                 log("Pending queue exceeds limit: " + files.Length + ". Background admission remains bounded.");
 
-            int capacity = Math.Max(0, NxProtocolConstants.MaxPendingRequestCount - ready.Count);
+            int capacity = Math.Max(0, NxProtocolConstants.MaxPendingRequestCount - BufferedCount);
             foreach (string pendingPath in files.Take(Math.Min(NxProtocolConstants.MaxRequestsPerPoll, capacity)))
                 ClaimAndValidate(pendingPath);
         }
