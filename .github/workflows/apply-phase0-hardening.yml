@@ -7,6 +7,12 @@ on:
     paths:
       - scripts/apply-phase0-hardening.py
       - .github/workflows/apply-phase0-hardening.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/apply-phase0-hardening.py
+      - .github/workflows/apply-phase0-hardening.yml
 
 permissions:
   contents: write
