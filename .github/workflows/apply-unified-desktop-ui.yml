@@ -1,0 +1,91 @@
+name: Apply unified desktop UI
+
+on:
+  push:
+    branches:
+      - agent/unified-desktop-ui
+    paths:
+      - scripts/apply-unified-desktop-ui.py
+      - .github/workflows/apply-unified-desktop-ui.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/apply-unified-desktop-ui.py
+      - .github/workflows/apply-unified-desktop-ui.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate-test-commit:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/unified-desktop-ui
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Apply unified desktop migration
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python .\scripts\apply-unified-desktop-ui.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Validate profiles and documentation
+        shell: pwsh
+        run: |
+          node .\scripts\validate-main-command-map.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node .\scripts\validate-command-tree.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node .\scripts\validate-documentation.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Run profile draft and runtime regressions
+        shell: pwsh
+        run: |
+          dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release --nologo
+          dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release --nologo
+
+      - name: Build and publish unified shell
+        shell: pwsh
+        run: |
+          dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
+          dotnet publish .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 -o .\artifacts\studio --nologo
+          dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64 --nologo
+          dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64 -o .\artifacts\control-center --nologo
+
+      - name: Verify shell artifacts
+        shell: pwsh
+        run: |
+          if (!(Test-Path .\artifacts\studio\NX2512_HotkeyStudio.exe)) { throw 'Unified shell executable is missing.' }
+          if (!(Test-Path .\artifacts\control-center\NX2512_ControlCenter.exe)) { throw 'Compatibility launcher is missing.' }
+          $launcherSize = (Get-Item .\artifacts\control-center\NX2512_ControlCenter.exe).Length
+          if ($launcherSize -le 0) { throw 'Compatibility launcher is empty.' }
+
+      - name: Commit unified UI source
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git reset -- scripts/apply-unified-desktop-ui.py .github/workflows/apply-unified-desktop-ui.yml
+          if (git diff --cached --quiet) { throw 'Migration produced no source changes.' }
+          git commit -m "Unify NXKeys desktop UI"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git fetch origin agent/unified-desktop-ui
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git rebase origin/agent/unified-desktop-ui
+          if ($LASTEXITCODE -ne 0) { git rebase --abort; exit 1 }
+          git push origin HEAD:agent/unified-desktop-ui
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
