@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Windows.Forms;
 using NXKeys.Protocol;
@@ -206,7 +208,10 @@ namespace NX2512_CommandBridge
             EnsureDirectories();
             string[] files = Directory.GetFiles(PendingDirectory, "*.request.json");
             Array.Sort(files, StringComparer.OrdinalIgnoreCase);
-            foreach (string file in files) ProcessRequestFile(file);
+            if (files.Length > NxProtocolConstants.MaxPendingRequestCount)
+                WriteLog("Pending queue exceeds limit: " + files.Length + ". Processing remains bounded.");
+            foreach (string file in files.Take(NxProtocolConstants.MaxRequestsPerPoll))
+                ProcessRequestFile(file);
         }
 
         private static void ProcessRequestFile(string pendingPath)
@@ -235,6 +240,10 @@ namespace NX2512_CommandBridge
             NxCommandRequest request = null;
             try
             {
+                long payloadLength = new FileInfo(processingPath).Length;
+                if (payloadLength <= 0 || payloadLength > NxProtocolConstants.MaxRequestPayloadBytes)
+                    throw new InvalidOperationException(
+                        "Request payload size is outside the allowed range: " + payloadLength + " bytes.");
                 using (FileStream stream = new FileStream(processingPath, FileMode.Open, FileAccess.Read, FileShare.None))
                 {
                     request = JsonSerializer.Deserialize<NxCommandRequest>(stream, NxProtocolJson.ReadOptions);
@@ -262,11 +271,15 @@ namespace NX2512_CommandBridge
                     string message = ProbeNxCommand(request.CommandId);
                     CompleteClaim(processingPath, request, "completed", message, before.Revision);
                 }
-                else
+                else if (string.Equals(request.Action, NxProtocolActions.ExecuteCommand, StringComparison.OrdinalIgnoreCase))
                 {
                     ExecuteNxCommand(request);
                     NxContextSnapshot after = BuildCurrentContext();
                     CompleteClaim(processingPath, request, "executed", "OK", after.Revision);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unsupported NXKeys action: " + request.Action);
                 }
             }
             catch (Exception ex)
@@ -289,6 +302,10 @@ namespace NX2512_CommandBridge
                 throw new InvalidOperationException(
                     "NX selection changed after the shortcut was accepted. Expected " +
                     request.ExpectedSelectionCount + ", actual " + current.SelectionCount + ".");
+            if (!string.IsNullOrWhiteSpace(request.ExpectedSelectionFingerprint) &&
+                !string.Equals(current.SelectionFingerprint, request.ExpectedSelectionFingerprint, StringComparison.Ordinal))
+                throw new InvalidOperationException(
+                    "NX selected objects changed after the shortcut was accepted.");
             if (!string.IsNullOrWhiteSpace(request.ExpectedApplicationId) &&
                 !string.Equals(current.ApplicationId, request.ExpectedApplicationId, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException(
@@ -674,7 +691,8 @@ namespace NX2512_CommandBridge
         {
             string applicationId = AskCurrentApplicationId(out int applicationConfidence);
             string moduleId = ModuleIdFromRuntimeContext(applicationId, out int moduleConfidence);
-            int selectionCount = AskSelectionCount(out List<string> selectedTypes);
+            int selectionCount = AskSelectionSnapshot(
+                out List<string> selectedTypes, out string selectionFingerprint);
             bool workPart = AskWorkPartAvailable();
             bool displayPart = AskDisplayPartAvailable();
             bool modal = IsModalDialogActive();
@@ -689,6 +707,7 @@ namespace NX2512_CommandBridge
                 SelectionCount = selectionCount,
                 SelectionState = selectionCount < 0 ? "unknown" : selectionCount == 0 ? "none" : selectionCount == 1 ? "single" : "multiple",
                 SelectedTypes = selectedTypes,
+                SelectionFingerprint = selectionFingerprint,
                 WorkPartAvailable = workPart,
                 DisplayPartAvailable = displayPart,
                 ModalDialogActive = modal,
@@ -791,25 +810,59 @@ namespace NX2512_CommandBridge
             }
         }
 
-        private static int AskSelectionCount(out List<string> selectedTypes)
+        private static int AskSelectionSnapshot(
+            out List<string> selectedTypes,
+            out string selectionFingerprint)
         {
             selectedTypes = new List<string>();
+            selectionFingerprint = string.Empty;
             try
             {
                 int count = theUI.SelectionManager.GetNumSelectedObjects();
                 int inspected = Math.Min(count, 64);
+                var identities = new List<string>(inspected);
                 for (int index = 0; index < inspected; index++)
                 {
                     object selected = AskSelectedObject(index);
                     AddSelectedType(selectedTypes, selected);
+                    identities.Add(SelectedObjectIdentity(selected, index));
                 }
+                identities.Sort(StringComparer.Ordinal);
+                string material = count.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" +
+                                  string.Join("|", identities);
+                using (SHA256 sha256 = SHA256.Create())
+                    selectionFingerprint = Convert.ToHexString(
+                        sha256.ComputeHash(Encoding.UTF8.GetBytes(material)));
                 return count;
             }
             catch (Exception ex)
             {
-                WriteLog("AskSelectionCount failed: " + ex.Message);
+                WriteLog("AskSelectionSnapshot failed: " + ex.Message);
+                selectionFingerprint = string.Empty;
                 return -1;
             }
+        }
+
+        private static string SelectedObjectIdentity(object selected, int index)
+        {
+            if (selected == null) return "null@" + index;
+            Type type = selected.GetType();
+            foreach (string propertyName in new[] { "Tag", "JournalIdentifier", "Name" })
+            {
+                try
+                {
+                    PropertyInfo property = type.GetProperty(propertyName);
+                    object value = property?.GetValue(selected);
+                    string text = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
+                    if (!string.IsNullOrWhiteSpace(text))
+                        return (type.FullName ?? type.Name) + "#" + propertyName + "=" + text;
+                }
+                catch
+                {
+                    // Identity probing is best effort; NX Tag is used when available.
+                }
+            }
+            return (type.FullName ?? type.Name) + "#index=" + index;
         }
 
         private static object AskSelectedObject(int index)

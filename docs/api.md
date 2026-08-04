@@ -278,3 +278,21 @@ Bridge получает resolved execution request, а не исходное int
 6. обновления этого документа.
 
 Не создавайте сторонний writer только по примеру JSON: сначала реализуйте atomic publication, expiry, context expectations и обработку неопределённого результата.
+
+## Runtime hardening limits
+
+Protocol schema 3 now rejects unknown `action` values fail-closed. Supported actions are
+`execute_command`, `switch_module`, `set_selection_filter`, and `probe_command`.
+
+The transport enforces:
+
+- request payload up to 64 KiB;
+- at most 256 pending request files;
+- at most 8 requests admitted per Bridge poll;
+- text fields up to 1024 characters;
+- exact schema checks for context and result reads;
+- typed read states: `NotFound`, `Corrupt`, `SchemaMismatch`, `AccessDenied`, and `IoError`;
+- `expected_selection_fingerprint` verification immediately before NX invocation.
+
+These controls reduce accidental and malformed input. They do not authenticate the local sender;
+session capability/HMAC or a protected named pipe remains the next security phase.

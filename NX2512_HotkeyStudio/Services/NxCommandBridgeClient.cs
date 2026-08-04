@@ -13,10 +13,16 @@ namespace NX2512_HotkeyStudio.Services
 
     public static class NxCommandBridgeClient
     {
-        public static string BridgeRoot => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "NXKeys",
-            "bridge");
+        public static string BridgeRoot
+        {
+            get
+            {
+                string overrideRoot = Environment.GetEnvironmentVariable("NXKEYS_BRIDGE_ROOT");
+                return string.IsNullOrWhiteSpace(overrideRoot)
+                    ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys", "bridge")
+                    : Path.GetFullPath(overrideRoot);
+            }
+        }
 
         public static string PendingDirectory => Path.Combine(BridgeRoot, "pending");
         public static string ProcessingDirectory => Path.Combine(BridgeRoot, "processing");
@@ -74,26 +80,54 @@ namespace NX2512_HotkeyStudio.Services
             return request;
         }
 
-        public static NxBridgeContext ReadContext()
+        public static NxTransportReadResult<NxBridgeContext> ReadContextDetailed()
         {
+            if (!File.Exists(ContextPath))
+                return NxTransportReadResult<NxBridgeContext>.Failure(
+                    NxTransportReadStatus.NotFound, "Bridge context file was not found.");
             try
             {
-                if (!File.Exists(ContextPath)) return null;
                 using (FileStream stream = new FileStream(ContextPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 {
-                    return JsonSerializer.Deserialize<NxBridgeContext>(stream, NxProtocolJson.ReadOptions);
+                    NxBridgeContext context = JsonSerializer.Deserialize<NxBridgeContext>(stream, NxProtocolJson.ReadOptions);
+                    if (context == null)
+                        return NxTransportReadResult<NxBridgeContext>.Failure(
+                            NxTransportReadStatus.Corrupt, "Bridge context JSON is empty.");
+                    if (context.SchemaVersion != NxProtocolConstants.SchemaVersion)
+                        return NxTransportReadResult<NxBridgeContext>.Failure(
+                            NxTransportReadStatus.SchemaMismatch,
+                            "Unsupported Bridge context schema: " + context.SchemaVersion + ".");
+                    return NxTransportReadResult<NxBridgeContext>.Success(context);
                 }
             }
-            catch
+            catch (JsonException exception)
             {
-                return null;
+                return NxTransportReadResult<NxBridgeContext>.Failure(
+                    NxTransportReadStatus.Corrupt, exception.Message);
+            }
+            catch (UnauthorizedAccessException exception)
+            {
+                return NxTransportReadResult<NxBridgeContext>.Failure(
+                    NxTransportReadStatus.AccessDenied, exception.Message);
+            }
+            catch (IOException exception)
+            {
+                return NxTransportReadResult<NxBridgeContext>.Failure(
+                    NxTransportReadStatus.IoError, exception.Message);
             }
         }
 
-        public static bool TryReadResult(string requestId, out NxBridgeResult result)
+        public static NxBridgeContext ReadContext()
         {
-            result = null;
-            if (string.IsNullOrWhiteSpace(requestId)) return false;
+            NxTransportReadResult<NxBridgeContext> read = ReadContextDetailed();
+            return read.IsSuccess ? read.Value : null;
+        }
+
+        public static NxTransportReadResult<NxBridgeResult> ReadResultDetailed(string requestId)
+        {
+            if (string.IsNullOrWhiteSpace(requestId))
+                return NxTransportReadResult<NxBridgeResult>.Failure(
+                    NxTransportReadStatus.InvalidRequest, "requestId is required.");
             foreach (string directory in new[] { CompletedDirectory, FailedDirectory })
             {
                 string path = Path.Combine(directory, requestId + ".result.json");
@@ -102,16 +136,42 @@ namespace NX2512_HotkeyStudio.Services
                 {
                     using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                     {
-                        result = JsonSerializer.Deserialize<NxBridgeResult>(stream, NxProtocolJson.ReadOptions);
+                        NxBridgeResult result = JsonSerializer.Deserialize<NxBridgeResult>(stream, NxProtocolJson.ReadOptions);
+                        if (result == null)
+                            return NxTransportReadResult<NxBridgeResult>.Failure(
+                                NxTransportReadStatus.Corrupt, "Bridge result JSON is empty.");
+                        if (result.SchemaVersion != NxProtocolConstants.SchemaVersion)
+                            return NxTransportReadResult<NxBridgeResult>.Failure(
+                                NxTransportReadStatus.SchemaMismatch,
+                                "Unsupported Bridge result schema: " + result.SchemaVersion + ".");
+                        return NxTransportReadResult<NxBridgeResult>.Success(result);
                     }
-                    return result != null;
                 }
-                catch
+                catch (JsonException exception)
                 {
-                    return false;
+                    return NxTransportReadResult<NxBridgeResult>.Failure(
+                        NxTransportReadStatus.Corrupt, exception.Message);
+                }
+                catch (UnauthorizedAccessException exception)
+                {
+                    return NxTransportReadResult<NxBridgeResult>.Failure(
+                        NxTransportReadStatus.AccessDenied, exception.Message);
+                }
+                catch (IOException exception)
+                {
+                    return NxTransportReadResult<NxBridgeResult>.Failure(
+                        NxTransportReadStatus.IoError, exception.Message);
                 }
             }
-            return false;
+            return NxTransportReadResult<NxBridgeResult>.Failure(
+                NxTransportReadStatus.NotFound, "Bridge result file was not found.");
+        }
+
+        public static bool TryReadResult(string requestId, out NxBridgeResult result)
+        {
+            NxTransportReadResult<NxBridgeResult> read = ReadResultDetailed(requestId);
+            result = read.IsSuccess ? read.Value : null;
+            return read.IsSuccess;
         }
 
         public static string FindRequestFile(string requestId)
@@ -127,9 +187,11 @@ namespace NX2512_HotkeyStudio.Services
 
         private static NxBridgeContext RequireFreshContext()
         {
-            NxBridgeContext context = ReadContext();
-            if (context == null)
-                throw new InvalidOperationException("NXKeys Bridge не загружен: в NX нажмите Start NXKeys Bridge, затем повторите команду.");
+            NxTransportReadResult<NxBridgeContext> read = ReadContextDetailed();
+            if (!read.IsSuccess)
+                throw new InvalidOperationException(
+                    "NXKeys Bridge context недоступен [" + read.Status + "]: " + read.Message);
+            NxBridgeContext context = read.Value;
             if (!context.IsFresh)
                 throw new InvalidOperationException("NXKeys Bridge context устарел: в NX нажмите Start NXKeys Bridge. Возраст context: " + ContextAgeText(context) + ".");
             if (!string.Equals(context.Status, "running", StringComparison.OrdinalIgnoreCase))
@@ -168,6 +230,7 @@ namespace NX2512_HotkeyStudio.Services
                 SourceProcessId = Process.GetCurrentProcess().Id,
                 ExpectedContextRevision = context?.Revision ?? 0,
                 ExpectedSelectionCount = context?.SelectionCount ?? -1,
+                ExpectedSelectionFingerprint = context?.SelectionFingerprint ?? string.Empty,
                 ExpectedApplicationId = context?.ApplicationId ?? string.Empty
             };
         }
@@ -179,9 +242,17 @@ namespace NX2512_HotkeyStudio.Services
             Directory.CreateDirectory(CompletedDirectory);
             Directory.CreateDirectory(FailedDirectory);
 
+            int pendingCount = Directory.GetFiles(PendingDirectory, "*.request.json").Length;
+            if (pendingCount >= NxProtocolConstants.MaxPendingRequestCount)
+                throw new InvalidOperationException(
+                    "NXKeys Bridge queue limit reached: " + pendingCount + ".");
+
             string finalPath = Path.Combine(PendingDirectory, request.RequestId + ".request.json");
             string temporaryPath = finalPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
             byte[] payload = JsonSerializer.SerializeToUtf8Bytes(request, NxProtocolJson.WriteOptions);
+            if (payload.Length > NxProtocolConstants.MaxRequestPayloadBytes)
+                throw new InvalidOperationException(
+                    "NXKeys request payload exceeds " + NxProtocolConstants.MaxRequestPayloadBytes + " bytes.");
             try
             {
                 using (FileStream stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))

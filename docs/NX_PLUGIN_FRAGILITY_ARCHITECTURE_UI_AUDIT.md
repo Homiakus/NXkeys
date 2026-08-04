@@ -529,3 +529,17 @@ IPC trust boundary
 ```
 
 После закрытия P0/P1 система сможет перейти от функционального инженерного прототипа к контролируемому production-инструменту для NX 2512.
+
+## 17. Статус реализации фазы 0
+
+Реализованы первичные меры снижения хрупкости:
+
+- `NXK-FR-002` — неизвестные protocol actions теперь отклоняются fail-closed;
+- `NXK-FR-003` — добавлен selection fingerprint в context revision и повторную проверку Bridge;
+- `NXK-FR-004` — загрузка неподдерживаемой schema отклоняется до migration/defaults;
+- `NXK-FR-005` — профиль сохраняется через `AtomicFileWriter`;
+- частично `NXK-FR-008` — введены лимиты payload, pending queue и requests per poll;
+- `NXK-FR-010` — добавлены typed transport read results.
+
+`NXK-FR-001` и `NXK-FR-009` остаются открытыми: файловый IPC пока не аутентифицирует sender,
+а Bridge ещё не проверяет подписанный allowlist установленного профиля. Это следующий обязательный этап.
