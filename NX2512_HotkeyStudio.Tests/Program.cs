@@ -372,15 +372,15 @@ internal static class Program
         };
 
         MnemonicPathGenerator.Apply(new[] { module });
-        Assert(PathOf(commands, "UG_SKETCH_LINE").SequenceEqual(new[] { "C", "G", "L" }),
-            "Line must use Create -> Geometry -> Line.");
-        Assert(PathOf(commands, "UG_SKETCH_LINE_BY_TWO_POINTS").SequenceEqual(new[] { "C", "G", "V", "L", "2" }),
+        Assert(PathOf(commands, "UG_SKETCH_LINE").SequenceEqual(new[] { "C", "L" }),
+            "Line must use Create -> Line.");
+        Assert(PathOf(commands, "UG_SKETCH_LINE_BY_TWO_POINTS").SequenceEqual(new[] { "C", "V", "L", "2" }),
             "Line variants must live under the explicit variant branch.");
-        Assert(PathOf(commands, "UG_SKETCH_RECTANGLE").SequenceEqual(new[] { "C", "G", "R" }),
-            "Rectangle must use Create -> Geometry -> Rectangle.");
-        Assert(PathOf(commands, "UG_SKETCH_TRIM").SequenceEqual(new[] { "E", "G", "T" }),
-            "Trim must use Edit -> Geometry -> Trim.");
-        Assert(PathOf(commands, "UG_MODELING_CHAMFER_FEATURE").SequenceEqual(new[] { "E", "G", "H" }),
+        Assert(PathOf(commands, "UG_SKETCH_RECTANGLE").SequenceEqual(new[] { "C", "R" }),
+            "Rectangle must use Create -> Rectangle.");
+        Assert(PathOf(commands, "UG_SKETCH_TRIM").SequenceEqual(new[] { "E", "T" }),
+            "Trim must use Edit -> Trim.");
+        Assert(PathOf(commands, "UG_MODELING_CHAMFER_FEATURE").SequenceEqual(new[] { "E", "H" }),
             "The shared NX chamfer BUTTON ID must keep Sketch semantics in Sketch context.");
         Assert(PathOf(commands, "UG_SKETCH_STUDIO_SPLINE").Take(2).SequenceEqual(new[] { "C", "G" }),
             "Unknown Sketch geometry must remain in the Create -> Geometry family.");

@@ -6,6 +6,7 @@ namespace NXOpen
     {
         public int GetNumSelectedObjects() => 0;
         public TaggedObject GetSelectedTaggedObject(int index) => null;
+        public TaggedObject GetSelectedObject(int index) => null;
         public void ClearGlobalSelectionList() { }
         public void ResetEnabledGlobalFilterMembers() { }
         public void SetEnabledGlobalFilterMembers(Select.FilterMember[] filterMembers) { }

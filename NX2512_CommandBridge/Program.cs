@@ -874,12 +874,19 @@ namespace NX2512_CommandBridge
             object manager = theUI?.SelectionManager;
             if (manager == null) return null;
             Type type = manager.GetType();
-            foreach (string methodName in new[] { "GetSelectedTaggedObject", "GetSelectedObject" })
+            foreach (string methodName in new[] { "GetSelectedObject", "GetSelectedTaggedObject" })
             {
-                var method = type.GetMethod(methodName, new[] { typeof(int) });
-                if (method == null) continue;
-                try { return method.Invoke(manager, new object[] { index }); }
-                catch (TargetInvocationException ex) { throw ex.InnerException ?? ex; }
+                try
+                {
+                    var method = type.GetMethod(methodName, new[] { typeof(int) });
+                    if (method == null) continue;
+                    return method.Invoke(manager, new object[] { index });
+                }
+                catch (Exception ex)
+                {
+                    Exception targetEx = (ex is TargetInvocationException tie) ? (tie.InnerException ?? tie) : ex;
+                    WriteLog("Selection object probe failed for method " + methodName + "(" + index + "): " + targetEx.Message);
+                }
             }
             return null;
         }

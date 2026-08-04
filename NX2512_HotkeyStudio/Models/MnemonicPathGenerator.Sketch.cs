@@ -138,16 +138,32 @@ namespace NX2512_HotkeyStudio.Models
             IDictionary<string, ModuleCommand> used)
         {
             List<string> preferred = NormalizePath(requested).ToList();
-            if (preferred.Count >= 3 && preferred.Count <= 5 && TryReserveSketch(preferred, command, used))
+            if (preferred.Count >= 1 && preferred.Count <= 5 && TryReserveSketch(preferred, command, used))
                 return preferred;
 
             IReadOnlyList<string> generated = GenerateSketchCandidate(command);
+            if (generated.Count == 2)
+            {
+                string root2 = generated[0];
+                string primaryLeaf2 = generated[1];
+                var letters2 = new[] { primaryLeaf2 }
+                    .Concat(CandidateLetters(command))
+                    .Where(v => !(root2 == "C" && v == "V"))
+                    .Distinct(StringComparer.OrdinalIgnoreCase);
+
+                foreach (string leaf in letters2)
+                {
+                    var cand = new List<string> { root2, leaf };
+                    if (TryReserveSketch(cand, command, used)) return cand;
+                }
+            }
+
             string root = generated.ElementAtOrDefault(0) ?? "C";
             string area = generated.ElementAtOrDefault(1) ?? "G";
             string requestedLeaf = generated.ElementAtOrDefault(2) ?? "X";
             var letters = new[] { requestedLeaf }
                 .Concat(CandidateLetters(command))
-                .Where(value => !(root == "C" && area == "G" && value == "V"))
+                .Where(value => !(root == "C" && (area == "V" || value == "V")))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToArray();
 
@@ -191,23 +207,25 @@ namespace NX2512_HotkeyStudio.Models
                 SearchAliases = search ?? Array.Empty<string>()
             };
 
-            Add("UG_SKETCH_LINE", "C G L", "линия");
-            Add("UG_SKETCH_RECTANGLE", "C G R", "прямоугольник");
-            Add("UG_SKETCH_CIRCLE", "C G C", "окружность");
-            Add("UG_SKETCH_ARC", "C G A", "дуга");
-            Add("UG_SKETCH_TRIM", "E G T", "обрезать");
-            Add("UG_SKETCH_EXTEND", "E G E", "удлинить");
-            Add("UG_SKETCH_OFFSET_CURVE", "T G O", "смещение кривой");
+            Add("UG_SKETCH_LINE", "C L", "линия");
+            Add("UG_SKETCH_RECTANGLE", "C R", "прямоугольник");
+            Add("UG_SKETCH_CIRCLE", "C C", "окружность");
+            Add("UG_SKETCH_ARC", "C A", "дуга");
+            Add("UG_SKETCH_TRIM", "E T", "обрезать");
+            Add("UG_SKETCH_EXTEND", "E E", "удлинить");
+            Add("UG_SKETCH_OFFSET_CURVE", "T O", "смещение кривой");
 
-            Add("UG_SKETCH_LINE_BY_TWO_POINTS", "C G V L 2", "линия по двум точкам");
-            Add("UG_SKETCH_LINE_FROM_MIDPOINT", "C G V L M", "линия от середины");
-            Add("UG_SKETCH_RECTANGLE_BY_TWO_POINTS", "C G V R 2", "прямоугольник по двум точкам");
-            Add("UG_SKETCH_RECTANGLE_FROM_CENTER", "C G V R C", "прямоугольник из центра");
-            Add("UG_SKETCH_RECTANGLE_BY_THREE_POINTS", "C G V R 3", "прямоугольник по трём точкам");
-            Add("UG_SKETCH_CIRCLE_FROM_CENTER", "C G V C C", "окружность из центра");
-            Add("UG_SKETCH_CIRCLE_BY_THREE_POINTS", "C G V C 3", "окружность по трём точкам");
-            Add("UG_SKETCH_ARC_BY_THREE_POINTS", "C G V A 3", "дуга по трём точкам");
-            Add("UG_SKETCH_ARC_FROM_CENTER", "C G V A C", "дуга из центра");
+            Add("UG_SKETCH_FINISH", "F S", "закончить эскиз", "выйти из эскиза");
+
+            Add("UG_SKETCH_LINE_BY_TWO_POINTS", "C V L 2", "линия по двум точкам");
+            Add("UG_SKETCH_LINE_FROM_MIDPOINT", "C V L M", "линия от середины");
+            Add("UG_SKETCH_RECTANGLE_BY_TWO_POINTS", "C V R 2", "прямоугольник по двум точкам");
+            Add("UG_SKETCH_RECTANGLE_FROM_CENTER", "C V R C", "прямоугольник из центра");
+            Add("UG_SKETCH_RECTANGLE_BY_THREE_POINTS", "C V R 3", "прямоугольник по трём точкам");
+            Add("UG_SKETCH_CIRCLE_FROM_CENTER", "C V C C", "окружность из центра");
+            Add("UG_SKETCH_CIRCLE_BY_THREE_POINTS", "C V C 3", "окружность по трём точкам");
+            Add("UG_SKETCH_ARC_BY_THREE_POINTS", "C V A 3", "дуга по трём точкам");
+            Add("UG_SKETCH_ARC_FROM_CENTER", "C V A C", "дуга из центра");
 
             Add("UG_SKETCH_RAPID_DIMENSION", "A D R", "быстрый размер");
             Add("UG_SKETCH_LINEAR_DIMENSION", "A D L", "линейный размер");
@@ -220,8 +238,8 @@ namespace NX2512_HotkeyStudio.Models
             Add("UG_SKETCH_CHECKER", "I S C", "проверка эскиза");
 
             // NX exposes Sketch fillet/chamfer through shared Modeling BUTTON IDs.
-            Add("UG_MODELING_BLEND_FEATURE", "E G F", "скругление эскиза");
-            Add("UG_MODELING_CHAMFER_FEATURE", "E G H", "фаска эскиза");
+            Add("UG_MODELING_BLEND_FEATURE", "E F", "скругление эскиза");
+            Add("UG_MODELING_CHAMFER_FEATURE", "E H", "фаска эскиза");
             return map;
         }
     }

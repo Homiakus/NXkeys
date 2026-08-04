@@ -329,22 +329,23 @@ function conflicts(candidate, used) {
 }
 
 const SKETCH_KNOWN_PATHS = new Map([
-  ['UG_SKETCH_LINE', ['C', 'G', 'L']],
-  ['UG_SKETCH_RECTANGLE', ['C', 'G', 'R']],
-  ['UG_SKETCH_CIRCLE', ['C', 'G', 'C']],
-  ['UG_SKETCH_ARC', ['C', 'G', 'A']],
-  ['UG_SKETCH_TRIM', ['E', 'G', 'T']],
-  ['UG_SKETCH_EXTEND', ['E', 'G', 'E']],
-  ['UG_SKETCH_OFFSET_CURVE', ['T', 'G', 'O']],
-  ['UG_SKETCH_LINE_BY_TWO_POINTS', ['C', 'G', 'V', 'L', '2']],
-  ['UG_SKETCH_LINE_FROM_MIDPOINT', ['C', 'G', 'V', 'L', 'M']],
-  ['UG_SKETCH_RECTANGLE_BY_TWO_POINTS', ['C', 'G', 'V', 'R', '2']],
-  ['UG_SKETCH_RECTANGLE_FROM_CENTER', ['C', 'G', 'V', 'R', 'C']],
-  ['UG_SKETCH_RECTANGLE_BY_THREE_POINTS', ['C', 'G', 'V', 'R', '3']],
-  ['UG_SKETCH_CIRCLE_FROM_CENTER', ['C', 'G', 'V', 'C', 'C']],
-  ['UG_SKETCH_CIRCLE_BY_THREE_POINTS', ['C', 'G', 'V', 'C', '3']],
-  ['UG_SKETCH_ARC_BY_THREE_POINTS', ['C', 'G', 'V', 'A', '3']],
-  ['UG_SKETCH_ARC_FROM_CENTER', ['C', 'G', 'V', 'A', 'C']],
+  ['UG_SKETCH_LINE', ['C', 'L']],
+  ['UG_SKETCH_RECTANGLE', ['C', 'R']],
+  ['UG_SKETCH_CIRCLE', ['C', 'C']],
+  ['UG_SKETCH_ARC', ['C', 'A']],
+  ['UG_SKETCH_TRIM', ['E', 'T']],
+  ['UG_SKETCH_EXTEND', ['E', 'E']],
+  ['UG_SKETCH_OFFSET_CURVE', ['T', 'O']],
+  ['UG_SKETCH_FINISH', ['F', 'S']],
+  ['UG_SKETCH_LINE_BY_TWO_POINTS', ['C', 'V', 'L', '2']],
+  ['UG_SKETCH_LINE_FROM_MIDPOINT', ['C', 'V', 'L', 'M']],
+  ['UG_SKETCH_RECTANGLE_BY_TWO_POINTS', ['C', 'V', 'R', '2']],
+  ['UG_SKETCH_RECTANGLE_FROM_CENTER', ['C', 'V', 'R', 'C']],
+  ['UG_SKETCH_RECTANGLE_BY_THREE_POINTS', ['C', 'V', 'R', '3']],
+  ['UG_SKETCH_CIRCLE_FROM_CENTER', ['C', 'V', 'C', 'C']],
+  ['UG_SKETCH_CIRCLE_BY_THREE_POINTS', ['C', 'V', 'C', '3']],
+  ['UG_SKETCH_ARC_BY_THREE_POINTS', ['C', 'V', 'A', '3']],
+  ['UG_SKETCH_ARC_FROM_CENTER', ['C', 'V', 'A', 'C']],
   ['UG_SKETCH_RAPID_DIMENSION', ['A', 'D', 'R']],
   ['UG_SKETCH_LINEAR_DIMENSION', ['A', 'D', 'L']],
   ['UG_SKETCH_COINCIDENT_CONSTRAINT', ['C', 'K', 'C']],
@@ -354,8 +355,8 @@ const SKETCH_KNOWN_PATHS = new Map([
   ['UG_SKETCH_HORIZONTAL_CONSTRAINT', ['C', 'K', 'H']],
   ['UG_SKETCH_VERTICAL_CONSTRAINT', ['C', 'K', 'V']],
   ['UG_SKETCH_CHECKER', ['I', 'S', 'C']],
-  ['UG_MODELING_BLEND_FEATURE', ['E', 'G', 'F']],
-  ['UG_MODELING_CHAMFER_FEATURE', ['E', 'G', 'H']]
+  ['UG_MODELING_BLEND_FEATURE', ['E', 'F']],
+  ['UG_MODELING_CHAMFER_FEATURE', ['E', 'H']]
 ]);
 
 function sketchText(command) {
@@ -380,29 +381,42 @@ function sketchPreferredPath(command) {
   if (SKETCH_KNOWN_PATHS.has(id)) return SKETCH_KNOWN_PATHS.get(id);
   const text = sketchText(command);
   let family;
+  if (/FINISH|END SKETCH/.test(text)) return ['F', 'S'];
   if (/DIMENSION|RADIUS DIM|DIAMETER DIM/.test(text)) family = ['A', 'D'];
   else if (/CONSTRAINT|COINCIDENT|TANGENT|PARALLEL|PERPENDICULAR|HORIZONTAL|VERTICAL|\bFIX\b/.test(text)) family = ['C', 'K'];
-  else if (/TRIM|EXTEND|FILLET|BLEND|CHAMFER|BREAK|JOIN|CORNER/.test(text)) family = ['E', 'G'];
-  else if (/OFFSET|MIRROR|MOVE|ROTATE|SCALE|PATTERN|COPY/.test(text)) family = ['T', 'G'];
-  else if (/DELETE|REMOVE/.test(text)) family = ['X', 'G'];
+  else if (/TRIM|EXTEND|FILLET|BLEND|CHAMFER|BREAK|JOIN|CORNER/.test(text)) family = ['E'];
+  else if (/OFFSET|MIRROR|MOVE|ROTATE|SCALE|PATTERN|COPY/.test(text)) family = ['T'];
+  else if (/DELETE|REMOVE/.test(text)) family = ['X'];
   else if (/CHECK|VALIDATE|INSPECT|ANALYSIS|SOLVE/.test(text)) family = ['I', 'S'];
   else if (/SETTING|PREFERENCE|MANAGE/.test(text)) family = ['M', 'S'];
-  else family = ['C', 'G'];
+  else family = ['C'];
   return [...family, sketchLeaf(text, command)];
 }
 
 function reserveSketchPath(preferred, command, used) {
   const requested = normalizePath(preferred);
-  if (requested.length >= 3 && requested.length <= 5 && !conflicts(requested, used)) {
+  if (requested.length >= 1 && requested.length <= 5 && !conflicts(requested, used)) {
     used.add(pathKey(requested));
     return requested;
   }
   const generated = sketchPreferredPath(command);
+  if (generated.length === 2) {
+    const root2 = generated[0];
+    const primaryLeaf2 = generated[1];
+    const letters2 = [primaryLeaf2, ...candidateLetters(command?.command?.name ?? command?.fallback ?? 'Sketch')]
+      .filter(v => !(root2 === 'C' && v === 'V'))
+      .filter((v, i, arr) => arr.indexOf(v) === i);
+    for (const leaf of letters2) {
+      const cand = [root2, leaf];
+      if (!conflicts(cand, used)) { used.add(pathKey(cand)); return cand; }
+    }
+  }
+
   const root = generated[0] ?? 'C';
   const area = generated[1] ?? 'G';
   const first = generated[2] ?? 'X';
   const letters = [first, ...candidateLetters(command?.command?.name ?? command?.fallback ?? 'Sketch')]
-    .filter(value => !(root === 'C' && area === 'G' && value === 'V'))
+    .filter(value => !(root === 'C' && (area === 'V' || value === 'V')))
     .filter((value, index, array) => array.indexOf(value) === index);
   for (const leaf of letters) {
     const candidate = [root, area, leaf];

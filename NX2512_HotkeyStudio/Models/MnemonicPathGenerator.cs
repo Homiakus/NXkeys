@@ -478,15 +478,20 @@ namespace NX2512_HotkeyStudio.Models
             Add("UG_SEL_SELECT_ALL", "S A");
             Add("UG_SEL_DESELECT_ALL", "S N");
 
-            Add("UG_ASSY_WAVE_LINKER", "M W L");
-            Add("UG_MODELING_WAVE_LINKER", "M W L");
+            Add("UG_SC_INFERRED_CURVE_SELECTION", "S C S", new[] { "S S" }, "одиночная кривая");
+            Add("UG_ROUTE_CONNECTED_CURVES", "S C C", new[] { "S K" }, "связанные кривые");
+            Add("UG_SC_STOP_AT_INTERSECTION", "S C I", new[] { "S I" }, "останавливать на пересечении");
+
+            Add("UG_ASSY_WAVE_LINKER", "M W L", new[] { "C F G" }, "wave linker");
+            Add("UG_MODELING_WAVE_LINKER", "M W L", new[] { "C F G" }, "wave linker");
             Add("UG_ASSY_WAVE_INTERFACE_LINKER", "M W I");
+            Add("UG_ASSY_WAVE_PART_NAVIGATOR", "M W N");
             Add("UG_ASSY_WAVE_ASSOC_MANAGER", "M W A");
             Add("UG_ASSY_WAVE_GRAPH_BROWSER", "M W G");
             Add("UG_ASSY_WAVE_LOAD_DATA", "M W D");
             Add("UG_LAYER_SETTINGS", "M L S");
             Add("UG_LAYER_VIEW", "M L V");
-            Add("UG_LAYER_CATEGORY", "M L A");
+            Add("UG_LAYER_CATEGORY", "M L K", new[] { "M L A" });
             Add("UG_LAYER_COPY", "M L C");
             Add("UG_LAYER_MOVE", "M L M");
             Add("UG_INFO_OTHER_LAYERS", "I L I");

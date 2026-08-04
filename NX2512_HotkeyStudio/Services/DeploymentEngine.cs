@@ -232,7 +232,9 @@ namespace NX2512_HotkeyStudio.Services
             {
                 string name = Path.GetFileName(source);
                 if (!IsRuntimeArtifact(name) || string.Equals(name, "package-manifest.json", StringComparison.OrdinalIgnoreCase)) continue;
-                bool isBridge = name.StartsWith("NX2512_CommandBridge", StringComparison.OrdinalIgnoreCase);
+                bool isBridge = name.StartsWith("NX2512_CommandBridge", StringComparison.OrdinalIgnoreCase) ||
+                    name.StartsWith("NXKeys.BridgeCore", StringComparison.OrdinalIgnoreCase) ||
+                    name.StartsWith("NXKeys.Protocol", StringComparison.OrdinalIgnoreCase);
                 if (bridgeOnly != isBridge) continue;
                 AddOrReplace(files, Path.Combine(destinationDirectory, name), File.ReadAllBytes(source),
                     name.Equals("NX2512_HotkeyStudio.exe", StringComparison.OrdinalIgnoreCase) ||

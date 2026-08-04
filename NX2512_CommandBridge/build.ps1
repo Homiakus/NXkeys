@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [string]$NxRoot,
     [string]$NxOpenDll,
@@ -107,7 +107,9 @@ if (-not (Test-Path -LiteralPath $output -PathType Container)) {
     $output = Join-Path $ProjectDir 'bin\x64\Release\net8.0-windows'
 }
 Get-ChildItem -LiteralPath $output -File | Where-Object {
-    $_.Name -like 'NX2512_CommandBridge*'
+    $_.Name -like 'NX2512_CommandBridge*' -or
+    $_.Name -like 'NXKeys.BridgeCore*' -or
+    $_.Name -like 'NXKeys.Protocol*'
 } | ForEach-Object {
     Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $DistDir $_.Name) -Force
 }

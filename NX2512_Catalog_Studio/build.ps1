@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [string]$NxRoot,
     [string]$NxOpenDll,
@@ -102,6 +102,9 @@ Write-Host '==> Сборка NX2512_CatalogStudio .NET 8 x64' -ForegroundColor C
 if ($LASTEXITCODE -ne 0) { throw "Сборка завершилась с кодом $LASTEXITCODE." }
 
 $output = Join-Path $ProjectDir 'bin\Release\net8.0-windows'
+if (-not (Test-Path -LiteralPath $output -PathType Container)) {
+    $output = Join-Path $ProjectDir 'bin\x64\Release\net8.0-windows'
+}
 Get-ChildItem -LiteralPath $output -File | Where-Object {
     $_.Name -like 'NX2512_CatalogStudio*'
 } | ForEach-Object {

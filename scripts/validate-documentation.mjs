@@ -105,8 +105,8 @@ requireText('docs/README.md', 'CHEATSHEET.md', 'cheat sheet entry');
 requireText('DEVELOPMENT.md', 'NX2512_HotkeyStudio.Tests', 'HotkeyStudio regression test command');
 requireText('CONTRIBUTING.md', 'MnemonicPathGenerator.Sketch.cs', 'Sketch change matrix entry');
 requireText('CONTRIBUTING.md', 'пяти токенов', 'Sketch five-token exception');
-requireText('docs/SKETCH_INTENT_LANGUAGE.md', 'C → G → V', 'Sketch variant branch');
-requireText('docs/CHEATSHEET.md', 'C → G → L', 'Sketch line path');
+requireText('docs/SKETCH_INTENT_LANGUAGE.md', 'C → V', 'Sketch variant branch');
+requireText('docs/CHEATSHEET.md', 'C → L', 'Sketch line path');
 requireText('docs/CHEATSHEET.md', 'validate → health → запуск NX → bridge-status', 'installation verification sequence');
 
 const policySource = read('scripts/sequence-policy.mjs');
@@ -126,7 +126,7 @@ if (!policyMatch) {
 }
 
 const sketchDoc = read('docs/SKETCH_INTENT_LANGUAGE.md');
-for (const pathToken of ['C → G → L', 'C → G → R', 'C → G → C', 'C → G → A', 'E → G → T', 'E → G → E', 'T → G → O']) {
+for (const pathToken of ['C → L', 'C → R', 'C → C', 'C → A', 'E → T', 'E → E', 'T → O', 'F → S']) {
   if (!sketchDoc.includes(pathToken)) {
     errors.push(`docs/SKETCH_INTENT_LANGUAGE.md: missing canonical path ${pathToken}`);
   }

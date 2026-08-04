@@ -34,7 +34,8 @@ export const MODULE_SWITCH_PATHS = {
   routing: ['G', 'R'],
   mold: ['G', 'O'],
   reuse: ['G', 'L'],
-  inspect_view: ['G', 'V']
+  inspect_view: ['G', 'V'],
+  sketch: ['G', 'S']
 };
 
 export const SWITCHABLE_MODULE_IDS = Object.keys(MODULE_SWITCH_PATHS);
