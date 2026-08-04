@@ -89,7 +89,7 @@ jobs:
             }
           }
           foreach ($required in @(
-            'NXKEYS_SESSION_SECRET',
+            'NxBridgeSecurityEnvironment.SessionSecretVariable',
             'RandomNumberGenerator.GetBytes(32)',
             'ApplySecurityEnvironment'
           )) {
