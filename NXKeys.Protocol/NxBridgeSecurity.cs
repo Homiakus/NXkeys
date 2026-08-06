@@ -365,6 +365,22 @@ namespace NXKeys.Protocol
                 case "UG_APP_ROUTING": return "r";
                 case "UG_APP_MOLDWIZARD": return "l";
                 case "UG_APP_GATEWAY": return "g";
+
+                // V8 profile availability.applications uses short app names
+                // (e.g. "modeling"), not UG_APP_* IDs.  Alias them to the same
+                // prefixes so FromProfileJson can honor availability for
+                // application-specific operations (modeling.revolve → v8_m).
+                // Labels are UPPERCASE because the switch input is ToUpperInvariant().
+                case "MODELING": return "m";
+                case "SKETCH": return "s";
+                case "ASSEMBLIES": return "a";
+                case "DRAFTING": return "d";
+                case "PMI": return "p";
+                case "SURFACE": return "u";
+                case "SHEETMETAL": return "h";
+                case "MANUFACTURING": return "n";
+                case "SIMULATION": return "i";
+                case "ROUTING": return "r";
                 default: return "m"; // fallback: modeling
             }
         }
