@@ -729,21 +729,34 @@ namespace NX2512_HotkeyStudio.Models
 
         /// <summary>
         /// Determines the target v8 module prefix for an operation.
-        /// Leader-path operations use the first leader token.
-        /// Direct / workspace_key operations use availability.applications[0].
-        /// Falls back to "M" (modeling) when no application hint is available.
+        /// Priority: availability.applications[0] (when it maps to a known NX app) →
+        /// first leader token (for global/context-free operations) →
+        /// fallback "M" (modeling).
         /// </summary>
         private static string ResolveModulePrefix(OperationContract op)
         {
-            // Leader path → first token is the prefix.
+            string appId = op.Availability?.Applications?.FirstOrDefault() ?? string.Empty;
+
+            // 1. Specific application → mapped module prefix.
+            //    Operations like modeling.revolve have availability ["modeling"]
+            //    which maps to module prefix "M".
+            if (!string.IsNullOrWhiteSpace(appId) &&
+                !string.Equals(appId, "global", StringComparison.OrdinalIgnoreCase) &&
+                NxAppIdToModulePrefix.TryGetValue(appId, out string appPrefix))
+            {
+                return appPrefix;
+            }
+
+            // 2. Global / no specific application → first leader token is the module prefix.
+            //    Operations like global.layer_workspace have leader ["M", "L"]
+            //    where "M" genuinely is the Modeling module prefix.
             if (op.Paths?.Leader != null && op.Paths.Leader.Count >= 1)
                 return op.Paths.Leader[0].ToUpperInvariant();
 
-            // availability.applications[0] → mapped prefix.
-            string appId = op.Availability?.Applications?.FirstOrDefault() ?? string.Empty;
+            // 3. Direct / workspace_key with global availability → try mapped prefix.
             if (!string.IsNullOrWhiteSpace(appId) &&
-                NxAppIdToModulePrefix.TryGetValue(appId, out string prefix))
-                return prefix;
+                NxAppIdToModulePrefix.TryGetValue(appId, out string fallbackPrefix))
+                return fallbackPrefix;
 
             return "M"; // fallback: modeling
         }
