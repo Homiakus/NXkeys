@@ -776,6 +776,19 @@ namespace NX2512_HotkeyStudio.Models
             return "M"; // fallback: modeling
         }
 
+        /// <summary>
+        /// Returns true when the module prefix was resolved from a specific
+        /// application (not from the first leader token).  When true, the
+        /// full leader path should be used as the inner navigation path.
+        /// </summary>
+        private static bool ModulePrefixFromApplication(OperationContract op)
+        {
+            string appId = op.Availability?.Applications?.FirstOrDefault() ?? string.Empty;
+            return !string.IsNullOrWhiteSpace(appId) &&
+                   !string.Equals(appId, "global", StringComparison.OrdinalIgnoreCase) &&
+                   NxAppIdToModulePrefix.ContainsKey(appId);
+        }
+
         private void TranslateV8OperationsToLegacy()
         {
             Modules ??= new List<ModuleConfig>();
@@ -883,7 +896,20 @@ namespace NX2512_HotkeyStudio.Models
 
                     List<string> rawPath;
                     if (hasLeader)
-                        rawPath = leaderPath.Skip(1).Select(t => t.ToUpperInvariant()).Where(t => !string.IsNullOrWhiteSpace(t)).ToList();
+                    {
+                        // When the module prefix came from availability.applications
+                        // (e.g. modeling.revolve → module M), the FULL leader path is
+                        // the navigation within that module (e.g. ["C","R"]).
+                        // When the module prefix came from the first leader token
+                        // (global ops like ["M","L"]), skip the first token.
+                        bool prefixFromApp = ModulePrefixFromApplication(op);
+                        rawPath = (prefixFromApp
+                            ? leaderPath
+                            : leaderPath.Skip(1))
+                            .Select(t => t.ToUpperInvariant())
+                            .Where(t => !string.IsNullOrWhiteSpace(t))
+                            .ToList();
+                    }
                     else if (!string.IsNullOrWhiteSpace(directPath))
                         rawPath = new List<string> { directPath.Trim().ToUpperInvariant() };
                     else
