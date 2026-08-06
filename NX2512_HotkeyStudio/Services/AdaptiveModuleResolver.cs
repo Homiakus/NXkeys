@@ -45,23 +45,11 @@ namespace NX2512_HotkeyStudio.Services
                 ["s"] = "sketch",
                 ["a"] = "assembly",
                 ["d"] = "drafting",
-                ["c"] = "modeling",
-                ["f"] = "modeling",
-                ["t"] = "modeling",
-                ["e"] = "modeling",
-                ["x"] = "modeling",
-                ["g"] = "modeling",
-                ["h"] = "modeling",
-                ["p"] = "modeling",
-                ["r"] = "modeling",
-                ["l"] = "modeling",
-                ["w"] = "modeling",
                 ["sm"] = "sheet_metal",
                 ["sh"] = "sheet_metal",
                 ["n"] = "manufacturing",
                 ["u"] = "surface",
                 ["i"] = "inspect_view",
-                ["q"] = "modeling",
             };
 
         public static AdaptiveModuleResolution Resolve(IEnumerable<ModuleConfig> source, NxBridgeContext context)
