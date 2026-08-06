@@ -169,6 +169,101 @@
       }
     },
     {
+      "operation_id": "global.sketch_direct_dimension",
+      "paths": {
+        "direct": "D"
+      },
+      "command_name": "Sketch — Rapid Dimension",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_RAPID_DIMENSION",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ],
+        "blocked_in_text_input": true
+      },
+      "direct_key_set": "extended"
+    },
+    {
+      "operation_id": "global.sketch_direct_trim",
+      "paths": {
+        "direct": "T"
+      },
+      "command_name": "Sketch — Trim",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_TRIM",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ],
+        "blocked_in_text_input": true
+      },
+      "direct_key_set": "extended"
+    },
+    {
+      "operation_id": "global.sketch_direct_fillet",
+      "paths": {
+        "direct": "F"
+      },
+      "command_name": "Sketch — Fillet",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_FILLET",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ],
+        "blocked_in_text_input": true
+      },
+      "direct_key_set": "extended"
+    },
+    {
+      "operation_id": "global.sketch_direct_extend",
+      "paths": {
+        "direct": "E"
+      },
+      "command_name": "Sketch — Extend",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_EXTEND",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ],
+        "blocked_in_text_input": true
+      },
+      "direct_key_set": "extended"
+    },
+    {
+      "operation_id": "global.sketch_direct_offset",
+      "paths": {
+        "direct": "O"
+      },
+      "command_name": "Sketch — Offset Curve",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_OFFSET_CURVE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ],
+        "blocked_in_text_input": true
+      },
+      "direct_key_set": "extended"
+    },
+    {
       "operation_id": "global.drafting",
       "paths": {
         "direct": "Q"
