@@ -3992,7 +3992,8 @@
       "adapter": {
         "kind": "internal",
         "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "status": "tbd_adapter",
+        "note": "No UG_SKETCH_PROJECT_CURVE exists. UG_CURVE_PROJECT (#5977) is in modeling context. NX_DRAW_SHAPE_PROJECT_CURVE (#723) is in draw_shape. For sketch, the project curve function may be invoked differently — verify locally."
       },
       "availability": {
         "applications": [
@@ -4010,9 +4011,9 @@
       },
       "command_name": "Intersection Curve",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_ADD_QUILT_PLANE_AI_CURVES",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4070,9 +4071,9 @@
       },
       "command_name": "Angular Dimension",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_ANGULAR_DIMENSION",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4090,9 +4091,9 @@
       },
       "command_name": "Radius Dimension",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_RADIAL_DIMENSION",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4110,9 +4111,9 @@
       },
       "command_name": "Diameter Dimension",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_DIAMETER_DIM",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4130,9 +4131,9 @@
       },
       "command_name": "Perimeter Dimension",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_PERIMETER_DIM",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4270,9 +4271,9 @@
       },
       "command_name": "Concentric",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_CONCENTRIC_CONSTRAINT",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4290,9 +4291,10 @@
       },
       "command_name": "Equal",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_EQUAL_LENGTH_CONSTRAINT",
+        "status": "declared_v8",
+        "note": "Equal Length is the primary equal constraint. UG_SKETCH_EQUAL_RADIUS_CONSTRAINT (#679) covers radius equality separately."
       },
       "availability": {
         "applications": [
@@ -4310,9 +4312,9 @@
       },
       "command_name": "Collinear",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_COLLINEAR_CONSTRAINT",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4330,9 +4332,9 @@
       },
       "command_name": "Midpoint",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_MAKE_MIDPOINT_ALIGNED",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4350,9 +4352,9 @@
       },
       "command_name": "Symmetric",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_SYMMETRIC_CONSTRAINT",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4370,9 +4372,9 @@
       },
       "command_name": "Fixed",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_FIXED_CONSTRAINT",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4392,7 +4394,8 @@
       "adapter": {
         "kind": "internal",
         "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "status": "tbd_adapter",
+        "note": "No standalone UG_SKETCH_REMOVE_CONSTRAINT exists. Use UG_SKETCH_CONSTRAINT_NAVIGATOR (#895, 'Sketch Constraints Browser') to manage and remove constraints."
       },
       "availability": {
         "applications": [
@@ -4407,9 +4410,9 @@
       },
       "command_name": "Sketch Navigator",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_CONSTRAINT_NAVIGATOR",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4446,7 +4449,8 @@
       "adapter": {
         "kind": "internal",
         "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "status": "tbd_adapter",
+        "note": "UG_NXPOS_SHOW_DOF (#8442) exists but is for assembly constraints, not sketch. Sketch DOF display may need a different adapter — verify locally."
       },
       "availability": {
         "applications": [
@@ -4466,7 +4470,8 @@
       "adapter": {
         "kind": "internal",
         "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "status": "tbd_adapter",
+        "note": "Covered by UG_SKETCH_CONSTRAINT_NAVIGATOR (#895, 'Sketch Constraints Browser') which shows all constraints/relations. No standalone show-relations button exists."
       },
       "availability": {
         "applications": [
@@ -4486,7 +4491,8 @@
       "adapter": {
         "kind": "internal",
         "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "status": "tbd_adapter",
+        "note": "Covered by UG_SKETCH_CONSTRAINT_NAVIGATOR (#895, 'Sketch Constraints Browser') which includes 'External Reference' in its synonyms. No standalone external-references button exists."
       },
       "availability": {
         "applications": [
@@ -4504,9 +4510,10 @@
       },
       "command_name": "Issues",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_CHECKING",
+        "status": "declared_v8",
+        "note": "UG_SKETCH_CHECKING (#1482, 'Sketch Checking') runs validation to find issues (tiny gaps, errors). This is the closest match for sketch issues/diagnostics."
       },
       "availability": {
         "applications": [
