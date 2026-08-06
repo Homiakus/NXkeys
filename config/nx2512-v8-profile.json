@@ -3902,9 +3902,9 @@
       },
       "command_name": "Sketch Fillet",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_FILLET",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -3919,9 +3919,9 @@
       },
       "command_name": "Sketch Chamfer",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_CHAMFER",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -3936,9 +3936,9 @@
       },
       "command_name": "Mirror Curve",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_MIRROR_PATTERN",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -3953,9 +3953,9 @@
       },
       "command_name": "Move Curve",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_MOVE_CURVES",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -3970,9 +3970,9 @@
       },
       "command_name": "Pattern Curve",
       "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
+        "kind": "button_id",
+        "value": "UG_SKETCH_PATTERN_CURVES",
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
