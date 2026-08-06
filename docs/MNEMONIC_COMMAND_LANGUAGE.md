@@ -899,9 +899,12 @@ V+G
 | `H` | Sketch Chamfer | `tbd_adapter` |
 | `M` | Mirror Curve | `tbd_adapter` |
 | `V` | Move Curve | `tbd_adapter` |
-| `Y` | Pattern Curve | `tbd_adapter` |
+| `Y` | Pattern Curve | `UG_SKETCH_PATTERN_CURVES` |
+| `K` | Make Corner | `UG_SKETCH_MAKE_CORNER` |
 | `J → P` | Project Curve | `tbd_adapter` |
-| `J → I` | Intersection Curve | `tbd_adapter` |
+| `J → I` | Intersection Curve | `UG_SKETCH_ADD_QUILT_PLANE_AI_CURVES` |
+| `J → D` | Derived Lines | `UG_SKETCH_CONSTRUCTION_LINES` |
+| `J → K` | Make Corner | `UG_SKETCH_MAKE_CORNER` |
 
 ## 14.3. Размеры
 
@@ -912,9 +915,10 @@ V+G
 | `D → Q` | Rapid Dimension | `UG_SKETCH_RAPID_DIMENSION` |
 | `D → L` | Linear Dimension | `UG_SKETCH_LINEAR_DIMENSION` |
 | `D → A` | Angular Dimension | `tbd_adapter` |
-| `D → R` | Radius Dimension | `tbd_adapter` |
-| `D → O` | Diameter Dimension | `tbd_adapter` |
-| `D → P` | Perimeter Dimension | `tbd_adapter` |
+| `D → R` | Radius Dimension | `UG_SKETCH_RADIAL_DIMENSION` |
+| `D → O` | Diameter Dimension | `UG_SKETCH_DIAMETER_DIM` |
+| `D → P` | Perimeter Dimension | `UG_SKETCH_PERIMETER_DIM` |
+| `D → M` | Animate Dimension | `UG_SKETCH_ANIMATE_DIMENSION` |
 
 ## 14.4. Ограничения
 
@@ -931,7 +935,8 @@ V+G
 | `K → L` | Collinear | `tbd_adapter` |
 | `K → M` | Midpoint | `tbd_adapter` |
 | `K → S` | Symmetric | `tbd_adapter` |
-| `K → F` | Fixed | `tbd_adapter` |
+| `K → F` | Fixed | `UG_SKETCH_FIXED_CONSTRAINT` |
+| `K → A` | Auto Constrain | `UG_SKETCH_AUTO_CREATE_CONSTRAINTS` |
 | `K → X` | Remove Constraint | `tbd_adapter` |
 
 ## 14.5. Диагностика Sketch
@@ -943,7 +948,8 @@ V+G
 | `U → D` | Show Degrees of Freedom | `tbd_adapter` |
 | `U → R` | Show Relations | `tbd_adapter` |
 | `U → E` | External References | `tbd_adapter` |
-| `U → I` | Issues | `tbd_adapter` |
+| `U → I` | Issues | `UG_SKETCH_CHECKING` |
+| `U → A` | Alternate Solution | `UG_SKETCH_ALTERNATE_SOLUTION` |
 | `S` direct | Finish Sketch | `UG_SKETCH_FINISH` |
 
 ---

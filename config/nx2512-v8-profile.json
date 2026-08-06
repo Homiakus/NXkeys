@@ -4634,6 +4634,106 @@
       }
     },
     {
+      "operation_id": "sketch.make_corner",
+      "paths": {
+        "leader": [
+          "J",
+          "K"
+        ]
+      },
+      "command_name": "Make Corner",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_MAKE_CORNER",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.derived_lines",
+      "paths": {
+        "leader": [
+          "J",
+          "D"
+        ]
+      },
+      "command_name": "Derived Lines",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_CONSTRUCTION_LINES",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.alternate_solution",
+      "paths": {
+        "leader": [
+          "U",
+          "A"
+        ]
+      },
+      "command_name": "Alternate Solution",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_ALTERNATE_SOLUTION",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.auto_constrain",
+      "paths": {
+        "leader": [
+          "K",
+          "A"
+        ]
+      },
+      "command_name": "Auto Constrain",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_AUTO_CREATE_CONSTRAINTS",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.animate_dimension",
+      "paths": {
+        "leader": [
+          "D",
+          "M"
+        ]
+      },
+      "command_name": "Animate Dimension",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_ANIMATE_DIMENSION",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
       "operation_id": "assemblies.add_component",
       "paths": {
         "leader": [

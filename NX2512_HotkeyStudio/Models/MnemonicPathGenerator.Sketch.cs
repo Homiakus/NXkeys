@@ -237,6 +237,13 @@ namespace NX2512_HotkeyStudio.Models
             Add("UG_SKETCH_VERTICAL_CONSTRAINT", "C K V", "вертикальность");
             Add("UG_SKETCH_CHECKER", "I S C", "проверка эскиза");
 
+            // Additional sketch operations (v8 profile enrichment)
+            Add("UG_SKETCH_MAKE_CORNER", "J K", "угол скругление угла");
+            Add("UG_SKETCH_CONSTRUCTION_LINES", "J D", "производные линии衍生");
+            Add("UG_SKETCH_ALTERNATE_SOLUTION", "U A", "альтернативное решение");
+            Add("UG_SKETCH_AUTO_CREATE_CONSTRAINTS", "K A", "авто ограничения");
+            Add("UG_SKETCH_ANIMATE_DIMENSION", "D M", "анимация размера");
+
             // NX exposes Sketch fillet/chamfer through shared Modeling BUTTON IDs.
             Add("UG_MODELING_BLEND_FEATURE", "E F", "скругление эскиза");
             Add("UG_MODELING_CHAMFER_FEATURE", "E H", "фаска эскиза");
