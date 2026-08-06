@@ -377,6 +377,13 @@ namespace NX2512_HotkeyStudio.Services
                 System.Media.SystemSounds.Asterisk.Play();
                 return;
             }
+            // Save modifier state before capture starts.  If the user was holding
+            // Ctrl / Shift / Alt we must release them when capture ends — otherwise
+            // NX may see "stuck" modifier keys.
+            heldModifiersBeforeCapture = 0;
+            if ((GetKeyState(VK_SHIFT) & 0x8000) != 0) heldModifiersBeforeCapture |= 0x01;
+            if ((GetKeyState(VK_CONTROL) & 0x8000) != 0) heldModifiersBeforeCapture |= 0x02;
+            if ((GetKeyState(VK_MENU) & 0x8000) != 0) heldModifiersBeforeCapture |= 0x04;
             activeModule = resolution.Module;
             Apply(stateMachine.Activate(sticky, currentContext));
             Apply(stateMachine.InputToken(activeModule.LeaderPrefix));
@@ -714,8 +721,13 @@ namespace NX2512_HotkeyStudio.Services
         private bool IsBridgeReady()
         {
             if (currentContext == null || !currentContext.IsFresh) return false;
+            // Fallback context (inferred from window title) lacks an authenticated
+            // session — Bridge will reject all execution attempts even though the
+            // HUD displays commands.  Treat it as not-ready so the user sees a
+            // clear "Bridge не загружен" status rather than silent failures.
             if (string.Equals(currentContext.LastResult, "fallback", StringComparison.OrdinalIgnoreCase)) return false;
-            return string.Equals(currentContext.Status, "running", StringComparison.OrdinalIgnoreCase);
+            if (!string.Equals(currentContext.Status, "running", StringComparison.OrdinalIgnoreCase)) return false;
+            return string.Equals(currentContext.SecurityStatus, "authenticated", StringComparison.OrdinalIgnoreCase);
         }
 
         private void FinishVisual()
@@ -725,6 +737,16 @@ namespace NX2512_HotkeyStudio.Services
             {
                 progress.Stop(); deadlineUtc = DateTime.MaxValue;
                 if (hud != null && !hud.IsDisposed) hud.DismissHud();
+                // Release modifier keys that were held down when capture started.
+                // Without this, NX may see Ctrl/Shift/Alt "stuck" and behave
+                // unexpectedly (e.g. permanent selection mode).
+                if (heldModifiersBeforeCapture != 0)
+                {
+                    if ((heldModifiersBeforeCapture & 0x01) != 0) { keybd_event(VK_SHIFT, 0, KEYEVENTF_KEYUP, UIntPtr.Zero); }
+                    if ((heldModifiersBeforeCapture & 0x02) != 0) { keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, UIntPtr.Zero); }
+                    if ((heldModifiersBeforeCapture & 0x04) != 0) { keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, UIntPtr.Zero); }
+                    heldModifiersBeforeCapture = 0;
+                }
             }
             else
             {
@@ -781,6 +803,11 @@ namespace NX2512_HotkeyStudio.Services
             progress.Dispose();
             contextWatch.Dispose();
         }
+
+        // Modifier keys that were held at the moment capture started and must be
+        // released when capture ends to prevent NX from getting stuck in a modal
+        // state (e.g. Ctrl/Shift "stuck" down).
+        private byte heldModifiersBeforeCapture;
 
         private sealed class HotkeyMessageWindow : NativeWindow
         {

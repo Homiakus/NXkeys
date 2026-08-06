@@ -120,10 +120,62 @@ namespace NXKeys.Protocol
                 CommentHandling = JsonCommentHandling.Skip
             }))
             {
-                if (document.RootElement.ValueKind != JsonValueKind.Object ||
-                    !document.RootElement.TryGetProperty("modules", out JsonElement modulesElement) ||
-                    modulesElement.ValueKind != JsonValueKind.Array)
-                    throw new InvalidOperationException("NXKeys profile does not contain a modules array.");
+                if (document.RootElement.ValueKind != JsonValueKind.Object)
+                    throw new InvalidOperationException("NXKeys profile must be a JSON object.");
+
+                if (!document.RootElement.TryGetProperty("modules", out JsonElement modulesElement) || modulesElement.ValueKind != JsonValueKind.Array)
+                {
+                    if (document.RootElement.TryGetProperty("operations", out JsonElement opsElement) && opsElement.ValueKind == JsonValueKind.Array)
+                    {
+                        var v8Result = new List<NxCommandPermission>();
+                        foreach (JsonElement op in opsElement.EnumerateArray())
+                        {
+                            if (op.ValueKind != JsonValueKind.Object) continue;
+                            string opId = ReadString(op, "operation_id");
+                            string adapterKind = ReadNestedString(op, "adapter", "kind");
+                            string adapterVal = ReadNestedString(op, "adapter", "value");
+                            string commandId = string.Equals(adapterKind, "button_id", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(adapterVal)
+                                ? adapterVal
+                                : opId;
+
+                            // Derive module ID matching ConfigRuntimeV5.ResolveModulePrefix.
+                            // Leader-path ops use the first leader token; direct/workspace_key
+                            // ops use availability.applications[0] mapped through the same
+                            // table that ConfigRuntimeV5.NxAppIdToModulePrefix uses.
+                            string firstLeaderToken = ReadFirstNestedArrayElement(op, "paths", "leader");
+                            string v8ModuleId;
+                            if (!string.IsNullOrWhiteSpace(firstLeaderToken))
+                            {
+                                v8ModuleId = "v8_" + firstLeaderToken.Trim().ToLowerInvariant();
+                            }
+                            else
+                            {
+                                string appId = ReadFirstNestedArrayElement(op, "availability", "applications");
+                                v8ModuleId = string.IsNullOrWhiteSpace(appId)
+                                    ? "v8_m"   // fallback: modeling
+                                    : "v8_" + NxAppToV8Prefix(appId);
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(commandId))
+                            {
+                                v8Result.Add(new NxCommandPermission
+                                {
+                                    Action = NxProtocolActions.ExecuteCommand,
+                                    CommandId = commandId,
+                                    ModuleId = v8ModuleId,
+                                    TargetApplicationId = string.Empty,
+                                    SelectionFilter = string.Empty,
+                                    Destructive = false,
+                                    ConfirmationRequired = false
+                                });
+                            }
+                        }
+                        if (v8Result.Count == 0)
+                            throw new InvalidOperationException("NXKeys v8 profile produced an empty Bridge permission set.");
+                        return new NxBridgePermissionSet(v8Result);
+                    }
+                    throw new InvalidOperationException("NXKeys profile does not contain a modules or operations array.");
+                }
 
                 List<JsonElement> modules = modulesElement.EnumerateArray()
                     .Where(item => item.ValueKind == JsonValueKind.Object && ReadEnabled(item))
@@ -260,6 +312,20 @@ namespace NXKeys.Protocol
             return ReadString(nested, property);
         }
 
+        private static string ReadFirstNestedArrayElement(JsonElement element, string parent, string property)
+        {
+            if (!element.TryGetProperty(parent, out JsonElement nested) || nested.ValueKind != JsonValueKind.Object)
+                return string.Empty;
+            if (!nested.TryGetProperty(property, out JsonElement array) || array.ValueKind != JsonValueKind.Array)
+                return string.Empty;
+            foreach (JsonElement item in array.EnumerateArray())
+            {
+                string? value = item.ValueKind == JsonValueKind.String ? item.GetString() : null;
+                if (!string.IsNullOrWhiteSpace(value)) return value.Trim();
+            }
+            return string.Empty;
+        }
+
         private static string ReadFirstString(JsonElement element, string property)
         {
             if (!element.TryGetProperty(property, out JsonElement array) || array.ValueKind != JsonValueKind.Array)
@@ -270,6 +336,29 @@ namespace NXKeys.Protocol
                 if (!string.IsNullOrWhiteSpace(value)) return value.Trim();
             }
             return string.Empty;
+        }
+
+        // Mirrors ConfigRuntimeV5.NxAppIdToModulePrefix — maps NX application IDs
+        // to single-letter v8 module prefixes so allowlist keys match runtime requests.
+        private static string NxAppToV8Prefix(string appId)
+        {
+            switch ((appId ?? string.Empty).Trim().ToUpperInvariant())
+            {
+                case "UG_APP_MODELING": return "m";
+                case "UG_APP_SKETCH": return "s";
+                case "UG_APP_ASSEMBLIES": return "a";
+                case "UG_APP_DRAFTING": return "d";
+                case "UG_APP_PMI": return "p";
+                case "UG_APP_STUDIO": return "u";
+                case "UG_APP_SHEETMETAL": return "h";
+                case "UG_APP_MANUFACTURING": return "n";
+                case "UG_APP_SFEM":
+                case "UG_APP_DESFEM": return "i";
+                case "UG_APP_ROUTING": return "r";
+                case "UG_APP_MOLDWIZARD": return "l";
+                case "UG_APP_GATEWAY": return "g";
+                default: return "m"; // fallback: modeling
+            }
         }
 
         private static string InferSelectionType(string commandId, string commandName, string notes)

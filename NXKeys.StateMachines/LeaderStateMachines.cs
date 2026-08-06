@@ -363,6 +363,39 @@ namespace NXKeys.StateMachines
         public static string NormalizeModule(string moduleId)
         {
             string value = (moduleId ?? string.Empty).Trim().ToLowerInvariant().Replace(' ', '_');
+
+            // v8-hardcoded modules carry a "v8_" prefix; resolve to the
+            // canonical NX module name so context guard evaluation passes.
+            if (value.StartsWith("v8_", StringComparison.Ordinal))
+            {
+                string suffix = value.Substring(3);
+                switch (suffix)
+                {
+                    case "m": return "modeling";
+                    case "s": return "sketch";
+                    case "a": return "assembly";
+                    case "d": return "drafting";
+                    case "c": return "modeling";
+                    case "f": return "modeling";
+                    case "t": return "modeling";
+                    case "e": return "modeling";
+                    case "x": return "modeling";
+                    case "g": return "modeling";
+                    case "h": return "sheet_metal";
+                    case "k": return "sketch";
+                    case "p": return "inspect_view";
+                    case "v": return "drafting";
+                    case "i": return "simulation";
+                    case "n": return "manufacturing";
+                    case "u": return "surface";
+                    case "r": return "routing";
+                    case "l": return "mold";
+                    case "w": return "modeling";
+                    case "q": return "modeling";
+                    default: return "modeling";
+                }
+            }
+
             switch (value)
             {
                 case "view":

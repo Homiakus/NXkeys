@@ -20,8 +20,10 @@
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
 
-  <!-- ConfigModels.cs is retained as the schema-v4 reference source. Runtime compilation uses
-       the split schema-v5 model files so migration remains reviewable and conflicts are isolated. -->
+  <!-- ConfigModels.cs is ARCHIVED — the original schema-v4 model (now diverged from
+       ConfigRuntimeV5.cs).  It is excluded from compilation and kept only for git
+       history reference.  Do not use for runtime validation; ConfigRuntimeV5.cs is
+       the authoritative runtime model for all supported schema versions. -->
   <ItemGroup>
     <Compile Remove="Models\ConfigModels.cs" />
   </ItemGroup>
@@ -32,12 +34,7 @@
     <Compile Include="..\NXKeys.StateMachines\LeaderStateMachines.cs" Link="StateMachines\LeaderStateMachines.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="..\config\nx2512-state-machines.json" Link="nx2512-state-machines.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-  </ItemGroup>
+  <!-- JSON profile no longer required — hardcoded in ConfigRuntimeV5.BuildHardcodedModules() -->
 
   <ItemGroup Condition="'$(NXOpenDir)' != '' and Exists('$(NXOpenDir)\NXOpen.dll')">
     <Reference Include="NXOpen">

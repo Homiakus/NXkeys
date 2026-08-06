@@ -1,3 +1,14 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// ARCHIVED — Do NOT use for runtime compilation.
+//
+// This file is the original schema-v4 model.  It has diverged from the
+// authoritative ConfigRuntimeV5.cs and is excluded from the build via
+// <Compile Remove> in NX2512_HotkeyStudio.csproj.
+//
+// It is kept in the repository solely for git history / reference purposes.
+// All validation, defaults, and translation logic lives in ConfigRuntimeV5.cs.
+// ═══════════════════════════════════════════════════════════════════════════
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -56,10 +67,11 @@ namespace NX2512_HotkeyStudio.Models
 
     public sealed class Config
     {
-        public const int CurrentSchemaVersion = 4;
+        public const int CurrentSchemaVersion = 8;
         private const int MinimumSupportedSchemaVersion = 3;
 
         [JsonPropertyName("schema_version")] public int SchemaVersion { get; set; } = CurrentSchemaVersion;
+        [JsonPropertyName("operations")] public List<OperationContract> Operations { get; set; } = new List<OperationContract>();
         [JsonPropertyName("profile")] public ProfileConfig Profile { get; set; } = new ProfileConfig();
         [JsonPropertyName("scan")] public ScanConfig Scan { get; set; } = new ScanConfig();
         [JsonPropertyName("deployment")] public DeploymentConfig Deployment { get; set; } = new DeploymentConfig();
@@ -194,15 +206,25 @@ namespace NX2512_HotkeyStudio.Models
         {
             var problems = new List<string>();
             if (SchemaVersion < MinimumSupportedSchemaVersion || SchemaVersion > CurrentSchemaVersion)
-                problems.Add("schema_version must be 3 or 4");
+                problems.Add($"schema_version must be between {MinimumSupportedSchemaVersion} and {CurrentSchemaVersion}");
             if (Profile == null || string.IsNullOrWhiteSpace(Profile.Name)) problems.Add("profile.name is required");
             if (Deployment == null || string.IsNullOrWhiteSpace(Deployment.ManagedRoot)) problems.Add("deployment.managed_root is required");
             if (Deployment == null || string.IsNullOrWhiteSpace(Deployment.BackupRoot)) problems.Add("deployment.backup_root is required");
             if (Deployment != null && Deployment.Mode != "managed-wrapper" && Deployment.Mode != "existing-custom-dirs")
                 problems.Add("deployment.mode must be managed-wrapper or existing-custom-dirs");
-            ValidateBasicShortcuts(problems);
-            ValidateModules(problems);
-            LeaderKey?.Validate(problems);
+            
+            if (SchemaVersion < 8)
+            {
+                ValidateBasicShortcuts(problems);
+                ValidateModules(problems);
+                LeaderKey?.Validate(problems);
+            }
+            else
+            {
+                if (Operations == null || Operations.Count == 0)
+                    problems.Add("v8 profile must contain operations");
+            }
+
             if (Role != null && Role.Enabled && string.IsNullOrWhiteSpace(Role.SourceMTX))
                 problems.Add("role_deployment.source_mtx is required when role deployment is enabled");
             if (problems.Count == 0) return;
@@ -678,5 +700,36 @@ namespace NX2512_HotkeyStudio.Models
             if (value.Contains("inspect") || value.Contains("view")) return "inspect_view";
             return value.Replace(' ', '_');
         }
+    }
+
+    // V8 Schema Models
+    public sealed class OperationContract
+    {
+        [JsonPropertyName("operation_id")] public string OperationID { get; set; } = string.Empty;
+        [JsonPropertyName("command_name")] public string CommandName { get; set; } = string.Empty;
+        [JsonPropertyName("paths")] public OperationPaths Paths { get; set; } = new OperationPaths();
+        [JsonPropertyName("adapter")] public OperationAdapter Adapter { get; set; } = new OperationAdapter();
+        [JsonPropertyName("availability")] public OperationAvailability Availability { get; set; } = new OperationAvailability();
+    }
+
+    public sealed class OperationPaths
+    {
+        [JsonPropertyName("direct")] public string Direct { get; set; }
+        [JsonPropertyName("workspace_key")] public string WorkspaceKey { get; set; }
+        [JsonPropertyName("leader")] public List<string> Leader { get; set; }
+    }
+
+    public sealed class OperationAdapter
+    {
+        [JsonPropertyName("kind")] public string Kind { get; set; } = string.Empty;
+        [JsonPropertyName("value")] public string Value { get; set; } = string.Empty;
+        [JsonPropertyName("status")] public string Status { get; set; } = string.Empty;
+    }
+
+    public sealed class OperationAvailability
+    {
+        [JsonPropertyName("applications")] public List<string> Applications { get; set; } = new List<string>();
+        [JsonPropertyName("requires_work_part")] public bool RequiresWorkPart { get; set; }
+        [JsonPropertyName("blocked_in_text_input")] public bool BlockedInTextInput { get; set; }
     }
 }

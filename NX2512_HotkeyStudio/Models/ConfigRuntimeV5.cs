@@ -54,12 +54,13 @@ namespace NX2512_HotkeyStudio.Models
         }
     }
 
-    public sealed class Config
+    public sealed partial class Config
     {
-        public const int CurrentSchemaVersion = 6;
+        public const int CurrentSchemaVersion = 8;
         private const int MinimumSupportedSchemaVersion = 3;
 
         [JsonPropertyName("schema_version")] public int SchemaVersion { get; set; } = CurrentSchemaVersion;
+        [JsonPropertyName("operations")] public List<OperationContract> Operations { get; set; } = new List<OperationContract>();
         [JsonPropertyName("profile")] public ProfileConfig Profile { get; set; } = new ProfileConfig();
         [JsonPropertyName("scan")] public ScanConfig Scan { get; set; } = new ScanConfig();
         [JsonPropertyName("deployment")] public DeploymentConfig Deployment { get; set; } = new DeploymentConfig();
@@ -72,22 +73,29 @@ namespace NX2512_HotkeyStudio.Models
 
         public static Config Load(string path)
         {
+            // When no profile file exists, build a hardcoded v8 config directly.
+            // This eliminates the JSON dependency and ensures all mnemonics are curated.
             if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-                throw new FileNotFoundException("Config file not found", path);
+            {
+                Config config = new Config();
+                config.ApplyDefaults();
+                config.Validate();
+                return config;
+            }
             string json;
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (var reader = new StreamReader(stream, Encoding.UTF8)) json = reader.ReadToEnd();
             ValidateSourceSchemaVersion(json);
-            Config config = JsonSerializer.Deserialize<Config>(json, new JsonSerializerOptions
+            Config deserialized = JsonSerializer.Deserialize<Config>(json, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
                 ReadCommentHandling = JsonCommentHandling.Skip,
                 AllowTrailingCommas = true
             }) ?? new Config();
-            config.ExpandEnvironment();
-            config.ApplyDefaults();
-            config.Validate();
-            return config;
+            deserialized.ExpandEnvironment();
+            deserialized.ApplyDefaults();
+            deserialized.Validate();
+            return deserialized;
         }
 
         private static void ValidateSourceSchemaVersion(string json)
@@ -137,6 +145,24 @@ namespace NX2512_HotkeyStudio.Models
                 throw new InvalidOperationException(
                     $"Unsupported configuration schema_version {SchemaVersion}. Supported range is " +
                     $"{MinimumSupportedSchemaVersion}..{CurrentSchemaVersion}.");
+
+            // If no profile file is available, build a hardcoded set of curated
+            // v8 modules directly in code — no JSON dependency.
+            if ((Modules == null || Modules.Count == 0) &&
+                (Operations == null || Operations.Count == 0))
+            {
+                BuildHardcodedModules();
+            }
+            // Only translate v8 operations to legacy modules on first load (when no
+            // modules exist yet).  After the user saves, the file contains translated
+            // modules alongside operations, and subsequent loads must preserve any
+            // manual edits the user made to those modules.
+            else if (SchemaVersion == 8 && Operations != null && Operations.Count > 0 &&
+                (Modules == null || Modules.Count == 0))
+            {
+                TranslateV8OperationsToLegacy();
+            }
+
             Profile ??= new ProfileConfig();
             if (string.IsNullOrWhiteSpace(Profile.NXVersion)) Profile.NXVersion = "2512";
             Scan ??= new ScanConfig();
@@ -178,10 +204,14 @@ namespace NX2512_HotkeyStudio.Models
                             command.InputKey = LeaderKey.ResolveInputKey(command.Slot, order);
                         command.InputKey = LeaderKeyConfig.NormalizeInputKey(command.InputKey);
                         if (command.DisplayOrder <= 0) command.DisplayOrder = order;
-                        if (string.Equals(set.ID, "primary", StringComparison.OrdinalIgnoreCase) &&
+                        // v8-translated commands already have locked paths — skip
+                        // auto-generated slot aliases that would mask the real path.
+                        bool isV8Translated = string.Equals(command.PathSource, "v8", StringComparison.OrdinalIgnoreCase);
+                        if (!isV8Translated &&
+                            string.Equals(set.ID, "primary", StringComparison.OrdinalIgnoreCase) &&
                             !string.IsNullOrWhiteSpace(command.InputKey))
                             AddAlias(command, command.InputKey);
-                        if (!string.IsNullOrWhiteSpace(command.SubmenuKey) &&
+                        if (!isV8Translated &&!string.IsNullOrWhiteSpace(command.SubmenuKey) &&
                             !string.IsNullOrWhiteSpace(command.InputKey))
                             AddAlias(command, command.SubmenuKey, command.InputKey);
                         if (string.IsNullOrWhiteSpace(command.Action))
@@ -249,7 +279,7 @@ namespace NX2512_HotkeyStudio.Models
         {
             var problems = new List<string>();
             if (SchemaVersion < MinimumSupportedSchemaVersion || SchemaVersion > CurrentSchemaVersion)
-                problems.Add("schema_version must be between 3 and 6");
+                problems.Add($"schema_version must be between {MinimumSupportedSchemaVersion} and {CurrentSchemaVersion}");
             if (Profile == null || string.IsNullOrWhiteSpace(Profile.Name)) problems.Add("profile.name is required");
             if (Deployment == null || string.IsNullOrWhiteSpace(Deployment.ManagedRoot)) problems.Add("deployment.managed_root is required");
             if (Deployment == null || string.IsNullOrWhiteSpace(Deployment.BackupRoot)) problems.Add("deployment.backup_root is required");
@@ -384,6 +414,12 @@ namespace NX2512_HotkeyStudio.Models
         {
             string explicitType = command?.SelectionType?.Trim();
             if (!string.IsNullOrWhiteSpace(explicitType)) return NormalizeSelectionType(explicitType);
+            // Only infer selection type for selection-filter commands (UG_SEL_*).
+            // For execute_command operations, an empty selection filter is the correct
+            // default — inferring "feature" from "UG_MODELING_EXTRUDED_FEATURE" would
+            // cause allowlist mismatches.
+            if (!IsSelectionFilterCommand(command?.Command?.ID))
+                return string.Empty;
             string inferred = InferSelectionType(command?.Command?.ID, command?.Command?.Name, command?.Notes);
             return string.IsNullOrWhiteSpace(inferred) && command?.RequiresSelection == true ? "all" : inferred;
         }
@@ -420,4 +456,494 @@ namespace NX2512_HotkeyStudio.Models
         }
     }
 
+    public sealed partial class Config
+    {
+        /// <summary>
+        /// Builds a hardcoded curated set of v8 modules.  No JSON profile needed.
+        /// Paths are hand-curated and locked so MnemonicPathGenerator won't rewrite them.
+        /// </summary>
+        private void BuildHardcodedModules()
+        {
+            Modules = new List<ModuleConfig>();
+            Keyboard = new List<Binding>();
+            foreach (var kvp in BasicShortcutPolicy.Required)
+                Keyboard.Add(new Binding { Shortcut = kvp.Key, Enabled = true, Command = new CommandRef { ID = kvp.Value, Name = kvp.Value } });
+
+            // Helper to register a command in a module
+            void Add(string modulePrefix, string nxAppId, string path, string cmdId, string cmdName, string notes = "")
+            {
+                string moduleId = "v8_" + modulePrefix.ToLowerInvariant();
+                ModuleConfig mod = Modules.FirstOrDefault(m => string.Equals(m.ID, moduleId, StringComparison.OrdinalIgnoreCase));
+                if (mod == null)
+                {
+                    mod = new ModuleConfig
+                    {
+                        ID = moduleId, Enabled = true, Label = modulePrefix, LeaderPrefix = modulePrefix,
+                        NXApplicationIDs = new List<string> { nxAppId },
+                        SwitchCommand = new CommandRef { ID = nxAppId, Name = "Switch to " + modulePrefix },
+                        CommandSets = new List<ModuleCommandSet> { new ModuleCommandSet { ID = "primary", Commands = new List<ModuleCommand>() } }
+                    };
+                    Modules.Add(mod);
+                }
+                var tokens = path.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(t => t.Trim().ToUpperInvariant()).Where(t => t.Length > 0).ToList();
+                if (tokens.Count == 0) return;
+                mod.CommandSets[0].Commands.Add(new ModuleCommand
+                {
+                    Enabled = true,
+                    Command = new CommandRef { ID = cmdId, Name = cmdName },
+                    Action = SelectionIntent.ExecuteCommandAction,
+                    SelectionType = string.Empty,
+                    Path = tokens,
+                    PathLabels = new List<string> { cmdName },
+                    Aliases = new List<List<string>>(),
+                    SearchAliases = new List<string> { cmdName, cmdId },
+                    DisplayOrder = mod.CommandSets[0].Commands.Count + 1,
+                    PathLocked = true,
+                    PathSource = "hardcoded",
+                    Notes = notes
+                });
+            }
+
+            // ═══════════════════════════════════════════════════════════════
+            // M — MODELING (all create/edit/transform/delete/file commands)
+            // ═══════════════════════════════════════════════════════════════
+            Add("M", "UG_APP_MODELING", "C S", "UG_CREATE_SKETCH", "Create Sketch");
+            Add("M", "UG_APP_MODELING", "C E", "UG_MODELING_EXTRUDED_FEATURE", "Extrude");
+            Add("M", "UG_APP_MODELING", "C R", "UG_MODELING_REVOLVED_FEATURE", "Revolve");
+            Add("M", "UG_APP_MODELING", "C H", "UG_MODELING_HOLE_FEATURE", "Hole");
+            Add("M", "UG_APP_MODELING", "C B", "UG_MODELING_BLEND_FEATURE", "Edge Blend");
+            Add("M", "UG_APP_MODELING", "C C", "UG_MODELING_CHAMFER_FEATURE", "Chamfer");
+            Add("M", "UG_APP_MODELING", "C U", "UG_MODELING_FF_SWEPT", "Swept");
+            Add("M", "UG_APP_MODELING", "C L", "UG_MODELING_FF_THROUGH_CURVES", "Through Curves");
+            Add("M", "UG_APP_MODELING", "C D", "UG_MODELING_FF_FIT_SURFACE", "Studio Surface");
+            Add("M", "UG_APP_MODELING", "C G", "UG_MODELING_EXTRACT_GEOMETRY", "Extract Geometry");
+            Add("M", "UG_APP_MODELING", "C F", "UG_MODELING_SHEET_FEATURE", "Sheet Body");
+            Add("M", "UG_APP_MODELING", "C X", "UG_EXPRESSIONS", "Expressions");
+            // Edit
+            Add("M", "UG_APP_MODELING", "E B", "UG_MODELING_BLEND_FEATURE", "Edge Blend");
+            Add("M", "UG_APP_MODELING", "E C", "UG_MODELING_CHAMFER_FEATURE", "Chamfer");
+            Add("M", "UG_APP_MODELING", "E S", "UG_MODELING_SEW_FEATURE", "Sew");
+            Add("M", "UG_APP_MODELING", "E T", "UG_MODELING_TRIM_SHEET_FEATURE", "Trim Sheet");
+            Add("M", "UG_APP_MODELING", "E X", "UG_MODELING_FF_EXTEND_SHEET", "Extend Sheet");
+            Add("M", "UG_APP_MODELING", "E U", "UG_MODELING_UNTRIM_FEATURE", "Untrim");
+            Add("M", "UG_APP_MODELING", "E R", "UG_SMART_REPLACE_COMPONENT", "Replace Component");
+            // Transform
+            Add("M", "UG_APP_MODELING", "T C", "UG_EDIT_COPY", "Copy");
+            Add("M", "UG_APP_MODELING", "T M", "UG_ASSY_MOVE_COMPONENT", "Move Component");
+            Add("M", "UG_APP_MODELING", "T P", "UG_MODELING_PATTERNFEATURE_FEATURE", "Pattern Feature");
+            Add("M", "UG_APP_MODELING", "T F", "UG_MODELING_MIRRORFEATURE_FEATURE", "Mirror Feature");
+            // Delete
+            Add("M", "UG_APP_MODELING", "D C", "UG_ASSEMBLIES_REMOVE_COMPONENT", "Remove Component");
+            Add("M", "UG_APP_MODELING", "D O", "UG_CAM_DELETE_OPERATION", "Delete Operation");
+            // Manage
+            Add("M", "UG_APP_MODELING", "M W", "UG_ASSY_WAVE_LINKER", "WAVE Geometry Linker");
+            Add("M", "UG_APP_MODELING", "M L", "UG_LAYER_SETTINGS", "Layer Settings");
+            Add("M", "UG_APP_MODELING", "M V", "UG_LAYER_MOVE", "Move to Layer");
+            Add("M", "UG_APP_MODELING", "M M", "UG_MATERIAL_LIBRARY_MANAGER", "Material Library");
+            Add("M", "UG_APP_MODELING", "M N", "UG_NAVIGATOR_PART", "Part Navigator");
+            // File
+            Add("M", "UG_APP_MODELING", "F S", "UG_FILE_SAVE_PART", "Save");
+            Add("M", "UG_APP_MODELING", "F A", "UG_FILE_SAVE_AS", "Save As");
+            Add("M", "UG_APP_MODELING", "F O", "UG_FILE_OPEN", "Open");
+            Add("M", "UG_APP_MODELING", "F N", "UG_FILE_NEW", "New");
+            // Direct single-key shortcuts
+            Add("M", "UG_APP_MODELING", "S", "UG_CREATE_SKETCH", "Create Sketch (direct)");
+            Add("M", "UG_APP_MODELING", "X", "UG_MODELING_EXTRUDED_FEATURE", "Extrude (direct)");
+            Add("M", "UG_APP_MODELING", "R", "UG_MODELING_REVOLVED_FEATURE", "Revolve (direct)");
+            Add("M", "UG_APP_MODELING", "H", "UG_MODELING_HOLE_FEATURE", "Hole (direct)");
+            Add("M", "UG_APP_MODELING", "B", "UG_MODELING_BLEND_FEATURE", "Edge Blend (direct)");
+
+            // ═══════════════════════════════════════════════════════════════
+            // S — SKETCH
+            // ═══════════════════════════════════════════════════════════════
+            Add("S", "UG_APP_SKETCH", "L", "UG_SKETCH_LINE", "Line");
+            Add("S", "UG_APP_SKETCH", "R", "UG_SKETCH_RECTANGLE", "Rectangle");
+            Add("S", "UG_APP_SKETCH", "C", "UG_SKETCH_CIRCLE", "Circle");
+            Add("S", "UG_APP_SKETCH", "A", "UG_SKETCH_ARC", "Arc");
+            Add("S", "UG_APP_SKETCH", "T", "UG_SKETCH_QUICK_TRIM", "Quick Trim");
+            Add("S", "UG_APP_SKETCH", "E", "UG_SKETCH_QUICK_EXTEND", "Quick Extend");
+            Add("S", "UG_APP_SKETCH", "O", "UG_SKETCH_OFFSET_CURVES", "Offset Curve");
+            Add("S", "UG_APP_SKETCH", "D R", "UG_SKETCH_RAPID_DIMENSION", "Rapid Dimension");
+            Add("S", "UG_APP_SKETCH", "D L", "UG_SKETCH_LINEAR_DIMENSION", "Linear Dimension");
+            Add("S", "UG_APP_SKETCH", "F", "UG_SKETCH_FINISH", "Finish Sketch");
+            Add("S", "UG_APP_SKETCH", "Z", "UG_SKETCH_CHECKER", "Sketch Checker");
+
+            // ═══════════════════════════════════════════════════════════════
+            // K — CONSTRAINTS (sketch constraints)
+            // ═══════════════════════════════════════════════════════════════
+            Add("K", "UG_APP_SKETCH", "C", "UG_SKETCH_COINCIDENT_CONSTRAINT", "Coincident");
+            Add("K", "UG_APP_SKETCH", "H", "UG_SKETCH_HORIZONTAL_CONSTRAINT", "Horizontal");
+            Add("K", "UG_APP_SKETCH", "V", "UG_SKETCH_VERTICAL_CONSTRAINT", "Vertical");
+            Add("K", "UG_APP_SKETCH", "T", "UG_SKETCH_TANGENT_CONSTRAINT", "Tangent");
+            Add("K", "UG_APP_SKETCH", "P", "UG_SKETCH_PARALLEL_CONSTRAINT", "Parallel");
+            Add("K", "UG_APP_SKETCH", "N", "UG_SKETCH_PERPENDICULAR_CONSTRAINT", "Perpendicular");
+
+            // ═══════════════════════════════════════════════════════════════
+            // A — ASSEMBLY
+            // ═══════════════════════════════════════════════════════════════
+            Add("A", "UG_APP_ASSEMBLIES", "C A", "UG_ASSY_INSERT_COMPONENT", "Add Component");
+            Add("A", "UG_APP_ASSEMBLIES", "C N", "UG_ASSY_INSERT_NEW_COMPONENT", "New Component");
+            Add("A", "UG_APP_ASSEMBLIES", "T M", "UG_ASSY_MOVE_COMPONENT", "Move Component");
+            Add("A", "UG_APP_ASSEMBLIES", "C K", "UG_ASSY_MATE_COMPONENT", "Assembly Constraints");
+            Add("A", "UG_APP_ASSEMBLIES", "E R", "UG_SMART_REPLACE_COMPONENT", "Replace Component");
+            Add("A", "UG_APP_ASSEMBLIES", "X C", "UG_ASSEMBLIES_REMOVE_COMPONENT", "Remove Component");
+            Add("A", "UG_APP_ASSEMBLIES", "T P", "UG_ASSEMBLIES_PATTERN_COMPONENT", "Pattern Component");
+
+            // ═══════════════════════════════════════════════════════════════
+            // D — DRAFTING
+            // ═══════════════════════════════════════════════════════════════
+            Add("D", "UG_APP_DRAFTING", "C B", "UG_DRAFT_SMASH_VIEW", "Base View");
+            Add("D", "UG_APP_DRAFTING", "C P", "UG_DRAFT_DRW_PROJECT_VIEW", "Projected View");
+            Add("D", "UG_APP_DRAFTING", "C S", "UG_DRAFT_DRW_SECTION_VIEW", "Section View");
+            Add("D", "UG_APP_DRAFTING", "C D", "UG_DRAFT_DRW_DETAIL_VIEW", "Detail View");
+            Add("D", "UG_APP_DRAFTING", "P U", "UG_DRAFT_DRW_UPDATE_VIEW", "Update Views");
+            Add("D", "UG_APP_DRAFTING", "E V", "UG_DRAFT_EDIT_VIEW_STYLE", "View Style");
+            Add("D", "UG_APP_DRAFTING", "A R", "UG_DRAFT_DIMENSION_LINEAR", "Rapid Dimension");
+
+            // ═══════════════════════════════════════════════════════════════
+            // V — VIEW / DISPLAY
+            // ═══════════════════════════════════════════════════════════════
+            Add("V", "UG_APP_DRAFTING", "F", "UG_VIEW_FIT", "Fit View");
+            Add("V", "UG_APP_DRAFTING", "T", "UG_VIEW_POPUP_ORIENT_TFRTRI", "Orient Trimetric");
+            Add("V", "UG_APP_DRAFTING", "H", "UG_EDIT_BLANK_SELECTED", "Hide Selected");
+            Add("V", "UG_APP_DRAFTING", "S", "UG_EDIT_MD_SHOWHIDE_ALL", "Show All");
+
+            // ═══════════════════════════════════════════════════════════════
+            // I — INSPECT / MEASURE
+            // ═══════════════════════════════════════════════════════════════
+            Add("I", "UG_APP_SFEM", "M", "UG_INFO_GEOMETRIC_MEASUREMENT", "Measure");
+            Add("I", "UG_APP_SFEM", "O", "UG_INFO_OBJECT", "Object Info");
+            Add("I", "UG_APP_SFEM", "F", "UG_ANALYSIS_FACE_CURVATURE", "Face Curvature");
+
+            // ═══════════════════════════════════════════════════════════════
+            // H — SHEET METAL
+            // ═══════════════════════════════════════════════════════════════
+            Add("H", "UG_APP_SHEETMETAL", "C B", "UG_SHEET_METAL_BASE_TAB", "Base Tab");
+            Add("H", "UG_APP_SHEETMETAL", "C F", "UG_SHEET_METAL_FLANGE", "Flange");
+            Add("H", "UG_APP_SHEETMETAL", "C C", "UG_SHEET_METAL_CONTOUR_FLANGE", "Contour Flange");
+            Add("H", "UG_APP_SHEETMETAL", "E B", "UG_SHEET_METAL_BEND", "Bend");
+            Add("H", "UG_APP_SHEETMETAL", "T U", "UG_SHEET_METAL_UNBEND", "Unbend");
+            Add("H", "UG_APP_SHEETMETAL", "T R", "UG_SHEET_METAL_REBEND", "Rebend");
+            Add("H", "UG_APP_SHEETMETAL", "P F", "UG_SHEET_METAL_FLAT_PATTERN", "Flat Pattern");
+            Add("H", "UG_APP_SHEETMETAL", "C S", "UG_SBSM_SHEETMETAL_FROM_SOLID_FEATURE", "Convert to Sheet Metal");
+
+            // ═══════════════════════════════════════════════════════════════
+            // N — MANUFACTURING / CAM
+            // ═══════════════════════════════════════════════════════════════
+            Add("N", "UG_APP_MANUFACTURING", "C O", "UG_CAM_CREATE_OPERATION", "Create Operation");
+            Add("N", "UG_APP_MANUFACTURING", "C T", "UG_CAM_CREATE_TOOL", "Create Tool");
+            Add("N", "UG_APP_MANUFACTURING", "P G", "UG_CAM_GENERATE_TOOL_PATH", "Generate Toolpath");
+            Add("N", "UG_APP_MANUFACTURING", "P P", "UG_CAM_POSTPROCESS", "Postprocess");
+            Add("N", "UG_APP_MANUFACTURING", "X O", "UG_CAM_DELETE_OPERATION", "Delete Operation");
+
+            // ═══════════════════════════════════════════════════════════════
+            // R — ROUTING
+            // ═══════════════════════════════════════════════════════════════
+            Add("R", "UG_APP_ROUTING", "C R", "UG_ROUTE_CREATE_ROUTE", "Create Route");
+            Add("R", "UG_APP_ROUTING", "C P", "UG_ROUTE_PLACE_PART", "Place Part");
+            Add("R", "UG_APP_ROUTING", "C S", "UG_ROUTE_ADD_STOCK", "Add Stock");
+            Add("R", "UG_APP_ROUTING", "E R", "UG_ROUTE_EDIT_ROUTE", "Edit Route");
+
+            // ═══════════════════════════════════════════════════════════════
+            // G — GATEWAY (application switching)
+            // ═══════════════════════════════════════════════════════════════
+            Add("G", "UG_APP_GATEWAY", "M", "UG_APP_MODELING", "Switch to Modeling");
+            Add("G", "UG_APP_GATEWAY", "S", "UG_APP_SKETCH", "Switch to Sketch");
+            Add("G", "UG_APP_GATEWAY", "A", "UG_APP_ASSEMBLIES", "Switch to Assemblies");
+            Add("G", "UG_APP_GATEWAY", "D", "UG_APP_DRAFTING", "Switch to Drafting");
+            Add("G", "UG_APP_GATEWAY", "H", "UG_APP_SHEETMETAL", "Switch to Sheet Metal");
+            Add("G", "UG_APP_GATEWAY", "C", "UG_APP_MANUFACTURING", "Switch to Manufacturing");
+            Add("G", "UG_APP_GATEWAY", "N", "UG_APP_SFEM", "Switch to Simulation");
+            Add("G", "UG_APP_GATEWAY", "P", "UG_APP_PMI", "Switch to PMI");
+            Add("G", "UG_APP_GATEWAY", "R", "UG_APP_ROUTING", "Switch to Routing");
+            Add("G", "UG_APP_GATEWAY", "O", "UG_APP_MOLDWIZARD", "Switch to Mold Wizard");
+            Add("G", "UG_APP_GATEWAY", "L", "UG_NAVIGATOR_REUSE_LIBRARY", "Reuse Library");
+            Add("G", "UG_APP_GATEWAY", "V", "UG_APP_GATEWAY", "Switch to Gateway");
+
+            // ═══════════════════════════════════════════════════════════════
+            // U — SURFACE
+            // ═══════════════════════════════════════════════════════════════
+            Add("U", "UG_APP_STUDIO", "C T", "UG_MODELING_THROUGH_CURVES_FEATURE", "Through Curves");
+            Add("U", "UG_APP_STUDIO", "C S", "UG_MODELING_SWEPT_FEATURE", "Swept");
+            Add("U", "UG_APP_STUDIO", "C D", "UG_MODELING_STUDIO_SURFACE_FEATURE", "Studio Surface");
+            Add("U", "UG_APP_STUDIO", "E T", "UG_MODELING_TRIM_SHEET_FEATURE", "Trim Sheet");
+            Add("U", "UG_APP_STUDIO", "E S", "UG_MODELING_SEW_FEATURE", "Sew");
+            Add("U", "UG_APP_STUDIO", "I C", "UG_ANALYSIS_FACE_CURVATURE", "Face Curvature");
+
+        }
+
+        // Maps NX application IDs to v8 module leader-key prefixes.
+        // Used to assign direct / workspace_key operations to the correct context module.
+        private static readonly Dictionary<string, string> NxAppIdToModulePrefix =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["UG_APP_MODELING"] = "M",
+                ["UG_APP_SKETCH"] = "S",
+                ["UG_APP_ASSEMBLIES"] = "A",
+                ["UG_APP_DRAFTING"] = "D",
+                ["UG_APP_PMI"] = "P",
+                ["UG_APP_STUDIO"] = "U",
+                ["UG_APP_SHEETMETAL"] = "H",
+                ["UG_APP_MANUFACTURING"] = "N",
+                ["UG_APP_SFEM"] = "I",
+                ["UG_APP_DESFEM"] = "I",
+                ["UG_APP_ROUTING"] = "R",
+                ["UG_APP_MOLDWIZARD"] = "L",
+                ["UG_APP_GATEWAY"] = "G",
+            };
+
+        // Reverse map: v8 module leader-key prefix → NX application ID,
+        // used to populate NXApplicationIDs and SwitchCommand on translated modules.
+        private static readonly Dictionary<string, string> ModulePrefixToNxAppId =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["M"] = "UG_APP_MODELING",
+                ["S"] = "UG_APP_SKETCH",
+                ["A"] = "UG_APP_ASSEMBLIES",
+                ["D"] = "UG_APP_DRAFTING",
+                ["P"] = "UG_APP_PMI",
+                ["U"] = "UG_APP_STUDIO",
+                ["H"] = "UG_APP_SHEETMETAL",
+                ["N"] = "UG_APP_MANUFACTURING",
+                ["I"] = "UG_APP_SFEM",
+                ["R"] = "UG_APP_ROUTING",
+                ["L"] = "UG_APP_MOLDWIZARD",
+                ["G"] = "UG_APP_GATEWAY",
+                ["Q"] = "UG_APP_MODELING",
+            };
+
+        private static bool IsTbdAdapter(OperationContract op)
+        {
+            string kind = op?.Adapter?.Kind ?? string.Empty;
+            // button_id adapters are always ready to execute regardless of status
+            // ("tbd_adapter" in status means the mapping needs human review, not
+            // that the button ID is missing).
+            if (string.Equals(kind, "button_id", StringComparison.OrdinalIgnoreCase))
+                return false;
+            // internal adapters need explicit "mapped" status to be executable.
+            string status = op?.Adapter?.Status ?? string.Empty;
+            return status.Contains("tbd", StringComparison.OrdinalIgnoreCase) ||
+                   status.Contains("unmapped", StringComparison.OrdinalIgnoreCase) ||
+                   !string.Equals(status, "mapped", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Determines the target v8 module prefix for an operation.
+        /// Leader-path operations use the first leader token.
+        /// Direct / workspace_key operations use availability.applications[0].
+        /// Falls back to "M" (modeling) when no application hint is available.
+        /// </summary>
+        private static string ResolveModulePrefix(OperationContract op)
+        {
+            // Leader path → first token is the prefix.
+            if (op.Paths?.Leader != null && op.Paths.Leader.Count >= 1)
+                return op.Paths.Leader[0].ToUpperInvariant();
+
+            // availability.applications[0] → mapped prefix.
+            string appId = op.Availability?.Applications?.FirstOrDefault() ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(appId) &&
+                NxAppIdToModulePrefix.TryGetValue(appId, out string prefix))
+                return prefix;
+
+            return "M"; // fallback: modeling
+        }
+
+        private void TranslateV8OperationsToLegacy()
+        {
+            Modules ??= new List<ModuleConfig>();
+            Modules.Clear();
+            Keyboard ??= new List<Binding>();
+            if (Keyboard.Count == 0)
+            {
+                foreach (var kvp in BasicShortcutPolicy.Required)
+                {
+                    Keyboard.Add(new Binding
+                    {
+                        Shortcut = kvp.Key,
+                        Enabled = true,
+                        Command = new CommandRef { ID = kvp.Value, Name = kvp.Value }
+                    });
+                }
+            }
+
+            // ── Pass 1: group operations into modules ──────────────────────────
+            var modulesDict = new Dictionary<string, ModuleConfig>(StringComparer.OrdinalIgnoreCase);
+            var moduleOps = new Dictionary<string, List<OperationContract>>(StringComparer.OrdinalIgnoreCase);
+            var duplicateLeaderWarnings = new List<string>();
+            var skippedInvalidKeyWarnings = new List<string>();
+            var seenLeaderPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int totalSkipped = 0;
+
+            foreach (var op in Operations)
+            {
+                if (op.Paths == null) { totalSkipped++; continue; }
+
+                var leaderPath = op.Paths.Leader;
+                string directPath = op.Paths.Direct;
+                string workspaceKey = op.Paths.WorkspaceKey;
+                bool hasLeader = leaderPath != null && leaderPath.Count >= 2;
+                bool hasDirect = !string.IsNullOrWhiteSpace(directPath);
+                bool hasWorkspace = !string.IsNullOrWhiteSpace(workspaceKey);
+
+                if (!hasLeader && !hasDirect && !hasWorkspace)
+                { totalSkipped++; continue; }
+
+                // Validate direct / workspace keys: only A-Z and 0-9 pass through
+                // MapKey in LeaderKeyEngine (line 738-742).  Keys outside this set
+                // (Space, Esc, F1, Cyrillic, etc.) are unreachable and are skipped.
+                string singleKey = hasDirect ? directPath : hasWorkspace ? workspaceKey : null;
+                if (!hasLeader && singleKey != null)
+                {
+                    string normalized = singleKey.Trim().ToUpperInvariant();
+                    if (normalized.Length != 1 ||
+                        !((normalized[0] >= 'A' && normalized[0] <= 'Z') ||
+                          (normalized[0] >= '0' && normalized[0] <= '9')))
+                    {
+                        skippedInvalidKeyWarnings.Add(
+                            $"Операция {op.OperationID} использует недопустимую " +
+                            $"direct/workspace клавишу '{singleKey}' — пропущена.");
+                        totalSkipped++;
+                        continue;
+                    }
+                }
+
+                string modulePrefix = ResolveModulePrefix(op);
+                string moduleId = "v8_" + modulePrefix.ToLowerInvariant();
+
+                if (!modulesDict.ContainsKey(moduleId))
+                {
+                    modulesDict[moduleId] = null; // placeholder
+                    moduleOps[moduleId] = new List<OperationContract>();
+                }
+                moduleOps[moduleId].Add(op);
+            }
+
+            // ── Pass 2: build modules and resolve path conflicts ───────────────
+            foreach (var kvp in moduleOps)
+            {
+                string moduleId = kvp.Key;
+                string modulePrefix = moduleId.Substring(3).ToUpperInvariant(); // "v8_m" → "M"
+                string nxAppId = ModulePrefixToNxAppId.TryGetValue(modulePrefix, out string appId)
+                    ? appId : "UG_APP_GATEWAY";
+
+                var module = new ModuleConfig
+                {
+                    ID = moduleId,
+                    Enabled = true,
+                    Label = modulePrefix,
+                    LeaderPrefix = modulePrefix,
+                    NXApplicationIDs = new List<string> { nxAppId },
+                    SwitchCommand = new CommandRef { ID = nxAppId, Name = "Switch to " + modulePrefix },
+                    CommandSets = new List<ModuleCommandSet>
+                    {
+                        new ModuleCommandSet { ID = "primary", Commands = new List<ModuleCommand>() }
+                    }
+                };
+
+                // First pass: collect paths and detect duplicates.
+                var pathFirstSeen = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                var pathIsDuplicate = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var pendingOps = new List<(OperationContract op, List<string> innerPath, int order)>();
+                int order = 0;
+
+                foreach (var op in kvp.Value)
+                {
+                    var leaderPath = op.Paths.Leader;
+                    string directPath = op.Paths.Direct;
+                    string workspaceKey = op.Paths.WorkspaceKey;
+                    bool hasLeader = leaderPath != null && leaderPath.Count >= 2;
+
+                    List<string> rawPath;
+                    if (hasLeader)
+                        rawPath = leaderPath.Skip(1).Select(t => t.ToUpperInvariant()).Where(t => !string.IsNullOrWhiteSpace(t)).ToList();
+                    else if (!string.IsNullOrWhiteSpace(directPath))
+                        rawPath = new List<string> { directPath.Trim().ToUpperInvariant() };
+                    else
+                        rawPath = new List<string> { workspaceKey.Trim().ToUpperInvariant() };
+
+                    if (rawPath.Count == 0) { totalSkipped++; continue; }
+
+                    string rawKey = string.Concat(rawPath);
+                    if (pathFirstSeen.ContainsKey(rawKey))
+                        pathIsDuplicate.Add(rawKey);
+                    else
+                        pathFirstSeen[rawKey] = op.OperationID;
+
+                    order++;
+                    pendingOps.Add((op, rawPath, order));
+                }
+
+                // Second pass: build commands.  Leave duplicates unlocked so
+                // MnemonicPathGenerator.ReserveUnique can resolve them without
+                // creating prefix conflicts (which locked paths forbid).
+                var usedPaths = new Dictionary<string, ModuleCommand>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var (op, innerPath, displayOrder) in pendingOps)
+                {
+                    string commandId = op.Adapter?.Value ?? op.OperationID ?? string.Empty;
+                    string commandName = op.CommandName ?? string.Empty;
+                    string adapterKind = op.Adapter?.Kind ?? string.Empty;
+                    bool isButtonId = string.Equals(adapterKind, "button_id", StringComparison.OrdinalIgnoreCase);
+                    bool isTbd = IsTbdAdapter(op);
+                    string pathKey = string.Concat(innerPath);
+                    bool duplicate = pathIsDuplicate.Contains(pathKey);
+
+                    if (duplicate)
+                    {
+                        duplicateLeaderWarnings.Add(
+                            $"Дублирующийся путь в модуле {moduleId}: [{string.Join(" ", innerPath)}] " +
+                            $"для {op.OperationID} — будет разрешён генератором мнемоник.");
+                    }
+
+                    string displayId = isButtonId ? commandId : op.OperationID ?? string.Empty;
+                    var mc = new ModuleCommand
+                    {
+                        Enabled = !isTbd,
+                        Command = new CommandRef { ID = displayId, Name = commandName },
+                        Action = SelectionIntent.ExecuteCommandAction,
+                        SelectionType = string.Empty,
+                        Path = innerPath,
+                        PathLabels = new List<string> { commandName },
+                        Aliases = new List<List<string>>(),
+                        SearchAliases = new List<string>(),
+                        DisplayOrder = displayOrder,
+                        // Lock only unique paths.  Duplicates are left unlocked
+                        // so MnemonicPathGenerator can safely reassign one of them.
+                        PathLocked = !duplicate,
+                        PathSource = duplicate ? string.Empty : "v8",
+                        Notes = isTbd
+                            ? "tbd_adapter — команда не готова к выполнению"
+                            : (op.Adapter?.Status ?? string.Empty)
+                    };
+
+                    if (!duplicate) usedPaths[pathKey] = mc;
+                    module.CommandSets[0].Commands.Add(mc);
+                }
+
+                modulesDict[moduleId] = module;
+                Modules.Add(module);
+            }
+
+            // ── Diagnostics ────────────────────────────────────────────────────
+            if (duplicateLeaderWarnings.Count > 0)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[NXKeys] v8 translation: {duplicateLeaderWarnings.Count} duplicate path(s):");
+                foreach (string w in duplicateLeaderWarnings)
+                    System.Diagnostics.Debug.WriteLine($"  - {w}");
+            }
+            if (skippedInvalidKeyWarnings.Count > 0)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[NXKeys] v8 translation: {skippedInvalidKeyWarnings.Count} invalid direct/workspace key(s):");
+                foreach (string w in skippedInvalidKeyWarnings)
+                    System.Diagnostics.Debug.WriteLine($"  - {w}");
+            }
+            if (totalSkipped > 0)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[NXKeys] v8 translation: {totalSkipped} operation(s) skipped (no usable path).");
+            }
+        }
+    }
 }

@@ -23,7 +23,7 @@ namespace NX2512_HotkeyStudio.UI
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT { public int X; public int Y; }
 
-        private const int MaximumRootRows = 10;
+        private const int MaximumRootRows = 28;
         private readonly Color backColor = NxKeysTheme.Background;
         private readonly Color cardColor = NxKeysTheme.Surface;
         private readonly Color cardHighlightColor = NxKeysTheme.Raised;
@@ -479,9 +479,19 @@ namespace NX2512_HotkeyStudio.UI
         {
             if (item == null) return string.Empty;
             if (!bridgeReady) return "Bridge не загружен";
+            // Commands whose adapter is not yet mapped to a real NX button ID
+            // cannot be executed — show a distinct status.
+            if (IsUnmappedAdapter(item)) return "Нет привязки";
             if (item.RequiresSelection && selectionCount <= 0) return "Нужен выбор";
             if (item.Destructive || item.ConfirmBeforeExecute) return "Enter";
             return "Готово";
+        }
+
+        private static bool IsUnmappedAdapter(LeaderSequenceItem item)
+        {
+            string notes = item?.Notes ?? string.Empty;
+            return notes.Contains("tbd_adapter", StringComparison.OrdinalIgnoreCase) ||
+                   notes.Contains("unmapped", StringComparison.OrdinalIgnoreCase);
         }
 
         private Color StatusColor(string status)
@@ -557,7 +567,7 @@ namespace NX2512_HotkeyStudio.UI
             {
                 using Font overflowFont = new Font("Segoe UI", 8.3f);
                 using SolidBrush overflowBrush = new SolidBrush(warningColor);
-                graphics.DrawString("Показано 10 из " + (10 + hiddenRows) + " · Space — поиск",
+                graphics.DrawString("Показано " + MaximumRootRows + " из " + (MaximumRootRows + hiddenRows) + " · Space — поиск",
                     overflowFont, overflowBrush, 18, Height - 32);
                 return;
             }

@@ -972,6 +972,7 @@ namespace NX2512_CommandBridge
             if (id.Contains("ROUTING")) return "routing";
             if (id.Contains("STUDIO")) return "surface";
             if (id.Contains("MOLD")) return "mold";
+            if (id.Contains("ASSEMBL")) return "assembly";
             if (id.Contains("MODEL")) return "modeling";
             return "inspect_view";
         }
@@ -1025,9 +1026,51 @@ namespace NX2512_CommandBridge
             return normalized == "selection_object" || normalized == "inspect_view" || normalized == "reuse";
         }
 
+        // Maps v8_* module ID suffixes to NX module names so that
+        // ValidateExpectedContext accepts commands from v8-translated modules.
+        private static string NormalizeV8Module(string moduleId)
+        {
+            string id = (moduleId ?? string.Empty).Trim().ToLowerInvariant();
+            if (!id.StartsWith("v8_", StringComparison.Ordinal)) return null;
+            string suffix = id.Substring(3);
+            switch (suffix)
+            {
+                case "m": return "modeling";
+                case "s": return "sketch";
+                case "a": return "assembly";
+                case "d": return "drafting";
+                case "c": return "modeling";
+                case "f": return "modeling";
+                case "t": return "modeling";
+                case "e": return "modeling";
+                case "x": return "modeling";
+                case "g": return "modeling";
+                case "h": return "sheet_metal";
+                case "k": return "sketch";
+                case "p": return "inspect_view";
+                case "v": return "drafting";
+                case "i": return "simulation";
+                case "n": return "manufacturing";
+                case "u": return "surface";
+                case "r": return "routing";
+                case "l": return "mold";
+                case "w": return "modeling";
+                case "q": return "modeling";
+                case "sm": return "sheet_metal";
+                case "sh": return "sheet_metal";
+                default: return "modeling";
+            }
+        }
+
         private static string NormalizeModule(string moduleId)
         {
             string value = (moduleId ?? string.Empty).Trim().ToLowerInvariant().Replace(' ', '_');
+
+            // v8-translated modules carry a "v8_" prefix; resolve them to the
+            // canonical NX module name so context validation passes.
+            string v8Resolved = NormalizeV8Module(value);
+            if (v8Resolved != null) return v8Resolved;
+
             switch (value)
             {
                 case "view":

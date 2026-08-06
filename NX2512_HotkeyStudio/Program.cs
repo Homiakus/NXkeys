@@ -78,9 +78,11 @@ namespace NX2512_HotkeyStudio
             }
 
             Config config = Config.Load(activeConfigPath);
-            NxCommandBridgeClient.ConfigureSecurity(activeConfigPath);
+            if (!string.IsNullOrWhiteSpace(activeConfigPath))
+                NxCommandBridgeClient.ConfigureSecurity(activeConfigPath);
             if (config.SchemaVersion != Config.CurrentSchemaVersion || !config.LeaderKey.AdaptiveModuleMode)
-                throw new InvalidOperationException("NXKeys требует канонический адаптивный профиль schema v4.");
+                throw new InvalidOperationException(
+                    $"NXKeys требует канонический адаптивный профиль schema v{Config.CurrentSchemaVersion}.");
 
             uiInvoker = new Control();
             uiInvoker.CreateControl();
@@ -124,7 +126,8 @@ namespace NX2512_HotkeyStudio
                 string command = args[0].ToLowerInvariant();
                 string configPath = ResolveConfigPath(GetArgValue(args, "--config"));
                 Config config = Config.Load(configPath);
-                NxCommandBridgeClient.ConfigureSecurity(configPath);
+                if (!string.IsNullOrWhiteSpace(configPath))
+                    NxCommandBridgeClient.ConfigureSecurity(configPath);
 
                 switch (command)
                 {
@@ -327,22 +330,27 @@ namespace NX2512_HotkeyStudio
         {
             var candidates = new List<string>();
             if (!string.IsNullOrWhiteSpace(requested)) candidates.Add(requested);
-            candidates.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nx2512-pro-hybrid.json"));
-            candidates.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config", "nx2512-pro-hybrid.json"));
-            candidates.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "config", "nx2512-pro-hybrid.json"));
+            foreach (string name in new[] { "nx2512-v8-profile.json", "nx2512-pro-hybrid.json" })
+            {
+                candidates.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, name));
+                candidates.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config", name));
+                candidates.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "config", name));
+            }
 
             foreach (string candidate in candidates)
             {
                 string expanded = Config.ExpandPath(candidate);
                 if (File.Exists(expanded)) return Path.GetFullPath(expanded);
             }
-            throw new FileNotFoundException(
-                "Канонический профиль NXKeys schema v4 не найден. Передайте --config с существующим nx2512-pro-hybrid.json.");
+            // No profile file found — Config.Load will build the hardcoded v8 profile.
+            return string.Empty;
         }
 
         private static void ConfigureInstanceScope(string configPath)
         {
-            string normalized = Path.GetFullPath(configPath).ToUpperInvariant();
+            string normalized = string.IsNullOrWhiteSpace(configPath)
+                ? "HARDCODED_V8_PROFILE"
+                : Path.GetFullPath(configPath).ToUpperInvariant();
             string digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(normalized)))
                 .Substring(0, 16);
             string scope = "Local\\NXKeys_" + digest;

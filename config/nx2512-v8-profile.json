@@ -1,0 +1,8396 @@
+{
+  "schema_version": 8,
+  "profile": {
+    "name": "NX Adaptive Modules 2512.6000 v8",
+    "nx_version": "2512.6000",
+    "description": "Mnemonic Command Language v8 - Ergonomic Edition"
+  },
+  "operations": [
+    {
+      "operation_id": "global.layer_workspace",
+      "paths": {
+        "leader": [
+          "M",
+          "L"
+        ]
+      },
+      "command_name": "Layer Workspace",
+      "adapter": {
+        "kind": "internal",
+        "value": "рабочий слой, состояния слоёв, перенос объектов, фильтрация и пресеты",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.wave_workspace",
+      "paths": {
+        "leader": [
+          "M",
+          "W"
+        ]
+      },
+      "command_name": "WAVE Workspace",
+      "adapter": {
+        "kind": "internal",
+        "value": "создание, проверка, обновление и обслуживание междетальных ссылок",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.geometry_display_workspace",
+      "paths": {
+        "leader": [
+          "V",
+          "G"
+        ]
+      },
+      "command_name": "Geometry Display Workspace",
+      "adapter": {
+        "kind": "internal",
+        "value": "hide/show/isolate, отображение по типу, слою и назначению, стили визуализации",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.modeling________________sketch",
+      "paths": {
+        "direct": "S"
+      },
+      "command_name": "Modeling, нет активного Sketch",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_CREATE_SKETCH",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global._________sketch",
+      "paths": {
+        "direct": "S"
+      },
+      "command_name": "Активный Sketch",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_FINISH",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.modeling",
+      "paths": {
+        "direct": "X"
+      },
+      "command_name": "Modeling",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_EXTRUDED_FEATURE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.modeling",
+      "paths": {
+        "direct": "B"
+      },
+      "command_name": "Modeling",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_BLEND_FEATURE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.modeling",
+      "paths": {
+        "direct": "C"
+      },
+      "command_name": "Modeling",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_CHAMFER_FEATURE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.sketch",
+      "paths": {
+        "direct": "Q"
+      },
+      "command_name": "Sketch",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_RAPID_DIMENSION",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.drafting",
+      "paths": {
+        "direct": "Q"
+      },
+      "command_name": "Drafting",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_DRAFTING_RAPID_DIMENSION",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.________________________________",
+      "paths": {
+        "direct": "Space"
+      },
+      "command_name": "Есть выделение, графическое окно",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_EDIT_BLANK_SELECTED",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.________________",
+      "paths": {
+        "direct": "Shift+Space"
+      },
+      "command_name": "Графическое окно",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_EDIT_MD_SHOWHIDE_ALL",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.____________________",
+      "paths": {
+        "direct": "Esc"
+      },
+      "command_name": "Зависит от состояния",
+      "adapter": {
+        "kind": "internal",
+        "value": "см. ниже",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.revolve",
+      "paths": {
+        "workspace_key": "R"
+      },
+      "command_name": "Revolve",
+      "adapter": {
+        "kind": "internal",
+        "value": "Может мешать вводу имён и навигации",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.hole",
+      "paths": {
+        "workspace_key": "H"
+      },
+      "command_name": "Hole",
+      "adapter": {
+        "kind": "internal",
+        "value": "Может мешать стандартным пользовательским настройкам",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.fit",
+      "paths": {
+        "workspace_key": "F"
+      },
+      "command_name": "Fit",
+      "adapter": {
+        "kind": "internal",
+        "value": "Уже существует Ctrl+F",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.measure",
+      "paths": {
+        "workspace_key": "M"
+      },
+      "command_name": "Measure",
+      "adapter": {
+        "kind": "internal",
+        "value": "Частота зависит от роли пользователя",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.________leader___________________",
+      "paths": {
+        "direct": "CapsLock"
+      },
+      "command_name": "Открыть Leader текущего контекста",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.________leader",
+      "paths": {
+        "direct": "повторный CapsLock"
+      },
+      "command_name": "Закрыть Leader",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.sticky_leader",
+      "paths": {
+        "direct": "двойной CapsLock"
+      },
+      "command_name": "Sticky Leader",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global._______________________",
+      "paths": {
+        "direct": "Space"
+      },
+      "command_name": "Глобальный поиск команд",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global._________",
+      "paths": {
+        "direct": "буквы и цифры"
+      },
+      "command_name": "Ввод пути",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.__________________________",
+      "paths": {
+        "direct": "Enter"
+      },
+      "command_name": "Выполнить однозначный путь",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.________________________________hud",
+      "paths": {
+        "direct": "Backspace"
+      },
+      "command_name": "Удалить токен; на корне закрыть HUD",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.________hud",
+      "paths": {
+        "direct": "Esc"
+      },
+      "command_name": "Закрыть HUD",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.__________________________________collector",
+      "paths": {
+        "direct": "Tab"
+      },
+      "command_name": "Следующая категория или следующий collector",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global._________________________collector",
+      "paths": {
+        "direct": "Shift+Tab"
+      },
+      "command_name": "Предыдущая категория или collector",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global._______________________________",
+      "paths": {
+        "direct": "↑/↓"
+      },
+      "command_name": "Навигация по результатам поиска",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.________________________________",
+      "paths": {
+        "workspace_key": "?"
+      },
+      "command_name": "Показать подсказку текущего узла",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.___________________________",
+      "paths": {
+        "direct": "F1"
+      },
+      "command_name": "Открыть диагностику команды",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.single_curve",
+      "paths": {
+        "workspace_key": "1"
+      },
+      "command_name": "Single Curve",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.connected_curves",
+      "paths": {
+        "workspace_key": "2"
+      },
+      "command_name": "Connected Curves",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.tangent_curves",
+      "paths": {
+        "workspace_key": "3"
+      },
+      "command_name": "Tangent Curves",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.region_boundary___closed_region",
+      "paths": {
+        "workspace_key": "4"
+      },
+      "command_name": "Region Boundary / Closed Region",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.single_edge",
+      "paths": {
+        "workspace_key": "1"
+      },
+      "command_name": "Single Edge",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.tangent_edges",
+      "paths": {
+        "workspace_key": "2"
+      },
+      "command_name": "Tangent Edges",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.face_edges",
+      "paths": {
+        "workspace_key": "3"
+      },
+      "command_name": "Face Edges",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.feature_edges",
+      "paths": {
+        "workspace_key": "4"
+      },
+      "command_name": "Feature Edges",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.single_face",
+      "paths": {
+        "workspace_key": "1"
+      },
+      "command_name": "Single Face",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.tangent_faces",
+      "paths": {
+        "workspace_key": "2"
+      },
+      "command_name": "Tangent Faces",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.connected_faces___face_region",
+      "paths": {
+        "workspace_key": "3"
+      },
+      "command_name": "Connected Faces / Face Region",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.feature_faces",
+      "paths": {
+        "workspace_key": "4"
+      },
+      "command_name": "Feature Faces",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.single_body",
+      "paths": {
+        "workspace_key": "1"
+      },
+      "command_name": "Single Body",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.touching___connected_bodies",
+      "paths": {
+        "workspace_key": "2"
+      },
+      "command_name": "Touching / Connected Bodies",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.bodies_of_current_component",
+      "paths": {
+        "workspace_key": "3"
+      },
+      "command_name": "Bodies of Current Component",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.all_compatible_bodies_in_scope",
+      "paths": {
+        "workspace_key": "4"
+      },
+      "command_name": "All Compatible Bodies in Scope",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.single_component",
+      "paths": {
+        "workspace_key": "1"
+      },
+      "command_name": "Single Component",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.same_part___similar_component",
+      "paths": {
+        "workspace_key": "2"
+      },
+      "command_name": "Same Part / Similar Component",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.all_occurrences",
+      "paths": {
+        "workspace_key": "3"
+      },
+      "command_name": "All Occurrences",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.assembly_subtree",
+      "paths": {
+        "workspace_key": "4"
+      },
+      "command_name": "Assembly Subtree",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.single_drafting_object",
+      "paths": {
+        "workspace_key": "1"
+      },
+      "command_name": "Single drafting object",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.connected_geometry",
+      "paths": {
+        "workspace_key": "2"
+      },
+      "command_name": "Connected geometry",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.objects_in_current_view",
+      "paths": {
+        "workspace_key": "3"
+      },
+      "command_name": "Objects in current view",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.all_compatible_annotations_of_type",
+      "paths": {
+        "workspace_key": "4"
+      },
+      "command_name": "All compatible annotations of type",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.single_object",
+      "paths": {
+        "workspace_key": "1"
+      },
+      "command_name": "Single object",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.same_geometry_group",
+      "paths": {
+        "workspace_key": "2"
+      },
+      "command_name": "Same geometry/group",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.connected_region",
+      "paths": {
+        "workspace_key": "3"
+      },
+      "command_name": "Connected region",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.all_compatible_objects_in_active_setup_solution",
+      "paths": {
+        "workspace_key": "4"
+      },
+      "command_name": "All compatible objects in active setup/solution",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.______________________intent________",
+      "paths": {
+        "workspace_key": "0"
+      },
+      "command_name": "Вернуть рекомендуемый intent команды",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global._____________________________intent_______leader__________collector________",
+      "paths": {
+        "direct": "Backspace"
+      },
+      "command_name": "Отменить последнее изменение intent, если Leader закрыт и collector активен",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.bodies",
+      "paths": {
+        "leader": [
+          "S",
+          "B"
+        ]
+      },
+      "command_name": "Bodies",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.faces",
+      "paths": {
+        "leader": [
+          "S",
+          "F"
+        ]
+      },
+      "command_name": "Faces",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.edges",
+      "paths": {
+        "leader": [
+          "S",
+          "E"
+        ]
+      },
+      "command_name": "Edges",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.curves",
+      "paths": {
+        "leader": [
+          "S",
+          "C"
+        ]
+      },
+      "command_name": "Curves",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.sketches",
+      "paths": {
+        "leader": [
+          "S",
+          "K"
+        ]
+      },
+      "command_name": "Sketches",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.features",
+      "paths": {
+        "leader": [
+          "S",
+          "T"
+        ]
+      },
+      "command_name": "Features",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.components",
+      "paths": {
+        "leader": [
+          "S",
+          "M"
+        ]
+      },
+      "command_name": "Components",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.datums",
+      "paths": {
+        "leader": [
+          "S",
+          "D"
+        ]
+      },
+      "command_name": "Datums",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.points___vertices",
+      "paths": {
+        "leader": [
+          "S",
+          "P"
+        ]
+      },
+      "command_name": "Points / Vertices",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.annotations___pmi",
+      "paths": {
+        "leader": [
+          "S",
+          "A"
+        ]
+      },
+      "command_name": "Annotations / PMI",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.drafting_views",
+      "paths": {
+        "leader": [
+          "S",
+          "V"
+        ]
+      },
+      "command_name": "Drafting Views",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.cam_operations",
+      "paths": {
+        "leader": [
+          "S",
+          "O"
+        ]
+      },
+      "command_name": "CAM Operations",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.tools",
+      "paths": {
+        "leader": [
+          "S",
+          "L"
+        ]
+      },
+      "command_name": "Tools",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.fem_nodes",
+      "paths": {
+        "leader": [
+          "S",
+          "N"
+        ]
+      },
+      "command_name": "FEM Nodes",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.fem_elements",
+      "paths": {
+        "leader": [
+          "S",
+          "X"
+        ]
+      },
+      "command_name": "FEM Elements",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.select_similar_faces",
+      "paths": {
+        "leader": [
+          "S",
+          "Q",
+          "F"
+        ]
+      },
+      "command_name": "Select Similar Faces",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.select_similar_edges",
+      "paths": {
+        "leader": [
+          "S",
+          "Q",
+          "E"
+        ]
+      },
+      "command_name": "Select Similar Edges",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.select_similar_components",
+      "paths": {
+        "leader": [
+          "S",
+          "Q",
+          "C"
+        ]
+      },
+      "command_name": "Select Similar Components",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.identical_only",
+      "paths": {
+        "leader": [
+          "S",
+          "Q",
+          "I"
+        ]
+      },
+      "command_name": "Identical Only",
+      "adapter": {
+        "kind": "internal",
+        "value": "command-local option",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.predicted_objects",
+      "paths": {
+        "leader": [
+          "S",
+          "Q",
+          "P"
+        ]
+      },
+      "command_name": "Predicted Objects",
+      "adapter": {
+        "kind": "internal",
+        "value": "command-local option",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.select_from_list",
+      "paths": {
+        "leader": [
+          "S",
+          "Q",
+          "L"
+        ]
+      },
+      "command_name": "Select from List",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.select_by_name",
+      "paths": {
+        "leader": [
+          "S",
+          "Q",
+          "N"
+        ]
+      },
+      "command_name": "Select by Name",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.select_by_attribute",
+      "paths": {
+        "leader": [
+          "S",
+          "Q",
+          "A"
+        ]
+      },
+      "command_name": "Select by Attribute",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.select_by_display_attributes__color___line_style___width",
+      "paths": {
+        "leader": [
+          "S",
+          "Q",
+          "D"
+        ]
+      },
+      "command_name": "Select by Display Attributes: color / line style / width",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.select_by_layer",
+      "paths": {
+        "leader": [
+          "S",
+          "Q",
+          "Y"
+        ]
+      },
+      "command_name": "Select by Layer",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.work_part",
+      "paths": {
+        "leader": [
+          "S",
+          "P",
+          "W"
+        ]
+      },
+      "command_name": "Work Part",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.display_part",
+      "paths": {
+        "leader": [
+          "S",
+          "P",
+          "D"
+        ]
+      },
+      "command_name": "Display Part",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.current_component",
+      "paths": {
+        "leader": [
+          "S",
+          "P",
+          "C"
+        ]
+      },
+      "command_name": "Current Component",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.work_part_and_components",
+      "paths": {
+        "leader": [
+          "S",
+          "P",
+          "R"
+        ]
+      },
+      "command_name": "Work Part and Components",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.entire_assembly",
+      "paths": {
+        "leader": [
+          "S",
+          "P",
+          "A"
+        ]
+      },
+      "command_name": "Entire Assembly",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.visible_objects",
+      "paths": {
+        "leader": [
+          "S",
+          "P",
+          "V"
+        ]
+      },
+      "command_name": "Visible Objects",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.selected_layers",
+      "paths": {
+        "leader": [
+          "S",
+          "P",
+          "L"
+        ]
+      },
+      "command_name": "Selected Layers",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.active_drawing_view",
+      "paths": {
+        "leader": [
+          "S",
+          "P",
+          "G"
+        ]
+      },
+      "command_name": "Active Drawing View",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.active_cam_setup",
+      "paths": {
+        "leader": [
+          "S",
+          "P",
+          "S"
+        ]
+      },
+      "command_name": "Active CAM Setup",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.current_dialog_collector",
+      "paths": {
+        "leader": [
+          "S",
+          "P",
+          "U"
+        ]
+      },
+      "command_name": "Current Dialog Collector",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.replace",
+      "paths": {
+        "leader": [
+          "S",
+          "M",
+          "R"
+        ]
+      },
+      "command_name": "Replace",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.add",
+      "paths": {
+        "leader": [
+          "S",
+          "M",
+          "A"
+        ]
+      },
+      "command_name": "Add",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.remove",
+      "paths": {
+        "leader": [
+          "S",
+          "M",
+          "X"
+        ]
+      },
+      "command_name": "Remove",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.toggle",
+      "paths": {
+        "leader": [
+          "S",
+          "M",
+          "T"
+        ]
+      },
+      "command_name": "Toggle",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.invert",
+      "paths": {
+        "leader": [
+          "S",
+          "M",
+          "I"
+        ]
+      },
+      "command_name": "Invert",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.deselect_all",
+      "paths": {
+        "leader": [
+          "S",
+          "M",
+          "N"
+        ]
+      },
+      "command_name": "Deselect All",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.previous_selection",
+      "paths": {
+        "leader": [
+          "S",
+          "M",
+          "P"
+        ]
+      },
+      "command_name": "Previous Selection",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.save_selection_set",
+      "paths": {
+        "leader": [
+          "S",
+          "M",
+          "V"
+        ]
+      },
+      "command_name": "Save Selection Set",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.default_action__ok___finish___________________________adapter",
+      "paths": {
+        "direct": "Enter"
+      },
+      "command_name": "Default action: OK / Finish, только через проверенный adapter",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.apply",
+      "paths": {
+        "direct": "Ctrl+Enter"
+      },
+      "command_name": "Apply",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.cancel___close",
+      "paths": {
+        "direct": "Esc"
+      },
+      "command_name": "Cancel / Close",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.__________collector",
+      "paths": {
+        "direct": "Tab"
+      },
+      "command_name": "Следующий collector",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.___________collector",
+      "paths": {
+        "direct": "Shift+Tab"
+      },
+      "command_name": "Предыдущий collector",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global.______________________",
+      "paths": {
+        "direct": "Alt+Left"
+      },
+      "command_name": "Предыдущий шаг мастера",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "global._____________________",
+      "paths": {
+        "direct": "Alt+Right"
+      },
+      "command_name": "Следующий шаг мастера",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.create_sketch",
+      "paths": {
+        "direct": "S"
+      },
+      "command_name": "Create Sketch",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.extrude",
+      "paths": {
+        "direct": "X"
+      },
+      "command_name": "Extrude",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.edge_blend",
+      "paths": {
+        "direct": "B"
+      },
+      "command_name": "Edge Blend",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.chamfer",
+      "paths": {
+        "direct": "C"
+      },
+      "command_name": "Chamfer",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.revolve",
+      "paths": {
+        "leader": [
+          "C",
+          "R"
+        ]
+      },
+      "command_name": "Revolve",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_REVOLVED_FEATURE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.hole",
+      "paths": {
+        "leader": [
+          "C",
+          "H"
+        ]
+      },
+      "command_name": "Hole",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_HOLE_FEATURE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.sweep",
+      "paths": {
+        "leader": [
+          "C",
+          "S"
+        ]
+      },
+      "command_name": "Sweep",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_SWEPT_FEATURE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.through_curves",
+      "paths": {
+        "leader": [
+          "C",
+          "L"
+        ]
+      },
+      "command_name": "Through Curves",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_THROUGH_CURVES_FEATURE",
+        "status": "inherited_v7"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.through_curve_mesh",
+      "paths": {
+        "leader": [
+          "C",
+          "M"
+        ]
+      },
+      "command_name": "Through Curve Mesh",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "suspect_mapping"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.studio_surface",
+      "paths": {
+        "leader": [
+          "C",
+          "U"
+        ]
+      },
+      "command_name": "Studio Surface",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_STUDIO_SURFACE_FEATURE",
+        "status": "inherited_v7"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.extract_geometry",
+      "paths": {
+        "leader": [
+          "C",
+          "G"
+        ]
+      },
+      "command_name": "Extract Geometry",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_EXTRACT_GEOMETRY",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.unite",
+      "paths": {
+        "leader": [
+          "C",
+          "B",
+          "U"
+        ]
+      },
+      "command_name": "Unite",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.subtract",
+      "paths": {
+        "leader": [
+          "C",
+          "B",
+          "S"
+        ]
+      },
+      "command_name": "Subtract",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.intersect",
+      "paths": {
+        "leader": [
+          "C",
+          "B",
+          "I"
+        ]
+      },
+      "command_name": "Intersect",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.shell",
+      "paths": {
+        "leader": [
+          "E",
+          "H"
+        ]
+      },
+      "command_name": "Shell",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.draft",
+      "paths": {
+        "leader": [
+          "E",
+          "D"
+        ]
+      },
+      "command_name": "Draft",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.trim_body",
+      "paths": {
+        "leader": [
+          "E",
+          "T"
+        ]
+      },
+      "command_name": "Trim Body",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "suspect_mapping"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.move_object",
+      "paths": {
+        "leader": [
+          "T",
+          "O"
+        ]
+      },
+      "command_name": "Move Object",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.copy",
+      "paths": {
+        "leader": [
+          "T",
+          "C"
+        ]
+      },
+      "command_name": "Copy",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_EDIT_COPY",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.pattern_feature",
+      "paths": {
+        "leader": [
+          "T",
+          "P"
+        ]
+      },
+      "command_name": "Pattern Feature",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_PATTERNFEATURE_FEATURE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.mirror_feature",
+      "paths": {
+        "leader": [
+          "T",
+          "M"
+        ]
+      },
+      "command_name": "Mirror Feature",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_MIRRORFEATURE_FEATURE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.move_face",
+      "paths": {
+        "leader": [
+          "E",
+          "F",
+          "M"
+        ]
+      },
+      "command_name": "Move Face",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.offset_face",
+      "paths": {
+        "leader": [
+          "E",
+          "F",
+          "O"
+        ]
+      },
+      "command_name": "Offset Face",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.delete_face",
+      "paths": {
+        "leader": [
+          "E",
+          "F",
+          "D"
+        ]
+      },
+      "command_name": "Delete Face",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.replace_face",
+      "paths": {
+        "leader": [
+          "E",
+          "F",
+          "R"
+        ]
+      },
+      "command_name": "Replace Face",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.resize_face___region_______________",
+      "paths": {
+        "leader": [
+          "E",
+          "F",
+          "S"
+        ]
+      },
+      "command_name": "Resize Face / region, если доступно",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.edit_feature_parameters",
+      "paths": {
+        "leader": [
+          "E",
+          "P"
+        ]
+      },
+      "command_name": "Edit Feature Parameters",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.suppress_feature",
+      "paths": {
+        "leader": [
+          "X",
+          "S"
+        ]
+      },
+      "command_name": "Suppress Feature",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.unsuppress_feature",
+      "paths": {
+        "leader": [
+          "X",
+          "U"
+        ]
+      },
+      "command_name": "Unsuppress Feature",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.datum_plane",
+      "paths": {
+        "leader": [
+          "C",
+          "D",
+          "P"
+        ]
+      },
+      "command_name": "Datum Plane",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.datum_axis",
+      "paths": {
+        "leader": [
+          "C",
+          "D",
+          "A"
+        ]
+      },
+      "command_name": "Datum Axis",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.datum_csys",
+      "paths": {
+        "leader": [
+          "C",
+          "D",
+          "C"
+        ]
+      },
+      "command_name": "Datum CSYS",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.datum_point",
+      "paths": {
+        "leader": [
+          "C",
+          "D",
+          "P",
+          "T"
+        ]
+      },
+      "command_name": "Datum Point",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.3d_line",
+      "paths": {
+        "leader": [
+          "C",
+          "C",
+          "L"
+        ]
+      },
+      "command_name": "3D Line",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.3d_arc",
+      "paths": {
+        "leader": [
+          "C",
+          "C",
+          "A"
+        ]
+      },
+      "command_name": "3D Arc",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.3d_spline",
+      "paths": {
+        "leader": [
+          "C",
+          "C",
+          "S"
+        ]
+      },
+      "command_name": "3D Spline",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.measure_distance___geometry",
+      "paths": {
+        "leader": [
+          "I",
+          "M"
+        ]
+      },
+      "command_name": "Measure Distance / Geometry",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_INFO_GEOMETRIC_MEASUREMENT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.object_information",
+      "paths": {
+        "leader": [
+          "I",
+          "O"
+        ]
+      },
+      "command_name": "Object Information",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_INFO_OBJECT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.mass_properties",
+      "paths": {
+        "leader": [
+          "I",
+          "P"
+        ]
+      },
+      "command_name": "Mass Properties",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.examine_geometry",
+      "paths": {
+        "leader": [
+          "I",
+          "G"
+        ]
+      },
+      "command_name": "Examine Geometry",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.check_geometry",
+      "paths": {
+        "leader": [
+          "I",
+          "C"
+        ]
+      },
+      "command_name": "Check Geometry",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.expressions",
+      "paths": {
+        "leader": [
+          "M",
+          "E"
+        ]
+      },
+      "command_name": "Expressions",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_EXPRESSIONS",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.open_layer_workspace",
+      "paths": {
+        "leader": [
+          "M",
+          "L"
+        ]
+      },
+      "command_name": "Open Layer Workspace",
+      "adapter": {
+        "kind": "internal",
+        "value": "internal workspace",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.standard_layer_settings",
+      "paths": {
+        "leader": [
+          "M",
+          "L",
+          "S"
+        ]
+      },
+      "command_name": "Standard Layer Settings",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_LAYER_SETTINGS",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.move_selected_to_layer",
+      "paths": {
+        "leader": [
+          "M",
+          "L",
+          "M"
+        ]
+      },
+      "command_name": "Move Selected to Layer",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_LAYER_MOVE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.material_library",
+      "paths": {
+        "leader": [
+          "M",
+          "M"
+        ]
+      },
+      "command_name": "Material Library",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MATERIAL_LIBRARY_MANAGER",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.part_navigator",
+      "paths": {
+        "leader": [
+          "M",
+          "N"
+        ]
+      },
+      "command_name": "Part Navigator",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.open_geometry_display_workspace",
+      "paths": {
+        "leader": [
+          "V",
+          "G"
+        ]
+      },
+      "command_name": "Open Geometry Display Workspace",
+      "adapter": {
+        "kind": "internal",
+        "value": "internal workspace",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.update_model",
+      "paths": {
+        "leader": [
+          "P",
+          "U"
+        ]
+      },
+      "command_name": "Update Model",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.____________________layer_settings",
+      "paths": {
+        "direct": "Enter или S"
+      },
+      "command_name": "Открыть стандартный Layer Settings",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_LAYER_SETTINGS",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.____________________",
+      "paths": {
+        "workspace_key": "W"
+      },
+      "command_name": "Сделать слой рабочим",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling._____________________________________",
+      "paths": {
+        "workspace_key": "M"
+      },
+      "command_name": "Переместить выбранные объекты на слой",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_LAYER_MOVE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling._____________visible___selectable",
+      "paths": {
+        "workspace_key": "V"
+      },
+      "command_name": "Сделать слои Visible + Selectable",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling._____________visible_only",
+      "paths": {
+        "workspace_key": "O"
+      },
+      "command_name": "Сделать слои Visible Only",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.___________",
+      "paths": {
+        "workspace_key": "H"
+      },
+      "command_name": "Скрыть слои",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.___________________________________",
+      "paths": {
+        "workspace_key": "I"
+      },
+      "command_name": "Изолировать слои выбранных объектов",
+      "adapter": {
+        "kind": "internal",
+        "value": "internal snapshot + tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.____________________________scope",
+      "paths": {
+        "workspace_key": "A"
+      },
+      "command_name": "Показать все слои в текущем scope",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling._______________________________________",
+      "paths": {
+        "workspace_key": "R"
+      },
+      "command_name": "Восстановить предыдущее состояние слоёв",
+      "adapter": {
+        "kind": "internal",
+        "value": "internal layer-state stack",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.__________selection_filter_________",
+      "paths": {
+        "workspace_key": "F"
+      },
+      "command_name": "Временный selection filter по слоям",
+      "adapter": {
+        "kind": "internal",
+        "value": "selection engine",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.______________________layer_preset",
+      "paths": {
+        "workspace_key": "P"
+      },
+      "command_name": "Выбрать или сохранить layer preset",
+      "adapter": {
+        "kind": "internal",
+        "value": "profile adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.__________________________________________",
+      "paths": {
+        "workspace_key": "N"
+      },
+      "command_name": "Найти слой по номеру, имени или псевдониму",
+      "adapter": {
+        "kind": "internal",
+        "value": "internal resolver",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.________________________________________________________",
+      "paths": {
+        "workspace_key": "D"
+      },
+      "command_name": "Показать слои выбранных объектов и причины недоступности",
+      "adapter": {
+        "kind": "internal",
+        "value": "diagnostics",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.________work_part___display_part___component___assembly_scope",
+      "paths": {
+        "direct": "Tab"
+      },
+      "command_name": "Перейти Work Part → Display Part → Component → Assembly scope",
+      "adapter": {
+        "kind": "internal",
+        "value": "scope state machine",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.________layer_workspace______________________________",
+      "paths": {
+        "direct": "Esc"
+      },
+      "command_name": "Закрыть Layer Workspace без дополнительного изменения",
+      "adapter": {
+        "kind": "internal",
+        "value": "internal workspace",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.hide_selected",
+      "paths": {
+        "workspace_key": "H"
+      },
+      "command_name": "Hide Selected",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_EDIT_BLANK_SELECTED",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.show_selected______________________________",
+      "paths": {
+        "direct": "S"
+      },
+      "command_name": "Show Selected через список скрытых объектов",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.show_only___isolate_selected",
+      "paths": {
+        "workspace_key": "O"
+      },
+      "command_name": "Show Only / Isolate Selected",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter + visibility snapshot",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.show_all___________scope",
+      "paths": {
+        "workspace_key": "A"
+      },
+      "command_name": "Show All в текущем scope",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_EDIT_MD_SHOWHIDE_ALL",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.restore_previous_display",
+      "paths": {
+        "workspace_key": "R"
+      },
+      "command_name": "Restore Previous Display",
+      "adapter": {
+        "kind": "internal",
+        "value": "internal display-state stack",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.show___hide_by_object_type",
+      "paths": {
+        "workspace_key": "T"
+      },
+      "command_name": "Show / Hide by Object Type",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.__________layer_workspace",
+      "paths": {
+        "workspace_key": "L"
+      },
+      "command_name": "Перейти в Layer Workspace",
+      "adapter": {
+        "kind": "internal",
+        "value": "internal workspace transition",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.construction_geometry_preset",
+      "paths": {
+        "direct": "C"
+      },
+      "command_name": "Construction Geometry preset",
+      "adapter": {
+        "kind": "internal",
+        "value": "profile display preset",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.bodies_preset",
+      "paths": {
+        "direct": "B"
+      },
+      "command_name": "Bodies preset",
+      "adapter": {
+        "kind": "internal",
+        "value": "profile display preset",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.wave___reference_geometry_preset",
+      "paths": {
+        "workspace_key": "W"
+      },
+      "command_name": "WAVE / Reference Geometry preset",
+      "adapter": {
+        "kind": "internal",
+        "value": "profile display preset",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.pmi___annotations_preset",
+      "paths": {
+        "workspace_key": "P"
+      },
+      "command_name": "PMI / Annotations preset",
+      "adapter": {
+        "kind": "internal",
+        "value": "profile display preset",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.components_preset",
+      "paths": {
+        "workspace_key": "M"
+      },
+      "command_name": "Components preset",
+      "adapter": {
+        "kind": "internal",
+        "value": "profile display preset",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.rendering_style_subspace",
+      "paths": {
+        "workspace_key": "D"
+      },
+      "command_name": "Rendering Style subspace",
+      "adapter": {
+        "kind": "internal",
+        "value": "command-local display adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.see_through___translucency_______________",
+      "paths": {
+        "direct": "X"
+      },
+      "command_name": "See-Through / Translucency для выбранного",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.fit_selected",
+      "paths": {
+        "workspace_key": "F"
+      },
+      "command_name": "Fit Selected",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.diagnose_why_hidden",
+      "paths": {
+        "workspace_key": "I"
+      },
+      "command_name": "Diagnose Why Hidden",
+      "adapter": {
+        "kind": "internal",
+        "value": "visibility resolver",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.________scope",
+      "paths": {
+        "direct": "Tab"
+      },
+      "command_name": "Сменить scope",
+      "adapter": {
+        "kind": "internal",
+        "value": "scope state machine",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.shaded",
+      "paths": {
+        "direct": "S"
+      },
+      "command_name": "Shaded",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.shaded_with_edges",
+      "paths": {
+        "workspace_key": "E"
+      },
+      "command_name": "Shaded with Edges",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.static_wireframe",
+      "paths": {
+        "workspace_key": "W"
+      },
+      "command_name": "Static Wireframe",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.hidden_edges___wireframe_with_dim_edges_______________",
+      "paths": {
+        "workspace_key": "H"
+      },
+      "command_name": "Hidden Edges / Wireframe with Dim Edges, если доступно",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.partially_shaded",
+      "paths": {
+        "workspace_key": "P"
+      },
+      "command_name": "Partially Shaded",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.see_through_selected",
+      "paths": {
+        "direct": "X"
+      },
+      "command_name": "See-Through Selected",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "modeling.restore_previous_rendering_style_and_object_translucency",
+      "paths": {
+        "workspace_key": "R"
+      },
+      "command_name": "Restore previous rendering style and object translucency",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "modeling"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.line",
+      "paths": {
+        "workspace_key": "L"
+      },
+      "command_name": "Line",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_LINE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.rectangle",
+      "paths": {
+        "workspace_key": "R"
+      },
+      "command_name": "Rectangle",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_RECTANGLE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.circle",
+      "paths": {
+        "direct": "C"
+      },
+      "command_name": "Circle",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_CIRCLE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.arc",
+      "paths": {
+        "workspace_key": "A"
+      },
+      "command_name": "Arc",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_ARC",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.spline",
+      "paths": {
+        "direct": "S"
+      },
+      "command_name": "Spline",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.point",
+      "paths": {
+        "workspace_key": "P"
+      },
+      "command_name": "Point",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.slot",
+      "paths": {
+        "workspace_key": "W"
+      },
+      "command_name": "Slot",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.polygon",
+      "paths": {
+        "workspace_key": "G"
+      },
+      "command_name": "Polygon",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.ellipse",
+      "paths": {
+        "workspace_key": "I"
+      },
+      "command_name": "Ellipse",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.trim",
+      "paths": {
+        "workspace_key": "T"
+      },
+      "command_name": "Trim",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_TRIM",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.extend",
+      "paths": {
+        "workspace_key": "E"
+      },
+      "command_name": "Extend",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_EXTEND",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.offset_curve",
+      "paths": {
+        "workspace_key": "O"
+      },
+      "command_name": "Offset Curve",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_OFFSET_CURVE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.sketch_fillet",
+      "paths": {
+        "workspace_key": "F"
+      },
+      "command_name": "Sketch Fillet",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.sketch_chamfer",
+      "paths": {
+        "workspace_key": "H"
+      },
+      "command_name": "Sketch Chamfer",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.mirror_curve",
+      "paths": {
+        "workspace_key": "M"
+      },
+      "command_name": "Mirror Curve",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.move_curve",
+      "paths": {
+        "workspace_key": "V"
+      },
+      "command_name": "Move Curve",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.pattern_curve",
+      "paths": {
+        "workspace_key": "Y"
+      },
+      "command_name": "Pattern Curve",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.project_curve",
+      "paths": {
+        "leader": [
+          "J",
+          "P"
+        ]
+      },
+      "command_name": "Project Curve",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.intersection_curve",
+      "paths": {
+        "leader": [
+          "J",
+          "I"
+        ]
+      },
+      "command_name": "Intersection Curve",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.rapid_dimension",
+      "paths": {
+        "leader": [
+          "D",
+          "Q"
+        ]
+      },
+      "command_name": "Rapid Dimension",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_RAPID_DIMENSION",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.linear_dimension",
+      "paths": {
+        "leader": [
+          "D",
+          "L"
+        ]
+      },
+      "command_name": "Linear Dimension",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_LINEAR_DIMENSION",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.angular_dimension",
+      "paths": {
+        "leader": [
+          "D",
+          "A"
+        ]
+      },
+      "command_name": "Angular Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.radius_dimension",
+      "paths": {
+        "leader": [
+          "D",
+          "R"
+        ]
+      },
+      "command_name": "Radius Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.diameter_dimension",
+      "paths": {
+        "leader": [
+          "D",
+          "O"
+        ]
+      },
+      "command_name": "Diameter Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.perimeter_dimension",
+      "paths": {
+        "leader": [
+          "D",
+          "P"
+        ]
+      },
+      "command_name": "Perimeter Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.coincident",
+      "paths": {
+        "leader": [
+          "K",
+          "C"
+        ]
+      },
+      "command_name": "Coincident",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_COINCIDENT_CONSTRAINT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.horizontal",
+      "paths": {
+        "leader": [
+          "K",
+          "H"
+        ]
+      },
+      "command_name": "Horizontal",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_HORIZONTAL_CONSTRAINT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.vertical",
+      "paths": {
+        "leader": [
+          "K",
+          "V"
+        ]
+      },
+      "command_name": "Vertical",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_VERTICAL_CONSTRAINT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.tangent",
+      "paths": {
+        "leader": [
+          "K",
+          "T"
+        ]
+      },
+      "command_name": "Tangent",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_TANGENT_CONSTRAINT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.parallel",
+      "paths": {
+        "leader": [
+          "K",
+          "P"
+        ]
+      },
+      "command_name": "Parallel",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_PARALLEL_CONSTRAINT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.perpendicular",
+      "paths": {
+        "leader": [
+          "K",
+          "N"
+        ]
+      },
+      "command_name": "Perpendicular",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_PERPENDICULAR_CONSTRAINT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.concentric",
+      "paths": {
+        "leader": [
+          "K",
+          "O"
+        ]
+      },
+      "command_name": "Concentric",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.equal",
+      "paths": {
+        "leader": [
+          "K",
+          "E"
+        ]
+      },
+      "command_name": "Equal",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.collinear",
+      "paths": {
+        "leader": [
+          "K",
+          "L"
+        ]
+      },
+      "command_name": "Collinear",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.midpoint",
+      "paths": {
+        "leader": [
+          "K",
+          "M"
+        ]
+      },
+      "command_name": "Midpoint",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.symmetric",
+      "paths": {
+        "leader": [
+          "K",
+          "S"
+        ]
+      },
+      "command_name": "Symmetric",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.fixed",
+      "paths": {
+        "leader": [
+          "K",
+          "F"
+        ]
+      },
+      "command_name": "Fixed",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.remove_constraint",
+      "paths": {
+        "leader": [
+          "K",
+          "X"
+        ]
+      },
+      "command_name": "Remove Constraint",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.sketch_navigator",
+      "paths": {
+        "workspace_key": "N"
+      },
+      "command_name": "Sketch Navigator",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.sketch_checker",
+      "paths": {
+        "workspace_key": "Z"
+      },
+      "command_name": "Sketch Checker",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_CHECKER",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.show_degrees_of_freedom",
+      "paths": {
+        "leader": [
+          "U",
+          "D"
+        ]
+      },
+      "command_name": "Show Degrees of Freedom",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.show_relations",
+      "paths": {
+        "leader": [
+          "U",
+          "R"
+        ]
+      },
+      "command_name": "Show Relations",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.external_references",
+      "paths": {
+        "leader": [
+          "U",
+          "E"
+        ]
+      },
+      "command_name": "External References",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.issues",
+      "paths": {
+        "leader": [
+          "U",
+          "I"
+        ]
+      },
+      "command_name": "Issues",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.finish_sketch",
+      "paths": {
+        "direct": "S direct"
+      },
+      "command_name": "Finish Sketch",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_FINISH",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.add_component",
+      "paths": {
+        "leader": [
+          "C",
+          "A"
+        ]
+      },
+      "command_name": "Add Component",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_ASSEMBLIES_ADD_COMPONENT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.new_component",
+      "paths": {
+        "leader": [
+          "C",
+          "N"
+        ]
+      },
+      "command_name": "New Component",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_ASSEMBLIES_NEW_COMPONENT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.assembly_constraints",
+      "paths": {
+        "leader": [
+          "C",
+          "J"
+        ]
+      },
+      "command_name": "Assembly Constraints",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_ASSEMBLIES_CONSTRAINTS",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.move_component",
+      "paths": {
+        "leader": [
+          "T",
+          "M"
+        ]
+      },
+      "command_name": "Move Component",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_ASSEMBLIES_MOVE_COMPONENT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.auto_align___magnetic_snap",
+      "paths": {
+        "leader": [
+          "T",
+          "A"
+        ]
+      },
+      "command_name": "Auto Align / Magnetic Snap",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.pattern_component",
+      "paths": {
+        "leader": [
+          "T",
+          "P"
+        ]
+      },
+      "command_name": "Pattern Component",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_ASSEMBLIES_PATTERN_COMPONENT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.copy_component",
+      "paths": {
+        "leader": [
+          "T",
+          "C"
+        ]
+      },
+      "command_name": "Copy Component",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.replace_component",
+      "paths": {
+        "leader": [
+          "E",
+          "R"
+        ]
+      },
+      "command_name": "Replace Component",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_ASSEMBLIES_REPLACE_COMPONENT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.remove_component",
+      "paths": {
+        "leader": [
+          "X",
+          "C"
+        ]
+      },
+      "command_name": "Remove Component",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_ASSEMBLIES_REMOVE_COMPONENT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.suppress_component",
+      "paths": {
+        "leader": [
+          "X",
+          "S"
+        ]
+      },
+      "command_name": "Suppress Component",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.unsuppress_component",
+      "paths": {
+        "leader": [
+          "E",
+          "U"
+        ]
+      },
+      "command_name": "Unsuppress Component",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.assembly_navigator",
+      "paths": {
+        "leader": [
+          "M",
+          "N"
+        ]
+      },
+      "command_name": "Assembly Navigator",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_ASSEMBLIES_NAVIGATOR",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.open_wave_workspace",
+      "paths": {
+        "leader": [
+          "M",
+          "W"
+        ]
+      },
+      "command_name": "Open WAVE Workspace",
+      "adapter": {
+        "kind": "internal",
+        "value": "internal workspace",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.wave_geometry_linker",
+      "paths": {
+        "leader": [
+          "M",
+          "W",
+          "G"
+        ]
+      },
+      "command_name": "WAVE Geometry Linker",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_ASSY_WAVE_LINKER",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.make_work_part",
+      "paths": {
+        "leader": [
+          "M",
+          "W",
+          "P"
+        ]
+      },
+      "command_name": "Make Work Part",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.arrangements",
+      "paths": {
+        "leader": [
+          "M",
+          "A"
+        ]
+      },
+      "command_name": "Arrangements",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.reference_sets",
+      "paths": {
+        "leader": [
+          "M",
+          "R"
+        ]
+      },
+      "command_name": "Reference Sets",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.load_options",
+      "paths": {
+        "leader": [
+          "M",
+          "O",
+          "L"
+        ]
+      },
+      "command_name": "Load Options",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.update_assembly",
+      "paths": {
+        "leader": [
+          "P",
+          "U"
+        ]
+      },
+      "command_name": "Update Assembly",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.interference_analysis",
+      "paths": {
+        "leader": [
+          "I",
+          "I"
+        ]
+      },
+      "command_name": "Interference Analysis",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.clearance_analysis",
+      "paths": {
+        "leader": [
+          "I",
+          "C"
+        ]
+      },
+      "command_name": "Clearance Analysis",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.measure",
+      "paths": {
+        "leader": [
+          "I",
+          "M"
+        ]
+      },
+      "command_name": "Measure",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_INFO_GEOMETRIC_MEASUREMENT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.show_constraints",
+      "paths": {
+        "leader": [
+          "I",
+          "J"
+        ]
+      },
+      "command_name": "Show Constraints",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.exploded_view",
+      "paths": {
+        "leader": [
+          "V",
+          "E"
+        ]
+      },
+      "command_name": "Exploded View",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.auto_explode",
+      "paths": {
+        "leader": [
+          "V",
+          "A"
+        ]
+      },
+      "command_name": "Auto Explode",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.restore_assembly_view",
+      "paths": {
+        "leader": [
+          "V",
+          "R"
+        ]
+      },
+      "command_name": "Restore Assembly View",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.geometry_linker___________________________________",
+      "paths": {
+        "direct": "Enter или G"
+      },
+      "command_name": "Geometry Linker с автоматическим определением типа",
+      "adapter": {
+        "kind": "internal",
+        "value": "Geometry Linker с автоматическим определением типа",
+        "status": "UG_ASSY_WAVE_LINKER, declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.body_link",
+      "paths": {
+        "direct": "B"
+      },
+      "command_name": "Body Link",
+      "adapter": {
+        "kind": "internal",
+        "value": "command-local option, требует проверки",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.face___face_region_link",
+      "paths": {
+        "workspace_key": "F"
+      },
+      "command_name": "Face / Face Region Link",
+      "adapter": {
+        "kind": "internal",
+        "value": "command-local option, требует проверки",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.curve_link",
+      "paths": {
+        "direct": "C"
+      },
+      "command_name": "Curve Link",
+      "adapter": {
+        "kind": "internal",
+        "value": "command-local option, требует проверки",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.sketch_link",
+      "paths": {
+        "direct": "S"
+      },
+      "command_name": "Sketch Link",
+      "adapter": {
+        "kind": "internal",
+        "value": "command-local option, требует проверки",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.datum_link",
+      "paths": {
+        "workspace_key": "D"
+      },
+      "command_name": "Datum Link",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.point___vertex_link",
+      "paths": {
+        "workspace_key": "V"
+      },
+      "command_name": "Point / Vertex Link",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.associative_mode",
+      "paths": {
+        "workspace_key": "A"
+      },
+      "command_name": "Associative mode",
+      "adapter": {
+        "kind": "internal",
+        "value": "command-local option",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.non_associative_mode",
+      "paths": {
+        "workspace_key": "N"
+      },
+      "command_name": "Non-associative mode",
+      "adapter": {
+        "kind": "internal",
+        "value": "command-local option",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.make_selected_component_work_part",
+      "paths": {
+        "workspace_key": "P"
+      },
+      "command_name": "Make selected component Work Part",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.update_selected_links___all_links_in_scope",
+      "paths": {
+        "workspace_key": "U"
+      },
+      "command_name": "Update selected links / all links in scope",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.edit_link_parameters",
+      "paths": {
+        "workspace_key": "E"
+      },
+      "command_name": "Edit Link Parameters",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.replace_source_geometry",
+      "paths": {
+        "workspace_key": "R"
+      },
+      "command_name": "Replace Source Geometry",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.locate_and_highlight_source",
+      "paths": {
+        "workspace_key": "L"
+      },
+      "command_name": "Locate and highlight Source",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.dependency_and_timestamp_diagnostics",
+      "paths": {
+        "workspace_key": "I"
+      },
+      "command_name": "Dependency and timestamp diagnostics",
+      "adapter": {
+        "kind": "internal",
+        "value": "internal graph + tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.toggle_hide_source_after_successful_link",
+      "paths": {
+        "workspace_key": "H"
+      },
+      "command_name": "Toggle Hide Source after successful link",
+      "adapter": {
+        "kind": "internal",
+        "value": "post-action option",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.assign_result_to_logical_layer___wave_",
+      "paths": {
+        "workspace_key": "Y"
+      },
+      "command_name": "Assign result to logical layer `@wave`",
+      "adapter": {
+        "kind": "internal",
+        "value": "Layer Workspace integration",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.break_link",
+      "paths": {
+        "workspace_key": "K"
+      },
+      "command_name": "Break Link",
+      "adapter": {
+        "kind": "internal",
+        "value": "destructive tbd_adapter, preview required",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.source_collector___target_part___options",
+      "paths": {
+        "direct": "Tab"
+      },
+      "command_name": "Source collector → target part → options",
+      "adapter": {
+        "kind": "internal",
+        "value": "collector state machine",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "assemblies.____________________________________nx_dialog____________________cancel",
+      "paths": {
+        "direct": "Esc"
+      },
+      "command_name": "Вернуться на уровень выше; активный NX dialog получает отдельный Cancel",
+      "adapter": {
+        "kind": "internal",
+        "value": "workspace state machine",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "assemblies"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.new_sheet",
+      "paths": {
+        "leader": [
+          "C",
+          "S"
+        ]
+      },
+      "command_name": "New Sheet",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.base_view",
+      "paths": {
+        "leader": [
+          "V",
+          "B"
+        ]
+      },
+      "command_name": "Base View",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_DRAFTING_BASE_VIEW",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.projected_view",
+      "paths": {
+        "leader": [
+          "V",
+          "P"
+        ]
+      },
+      "command_name": "Projected View",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_DRAFTING_PROJECTED_VIEW",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.section_view",
+      "paths": {
+        "leader": [
+          "V",
+          "C"
+        ]
+      },
+      "command_name": "Section View",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_DRAFTING_SECTION_VIEW",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.detail_view",
+      "paths": {
+        "leader": [
+          "V",
+          "D"
+        ]
+      },
+      "command_name": "Detail View",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_DRAFTING_DETAIL_VIEW",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.breakout_section",
+      "paths": {
+        "leader": [
+          "V",
+          "O"
+        ]
+      },
+      "command_name": "Breakout Section",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.break_view",
+      "paths": {
+        "leader": [
+          "V",
+          "R"
+        ]
+      },
+      "command_name": "Break View",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.view_style",
+      "paths": {
+        "leader": [
+          "V",
+          "Y"
+        ]
+      },
+      "command_name": "View Style",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_DRAFTING_VIEW_STYLE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.update_views",
+      "paths": {
+        "leader": [
+          "V",
+          "U"
+        ]
+      },
+      "command_name": "Update Views",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_DRAFTING_UPDATE_VIEWS",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.sheet_navigator___sheet_settings",
+      "paths": {
+        "leader": [
+          "M",
+          "S"
+        ]
+      },
+      "command_name": "Sheet Navigator / Sheet Settings",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.view_management",
+      "paths": {
+        "leader": [
+          "M",
+          "V"
+        ]
+      },
+      "command_name": "View Management",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.rapid_dimension",
+      "paths": {
+        "leader": [
+          "A",
+          "D",
+          "Q"
+        ]
+      },
+      "command_name": "Rapid Dimension",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_DRAFTING_RAPID_DIMENSION",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.linear_dimension",
+      "paths": {
+        "leader": [
+          "A",
+          "D",
+          "L"
+        ]
+      },
+      "command_name": "Linear Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.angular_dimension",
+      "paths": {
+        "leader": [
+          "A",
+          "D",
+          "A"
+        ]
+      },
+      "command_name": "Angular Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.radial_dimension",
+      "paths": {
+        "leader": [
+          "A",
+          "D",
+          "R"
+        ]
+      },
+      "command_name": "Radial Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.diameter_dimension",
+      "paths": {
+        "leader": [
+          "A",
+          "D",
+          "O"
+        ]
+      },
+      "command_name": "Diameter Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.hole_callout",
+      "paths": {
+        "leader": [
+          "A",
+          "D",
+          "H"
+        ]
+      },
+      "command_name": "Hole Callout",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.chamfer_dimension",
+      "paths": {
+        "leader": [
+          "A",
+          "D",
+          "C"
+        ]
+      },
+      "command_name": "Chamfer Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.arc_length_dimension",
+      "paths": {
+        "leader": [
+          "A",
+          "D",
+          "G"
+        ]
+      },
+      "command_name": "Arc Length Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.note",
+      "paths": {
+        "leader": [
+          "A",
+          "N"
+        ]
+      },
+      "command_name": "Note",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_PMI_NOTE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.datum_feature_symbol",
+      "paths": {
+        "leader": [
+          "A",
+          "G",
+          "D"
+        ]
+      },
+      "command_name": "Datum Feature Symbol",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_PMI_DATUM_FEATURE_SYMBOL",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.feature_control_frame",
+      "paths": {
+        "leader": [
+          "A",
+          "G",
+          "F"
+        ]
+      },
+      "command_name": "Feature Control Frame",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_PMI_FEATURE_CONTROL_FRAME",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.surface_finish",
+      "paths": {
+        "leader": [
+          "A",
+          "F"
+        ]
+      },
+      "command_name": "Surface Finish",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_PMI_SURFACE_FINISH",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.weld_symbol",
+      "paths": {
+        "leader": [
+          "A",
+          "W"
+        ]
+      },
+      "command_name": "Weld Symbol",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.center_mark",
+      "paths": {
+        "leader": [
+          "A",
+          "C",
+          "M"
+        ]
+      },
+      "command_name": "Center Mark",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.centerline",
+      "paths": {
+        "leader": [
+          "A",
+          "C",
+          "L"
+        ]
+      },
+      "command_name": "Centerline",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.bolt_circle_centerline",
+      "paths": {
+        "leader": [
+          "A",
+          "C",
+          "B"
+        ]
+      },
+      "command_name": "Bolt Circle Centerline",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.parts_list",
+      "paths": {
+        "leader": [
+          "A",
+          "P"
+        ]
+      },
+      "command_name": "Parts List",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_DRAFTING_PARTS_LIST",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.parts_list__legacy_alias",
+      "paths": {
+        "leader": [
+          "A",
+          "L"
+        ]
+      },
+      "command_name": "Parts List, legacy alias",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_DRAFTING_RENEW_LAYOUT",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.balloon",
+      "paths": {
+        "leader": [
+          "A",
+          "B"
+        ]
+      },
+      "command_name": "Balloon",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.table",
+      "paths": {
+        "leader": [
+          "A",
+          "T"
+        ]
+      },
+      "command_name": "Table",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.revision_symbol___revision_table",
+      "paths": {
+        "leader": [
+          "A",
+          "R"
+        ]
+      },
+      "command_name": "Revision Symbol / Revision Table",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.update_all_drawing_objects",
+      "paths": {
+        "leader": [
+          "P",
+          "U"
+        ]
+      },
+      "command_name": "Update All Drawing Objects",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.export_pdf",
+      "paths": {
+        "leader": [
+          "F",
+          "P"
+        ]
+      },
+      "command_name": "Export PDF",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.export_dxf_dwg",
+      "paths": {
+        "leader": [
+          "F",
+          "D"
+        ]
+      },
+      "command_name": "Export DXF/DWG",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "drafting"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.through_curves",
+      "paths": {
+        "leader": [
+          "C",
+          "T"
+        ]
+      },
+      "command_name": "Through Curves",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_THROUGH_CURVES_FEATURE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.through_curve_mesh",
+      "paths": {
+        "leader": [
+          "C",
+          "M"
+        ]
+      },
+      "command_name": "Through Curve Mesh",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.studio_surface",
+      "paths": {
+        "leader": [
+          "C",
+          "S"
+        ]
+      },
+      "command_name": "Studio Surface",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_STUDIO_SURFACE_FEATURE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.swept_surface",
+      "paths": {
+        "leader": [
+          "C",
+          "W"
+        ]
+      },
+      "command_name": "Swept Surface",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_SWEPT_FEATURE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.bridge_surface",
+      "paths": {
+        "leader": [
+          "C",
+          "B"
+        ]
+      },
+      "command_name": "Bridge Surface",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.fill_surface",
+      "paths": {
+        "leader": [
+          "C",
+          "F"
+        ]
+      },
+      "command_name": "Fill Surface",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.n_sided_surface",
+      "paths": {
+        "leader": [
+          "C",
+          "N"
+        ]
+      },
+      "command_name": "N-Sided Surface",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.offset_surface",
+      "paths": {
+        "leader": [
+          "C",
+          "O"
+        ]
+      },
+      "command_name": "Offset Surface",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.trim_sheet",
+      "paths": {
+        "leader": [
+          "E",
+          "T"
+        ]
+      },
+      "command_name": "Trim Sheet",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_TRIM_SHEET_FEATURE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.extend_sheet",
+      "paths": {
+        "leader": [
+          "E",
+          "X"
+        ]
+      },
+      "command_name": "Extend Sheet",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_FF_EXTEND_SHEET",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.sew",
+      "paths": {
+        "leader": [
+          "E",
+          "S"
+        ]
+      },
+      "command_name": "Sew",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_MODELING_SEW_FEATURE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.untrim",
+      "paths": {
+        "leader": [
+          "E",
+          "U"
+        ]
+      },
+      "command_name": "Untrim",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.match_edge",
+      "paths": {
+        "leader": [
+          "E",
+          "M"
+        ]
+      },
+      "command_name": "Match Edge",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.replace_face",
+      "paths": {
+        "leader": [
+          "E",
+          "R"
+        ]
+      },
+      "command_name": "Replace Face",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.thicken",
+      "paths": {
+        "leader": [
+          "T",
+          "H"
+        ]
+      },
+      "command_name": "Thicken",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.continuity_analysis",
+      "paths": {
+        "leader": [
+          "I",
+          "C"
+        ]
+      },
+      "command_name": "Continuity Analysis",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.zebra___reflection_analysis",
+      "paths": {
+        "leader": [
+          "I",
+          "Z"
+        ]
+      },
+      "command_name": "Zebra / Reflection Analysis",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "surface.examine_geometry",
+      "paths": {
+        "leader": [
+          "I",
+          "G"
+        ]
+      },
+      "command_name": "Examine Geometry",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "surface"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.tab",
+      "paths": {
+        "leader": [
+          "C",
+          "T"
+        ]
+      },
+      "command_name": "Tab",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SHEET_METAL_BASE_TAB",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.flange",
+      "paths": {
+        "leader": [
+          "C",
+          "F"
+        ]
+      },
+      "command_name": "Flange",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SHEET_METAL_FLANGE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.contour_flange",
+      "paths": {
+        "leader": [
+          "C",
+          "C"
+        ]
+      },
+      "command_name": "Contour Flange",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SHEET_METAL_CONTOUR_FLANGE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.convert_solid_to_sheet_metal",
+      "paths": {
+        "leader": [
+          "C",
+          "S"
+        ]
+      },
+      "command_name": "Convert Solid to Sheet Metal",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SBSM_SHEETMETAL_FROM_SOLID_FEATURE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.normal_cutout",
+      "paths": {
+        "leader": [
+          "C",
+          "N"
+        ]
+      },
+      "command_name": "Normal Cutout",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.jog",
+      "paths": {
+        "leader": [
+          "C",
+          "J"
+        ]
+      },
+      "command_name": "Jog",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.hem",
+      "paths": {
+        "leader": [
+          "C",
+          "H"
+        ]
+      },
+      "command_name": "Hem",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.bead",
+      "paths": {
+        "leader": [
+          "C",
+          "B"
+        ]
+      },
+      "command_name": "Bead",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.dimple",
+      "paths": {
+        "leader": [
+          "C",
+          "D"
+        ]
+      },
+      "command_name": "Dimple",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.louver",
+      "paths": {
+        "leader": [
+          "C",
+          "L"
+        ]
+      },
+      "command_name": "Louver",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.bend",
+      "paths": {
+        "leader": [
+          "E",
+          "B"
+        ]
+      },
+      "command_name": "Bend",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SHEET_METAL_BEND",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.corner_relief",
+      "paths": {
+        "leader": [
+          "E",
+          "C"
+        ]
+      },
+      "command_name": "Corner Relief",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.unbend",
+      "paths": {
+        "leader": [
+          "T",
+          "U"
+        ]
+      },
+      "command_name": "Unbend",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SHEET_METAL_UNBEND",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.rebend",
+      "paths": {
+        "leader": [
+          "T",
+          "R"
+        ]
+      },
+      "command_name": "Rebend",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SHEET_METAL_REBEND",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.flat_pattern",
+      "paths": {
+        "leader": [
+          "P",
+          "P"
+        ]
+      },
+      "command_name": "Flat Pattern",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SHEET_METAL_FLAT_PATTERN",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.edit_bend_sequence",
+      "paths": {
+        "leader": [
+          "P",
+          "S"
+        ]
+      },
+      "command_name": "Edit Bend Sequence",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.validate_sheet_metal",
+      "paths": {
+        "leader": [
+          "P",
+          "V"
+        ]
+      },
+      "command_name": "Validate Sheet Metal",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "sheetmetal.export_flat_pattern_dxf",
+      "paths": {
+        "leader": [
+          "F",
+          "D"
+        ]
+      },
+      "command_name": "Export Flat Pattern DXF",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "sheetmetal"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.rapid_pmi_dimension",
+      "paths": {
+        "leader": [
+          "A",
+          "D",
+          "Q"
+        ]
+      },
+      "command_name": "Rapid PMI Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.linear_pmi_dimension",
+      "paths": {
+        "leader": [
+          "A",
+          "D",
+          "L"
+        ]
+      },
+      "command_name": "Linear PMI Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.angular_pmi_dimension",
+      "paths": {
+        "leader": [
+          "A",
+          "D",
+          "A"
+        ]
+      },
+      "command_name": "Angular PMI Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.radial_pmi_dimension",
+      "paths": {
+        "leader": [
+          "A",
+          "D",
+          "R"
+        ]
+      },
+      "command_name": "Radial PMI Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.diameter_pmi_dimension",
+      "paths": {
+        "leader": [
+          "A",
+          "D",
+          "O"
+        ]
+      },
+      "command_name": "Diameter PMI Dimension",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.hole_callout",
+      "paths": {
+        "leader": [
+          "A",
+          "H"
+        ]
+      },
+      "command_name": "Hole Callout",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.pmi_note",
+      "paths": {
+        "leader": [
+          "A",
+          "N"
+        ]
+      },
+      "command_name": "PMI Note",
+      "adapter": {
+        "kind": "button_id",
+        "value": "LINEDESIGNER_ADD_PMI_OCCURRENCE_NOTE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.datum_feature_symbol",
+      "paths": {
+        "leader": [
+          "A",
+          "G",
+          "D"
+        ]
+      },
+      "command_name": "Datum Feature Symbol",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_DRAFT_DATUM_SYMBOL",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.feature_control_frame",
+      "paths": {
+        "leader": [
+          "A",
+          "G",
+          "F"
+        ]
+      },
+      "command_name": "Feature Control Frame",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_HUMAN_CONTROL_PANEL",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.surface_finish",
+      "paths": {
+        "leader": [
+          "A",
+          "F"
+        ]
+      },
+      "command_name": "Surface Finish",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_PMI_SURFACE_SYMBOL",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.weld_symbol",
+      "paths": {
+        "leader": [
+          "A",
+          "W"
+        ]
+      },
+      "command_name": "Weld Symbol",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.model_views",
+      "paths": {
+        "leader": [
+          "M",
+          "V"
+        ]
+      },
+      "command_name": "Model Views",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.annotation_plane___orientation",
+      "paths": {
+        "leader": [
+          "M",
+          "P"
+        ]
+      },
+      "command_name": "Annotation Plane / Orientation",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.validate_pmi",
+      "paths": {
+        "leader": [
+          "P",
+          "V"
+        ]
+      },
+      "command_name": "Validate PMI",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.convert_drawing_objects_to_pmi",
+      "paths": {
+        "leader": [
+          "P",
+          "C"
+        ]
+      },
+      "command_name": "Convert Drawing Objects to PMI",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.publish_technical_data_package",
+      "paths": {
+        "leader": [
+          "P",
+          "T"
+        ]
+      },
+      "command_name": "Publish Technical Data Package",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "pmi.mbd_rules___reuse_rules",
+      "paths": {
+        "leader": [
+          "M",
+          "R"
+        ]
+      },
+      "command_name": "MBD Rules / Reuse Rules",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "pmi"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.create_cam_setup",
+      "paths": {
+        "leader": [
+          "C",
+          "S"
+        ]
+      },
+      "command_name": "Create CAM Setup",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.create___edit_mcs",
+      "paths": {
+        "leader": [
+          "C",
+          "M"
+        ]
+      },
+      "command_name": "Create / Edit MCS",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.create_geometry_group",
+      "paths": {
+        "leader": [
+          "C",
+          "G"
+        ]
+      },
+      "command_name": "Create Geometry Group",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.define_part_geometry",
+      "paths": {
+        "leader": [
+          "C",
+          "G",
+          "P"
+        ]
+      },
+      "command_name": "Define Part Geometry",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.define_blank",
+      "paths": {
+        "leader": [
+          "C",
+          "G",
+          "B"
+        ]
+      },
+      "command_name": "Define Blank",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.define_check___fixture_geometry",
+      "paths": {
+        "leader": [
+          "C",
+          "G",
+          "C"
+        ]
+      },
+      "command_name": "Define Check / Fixture Geometry",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.create_tool",
+      "paths": {
+        "leader": [
+          "C",
+          "T"
+        ]
+      },
+      "command_name": "Create Tool",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_CAM_CREATE_TOOL",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.create_operation",
+      "paths": {
+        "leader": [
+          "C",
+          "O"
+        ]
+      },
+      "command_name": "Create Operation",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_CAM_CREATE_OPERATION",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.operation_navigator",
+      "paths": {
+        "leader": [
+          "M",
+          "N"
+        ]
+      },
+      "command_name": "Operation Navigator",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_CAM_OPERATION_NAVIGATOR",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.edit_operation_parameters",
+      "paths": {
+        "leader": [
+          "E",
+          "P"
+        ]
+      },
+      "command_name": "Edit Operation Parameters",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.duplicate_operation",
+      "paths": {
+        "leader": [
+          "E",
+          "D"
+        ]
+      },
+      "command_name": "Duplicate Operation",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.reorder_operation",
+      "paths": {
+        "leader": [
+          "T",
+          "O"
+        ]
+      },
+      "command_name": "Reorder Operation",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.delete_operation",
+      "paths": {
+        "leader": [
+          "X",
+          "O"
+        ]
+      },
+      "command_name": "Delete Operation",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_CAM_DELETE_OPERATION",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.suppress_operation",
+      "paths": {
+        "leader": [
+          "X",
+          "S"
+        ]
+      },
+      "command_name": "Suppress Operation",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.unsuppress_operation",
+      "paths": {
+        "leader": [
+          "E",
+          "U"
+        ]
+      },
+      "command_name": "Unsuppress Operation",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.generate_selected_toolpath",
+      "paths": {
+        "leader": [
+          "P",
+          "G"
+        ]
+      },
+      "command_name": "Generate Selected Toolpath",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_CAM_GENERATE_TOOL_PATH",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.generate_all",
+      "paths": {
+        "leader": [
+          "P",
+          "A"
+        ]
+      },
+      "command_name": "Generate All",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.background_generate",
+      "paths": {
+        "leader": [
+          "P",
+          "B"
+        ]
+      },
+      "command_name": "Background Generate",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.verify_toolpath",
+      "paths": {
+        "leader": [
+          "P",
+          "V"
+        ]
+      },
+      "command_name": "Verify Toolpath",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_CAM_VERIFY_TOOL_PATH",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.machine_simulation",
+      "paths": {
+        "leader": [
+          "P",
+          "S"
+        ]
+      },
+      "command_name": "Machine Simulation",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.collision___gouge_check",
+      "paths": {
+        "leader": [
+          "P",
+          "C"
+        ]
+      },
+      "command_name": "Collision / Gouge Check",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.postprocess",
+      "paths": {
+        "leader": [
+          "P",
+          "P"
+        ]
+      },
+      "command_name": "Postprocess",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "manufacturing.shop_documentation",
+      "paths": {
+        "leader": [
+          "P",
+          "D"
+        ]
+      },
+      "command_name": "Shop Documentation",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "manufacturing"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.new_analysis___solution",
+      "paths": {
+        "leader": [
+          "C",
+          "A"
+        ]
+      },
+      "command_name": "New Analysis / Solution",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.new_fem___simulation_file",
+      "paths": {
+        "leader": [
+          "C",
+          "F"
+        ]
+      },
+      "command_name": "New FEM / Simulation File",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.assign_material___physical_property",
+      "paths": {
+        "leader": [
+          "M",
+          "M"
+        ]
+      },
+      "command_name": "Assign Material / Physical Property",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.connection",
+      "paths": {
+        "leader": [
+          "C",
+          "C"
+        ]
+      },
+      "command_name": "Connection",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.mesh",
+      "paths": {
+        "leader": [
+          "C",
+          "M"
+        ]
+      },
+      "command_name": "Mesh",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.mesh_control",
+      "paths": {
+        "leader": [
+          "C",
+          "M",
+          "C"
+        ]
+      },
+      "command_name": "Mesh Control",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.load",
+      "paths": {
+        "leader": [
+          "C",
+          "L"
+        ]
+      },
+      "command_name": "Load",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.boundary_condition___constraint",
+      "paths": {
+        "leader": [
+          "C",
+          "B"
+        ]
+      },
+      "command_name": "Boundary Condition / Constraint",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.simulation_navigator",
+      "paths": {
+        "leader": [
+          "M",
+          "N"
+        ]
+      },
+      "command_name": "Simulation Navigator",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.solve",
+      "paths": {
+        "leader": [
+          "P",
+          "S"
+        ]
+      },
+      "command_name": "Solve",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.open_results",
+      "paths": {
+        "leader": [
+          "P",
+          "R"
+        ]
+      },
+      "command_name": "Open Results",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.probe_result",
+      "paths": {
+        "leader": [
+          "I",
+          "P"
+        ]
+      },
+      "command_name": "Probe Result",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.contour___result_display",
+      "paths": {
+        "leader": [
+          "I",
+          "C"
+        ]
+      },
+      "command_name": "Contour / Result Display",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "simulation.publish_analysis_report",
+      "paths": {
+        "leader": [
+          "P",
+          "D"
+        ]
+      },
+      "command_name": "Publish Analysis Report",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "simulation"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.create_route",
+      "paths": {
+        "leader": [
+          "C",
+          "R"
+        ]
+      },
+      "command_name": "Create Route",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_ROUTE_CREATE_ROUTE",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "routing"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.place_routing_part",
+      "paths": {
+        "leader": [
+          "C",
+          "P"
+        ]
+      },
+      "command_name": "Place Routing Part",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_ROUTE_PLACE_PART",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "routing"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.place_fitting",
+      "paths": {
+        "leader": [
+          "C",
+          "F"
+        ]
+      },
+      "command_name": "Place Fitting",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "routing"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.create_stock___segment",
+      "paths": {
+        "leader": [
+          "C",
+          "S"
+        ]
+      },
+      "command_name": "Create Stock / Segment",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "routing"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.edit_route",
+      "paths": {
+        "leader": [
+          "E",
+          "R"
+        ]
+      },
+      "command_name": "Edit Route",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "routing"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.edit_segment___stock",
+      "paths": {
+        "leader": [
+          "E",
+          "S"
+        ]
+      },
+      "command_name": "Edit Segment / Stock",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "routing"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.move_routing_part",
+      "paths": {
+        "leader": [
+          "T",
+          "P"
+        ]
+      },
+      "command_name": "Move Routing Part",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "routing"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.routing_navigator",
+      "paths": {
+        "leader": [
+          "M",
+          "N"
+        ]
+      },
+      "command_name": "Routing Navigator",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "routing"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.validate_route",
+      "paths": {
+        "leader": [
+          "P",
+          "V"
+        ]
+      },
+      "command_name": "Validate Route",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "routing"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.routing_bom___parts_list",
+      "paths": {
+        "leader": [
+          "A",
+          "B"
+        ]
+      },
+      "command_name": "Routing BOM / Parts List",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "routing"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.export_routing_data",
+      "paths": {
+        "leader": [
+          "F",
+          "E"
+        ]
+      },
+      "command_name": "Export Routing Data",
+      "adapter": {
+        "kind": "internal",
+        "value": "tbd_adapter",
+        "status": "tbd_adapter"
+      },
+      "availability": {
+        "applications": [
+          "routing"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.modeling",
+      "paths": {
+        "leader": [
+          "G",
+          "M"
+        ]
+      },
+      "command_name": "Modeling",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_APP_MODELING",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.assemblies",
+      "paths": {
+        "leader": [
+          "G",
+          "A"
+        ]
+      },
+      "command_name": "Assemblies",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_APP_ASSEMBLIES",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.drafting",
+      "paths": {
+        "leader": [
+          "G",
+          "D"
+        ]
+      },
+      "command_name": "Drafting",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_APP_DRAFTING",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.sheet_metal",
+      "paths": {
+        "leader": [
+          "G",
+          "H"
+        ]
+      },
+      "command_name": "Sheet Metal",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_APP_SHEETMETAL",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.manufacturing___cam",
+      "paths": {
+        "leader": [
+          "G",
+          "C"
+        ]
+      },
+      "command_name": "Manufacturing / CAM",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_APP_MANUFACTURING",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.simulation",
+      "paths": {
+        "leader": [
+          "G",
+          "N"
+        ]
+      },
+      "command_name": "Simulation",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_APP_SFEM",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.pmi",
+      "paths": {
+        "leader": [
+          "G",
+          "P"
+        ]
+      },
+      "command_name": "PMI",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_APP_PMI",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.routing",
+      "paths": {
+        "leader": [
+          "G",
+          "R"
+        ]
+      },
+      "command_name": "Routing",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_APP_ROUTING",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.mold_wizard",
+      "paths": {
+        "leader": [
+          "G",
+          "O"
+        ]
+      },
+      "command_name": "Mold Wizard",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_APP_MOLDWIZARD",
+        "status": "inherited_v7"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.reuse_library",
+      "paths": {
+        "leader": [
+          "G",
+          "L"
+        ]
+      },
+      "command_name": "Reuse Library",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_NAVIGATOR_REUSE_LIBRARY",
+        "status": "inherited_v7"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "routing.gateway___view_and_analysis",
+      "paths": {
+        "leader": [
+          "G",
+          "V"
+        ]
+      },
+      "command_name": "Gateway / View and Analysis",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_APP_GATEWAY",
+        "status": "inherited_v7"
+      },
+      "availability": {
+        "applications": [
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "sketch.circle",
+      "paths": {
+        "leader": [
+          "C"
+        ]
+      },
+      "command_name": "Circle",
+      "adapter": {
+        "kind": "button_id",
+        "value": "UG_SKETCH_CIRCLE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "sketch"
+        ]
+      }
+    }
+  ],
+  "deployment": {
+    "mode": "managed-wrapper",
+    "managed_root": "%LOCALAPPDATA%\\NXKeys\\managed\\NX2512.6000",
+    "backup_root": "%LOCALAPPDATA%\\NXKeys\\backups",
+    "overlay_filename": "nxkeys_generated.men",
+    "menuscript_version": 139,
+    "main_menubar_id": "UG_GATEWAY_MAIN_MENUBAR",
+    "nx_executable": "",
+    "existing_custom_dirs_file": "",
+    "patch_existing_custom_dirs": false,
+    "require_nx_stopped": true,
+    "clear_detected_conflicts": false,
+    "atomic_writes": true,
+    "dry_run": false
+  }
+}

@@ -207,7 +207,7 @@ namespace NX2512_HotkeyStudio.Services
             AddOrReplace(files, Path.Combine(managedRoot, "resolution-report.md"), Encoding.UTF8.GetBytes(plan.ResolutionReport), false);
 
             string profileJson = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
-            AddOrReplace(files, Path.Combine(managedRoot, "nx2512-pro-hybrid.json"), Encoding.UTF8.GetBytes(profileJson + Environment.NewLine), true);
+            AddOrReplace(files, Path.Combine(managedRoot, "nx2512-v8-profile.json"), Encoding.UTF8.GetBytes(profileJson + Environment.NewLine), true);
             string behaviorSource = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nx2512-state-machines.json");
             if (File.Exists(behaviorSource))
                 AddOrReplace(files, Path.Combine(managedRoot, "nx2512-state-machines.json"), File.ReadAllBytes(behaviorSource), true);
@@ -356,7 +356,7 @@ namespace NX2512_HotkeyStudio.Services
         }
 
         private static string BuildLauncherCmd() =>
-            "@echo off\r\nsetlocal\r\n\"%~dp0NX2512_HotkeyStudio.exe\" launch --config \"%~dp0nx2512-pro-hybrid.json\" -- %*\r\nexit /b %ERRORLEVEL%\r\n";
+            "@echo off\r\nsetlocal\r\n\"%~dp0NX2512_HotkeyStudio.exe\" launch --config \"%~dp0nx2512-v8-profile.json\" -- %*\r\nexit /b %ERRORLEVEL%\r\n";
         private static string BuildGuiLauncherCmd(string root) =>
             "@echo off\r\nstart \"\" \"" + Path.Combine(root, "NX2512_HotkeyStudio.exe") + "\" --gui --config \"" + Path.Combine(root, "nx2512-pro-hybrid.json") + "\"\r\n";
         private static string BuildDaemonLauncherCmd(string root) =>
