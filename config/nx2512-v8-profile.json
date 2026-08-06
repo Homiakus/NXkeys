@@ -3853,7 +3853,7 @@
       "adapter": {
         "kind": "button_id",
         "value": "UG_SKETCH_TRIM",
-        "status": "tbd_adapter"
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -3870,7 +3870,7 @@
       "adapter": {
         "kind": "button_id",
         "value": "UG_SKETCH_EXTEND",
-        "status": "tbd_adapter"
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -3887,7 +3887,7 @@
       "adapter": {
         "kind": "button_id",
         "value": "UG_SKETCH_OFFSET_CURVE",
-        "status": "tbd_adapter"
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4032,7 +4032,7 @@
       "adapter": {
         "kind": "button_id",
         "value": "UG_SKETCH_RAPID_DIMENSION",
-        "status": "tbd_adapter"
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4052,7 +4052,7 @@
       "adapter": {
         "kind": "button_id",
         "value": "UG_SKETCH_LINEAR_DIMENSION",
-        "status": "tbd_adapter"
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4152,7 +4152,7 @@
       "adapter": {
         "kind": "button_id",
         "value": "UG_SKETCH_COINCIDENT_CONSTRAINT",
-        "status": "tbd_adapter"
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4172,7 +4172,7 @@
       "adapter": {
         "kind": "button_id",
         "value": "UG_SKETCH_HORIZONTAL_CONSTRAINT",
-        "status": "tbd_adapter"
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4192,7 +4192,7 @@
       "adapter": {
         "kind": "button_id",
         "value": "UG_SKETCH_VERTICAL_CONSTRAINT",
-        "status": "tbd_adapter"
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4212,7 +4212,7 @@
       "adapter": {
         "kind": "button_id",
         "value": "UG_SKETCH_TANGENT_CONSTRAINT",
-        "status": "tbd_adapter"
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4232,7 +4232,7 @@
       "adapter": {
         "kind": "button_id",
         "value": "UG_SKETCH_PARALLEL_CONSTRAINT",
-        "status": "tbd_adapter"
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4252,7 +4252,7 @@
       "adapter": {
         "kind": "button_id",
         "value": "UG_SKETCH_PERPENDICULAR_CONSTRAINT",
-        "status": "tbd_adapter"
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4426,7 +4426,7 @@
       "adapter": {
         "kind": "button_id",
         "value": "UG_SKETCH_CHECKER",
-        "status": "tbd_adapter"
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
@@ -4523,7 +4523,7 @@
       "adapter": {
         "kind": "button_id",
         "value": "UG_SKETCH_FINISH",
-        "status": "tbd_adapter"
+        "status": "declared_v8"
       },
       "availability": {
         "applications": [
