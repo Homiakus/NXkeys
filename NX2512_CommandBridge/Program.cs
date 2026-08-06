@@ -1039,11 +1039,6 @@ namespace NX2512_CommandBridge
                 case "s": return "sketch";
                 case "a": return "assembly";
                 case "d": return "drafting";
-                case "c": return "modeling";
-                case "f": return "modeling";
-                case "t": return "modeling";
-                case "e": return "modeling";
-                case "x": return "modeling";
                 case "g": return "modeling";
                 case "h": return "sheet_metal";
                 case "k": return "sketch";
@@ -1054,8 +1049,6 @@ namespace NX2512_CommandBridge
                 case "u": return "surface";
                 case "r": return "routing";
                 case "l": return "mold";
-                case "w": return "modeling";
-                case "q": return "modeling";
                 case "sm": return "sheet_metal";
                 case "sh": return "sheet_metal";
                 default: return "modeling";
