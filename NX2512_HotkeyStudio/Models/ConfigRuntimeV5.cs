@@ -690,6 +690,21 @@ namespace NX2512_HotkeyStudio.Models
                 ["UG_APP_ROUTING"] = "R",
                 ["UG_APP_MOLDWIZARD"] = "L",
                 ["UG_APP_GATEWAY"] = "G",
+
+                // V8 profile availability.applications uses short app names
+                // (e.g. "modeling"), not UG_APP_* IDs.  Alias them to the same
+                // prefixes so ResolveModulePrefix can honor availability for
+                // application-specific operations (modeling.revolve → "M").
+                ["modeling"] = "M",
+                ["sketch"] = "S",
+                ["assemblies"] = "A",
+                ["drafting"] = "D",
+                ["pmi"] = "P",
+                ["surface"] = "U",
+                ["sheetmetal"] = "H",
+                ["manufacturing"] = "N",
+                ["simulation"] = "I",
+                ["routing"] = "R",
             };
 
         // Reverse map: v8 module leader-key prefix → NX application ID,
