@@ -138,22 +138,30 @@ namespace NXKeys.Protocol
                                 ? adapterVal
                                 : opId;
 
-                            // Derive module ID matching ConfigRuntimeV5.ResolveModulePrefix.
-                            // Leader-path ops use the first leader token; direct/workspace_key
-                            // ops use availability.applications[0] mapped through the same
-                            // table that ConfigRuntimeV5.NxAppIdToModulePrefix uses.
+                            // Determine v8 module ID: prefer availability.applications[0] for
+                            // application-specific operations; fall back to first leader token
+                            // for global operations.
+                            string appId = ReadFirstNestedArrayElement(op, "availability", "applications");
                             string firstLeaderToken = ReadFirstNestedArrayElement(op, "paths", "leader");
                             string v8ModuleId;
-                            if (!string.IsNullOrWhiteSpace(firstLeaderToken))
+
+                            bool hasSpecificApp = !string.IsNullOrWhiteSpace(appId) &&
+                                !string.Equals(appId, "global", StringComparison.OrdinalIgnoreCase);
+
+                            if (hasSpecificApp)
                             {
+                                // Modeling, Sketch, Drafting, etc. → mapped to v8_m, v8_s, v8_d, ...
+                                v8ModuleId = "v8_" + NxAppToV8Prefix(appId);
+                            }
+                            else if (!string.IsNullOrWhiteSpace(firstLeaderToken))
+                            {
+                                // Global operations: first leader token IS the module prefix
+                                // (e.g. leader ["M","L"] → module v8_m)
                                 v8ModuleId = "v8_" + firstLeaderToken.Trim().ToLowerInvariant();
                             }
                             else
                             {
-                                string appId = ReadFirstNestedArrayElement(op, "availability", "applications");
-                                v8ModuleId = string.IsNullOrWhiteSpace(appId)
-                                    ? "v8_m"   // fallback: modeling
-                                    : "v8_" + NxAppToV8Prefix(appId);
+                                v8ModuleId = "v8_m"; // fallback: modeling
                             }
 
                             if (!string.IsNullOrWhiteSpace(commandId))
