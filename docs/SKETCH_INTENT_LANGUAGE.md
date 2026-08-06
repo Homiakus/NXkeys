@@ -1,151 +1,205 @@
-# Язык намерений Sketch
+# Язык намерений Sketch (v8)
 
-Sketch использует отдельную, предсказуемую ветвь мнемонического языка NXKeys. Цель — чтобы пользователь сначала выбирал **действие**, затем **область**, а затем **операцию**, не запоминая случайные позиции клавиш.
+Sketch использует однотокенную модель мнемонического языка NXKeys. Активный Sketch уже является однозначным внутренним префиксом, поэтому команды эскиза вызываются **одной клавишей** после `CapsLock`. Многотокенные пути保留 для размеров, ограничений, проекции, диагностики и вариантов построения.
 
 ```text
-CapsLock → действи�## Основные семейства
+CapsLock → одиночная клавиша → команда эскиза
+```
 
-| Семейство | Назначение | Примеры |
-|---|---|---|
-| `C → …` | создание геометрии | `L` линия, `R` прямоугольник, `C` окружность, `A` дуга |
-| `E → …` | редактирование геометрии | `T` обрезать, `E` удлинить, `F` скруглить, `H` фаска |
-| `T → …` | преобразования | `O` смещение, зеркало, перенос, поворот, массив |
-| `F → S` | завершение эскиза | Finish Sketch (также поддерживается одиночная `F`) |
-| `C → K → …` | геометрические ограничения | совпадение, касательность, параллельность, перпендикулярность, горизонтальность, вертикальность |
-| `A → D → …` | размеры | быстрый и линейный размер |
-| `I → S → …` | проверка эскиза | Sketch Checker и другие проверки |
+## Три уровня ввода
+
+### Уровень A — Direct Keys (без CapsLock)
+
+Прямые клавиши, работающие в контексте Sketch без открытия Leader:
+
+| Клавиша | Набор | Команда | BUTTON ID |
+|---------|-------|---------|-----------|
+| `Q` | Базовый | Rapid Dimension | `UG_SKETCH_RAPID_DIMENSION` |
+| `S` | Базовый | Закончить эскиз | `UG_SKETCH_FINISH` |
+| `D` | Расширенный | Rapid Dimension | `UG_SKETCH_RAPID_DIMENSION` |
+| `T` | Расширенный | Trim | `UG_SKETCH_TRIM` |
+| `F` | Расширенный | Sketch Fillet | `UG_SKETCH_FILLET` |
+| `E` | Расширенный | Extend | `UG_SKETCH_EXTEND` |
+| `O` | Расширенный | Offset Curve | `UG_SKETCH_OFFSET_CURVE` |
+
+Расширенный набор включается персональным профилем. `F` конфликтует с Fit — отключён по умолчанию.
+
+### Уровень B — Однотокенные команды (CapsLock + клавиша)
+
+В активном Sketch после `CapsLock`:
+
+#### Геометрия (создание)
+
+| Клавиша | Команда | BUTTON ID | Статус |
+|---------|---------|-----------|--------|
+| `L` | Line | `UG_SKETCH_LINE` | `declared_v8` |
+| `R` | Rectangle | `UG_SKETCH_RECTANGLE` | `declared_v8` |
+| `C` | Circle | `UG_SKETCH_CIRCLE` | `declared_v8` |
+| `A` | Arc | `UG_SKETCH_ARC` | `declared_v8` |
+| `S` | Studio Spline | `UG_SKETCH_STUDIO_SPLINE` | `declared_v8` |
+| `P` | Point | `UG_SKETCH_POINT` | `declared_v8` |
+| `W` | Slot | `UG_SKETCH_SLOT` | `declared_v8` |
+| `G` | Polygon | `UG_SKETCH_POLYGON` | `declared_v8` |
+| `I` | Ellipse | `UG_SKETCH_ELLIPSE` | `declared_v8` |
+
+#### Редактирование кривых
+
+| Клавиша | Команда | BUTTON ID | Статус |
+|---------|---------|-----------|--------|
+| `T` | Trim | `UG_SKETCH_TRIM` | `declared_v8` |
+| `E` | Extend | `UG_SKETCH_EXTEND` | `declared_v8` |
+| `O` | Offset Curve | `UG_SKETCH_OFFSET_CURVE` | `declared_v8` |
+| `F` | Sketch Fillet | `UG_SKETCH_FILLET` | `declared_v8` |
+| `H` | Sketch Chamfer | `UG_SKETCH_CHAMFER` | `declared_v8` |
+| `M` | Mirror Curve | `UG_SKETCH_MIRROR_PATTERN` | `declared_v8` |
+| `V` | Move Curve | `UG_SKETCH_MOVE_CURVES` | `declared_v8` |
+| `Y` | Pattern Curve | `UG_SKETCH_PATTERN_CURVES` | `declared_v8` |
+
+#### Диагностика
+
+| Клавиша | Команда | BUTTON ID | Статус |
+|---------|---------|-----------|--------|
+| `N` | Sketch Navigator | `UG_SKETCH_CONSTRAINT_NAVIGATOR` | `declared_v8` |
+| `Z` | Sketch Checker | `UG_SKETCH_CHECKER` | `declared_v8` |
+
+### Уровень C — Двухтокенные пути (CapsLock + префикс + клавиша)
+
+#### Размеры (префикс `D`)
+
+| Путь | Команда | BUTTON ID |
+|------|---------|-----------|
+| `D → Q` | Rapid Dimension | `UG_SKETCH_RAPID_DIMENSION` |
+| `D → L` | Linear Dimension | `UG_SKETCH_LINEAR_DIMENSION` |
+| `D → A` | Angular Dimension | `UG_SKETCH_ANGULAR_DIMENSION` |
+| `D → R` | Radius Dimension | `UG_SKETCH_RADIAL_DIMENSION` |
+| `D → O` | Diameter Dimension | `UG_SKETCH_DIAMETER_DIM` |
+| `D → P` | Perimeter Dimension | `UG_SKETCH_PERIMETER_DIM` |
+| `D → M` | Animate Dimension | `UG_SKETCH_ANIMATE_DIMENSION` |
+
+#### Ограничения (префикс `K`)
+
+| Путь | Ограничение | BUTTON ID |
+|------|------------|-----------|
+| `K → C` | Coincident | `UG_SKETCH_COINCIDENT_CONSTRAINT` |
+| `K → H` | Horizontal | `UG_SKETCH_HORIZONTAL_CONSTRAINT` |
+| `K → V` | Vertical | `UG_SKETCH_VERTICAL_CONSTRAINT` |
+| `K → T` | Tangent | `UG_SKETCH_TANGENT_CONSTRAINT` |
+| `K → P` | Parallel | `UG_SKETCH_PARALLEL_CONSTRAINT` |
+| `K → N` | Perpendicular | `UG_SKETCH_PERPENDICULAR_CONSTRAINT` |
+| `K → O` | Concentric | `UG_SKETCH_CONCENTRIC_CONSTRAINT` |
+| `K → E` | Equal Length | `UG_SKETCH_EQUAL_LENGTH_CONSTRAINT` |
+| `K → L` | Collinear | `UG_SKETCH_COLLINEAR_CONSTRAINT` |
+| `K → M` | Midpoint | `UG_SKETCH_MAKE_MIDPOINT_ALIGNED` |
+| `K → S` | Symmetric | `UG_SKETCH_SYMMETRIC_CONSTRAINT` |
+| `K → F` | Fixed | `UG_SKETCH_FIXED_CONSTRAINT` |
+| `K → A` | Auto Constrain | `UG_SKETCH_AUTO_CREATE_CONSTRAINTS` |
+
+#### Проекция и производные (префикс `J`)
+
+| Путь | Команда | BUTTON ID |
+|------|---------|-----------|
+| `J → P` | Project Curve | `tbd_adapter` |
+| `J → I` | Intersection Curve | `UG_SKETCH_ADD_QUILT_PLANE_AI_CURVES` |
+| `J → D` | Derived Lines | `UG_SKETCH_CONSTRUCTION_LINES` |
+| `J → K` | Make Corner | `UG_SKETCH_MAKE_CORNER` |
+
+#### Утилиты (префикс `U`)
+
+| Путь | Команда | BUTTON ID |
+|------|---------|-----------|
+| `U → D` | Show Degrees of Freedom | `tbd_adapter` |
+| `U → R` | Show Relations | `tbd_adapter` |
+| `U → E` | External References | `tbd_adapter` |
+| `U → I` | Issues | `UG_SKETCH_CHECKING` |
+| `U → A` | Alternate Solution | `UG_SKETCH_ALTERNATE_SOLUTION` |
+
+#### Удаление ограничений (префикс `K`)
+
+| Путь | Команда | BUTTON ID |
+|------|---------|-----------|
+| `K → X` | Remove Constraint | `tbd_adapter` |
+
+## Варианты построения (ветвь `C → V`)
+
+Варианты не продолжают путь базовой команды — терминальная команда не может быть префиксом другой. Для вариантов выделена ветвь `C → V`:
+
+| Путь | Вариант | BUTTON ID |
+|------|---------|-----------|
+| `C → V → L → 2` | Line by Two Points | `UG_SKETCH_LINE_BY_TWO_POINTS` |
+| `C → V → L → M` | Line from Midpoint | `UG_SKETCH_LINE_FROM_MIDPOINT` |
+| `C → V → R → 2` | Rectangle by Two Points | `UG_SKETCH_RECTANGLE_BY_TWO_POINTS` |
+| `C → V → R → C` | Rectangle from Center | `UG_SKETCH_RECTANGLE_FROM_CENTER` |
+| `C → V → R → 3` | Rectangle by Three Points | `UG_SKETCH_RECTANGLE_BY_THREE_POINTS` |
+| `C → V → C → C` | Circle from Center | `UG_SKETCH_CIRCLE_FROM_CENTER` |
+| `C → V → C → 3` | Circle by Three Points | `UG_SKETCH_CIRCLE_BY_THREE_POINTS` |
+| `C → V → A → 3` | Arc by Three Points | `UG_SKETCH_ARC_BY_THREE_POINTS` |
+| `C → V → A → C` | Arc from Center | `UG_SKETCH_ARC_FROM_CENTER` |
 
 ## Переход в эскиз из других модулей
 
-- `G → S` — Переход в создание эскиза (Switch to Sketch / Create Sketch) из любого другого модуля (Modeling, Assembly, Surface и др.).
-
-## Базовые команды
-
-| Путь | Намерение |
-|---|---|
-| `C → L` | линия |
-| `C → R` | прямоугольник |
-| `C → C` | окружность |
-| `C → A` | дуга |
-| `E → T` | обрезать |
-| `E → E` | удлинить |
-| `E → F` | скруглить |
-| `E → H` | фаска |
-| `T → O` | смещение кривой |
-| `F → S` / `F` | закончить эскиз (Finish Sketch) |
-| `A → D → R` | быстрый размер |
-| `I → S → C` | проверка эскиза |
-
-## Варианты построения
-
-Варианты не продолжают путь базовой команды, потому что терминальная команда не может одновременно быть префиксом другой команды. Для них выделена ветвь `C → V`:
-
-- `C → V → L → 2` — линия по двум точкам;
-- `C → V → L → M` — линия от середины;
-- `C → V → R → C` — прямоугольник из центра;
-- `C → V → C → 3` — окружность по трём точкам;
-- `C → V → A → C` — дуга из центра.
-
-## Ограничения и размеры
-
-Геометрические ограничения размещаются в ветви `C → K`. Размеры размещаются в ветви `A → D`. Конкретные конечные токены берутся из текущего runtime-профиля и показываются в HUD и интерактивной карте.
-
-Правило для расширения этих ветвей:
-
-1. первый токен всегда описывает действие;
-2. следующий токен обозначает конкретную операцию или предметную область;
-3. вариант добавляется только через отдельную prefix-free ветвь;
-4. коллизия не является основанием для перехода в чужой action root.
+- `G → S` — Switch to Sketch / Create Sketch из Modeling, Assembly, Surface и др.
 
 ## Границы контекста
 
-В Sketch-компилятор добавляет только намерения с `runtime_module: sketch`, подтверждённое ядро Sketch и универсальные фильтры выбора. Глобальные файловые команды, навигатор сборки, материалы, сшивка поверхностей и переходы между приложениями не дублируются в дерево Sketch. Они остаются доступны через прямые сочетания или свои модули.
+Sketch-компилятор добавляет только намерения с `runtime_module: sketch`, подтверждённое ядро Sketch и универсальные фильтры выбора. Глобальные файловые команды, навигатор сборки, материалы, сшивка поверхностей и переходы между приложениями не дублируются в дерево Sketch.
 
-Подтверждённое ядро Sketch сохраняется как runtime vocabulary независимо от частотной фильтрации K3–K5. Это не разрешает включать команду без точного `BUTTON ID` и не отменяет catalog traceability.
+Подтверждённое ядро Sketch сохраняется как runtime vocabulary независимо от частотной фильтрации K3–K5. Команда без точного `BUTTON ID` остаётся видимой, но отключённой.
 
 ## Алиасы и пользовательские пути
 
 Старые позиционные алиасы `W/E/D/C/X/Z/A/Q` для Sketch автоматически удаляются. Пользовательский путь с `path_locked: true` или `path_source: user` сохраняется без изменений.
 
-Новая команда `UG_SKETCH_*`, найденная в каталоге целевой установки NX, получает семейство по назначению и остаётся внутри него при разрешении коллизий. Неоднозначный или неразрешённый `BUTTON ID` остаётся видимым, но отключённым: NXKeys не подставляет выдуманные идентификаторы.
+Новая команда `UG_SKETCH_*`, найденная в каталоге целевой установки NX, получает семейство по назначению и остаётся внутри него при разрешении коллизий. Неоднозначный или неразрешённый `BUTTON ID` остаётся видимым, но отключённым.
 
 ## Типовые сценарии
 
 ### Линия
 
 ```text
-CapsLock → C → L
+CapsLock → L
+```
+
+### Прямоугольник
+
+```text
+CapsLock → R
 ```
 
 ### Обрезка
 
 ```text
-CapsLock → E → T
+CapsLock → T
 ```
 
-### Смещение
+### Быстрый размер
 
 ```text
-CapsLock → T → O
+CapsLock → D → Q   (или прямой Q в Sketch)
 ```
 
 ### Закончить эскиз
 
 ```text
-CapsLock → F → S (или CapsLock → F)
+CapsLock → S   (или прямой S в активном Sketch)
 ```
 
 ### Вариант линии по двум точкам
 
 ```text
 CapsLock → C → V → L → 2
-```�ило для расширения этих ветвей:
-
-1. первый токен всегда описывает действие;
-2. второй токен закрепляет предметную область;
-3. следующий токен обозначает конкретную операцию;
-4. вариант добавляется только через отдельную prefix-free ветвь;
-5. коллизия не является основанием для перехода в чужой action root.
-
-## Границы контекста
-
-В Sketch-компилятор добавляет только намерения с `runtime_module: sketch`, подтверждённое ядро Sketch и универсальные фильтры выбора. Глобальные файловые команды, навигатор сборки, материалы, сшивка поверхностей и переходы между приложениями не дублируются в дерево Sketch. Они остаются доступны через прямые сочетания или свои модули.
-
-Подтверждённое ядро Sketch сохраняется как runtime vocabulary независимо от частотной фильтрации K3–K5. Это не разрешает включать команду без точного `BUTTON ID` и не отменяет catalog traceability.
-
-## Алиасы и пользовательские пути
-
-Старые позиционные алиасы `W/E/D/C/X/Z/A/Q` для Sketch автоматически удаляются. Пользовательский путь с `path_locked: true` или `path_source: user` сохраняется без изменений.
-
-Новая команда `UG_SKETCH_*`, найденная в каталоге целевой установки NX, получает семейство по назначению и остаётся внутри него при разрешении коллизий. Неоднозначный или неразрешённый `BUTTON ID` остаётся видимым, но отключённым: NXKeys не подставляет выдуманные идентификаторы.
-
-## Типовые сценарии
-
-### Линия
-
-```text
-CapsLock → C → G → L
 ```
 
-### Обрезка
+### Совпадение (ограничение)
 
 ```text
-CapsLock → E → G → T
+CapsLock → K → C
 ```
 
-### Смещение
+### Make Corner
 
 ```text
-CapsLock → T → G → O
+CapsLock → J → K
 ```
-
-### Вариант линии по двум точкам
-
-```text
-CapsLock → C → G → V → L → 2
-```
-
-Если команда видна, но отключена, проверьте status, точный ID, текущую роль NX и актуальность Catalog Studio export.
 
 ## Обязательные регрессионные проверки
 
@@ -163,11 +217,12 @@ dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj `
 
 Проверьте:
 
-- базовые пути;
-- ветвь `CGV…`;
+- однотокенные пути (L, R, C, A, T, E, O, F, H, M, V, Y, N, Z);
+- двухтокенные пути (D→*, K→*, J→*, U→*);
+- ветвь `C → V → …`;
 - prefix-free инвариант;
 - сохранение user-locked paths;
 - удаление legacy aliases;
 - отсутствие чужих команд в Sketch;
-- отсутствие enabled-команд без точного ID;
+- отсутствие enabled-команд без точного BUTTON ID;
 - удержание новых Sketch-команд внутри смыслового семейства.
