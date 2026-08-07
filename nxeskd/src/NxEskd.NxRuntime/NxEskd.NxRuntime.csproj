@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <AssemblyName>NxEskd.NxRuntime</AssemblyName>
+    <RootNamespace>NxEskd.NxRuntime</RootNamespace>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RequiresNxOpen>true</RequiresNxOpen>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NxEskd.Core\NxEskd.Core.csproj" />
+    <Reference Include="NXOpen">
+      <HintPath>$(NxOpenManagedDir)\NXOpen.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NXOpen.UF">
+      <HintPath>$(NxOpenManagedDir)\NXOpen.UF.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NXOpenUI">
+      <HintPath>$(NxOpenManagedDir)\NXOpenUI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NXOpen.Utilities">
+      <HintPath>$(NxOpenManagedDir)\NXOpen.Utilities.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

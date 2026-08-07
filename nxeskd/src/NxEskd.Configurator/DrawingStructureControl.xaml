@@ -1,0 +1,159 @@
+<UserControl x:Class="NxEskd.Configurator.DrawingStructureControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="White">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="3*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="#D8DEE6"
+                BorderThickness="0,0,0,1" Padding="14,11">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Листы документа" FontSize="15" FontWeight="SemiBold"/>
+                    <TextBlock Text="Формат, шаблон, роль и масштаб каждого листа"
+                               Foreground="#667085" Margin="0,3,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="Добавить лист" Click="AddSheet_Click" Padding="12,6" Margin="3,0"/>
+                    <Button Content="Удалить лист" Click="RemoveSheet_Click" Padding="12,6" Margin="3,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <DataGrid x:Name="SheetsGrid" Grid.Row="1"
+                  AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                  SelectionMode="Single" SelectionUnit="FullRow"
+                  SelectionChanged="SheetsGrid_SelectionChanged">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="150" IsReadOnly="True"/>
+                <DataGridTemplateColumn Header="Роль" Width="140">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding Roles}"
+                                      SelectedItem="{Binding Role, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Шаблон" Binding="{Binding TemplateId, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                    Width="2*"/>
+                <DataGridTemplateColumn Header="Формат" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding Formats}"
+                                      SelectedItem="{Binding Format, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Ориентация" Width="130">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding Orientations}"
+                                      SelectedItem="{Binding Orientation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Масштаб" Width="110">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding Scales}"
+                                      SelectedItem="{Binding Scale, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="#D8DEE6"
+                BorderThickness="0,1,0,1" Padding="14,11">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Виды выбранного листа" FontSize="15" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="ViewsHintText" Text="Выберите лист"
+                               Foreground="#667085" Margin="0,3,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="Добавить вид" Click="AddView_Click" Padding="12,6" Margin="3,0"/>
+                    <Button Content="Удалить вид" Click="RemoveView_Click" Padding="12,6" Margin="3,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <DataGrid x:Name="ViewsGrid" Grid.Row="3"
+                  AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                  SelectionMode="Single" SelectionUnit="FullRow">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="145" IsReadOnly="True"/>
+                <DataGridTemplateColumn Header="Тип" Width="140">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding Types}"
+                                      SelectedItem="{Binding Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Название" Binding="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                    Width="170"/>
+                <DataGridTemplateColumn Header="Родитель" Width="150">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding ParentCandidates}"
+                                      SelectedItem="{Binding ParentViewId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      IsEditable="False"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Направление" Width="125">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding Directions}"
+                                      SelectedItem="{Binding Direction, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Model view" Binding="{Binding ModelView, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                    Width="150"/>
+                <DataGridTemplateColumn Header="Размещение" Width="135">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding PlacementModes}"
+                                      SelectedItem="{Binding PlacementMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Якорь" Binding="{Binding PreferredAnchor, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                    Width="130"/>
+                <DataGridTextColumn Header="Зазор, мм" Binding="{Binding GapMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                    Width="90"/>
+                <DataGridTemplateColumn Header="Масштаб" Width="115">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding ScaleValues}"
+                                      SelectedItem="{Binding Scale, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Скрытые линии" Width="125">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding HiddenLineModes}"
+                                      SelectedItem="{Binding HiddenLines, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

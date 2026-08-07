@@ -1,0 +1,69 @@
+<UserControl x:Class="NxEskd.Configurator.TechnicalRequirementsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="White">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="#D8DEE6"
+                BorderThickness="0,0,0,1" Padding="14,11">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Технические требования" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock Text="Формулировки группируются и нумеруются Runtime в заданном порядке"
+                               Foreground="#667085" Margin="0,3,0,0"/>
+                </StackPanel>
+                <CheckBox x:Name="EnabledCheckBox" Grid.Column="1"
+                          Content="Формировать на чертеже" VerticalAlignment="Center"
+                          Checked="Enabled_Changed" Unchecked="Enabled_Changed"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" BorderBrush="#D8DEE6" BorderThickness="0,0,0,1" Padding="14,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Неуказанные допуски" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBox x:Name="UnspecifiedToleranceBox" Grid.Column="1"
+                         LostFocus="UnspecifiedToleranceBox_LostFocus"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="14,0,0,0">
+                    <Button Content="Добавить" Click="Add_Click" Padding="12,6" Margin="3,0"/>
+                    <Button Content="Вверх" Click="MoveUp_Click" Padding="12,6" Margin="3,0"/>
+                    <Button Content="Вниз" Click="MoveDown_Click" Padding="12,6" Margin="3,0"/>
+                    <Button Content="Удалить" Click="Remove_Click" Padding="12,6" Margin="3,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <DataGrid x:Name="RequirementsGrid" Grid.Row="2"
+                  AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                  SelectionMode="Single" SelectionUnit="FullRow">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="№" Binding="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Path=AlternationIndex}"
+                                    Width="55" IsReadOnly="True"/>
+                <DataGridTemplateColumn Header="Группа" Width="220">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding Groups}"
+                                      SelectedItem="{Binding Group, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Формулировка"
+                                    Binding="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                    Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

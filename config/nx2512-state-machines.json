@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "timeouts": {
+    "root_ms": 4000,
+    "prefix_ms": 2500,
+    "search_ms": 7000,
+    "confirmation_ms": 10000,
+    "result_ms": 20000,
+    "module_switch_ms": 8000
+  },
+  "defaults": {
+    "minimum_context_confidence": 60,
+    "bridge_statuses": ["running"],
+    "interaction_states": ["idle"],
+    "on_unavailable": {
+      "action": "show_reason",
+      "message": "Команда недоступна в текущем контексте NX"
+    }
+  },
+  "adaptive_module": {
+    "enabled": true,
+    "scope": "active_module",
+    "auto_prefix": true,
+    "fallback_module": "modeling",
+    "search_scope": "active_module"
+  },
+  "commands": {
+    "MEEB": {
+      "guards": {
+        "modules": ["modeling"],
+        "require_work_part": true,
+        "minimum_context_confidence": 60
+      },
+      "on_unavailable": { "action": "show_reason", "message": "Команда Edge Blend доступна в Modeling; фильтр рёбер будет включён перед запуском" }
+    },
+    "MEEC": {
+      "guards": {
+        "modules": ["modeling"],
+        "require_work_part": true
+      },
+      "on_unavailable": { "action": "show_reason", "message": "Команда Chamfer доступна в Modeling; фильтр рёбер будет включён перед запуском" }
+    },
+    "SCGL2": {
+      "guards": { "modules": ["sketch"], "require_work_part": true },
+      "on_unavailable": { "action": "show_reason", "message": "Команда Line доступна в активном эскизе" }
+    },
+    "DCVB": {
+      "guards": { "modules": ["drafting"], "require_work_part": true },
+      "on_unavailable": { "action": "show_reason", "message": "Команда Base View доступна в Drafting" }
+    },
+    "AECR": {
+      "guards": {
+        "modules": ["assembly"],
+        "require_work_part": true
+      },
+      "confirmation": "required",
+      "on_unavailable": { "action": "show_reason", "message": "Команда Replace Component доступна в Assembly; фильтр компонентов будет включён перед запуском" }
+    },
+    "AXCR": {
+      "guards": {
+        "modules": ["assembly"],
+        "require_work_part": true
+      },
+      "confirmation": "required",
+      "on_unavailable": { "action": "show_reason", "message": "Команда Remove Component доступна в Assembly; фильтр компонентов будет включён перед запуском" }
+    },
+    "CPOP": { "guards": { "modules": ["manufacturing"], "require_work_part": true }, "confirmation": "required" },
+    "CXOD": { "guards": { "modules": ["manufacturing"], "require_work_part": true }, "confirmation": "required" },
+    "XPNS": { "guards": { "modules": ["simulation"], "require_work_part": true }, "confirmation": "required" },
+    "XXND": { "guards": { "modules": ["simulation"], "require_work_part": true }, "confirmation": "required" },
+    "GXRD": { "guards": { "modules": ["routing"], "require_work_part": true }, "confirmation": "required" },
+    "GXRP": { "guards": { "modules": ["routing"], "require_work_part": true }, "confirmation": "required" },
+    "RETF": { "guards": { "modules": ["reuse"], "require_work_part": true }, "confirmation": "required" }
+  }
+}

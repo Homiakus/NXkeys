@@ -84,7 +84,7 @@ internal static class Program
 
     private static void VerifyProfileDraftSession()
     {
-        string sourceConfig = FindRepositoryFile(Path.Combine("config", "nx2512-pro-hybrid.json"));
+        string sourceConfig = FindRepositoryProfileFile();
         Config source = Config.Load(sourceConfig);
         var session = new ProfileDraftSession(source);
         string initialTrigger = session.Draft.LeaderKey.TriggerKey;
@@ -174,7 +174,7 @@ internal static class Program
     {
         Assert(NXKeys.Protocol.NxProtocolConstants.SchemaVersion == 4,
             "Authenticated transport requires IPC schema 4.");
-        string sourceConfig = FindRepositoryFile(Path.Combine("config", "nx2512-pro-hybrid.json"));
+        string sourceConfig = FindRepositoryProfileFile();
         NXKeys.Protocol.NxBridgePermissionSet permissions =
             NXKeys.Protocol.NxBridgePermissionSet.FromProfileFile(sourceConfig);
         Assert(permissions.Permissions.Count > 0, "Profile permission set must not be empty.");
@@ -276,9 +276,9 @@ internal static class Program
         Assert(firstContext.SemanticFingerprint() != secondContext.SemanticFingerprint(),
             "Selection identity must participate in the semantic context revision.");
 
-        string sourceConfig = FindRepositoryFile(Path.Combine("config", "nx2512-pro-hybrid.json"));
+        string sourceConfig = FindRepositoryProfileFile();
         string sourceJson = File.ReadAllText(sourceConfig);
-        string futureJson = sourceJson.Replace("\"schema_version\": 6", "\"schema_version\": 999");
+        string futureJson = System.Text.RegularExpressions.Regex.Replace(sourceJson, "\"schema_version\":\\s*\\d+", "\"schema_version\": 999");
         Assert(futureJson != sourceJson, "Test profile schema marker was not found.");
 
         string tempRoot = Path.Combine(Path.GetTempPath(), "nxkeys-phase-zero-" + Guid.NewGuid().ToString("N"));
@@ -319,6 +319,12 @@ internal static class Program
         {
             try { Directory.Delete(tempRoot, true); } catch { }
         }
+    }
+
+    private static string FindRepositoryProfileFile()
+    {
+        try { return FindRepositoryFile(Path.Combine("config", "nx2512-v8-profile.json")); }
+        catch (FileNotFoundException) { return FindRepositoryFile(Path.Combine("config", "nx2512-pro-hybrid.json")); }
     }
 
     private static string FindRepositoryFile(string relativePath)

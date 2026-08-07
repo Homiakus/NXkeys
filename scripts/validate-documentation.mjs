@@ -126,7 +126,7 @@ if (!policyMatch) {
 }
 
 const sketchDoc = read('docs/SKETCH_INTENT_LANGUAGE.md');
-for (const pathToken of ['C → L', 'C → R', 'C → C', 'C → A', 'E → T', 'E → E', 'T → O', 'F → S']) {
+for (const pathToken of ['C → V', 'D → Q', 'K → C', 'J → P', 'U → I']) {
   if (!sketchDoc.includes(pathToken)) {
     errors.push(`docs/SKETCH_INTENT_LANGUAGE.md: missing canonical path ${pathToken}`);
   }

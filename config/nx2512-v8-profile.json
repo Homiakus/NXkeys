@@ -10,8 +10,12 @@
       "operation_id": "global.layer_workspace",
       "paths": {
         "leader": [
-          "M",
+          "V",
           "L"
+        ],
+        "secondary_aliases": [
+          "M->L",
+          "W->L"
         ]
       },
       "command_name": "Layer Workspace",
@@ -30,8 +34,12 @@
       "operation_id": "global.wave_workspace",
       "paths": {
         "leader": [
-          "M",
+          "C",
           "W"
+        ],
+        "secondary_aliases": [
+          "M->W",
+          "W->W"
         ]
       },
       "command_name": "WAVE Workspace",
@@ -52,7 +60,8 @@
         "leader": [
           "V",
           "G"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Geometry Display Workspace",
       "adapter": {
@@ -69,7 +78,9 @@
     {
       "operation_id": "global.modeling________________sketch",
       "paths": {
-        "direct": "S"
+        "direct": "S",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Modeling, нет активного Sketch",
       "adapter": {
@@ -86,7 +97,9 @@
     {
       "operation_id": "global._________sketch",
       "paths": {
-        "direct": "S"
+        "direct": "S",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Активный Sketch",
       "adapter": {
@@ -103,7 +116,9 @@
     {
       "operation_id": "global.modeling",
       "paths": {
-        "direct": "X"
+        "direct": "X",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Modeling",
       "adapter": {
@@ -120,7 +135,9 @@
     {
       "operation_id": "global.modeling",
       "paths": {
-        "direct": "B"
+        "direct": "B",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Modeling",
       "adapter": {
@@ -137,7 +154,9 @@
     {
       "operation_id": "global.modeling",
       "paths": {
-        "direct": "C"
+        "direct": "C",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Modeling",
       "adapter": {
@@ -154,7 +173,9 @@
     {
       "operation_id": "global.sketch",
       "paths": {
-        "direct": "Q"
+        "direct": "Q",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Sketch",
       "adapter": {
@@ -171,7 +192,9 @@
     {
       "operation_id": "global.sketch_direct_dimension",
       "paths": {
-        "direct": "D"
+        "direct": "D",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Sketch — Rapid Dimension",
       "adapter": {
@@ -190,7 +213,9 @@
     {
       "operation_id": "global.sketch_direct_trim",
       "paths": {
-        "direct": "T"
+        "direct": "T",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Sketch — Trim",
       "adapter": {
@@ -209,7 +234,9 @@
     {
       "operation_id": "global.sketch_direct_fillet",
       "paths": {
-        "direct": "F"
+        "direct": "F",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Sketch — Fillet",
       "adapter": {
@@ -228,7 +255,9 @@
     {
       "operation_id": "global.sketch_direct_extend",
       "paths": {
-        "direct": "E"
+        "direct": "E",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Sketch — Extend",
       "adapter": {
@@ -247,7 +276,9 @@
     {
       "operation_id": "global.sketch_direct_offset",
       "paths": {
-        "direct": "O"
+        "direct": "O",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Sketch — Offset Curve",
       "adapter": {
@@ -266,7 +297,9 @@
     {
       "operation_id": "global.drafting",
       "paths": {
-        "direct": "Q"
+        "direct": "Q",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Drafting",
       "adapter": {
@@ -283,7 +316,9 @@
     {
       "operation_id": "global.________________________________",
       "paths": {
-        "direct": "Space"
+        "direct": "Space",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Есть выделение, графическое окно",
       "adapter": {
@@ -300,7 +335,9 @@
     {
       "operation_id": "global.________________",
       "paths": {
-        "direct": "Shift+Space"
+        "direct": "Shift+Space",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Графическое окно",
       "adapter": {
@@ -317,7 +354,9 @@
     {
       "operation_id": "global.____________________",
       "paths": {
-        "direct": "Esc"
+        "direct": "Esc",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Зависит от состояния",
       "adapter": {
@@ -334,7 +373,9 @@
     {
       "operation_id": "global.revolve",
       "paths": {
-        "workspace_key": "R"
+        "workspace_key": "R",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Revolve",
       "adapter": {
@@ -351,7 +392,9 @@
     {
       "operation_id": "global.hole",
       "paths": {
-        "workspace_key": "H"
+        "workspace_key": "H",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Hole",
       "adapter": {
@@ -368,7 +411,9 @@
     {
       "operation_id": "global.fit",
       "paths": {
-        "workspace_key": "F"
+        "workspace_key": "F",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Fit",
       "adapter": {
@@ -385,7 +430,9 @@
     {
       "operation_id": "global.measure",
       "paths": {
-        "workspace_key": "M"
+        "workspace_key": "M",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Measure",
       "adapter": {
@@ -402,7 +449,9 @@
     {
       "operation_id": "global.________leader___________________",
       "paths": {
-        "direct": "CapsLock"
+        "direct": "CapsLock",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Открыть Leader текущего контекста",
       "adapter": {
@@ -419,7 +468,9 @@
     {
       "operation_id": "global.________leader",
       "paths": {
-        "direct": "повторный CapsLock"
+        "direct": "повторный CapsLock",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Закрыть Leader",
       "adapter": {
@@ -436,7 +487,9 @@
     {
       "operation_id": "global.sticky_leader",
       "paths": {
-        "direct": "двойной CapsLock"
+        "direct": "двойной CapsLock",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Sticky Leader",
       "adapter": {
@@ -453,7 +506,9 @@
     {
       "operation_id": "global._______________________",
       "paths": {
-        "direct": "Space"
+        "direct": "Space",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Глобальный поиск команд",
       "adapter": {
@@ -470,7 +525,9 @@
     {
       "operation_id": "global._________",
       "paths": {
-        "direct": "буквы и цифры"
+        "direct": "буквы и цифры",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Ввод пути",
       "adapter": {
@@ -487,7 +544,9 @@
     {
       "operation_id": "global.__________________________",
       "paths": {
-        "direct": "Enter"
+        "direct": "Enter",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Выполнить однозначный путь",
       "adapter": {
@@ -504,7 +563,9 @@
     {
       "operation_id": "global.________________________________hud",
       "paths": {
-        "direct": "Backspace"
+        "direct": "Backspace",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Удалить токен; на корне закрыть HUD",
       "adapter": {
@@ -521,7 +582,9 @@
     {
       "operation_id": "global.________hud",
       "paths": {
-        "direct": "Esc"
+        "direct": "Esc",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Закрыть HUD",
       "adapter": {
@@ -538,7 +601,9 @@
     {
       "operation_id": "global.__________________________________collector",
       "paths": {
-        "direct": "Tab"
+        "direct": "Tab",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Следующая категория или следующий collector",
       "adapter": {
@@ -555,7 +620,9 @@
     {
       "operation_id": "global._________________________collector",
       "paths": {
-        "direct": "Shift+Tab"
+        "direct": "Shift+Tab",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Предыдущая категория или collector",
       "adapter": {
@@ -572,7 +639,9 @@
     {
       "operation_id": "global._______________________________",
       "paths": {
-        "direct": "↑/↓"
+        "direct": "↑/↓",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Навигация по результатам поиска",
       "adapter": {
@@ -589,7 +658,9 @@
     {
       "operation_id": "global.________________________________",
       "paths": {
-        "workspace_key": "?"
+        "workspace_key": "?",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Показать подсказку текущего узла",
       "adapter": {
@@ -606,7 +677,9 @@
     {
       "operation_id": "global.___________________________",
       "paths": {
-        "direct": "F1"
+        "direct": "F1",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Открыть диагностику команды",
       "adapter": {
@@ -623,7 +696,9 @@
     {
       "operation_id": "global.single_curve",
       "paths": {
-        "workspace_key": "1"
+        "workspace_key": "1",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Single Curve",
       "adapter": {
@@ -640,7 +715,9 @@
     {
       "operation_id": "global.connected_curves",
       "paths": {
-        "workspace_key": "2"
+        "workspace_key": "2",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Connected Curves",
       "adapter": {
@@ -657,7 +734,9 @@
     {
       "operation_id": "global.tangent_curves",
       "paths": {
-        "workspace_key": "3"
+        "workspace_key": "3",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Tangent Curves",
       "adapter": {
@@ -674,7 +753,9 @@
     {
       "operation_id": "global.region_boundary___closed_region",
       "paths": {
-        "workspace_key": "4"
+        "workspace_key": "4",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Region Boundary / Closed Region",
       "adapter": {
@@ -691,7 +772,9 @@
     {
       "operation_id": "global.single_edge",
       "paths": {
-        "workspace_key": "1"
+        "workspace_key": "1",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Single Edge",
       "adapter": {
@@ -708,7 +791,9 @@
     {
       "operation_id": "global.tangent_edges",
       "paths": {
-        "workspace_key": "2"
+        "workspace_key": "2",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Tangent Edges",
       "adapter": {
@@ -725,7 +810,9 @@
     {
       "operation_id": "global.face_edges",
       "paths": {
-        "workspace_key": "3"
+        "workspace_key": "3",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Face Edges",
       "adapter": {
@@ -742,7 +829,9 @@
     {
       "operation_id": "global.feature_edges",
       "paths": {
-        "workspace_key": "4"
+        "workspace_key": "4",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Feature Edges",
       "adapter": {
@@ -759,7 +848,9 @@
     {
       "operation_id": "global.single_face",
       "paths": {
-        "workspace_key": "1"
+        "workspace_key": "1",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Single Face",
       "adapter": {
@@ -776,7 +867,9 @@
     {
       "operation_id": "global.tangent_faces",
       "paths": {
-        "workspace_key": "2"
+        "workspace_key": "2",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Tangent Faces",
       "adapter": {
@@ -793,7 +886,9 @@
     {
       "operation_id": "global.connected_faces___face_region",
       "paths": {
-        "workspace_key": "3"
+        "workspace_key": "3",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Connected Faces / Face Region",
       "adapter": {
@@ -810,7 +905,9 @@
     {
       "operation_id": "global.feature_faces",
       "paths": {
-        "workspace_key": "4"
+        "workspace_key": "4",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Feature Faces",
       "adapter": {
@@ -827,7 +924,9 @@
     {
       "operation_id": "global.single_body",
       "paths": {
-        "workspace_key": "1"
+        "workspace_key": "1",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Single Body",
       "adapter": {
@@ -844,7 +943,9 @@
     {
       "operation_id": "global.touching___connected_bodies",
       "paths": {
-        "workspace_key": "2"
+        "workspace_key": "2",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Touching / Connected Bodies",
       "adapter": {
@@ -861,7 +962,9 @@
     {
       "operation_id": "global.bodies_of_current_component",
       "paths": {
-        "workspace_key": "3"
+        "workspace_key": "3",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Bodies of Current Component",
       "adapter": {
@@ -878,7 +981,9 @@
     {
       "operation_id": "global.all_compatible_bodies_in_scope",
       "paths": {
-        "workspace_key": "4"
+        "workspace_key": "4",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "All Compatible Bodies in Scope",
       "adapter": {
@@ -895,7 +1000,9 @@
     {
       "operation_id": "global.single_component",
       "paths": {
-        "workspace_key": "1"
+        "workspace_key": "1",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Single Component",
       "adapter": {
@@ -912,7 +1019,9 @@
     {
       "operation_id": "global.same_part___similar_component",
       "paths": {
-        "workspace_key": "2"
+        "workspace_key": "2",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Same Part / Similar Component",
       "adapter": {
@@ -929,7 +1038,9 @@
     {
       "operation_id": "global.all_occurrences",
       "paths": {
-        "workspace_key": "3"
+        "workspace_key": "3",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "All Occurrences",
       "adapter": {
@@ -946,7 +1057,9 @@
     {
       "operation_id": "global.assembly_subtree",
       "paths": {
-        "workspace_key": "4"
+        "workspace_key": "4",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Assembly Subtree",
       "adapter": {
@@ -963,7 +1076,9 @@
     {
       "operation_id": "global.single_drafting_object",
       "paths": {
-        "workspace_key": "1"
+        "workspace_key": "1",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Single drafting object",
       "adapter": {
@@ -980,7 +1095,9 @@
     {
       "operation_id": "global.connected_geometry",
       "paths": {
-        "workspace_key": "2"
+        "workspace_key": "2",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Connected geometry",
       "adapter": {
@@ -997,7 +1114,9 @@
     {
       "operation_id": "global.objects_in_current_view",
       "paths": {
-        "workspace_key": "3"
+        "workspace_key": "3",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Objects in current view",
       "adapter": {
@@ -1014,7 +1133,9 @@
     {
       "operation_id": "global.all_compatible_annotations_of_type",
       "paths": {
-        "workspace_key": "4"
+        "workspace_key": "4",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "All compatible annotations of type",
       "adapter": {
@@ -1031,7 +1152,9 @@
     {
       "operation_id": "global.single_object",
       "paths": {
-        "workspace_key": "1"
+        "workspace_key": "1",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Single object",
       "adapter": {
@@ -1048,7 +1171,9 @@
     {
       "operation_id": "global.same_geometry_group",
       "paths": {
-        "workspace_key": "2"
+        "workspace_key": "2",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Same geometry/group",
       "adapter": {
@@ -1065,7 +1190,9 @@
     {
       "operation_id": "global.connected_region",
       "paths": {
-        "workspace_key": "3"
+        "workspace_key": "3",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Connected region",
       "adapter": {
@@ -1082,7 +1209,9 @@
     {
       "operation_id": "global.all_compatible_objects_in_active_setup_solution",
       "paths": {
-        "workspace_key": "4"
+        "workspace_key": "4",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "All compatible objects in active setup/solution",
       "adapter": {
@@ -1099,7 +1228,9 @@
     {
       "operation_id": "global.______________________intent________",
       "paths": {
-        "workspace_key": "0"
+        "workspace_key": "0",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Вернуть рекомендуемый intent команды",
       "adapter": {
@@ -1116,7 +1247,9 @@
     {
       "operation_id": "global._____________________________intent_______leader__________collector________",
       "paths": {
-        "direct": "Backspace"
+        "direct": "Backspace",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Отменить последнее изменение intent, если Leader закрыт и collector активен",
       "adapter": {
@@ -1136,7 +1269,8 @@
         "leader": [
           "S",
           "B"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Bodies",
       "adapter": {
@@ -1156,7 +1290,8 @@
         "leader": [
           "S",
           "F"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Faces",
       "adapter": {
@@ -1176,7 +1311,8 @@
         "leader": [
           "S",
           "E"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Edges",
       "adapter": {
@@ -1196,7 +1332,8 @@
         "leader": [
           "S",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Curves",
       "adapter": {
@@ -1216,7 +1353,8 @@
         "leader": [
           "S",
           "K"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Sketches",
       "adapter": {
@@ -1236,7 +1374,8 @@
         "leader": [
           "S",
           "T"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Features",
       "adapter": {
@@ -1256,7 +1395,8 @@
         "leader": [
           "S",
           "M"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Components",
       "adapter": {
@@ -1276,7 +1416,8 @@
         "leader": [
           "S",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Datums",
       "adapter": {
@@ -1296,7 +1437,8 @@
         "leader": [
           "S",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Points / Vertices",
       "adapter": {
@@ -1316,7 +1458,8 @@
         "leader": [
           "S",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Annotations / PMI",
       "adapter": {
@@ -1336,7 +1479,8 @@
         "leader": [
           "S",
           "V"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Drafting Views",
       "adapter": {
@@ -1356,7 +1500,8 @@
         "leader": [
           "S",
           "O"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "CAM Operations",
       "adapter": {
@@ -1376,7 +1521,8 @@
         "leader": [
           "S",
           "L"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Tools",
       "adapter": {
@@ -1396,7 +1542,8 @@
         "leader": [
           "S",
           "N"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "FEM Nodes",
       "adapter": {
@@ -1416,7 +1563,8 @@
         "leader": [
           "S",
           "X"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "FEM Elements",
       "adapter": {
@@ -1437,7 +1585,8 @@
           "S",
           "Q",
           "F"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Select Similar Faces",
       "adapter": {
@@ -1458,7 +1607,8 @@
           "S",
           "Q",
           "E"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Select Similar Edges",
       "adapter": {
@@ -1479,7 +1629,8 @@
           "S",
           "Q",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Select Similar Components",
       "adapter": {
@@ -1500,7 +1651,8 @@
           "S",
           "Q",
           "I"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Identical Only",
       "adapter": {
@@ -1521,7 +1673,8 @@
           "S",
           "Q",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Predicted Objects",
       "adapter": {
@@ -1542,7 +1695,8 @@
           "S",
           "Q",
           "L"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Select from List",
       "adapter": {
@@ -1563,7 +1717,8 @@
           "S",
           "Q",
           "N"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Select by Name",
       "adapter": {
@@ -1584,7 +1739,8 @@
           "S",
           "Q",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Select by Attribute",
       "adapter": {
@@ -1605,7 +1761,8 @@
           "S",
           "Q",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Select by Display Attributes: color / line style / width",
       "adapter": {
@@ -1626,7 +1783,8 @@
           "S",
           "Q",
           "Y"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Select by Layer",
       "adapter": {
@@ -1647,7 +1805,8 @@
           "S",
           "P",
           "W"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Work Part",
       "adapter": {
@@ -1668,7 +1827,8 @@
           "S",
           "P",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Display Part",
       "adapter": {
@@ -1689,7 +1849,8 @@
           "S",
           "P",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Current Component",
       "adapter": {
@@ -1710,7 +1871,8 @@
           "S",
           "P",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Work Part and Components",
       "adapter": {
@@ -1731,7 +1893,8 @@
           "S",
           "P",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Entire Assembly",
       "adapter": {
@@ -1752,7 +1915,8 @@
           "S",
           "P",
           "V"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Visible Objects",
       "adapter": {
@@ -1773,7 +1937,8 @@
           "S",
           "P",
           "L"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Selected Layers",
       "adapter": {
@@ -1794,7 +1959,8 @@
           "S",
           "P",
           "G"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Active Drawing View",
       "adapter": {
@@ -1815,7 +1981,8 @@
           "S",
           "P",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Active CAM Setup",
       "adapter": {
@@ -1836,7 +2003,8 @@
           "S",
           "P",
           "U"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Current Dialog Collector",
       "adapter": {
@@ -1857,7 +2025,8 @@
           "S",
           "M",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Replace",
       "adapter": {
@@ -1878,7 +2047,8 @@
           "S",
           "M",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Add",
       "adapter": {
@@ -1899,7 +2069,8 @@
           "S",
           "M",
           "X"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Remove",
       "adapter": {
@@ -1920,7 +2091,8 @@
           "S",
           "M",
           "T"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Toggle",
       "adapter": {
@@ -1941,7 +2113,8 @@
           "S",
           "M",
           "I"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Invert",
       "adapter": {
@@ -1962,7 +2135,8 @@
           "S",
           "M",
           "N"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Deselect All",
       "adapter": {
@@ -1983,7 +2157,8 @@
           "S",
           "M",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Previous Selection",
       "adapter": {
@@ -2004,7 +2179,8 @@
           "S",
           "M",
           "V"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Save Selection Set",
       "adapter": {
@@ -2021,7 +2197,9 @@
     {
       "operation_id": "global.default_action__ok___finish___________________________adapter",
       "paths": {
-        "direct": "Enter"
+        "direct": "Enter",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Default action: OK / Finish, только через проверенный adapter",
       "adapter": {
@@ -2038,7 +2216,9 @@
     {
       "operation_id": "global.apply",
       "paths": {
-        "direct": "Ctrl+Enter"
+        "direct": "Ctrl+Enter",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Apply",
       "adapter": {
@@ -2055,7 +2235,9 @@
     {
       "operation_id": "global.cancel___close",
       "paths": {
-        "direct": "Esc"
+        "direct": "Esc",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Cancel / Close",
       "adapter": {
@@ -2072,7 +2254,9 @@
     {
       "operation_id": "global.__________collector",
       "paths": {
-        "direct": "Tab"
+        "direct": "Tab",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Следующий collector",
       "adapter": {
@@ -2089,7 +2273,9 @@
     {
       "operation_id": "global.___________collector",
       "paths": {
-        "direct": "Shift+Tab"
+        "direct": "Shift+Tab",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Предыдущий collector",
       "adapter": {
@@ -2106,7 +2292,9 @@
     {
       "operation_id": "global.______________________",
       "paths": {
-        "direct": "Alt+Left"
+        "direct": "Alt+Left",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Предыдущий шаг мастера",
       "adapter": {
@@ -2123,7 +2311,9 @@
     {
       "operation_id": "global._____________________",
       "paths": {
-        "direct": "Alt+Right"
+        "direct": "Alt+Right",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Следующий шаг мастера",
       "adapter": {
@@ -2140,7 +2330,9 @@
     {
       "operation_id": "modeling.create_sketch",
       "paths": {
-        "direct": "S"
+        "direct": "S",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Create Sketch",
       "adapter": {
@@ -2157,7 +2349,9 @@
     {
       "operation_id": "modeling.extrude",
       "paths": {
-        "direct": "X"
+        "direct": "X",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Extrude",
       "adapter": {
@@ -2174,7 +2368,9 @@
     {
       "operation_id": "modeling.edge_blend",
       "paths": {
-        "direct": "B"
+        "direct": "B",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Edge Blend",
       "adapter": {
@@ -2191,7 +2387,9 @@
     {
       "operation_id": "modeling.chamfer",
       "paths": {
-        "direct": "C"
+        "direct": "C",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Chamfer",
       "adapter": {
@@ -2211,7 +2409,8 @@
         "leader": [
           "C",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Revolve",
       "adapter": {
@@ -2231,7 +2430,8 @@
         "leader": [
           "C",
           "H"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Hole",
       "adapter": {
@@ -2251,7 +2451,8 @@
         "leader": [
           "C",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Sweep",
       "adapter": {
@@ -2271,7 +2472,8 @@
         "leader": [
           "C",
           "L"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Through Curves",
       "adapter": {
@@ -2291,7 +2493,8 @@
         "leader": [
           "C",
           "M"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Through Curve Mesh",
       "adapter": {
@@ -2311,7 +2514,8 @@
         "leader": [
           "C",
           "U"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Studio Surface",
       "adapter": {
@@ -2331,7 +2535,8 @@
         "leader": [
           "C",
           "G"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Extract Geometry",
       "adapter": {
@@ -2352,7 +2557,8 @@
           "C",
           "B",
           "U"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Unite",
       "adapter": {
@@ -2373,7 +2579,8 @@
           "C",
           "B",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Subtract",
       "adapter": {
@@ -2394,7 +2601,8 @@
           "C",
           "B",
           "I"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Intersect",
       "adapter": {
@@ -2414,7 +2622,8 @@
         "leader": [
           "E",
           "H"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Shell",
       "adapter": {
@@ -2434,7 +2643,8 @@
         "leader": [
           "E",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Draft",
       "adapter": {
@@ -2454,7 +2664,8 @@
         "leader": [
           "E",
           "T"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Trim Body",
       "adapter": {
@@ -2474,7 +2685,8 @@
         "leader": [
           "T",
           "O"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Move Object",
       "adapter": {
@@ -2494,7 +2706,8 @@
         "leader": [
           "T",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Copy",
       "adapter": {
@@ -2514,7 +2727,8 @@
         "leader": [
           "T",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Pattern Feature",
       "adapter": {
@@ -2534,7 +2748,8 @@
         "leader": [
           "T",
           "M"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Mirror Feature",
       "adapter": {
@@ -2555,7 +2770,8 @@
           "E",
           "F",
           "M"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Move Face",
       "adapter": {
@@ -2576,7 +2792,8 @@
           "E",
           "F",
           "O"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Offset Face",
       "adapter": {
@@ -2597,7 +2814,8 @@
           "E",
           "F",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Delete Face",
       "adapter": {
@@ -2618,7 +2836,8 @@
           "E",
           "F",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Replace Face",
       "adapter": {
@@ -2639,7 +2858,8 @@
           "E",
           "F",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Resize Face / region, если доступно",
       "adapter": {
@@ -2659,7 +2879,8 @@
         "leader": [
           "E",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Edit Feature Parameters",
       "adapter": {
@@ -2679,7 +2900,8 @@
         "leader": [
           "X",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Suppress Feature",
       "adapter": {
@@ -2699,7 +2921,8 @@
         "leader": [
           "X",
           "U"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Unsuppress Feature",
       "adapter": {
@@ -2720,7 +2943,8 @@
           "C",
           "D",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Datum Plane",
       "adapter": {
@@ -2741,7 +2965,8 @@
           "C",
           "D",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Datum Axis",
       "adapter": {
@@ -2762,7 +2987,8 @@
           "C",
           "D",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Datum CSYS",
       "adapter": {
@@ -2784,7 +3010,8 @@
           "D",
           "P",
           "T"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Datum Point",
       "adapter": {
@@ -2805,7 +3032,8 @@
           "C",
           "C",
           "L"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "3D Line",
       "adapter": {
@@ -2826,7 +3054,8 @@
           "C",
           "C",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "3D Arc",
       "adapter": {
@@ -2847,7 +3076,8 @@
           "C",
           "C",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "3D Spline",
       "adapter": {
@@ -2865,8 +3095,11 @@
       "operation_id": "modeling.measure_distance___geometry",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "M"
+        ],
+        "secondary_aliases": [
+          "I->M"
         ]
       },
       "command_name": "Measure Distance / Geometry",
@@ -2885,8 +3118,11 @@
       "operation_id": "modeling.object_information",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "O"
+        ],
+        "secondary_aliases": [
+          "I->O"
         ]
       },
       "command_name": "Object Information",
@@ -2905,8 +3141,11 @@
       "operation_id": "modeling.mass_properties",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "P"
+        ],
+        "secondary_aliases": [
+          "I->P"
         ]
       },
       "command_name": "Mass Properties",
@@ -2925,8 +3164,11 @@
       "operation_id": "modeling.examine_geometry",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "G"
+        ],
+        "secondary_aliases": [
+          "I->G"
         ]
       },
       "command_name": "Examine Geometry",
@@ -2945,8 +3187,11 @@
       "operation_id": "modeling.check_geometry",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "C"
+        ],
+        "secondary_aliases": [
+          "I->C"
         ]
       },
       "command_name": "Check Geometry",
@@ -2965,8 +3210,11 @@
       "operation_id": "modeling.expressions",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "E"
+        ],
+        "secondary_aliases": [
+          "M->E"
         ]
       },
       "command_name": "Expressions",
@@ -2985,8 +3233,11 @@
       "operation_id": "modeling.open_layer_workspace",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "L"
+        ],
+        "secondary_aliases": [
+          "M->L"
         ]
       },
       "command_name": "Open Layer Workspace",
@@ -3005,9 +3256,12 @@
       "operation_id": "modeling.standard_layer_settings",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "L",
           "S"
+        ],
+        "secondary_aliases": [
+          "M->L->S"
         ]
       },
       "command_name": "Standard Layer Settings",
@@ -3026,9 +3280,12 @@
       "operation_id": "modeling.move_selected_to_layer",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "L",
           "M"
+        ],
+        "secondary_aliases": [
+          "M->L->M"
         ]
       },
       "command_name": "Move Selected to Layer",
@@ -3047,8 +3304,11 @@
       "operation_id": "modeling.material_library",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "M"
+        ],
+        "secondary_aliases": [
+          "M->M"
         ]
       },
       "command_name": "Material Library",
@@ -3067,8 +3327,11 @@
       "operation_id": "modeling.part_navigator",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "N"
+        ],
+        "secondary_aliases": [
+          "M->N"
         ]
       },
       "command_name": "Part Navigator",
@@ -3089,7 +3352,8 @@
         "leader": [
           "V",
           "G"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Open Geometry Display Workspace",
       "adapter": {
@@ -3107,8 +3371,11 @@
       "operation_id": "modeling.update_model",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "U"
+        ],
+        "secondary_aliases": [
+          "P->U"
         ]
       },
       "command_name": "Update Model",
@@ -3126,7 +3393,9 @@
     {
       "operation_id": "modeling.____________________layer_settings",
       "paths": {
-        "direct": "Enter или S"
+        "direct": "Enter или S",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Открыть стандартный Layer Settings",
       "adapter": {
@@ -3143,7 +3412,9 @@
     {
       "operation_id": "modeling.____________________",
       "paths": {
-        "workspace_key": "W"
+        "workspace_key": "W",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Сделать слой рабочим",
       "adapter": {
@@ -3160,7 +3431,9 @@
     {
       "operation_id": "modeling._____________________________________",
       "paths": {
-        "workspace_key": "M"
+        "workspace_key": "M",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Переместить выбранные объекты на слой",
       "adapter": {
@@ -3177,7 +3450,9 @@
     {
       "operation_id": "modeling._____________visible___selectable",
       "paths": {
-        "workspace_key": "V"
+        "workspace_key": "V",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Сделать слои Visible + Selectable",
       "adapter": {
@@ -3194,7 +3469,9 @@
     {
       "operation_id": "modeling._____________visible_only",
       "paths": {
-        "workspace_key": "O"
+        "workspace_key": "O",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Сделать слои Visible Only",
       "adapter": {
@@ -3211,7 +3488,9 @@
     {
       "operation_id": "modeling.___________",
       "paths": {
-        "workspace_key": "H"
+        "workspace_key": "H",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Скрыть слои",
       "adapter": {
@@ -3228,7 +3507,9 @@
     {
       "operation_id": "modeling.___________________________________",
       "paths": {
-        "workspace_key": "I"
+        "workspace_key": "I",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Изолировать слои выбранных объектов",
       "adapter": {
@@ -3245,7 +3526,9 @@
     {
       "operation_id": "modeling.____________________________scope",
       "paths": {
-        "workspace_key": "A"
+        "workspace_key": "A",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Показать все слои в текущем scope",
       "adapter": {
@@ -3262,7 +3545,9 @@
     {
       "operation_id": "modeling._______________________________________",
       "paths": {
-        "workspace_key": "R"
+        "workspace_key": "R",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Восстановить предыдущее состояние слоёв",
       "adapter": {
@@ -3279,7 +3564,9 @@
     {
       "operation_id": "modeling.__________selection_filter_________",
       "paths": {
-        "workspace_key": "F"
+        "workspace_key": "F",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Временный selection filter по слоям",
       "adapter": {
@@ -3296,7 +3583,9 @@
     {
       "operation_id": "modeling.______________________layer_preset",
       "paths": {
-        "workspace_key": "P"
+        "workspace_key": "P",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Выбрать или сохранить layer preset",
       "adapter": {
@@ -3313,7 +3602,9 @@
     {
       "operation_id": "modeling.__________________________________________",
       "paths": {
-        "workspace_key": "N"
+        "workspace_key": "N",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Найти слой по номеру, имени или псевдониму",
       "adapter": {
@@ -3330,7 +3621,9 @@
     {
       "operation_id": "modeling.________________________________________________________",
       "paths": {
-        "workspace_key": "D"
+        "workspace_key": "D",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Показать слои выбранных объектов и причины недоступности",
       "adapter": {
@@ -3347,7 +3640,9 @@
     {
       "operation_id": "modeling.________work_part___display_part___component___assembly_scope",
       "paths": {
-        "direct": "Tab"
+        "direct": "Tab",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Перейти Work Part → Display Part → Component → Assembly scope",
       "adapter": {
@@ -3364,7 +3659,9 @@
     {
       "operation_id": "modeling.________layer_workspace______________________________",
       "paths": {
-        "direct": "Esc"
+        "direct": "Esc",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Закрыть Layer Workspace без дополнительного изменения",
       "adapter": {
@@ -3381,7 +3678,9 @@
     {
       "operation_id": "modeling.hide_selected",
       "paths": {
-        "workspace_key": "H"
+        "workspace_key": "H",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Hide Selected",
       "adapter": {
@@ -3398,7 +3697,9 @@
     {
       "operation_id": "modeling.show_selected______________________________",
       "paths": {
-        "direct": "S"
+        "direct": "S",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Show Selected через список скрытых объектов",
       "adapter": {
@@ -3415,7 +3716,9 @@
     {
       "operation_id": "modeling.show_only___isolate_selected",
       "paths": {
-        "workspace_key": "O"
+        "workspace_key": "O",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Show Only / Isolate Selected",
       "adapter": {
@@ -3432,7 +3735,9 @@
     {
       "operation_id": "modeling.show_all___________scope",
       "paths": {
-        "workspace_key": "A"
+        "workspace_key": "A",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Show All в текущем scope",
       "adapter": {
@@ -3449,7 +3754,9 @@
     {
       "operation_id": "modeling.restore_previous_display",
       "paths": {
-        "workspace_key": "R"
+        "workspace_key": "R",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Restore Previous Display",
       "adapter": {
@@ -3466,7 +3773,9 @@
     {
       "operation_id": "modeling.show___hide_by_object_type",
       "paths": {
-        "workspace_key": "T"
+        "workspace_key": "T",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Show / Hide by Object Type",
       "adapter": {
@@ -3483,7 +3792,9 @@
     {
       "operation_id": "modeling.__________layer_workspace",
       "paths": {
-        "workspace_key": "L"
+        "workspace_key": "L",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Перейти в Layer Workspace",
       "adapter": {
@@ -3500,7 +3811,9 @@
     {
       "operation_id": "modeling.construction_geometry_preset",
       "paths": {
-        "direct": "C"
+        "direct": "C",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Construction Geometry preset",
       "adapter": {
@@ -3517,7 +3830,9 @@
     {
       "operation_id": "modeling.bodies_preset",
       "paths": {
-        "direct": "B"
+        "direct": "B",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Bodies preset",
       "adapter": {
@@ -3534,7 +3849,9 @@
     {
       "operation_id": "modeling.wave___reference_geometry_preset",
       "paths": {
-        "workspace_key": "W"
+        "workspace_key": "W",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "WAVE / Reference Geometry preset",
       "adapter": {
@@ -3551,7 +3868,9 @@
     {
       "operation_id": "modeling.pmi___annotations_preset",
       "paths": {
-        "workspace_key": "P"
+        "workspace_key": "P",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "PMI / Annotations preset",
       "adapter": {
@@ -3568,7 +3887,9 @@
     {
       "operation_id": "modeling.components_preset",
       "paths": {
-        "workspace_key": "M"
+        "workspace_key": "M",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Components preset",
       "adapter": {
@@ -3585,7 +3906,9 @@
     {
       "operation_id": "modeling.rendering_style_subspace",
       "paths": {
-        "workspace_key": "D"
+        "workspace_key": "D",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Rendering Style subspace",
       "adapter": {
@@ -3602,7 +3925,9 @@
     {
       "operation_id": "modeling.see_through___translucency_______________",
       "paths": {
-        "direct": "X"
+        "direct": "X",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "See-Through / Translucency для выбранного",
       "adapter": {
@@ -3619,7 +3944,9 @@
     {
       "operation_id": "modeling.fit_selected",
       "paths": {
-        "workspace_key": "F"
+        "workspace_key": "F",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Fit Selected",
       "adapter": {
@@ -3636,7 +3963,9 @@
     {
       "operation_id": "modeling.diagnose_why_hidden",
       "paths": {
-        "workspace_key": "I"
+        "workspace_key": "I",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Diagnose Why Hidden",
       "adapter": {
@@ -3653,7 +3982,9 @@
     {
       "operation_id": "modeling.________scope",
       "paths": {
-        "direct": "Tab"
+        "direct": "Tab",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Сменить scope",
       "adapter": {
@@ -3670,7 +4001,9 @@
     {
       "operation_id": "modeling.shaded",
       "paths": {
-        "direct": "S"
+        "direct": "S",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Shaded",
       "adapter": {
@@ -3687,7 +4020,9 @@
     {
       "operation_id": "modeling.shaded_with_edges",
       "paths": {
-        "workspace_key": "E"
+        "workspace_key": "E",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Shaded with Edges",
       "adapter": {
@@ -3704,7 +4039,9 @@
     {
       "operation_id": "modeling.static_wireframe",
       "paths": {
-        "workspace_key": "W"
+        "workspace_key": "W",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Static Wireframe",
       "adapter": {
@@ -3721,7 +4058,9 @@
     {
       "operation_id": "modeling.hidden_edges___wireframe_with_dim_edges_______________",
       "paths": {
-        "workspace_key": "H"
+        "workspace_key": "H",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Hidden Edges / Wireframe with Dim Edges, если доступно",
       "adapter": {
@@ -3738,7 +4077,9 @@
     {
       "operation_id": "modeling.partially_shaded",
       "paths": {
-        "workspace_key": "P"
+        "workspace_key": "P",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Partially Shaded",
       "adapter": {
@@ -3755,7 +4096,9 @@
     {
       "operation_id": "modeling.see_through_selected",
       "paths": {
-        "direct": "X"
+        "direct": "X",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "See-Through Selected",
       "adapter": {
@@ -3772,7 +4115,9 @@
     {
       "operation_id": "modeling.restore_previous_rendering_style_and_object_translucency",
       "paths": {
-        "workspace_key": "R"
+        "workspace_key": "R",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Restore previous rendering style and object translucency",
       "adapter": {
@@ -3789,7 +4134,9 @@
     {
       "operation_id": "sketch.line",
       "paths": {
-        "workspace_key": "L"
+        "workspace_key": "L",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Line",
       "adapter": {
@@ -3806,7 +4153,9 @@
     {
       "operation_id": "sketch.rectangle",
       "paths": {
-        "workspace_key": "R"
+        "workspace_key": "R",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Rectangle",
       "adapter": {
@@ -3823,7 +4172,9 @@
     {
       "operation_id": "sketch.circle",
       "paths": {
-        "direct": "C"
+        "direct": "C",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Circle",
       "adapter": {
@@ -3840,7 +4191,9 @@
     {
       "operation_id": "sketch.arc",
       "paths": {
-        "workspace_key": "A"
+        "workspace_key": "A",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Arc",
       "adapter": {
@@ -3857,7 +4210,9 @@
     {
       "operation_id": "sketch.spline",
       "paths": {
-        "direct": "S"
+        "direct": "S",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Spline",
       "adapter": {
@@ -3874,7 +4229,9 @@
     {
       "operation_id": "sketch.point",
       "paths": {
-        "workspace_key": "P"
+        "workspace_key": "P",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Point",
       "adapter": {
@@ -3891,7 +4248,9 @@
     {
       "operation_id": "sketch.slot",
       "paths": {
-        "workspace_key": "W"
+        "workspace_key": "W",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Slot",
       "adapter": {
@@ -3908,7 +4267,9 @@
     {
       "operation_id": "sketch.polygon",
       "paths": {
-        "workspace_key": "G"
+        "workspace_key": "G",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Polygon",
       "adapter": {
@@ -3925,7 +4286,9 @@
     {
       "operation_id": "sketch.ellipse",
       "paths": {
-        "workspace_key": "I"
+        "workspace_key": "I",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Ellipse",
       "adapter": {
@@ -3942,7 +4305,9 @@
     {
       "operation_id": "sketch.trim",
       "paths": {
-        "workspace_key": "T"
+        "workspace_key": "T",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Trim",
       "adapter": {
@@ -3959,7 +4324,9 @@
     {
       "operation_id": "sketch.extend",
       "paths": {
-        "workspace_key": "E"
+        "workspace_key": "E",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Extend",
       "adapter": {
@@ -3976,7 +4343,9 @@
     {
       "operation_id": "sketch.offset_curve",
       "paths": {
-        "workspace_key": "O"
+        "workspace_key": "O",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Offset Curve",
       "adapter": {
@@ -3993,7 +4362,9 @@
     {
       "operation_id": "sketch.sketch_fillet",
       "paths": {
-        "workspace_key": "F"
+        "workspace_key": "F",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Sketch Fillet",
       "adapter": {
@@ -4010,7 +4381,9 @@
     {
       "operation_id": "sketch.sketch_chamfer",
       "paths": {
-        "workspace_key": "H"
+        "workspace_key": "H",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Sketch Chamfer",
       "adapter": {
@@ -4027,7 +4400,9 @@
     {
       "operation_id": "sketch.mirror_curve",
       "paths": {
-        "workspace_key": "M"
+        "workspace_key": "M",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Mirror Curve",
       "adapter": {
@@ -4044,7 +4419,9 @@
     {
       "operation_id": "sketch.move_curve",
       "paths": {
-        "workspace_key": "V"
+        "workspace_key": "V",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Move Curve",
       "adapter": {
@@ -4061,7 +4438,9 @@
     {
       "operation_id": "sketch.pattern_curve",
       "paths": {
-        "workspace_key": "Y"
+        "workspace_key": "Y",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Pattern Curve",
       "adapter": {
@@ -4081,7 +4460,8 @@
         "leader": [
           "J",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Project Curve",
       "adapter": {
@@ -4102,7 +4482,8 @@
         "leader": [
           "J",
           "I"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Intersection Curve",
       "adapter": {
@@ -4122,7 +4503,8 @@
         "leader": [
           "D",
           "Q"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Rapid Dimension",
       "adapter": {
@@ -4142,7 +4524,8 @@
         "leader": [
           "D",
           "L"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Linear Dimension",
       "adapter": {
@@ -4162,7 +4545,8 @@
         "leader": [
           "D",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Angular Dimension",
       "adapter": {
@@ -4182,7 +4566,8 @@
         "leader": [
           "D",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Radius Dimension",
       "adapter": {
@@ -4202,7 +4587,8 @@
         "leader": [
           "D",
           "O"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Diameter Dimension",
       "adapter": {
@@ -4222,7 +4608,8 @@
         "leader": [
           "D",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Perimeter Dimension",
       "adapter": {
@@ -4240,8 +4627,11 @@
       "operation_id": "sketch.coincident",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "C"
+        ],
+        "secondary_aliases": [
+          "K->C"
         ]
       },
       "command_name": "Coincident",
@@ -4260,8 +4650,11 @@
       "operation_id": "sketch.horizontal",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "H"
+        ],
+        "secondary_aliases": [
+          "K->H"
         ]
       },
       "command_name": "Horizontal",
@@ -4280,8 +4673,11 @@
       "operation_id": "sketch.vertical",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "V"
+        ],
+        "secondary_aliases": [
+          "K->V"
         ]
       },
       "command_name": "Vertical",
@@ -4300,8 +4696,11 @@
       "operation_id": "sketch.tangent",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "T"
+        ],
+        "secondary_aliases": [
+          "K->T"
         ]
       },
       "command_name": "Tangent",
@@ -4320,8 +4719,11 @@
       "operation_id": "sketch.parallel",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "P"
+        ],
+        "secondary_aliases": [
+          "K->P"
         ]
       },
       "command_name": "Parallel",
@@ -4340,8 +4742,11 @@
       "operation_id": "sketch.perpendicular",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "N"
+        ],
+        "secondary_aliases": [
+          "K->N"
         ]
       },
       "command_name": "Perpendicular",
@@ -4360,8 +4765,11 @@
       "operation_id": "sketch.concentric",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "O"
+        ],
+        "secondary_aliases": [
+          "K->O"
         ]
       },
       "command_name": "Concentric",
@@ -4380,8 +4788,11 @@
       "operation_id": "sketch.equal",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "E"
+        ],
+        "secondary_aliases": [
+          "K->E"
         ]
       },
       "command_name": "Equal",
@@ -4401,8 +4812,11 @@
       "operation_id": "sketch.collinear",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "L"
+        ],
+        "secondary_aliases": [
+          "K->L"
         ]
       },
       "command_name": "Collinear",
@@ -4421,8 +4835,11 @@
       "operation_id": "sketch.midpoint",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "M"
+        ],
+        "secondary_aliases": [
+          "K->M"
         ]
       },
       "command_name": "Midpoint",
@@ -4441,8 +4858,11 @@
       "operation_id": "sketch.symmetric",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "S"
+        ],
+        "secondary_aliases": [
+          "K->S"
         ]
       },
       "command_name": "Symmetric",
@@ -4461,8 +4881,11 @@
       "operation_id": "sketch.fixed",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "F"
+        ],
+        "secondary_aliases": [
+          "K->F"
         ]
       },
       "command_name": "Fixed",
@@ -4481,8 +4904,11 @@
       "operation_id": "sketch.remove_constraint",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "X"
+        ],
+        "secondary_aliases": [
+          "K->X"
         ]
       },
       "command_name": "Remove Constraint",
@@ -4501,7 +4927,9 @@
     {
       "operation_id": "sketch.sketch_navigator",
       "paths": {
-        "workspace_key": "N"
+        "workspace_key": "N",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Sketch Navigator",
       "adapter": {
@@ -4518,7 +4946,9 @@
     {
       "operation_id": "sketch.sketch_checker",
       "paths": {
-        "workspace_key": "Z"
+        "workspace_key": "Z",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Sketch Checker",
       "adapter": {
@@ -4536,8 +4966,11 @@
       "operation_id": "sketch.show_degrees_of_freedom",
       "paths": {
         "leader": [
-          "U",
+          "D",
           "D"
+        ],
+        "secondary_aliases": [
+          "U->D"
         ]
       },
       "command_name": "Show Degrees of Freedom",
@@ -4559,6 +4992,10 @@
         "leader": [
           "U",
           "R"
+        ],
+        "secondary_aliases": [
+          "U->R",
+          "D->R"
         ]
       },
       "command_name": "Show Relations",
@@ -4580,6 +5017,10 @@
         "leader": [
           "U",
           "E"
+        ],
+        "secondary_aliases": [
+          "U->E",
+          "D->E"
         ]
       },
       "command_name": "External References",
@@ -4601,6 +5042,10 @@
         "leader": [
           "U",
           "I"
+        ],
+        "secondary_aliases": [
+          "U->I",
+          "D->I"
         ]
       },
       "command_name": "Issues",
@@ -4619,7 +5064,9 @@
     {
       "operation_id": "sketch.finish_sketch",
       "paths": {
-        "direct": "S direct"
+        "direct": "S direct",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Finish Sketch",
       "adapter": {
@@ -4639,7 +5086,8 @@
         "leader": [
           "J",
           "K"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Make Corner",
       "adapter": {
@@ -4659,7 +5107,8 @@
         "leader": [
           "J",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Derived Lines",
       "adapter": {
@@ -4679,6 +5128,10 @@
         "leader": [
           "U",
           "A"
+        ],
+        "secondary_aliases": [
+          "U->A",
+          "D->A"
         ]
       },
       "command_name": "Alternate Solution",
@@ -4697,8 +5150,11 @@
       "operation_id": "sketch.auto_constrain",
       "paths": {
         "leader": [
-          "K",
+          "C",
           "A"
+        ],
+        "secondary_aliases": [
+          "K->A"
         ]
       },
       "command_name": "Auto Constrain",
@@ -4719,7 +5175,8 @@
         "leader": [
           "D",
           "M"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Animate Dimension",
       "adapter": {
@@ -4739,7 +5196,8 @@
         "leader": [
           "C",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Add Component",
       "adapter": {
@@ -4759,7 +5217,8 @@
         "leader": [
           "C",
           "N"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "New Component",
       "adapter": {
@@ -4779,7 +5238,8 @@
         "leader": [
           "C",
           "J"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Assembly Constraints",
       "adapter": {
@@ -4799,7 +5259,8 @@
         "leader": [
           "T",
           "M"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Move Component",
       "adapter": {
@@ -4819,7 +5280,8 @@
         "leader": [
           "T",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Auto Align / Magnetic Snap",
       "adapter": {
@@ -4839,7 +5301,8 @@
         "leader": [
           "T",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Pattern Component",
       "adapter": {
@@ -4859,7 +5322,8 @@
         "leader": [
           "T",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Copy Component",
       "adapter": {
@@ -4879,7 +5343,8 @@
         "leader": [
           "E",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Replace Component",
       "adapter": {
@@ -4899,7 +5364,8 @@
         "leader": [
           "X",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Remove Component",
       "adapter": {
@@ -4919,7 +5385,8 @@
         "leader": [
           "X",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Suppress Component",
       "adapter": {
@@ -4939,7 +5406,8 @@
         "leader": [
           "E",
           "U"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Unsuppress Component",
       "adapter": {
@@ -4957,8 +5425,11 @@
       "operation_id": "assemblies.assembly_navigator",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "N"
+        ],
+        "secondary_aliases": [
+          "M->N"
         ]
       },
       "command_name": "Assembly Navigator",
@@ -4977,8 +5448,11 @@
       "operation_id": "assemblies.open_wave_workspace",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "W"
+        ],
+        "secondary_aliases": [
+          "M->W"
         ]
       },
       "command_name": "Open WAVE Workspace",
@@ -4997,9 +5471,12 @@
       "operation_id": "assemblies.wave_geometry_linker",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "W",
           "G"
+        ],
+        "secondary_aliases": [
+          "M->W->G"
         ]
       },
       "command_name": "WAVE Geometry Linker",
@@ -5018,9 +5495,12 @@
       "operation_id": "assemblies.make_work_part",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "W",
           "P"
+        ],
+        "secondary_aliases": [
+          "M->W->P"
         ]
       },
       "command_name": "Make Work Part",
@@ -5039,8 +5519,11 @@
       "operation_id": "assemblies.arrangements",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "A"
+        ],
+        "secondary_aliases": [
+          "M->A"
         ]
       },
       "command_name": "Arrangements",
@@ -5059,8 +5542,11 @@
       "operation_id": "assemblies.reference_sets",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "R"
+        ],
+        "secondary_aliases": [
+          "M->R"
         ]
       },
       "command_name": "Reference Sets",
@@ -5079,9 +5565,12 @@
       "operation_id": "assemblies.load_options",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "O",
           "L"
+        ],
+        "secondary_aliases": [
+          "M->O->L"
         ]
       },
       "command_name": "Load Options",
@@ -5100,8 +5589,11 @@
       "operation_id": "assemblies.update_assembly",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "U"
+        ],
+        "secondary_aliases": [
+          "P->U"
         ]
       },
       "command_name": "Update Assembly",
@@ -5120,8 +5612,11 @@
       "operation_id": "assemblies.interference_analysis",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "I"
+        ],
+        "secondary_aliases": [
+          "I->I"
         ]
       },
       "command_name": "Interference Analysis",
@@ -5140,8 +5635,11 @@
       "operation_id": "assemblies.clearance_analysis",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "C"
+        ],
+        "secondary_aliases": [
+          "I->C"
         ]
       },
       "command_name": "Clearance Analysis",
@@ -5160,8 +5658,11 @@
       "operation_id": "assemblies.measure",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "M"
+        ],
+        "secondary_aliases": [
+          "I->M"
         ]
       },
       "command_name": "Measure",
@@ -5180,8 +5681,11 @@
       "operation_id": "assemblies.show_constraints",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "J"
+        ],
+        "secondary_aliases": [
+          "I->J"
         ]
       },
       "command_name": "Show Constraints",
@@ -5202,7 +5706,8 @@
         "leader": [
           "V",
           "E"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Exploded View",
       "adapter": {
@@ -5222,7 +5727,8 @@
         "leader": [
           "V",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Auto Explode",
       "adapter": {
@@ -5242,7 +5748,8 @@
         "leader": [
           "V",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Restore Assembly View",
       "adapter": {
@@ -5259,7 +5766,9 @@
     {
       "operation_id": "assemblies.geometry_linker___________________________________",
       "paths": {
-        "direct": "Enter или G"
+        "direct": "Enter или G",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Geometry Linker с автоматическим определением типа",
       "adapter": {
@@ -5276,7 +5785,9 @@
     {
       "operation_id": "assemblies.body_link",
       "paths": {
-        "direct": "B"
+        "direct": "B",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Body Link",
       "adapter": {
@@ -5293,7 +5804,9 @@
     {
       "operation_id": "assemblies.face___face_region_link",
       "paths": {
-        "workspace_key": "F"
+        "workspace_key": "F",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Face / Face Region Link",
       "adapter": {
@@ -5310,7 +5823,9 @@
     {
       "operation_id": "assemblies.curve_link",
       "paths": {
-        "direct": "C"
+        "direct": "C",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Curve Link",
       "adapter": {
@@ -5327,7 +5842,9 @@
     {
       "operation_id": "assemblies.sketch_link",
       "paths": {
-        "direct": "S"
+        "direct": "S",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Sketch Link",
       "adapter": {
@@ -5344,7 +5861,9 @@
     {
       "operation_id": "assemblies.datum_link",
       "paths": {
-        "workspace_key": "D"
+        "workspace_key": "D",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Datum Link",
       "adapter": {
@@ -5361,7 +5880,9 @@
     {
       "operation_id": "assemblies.point___vertex_link",
       "paths": {
-        "workspace_key": "V"
+        "workspace_key": "V",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Point / Vertex Link",
       "adapter": {
@@ -5378,7 +5899,9 @@
     {
       "operation_id": "assemblies.associative_mode",
       "paths": {
-        "workspace_key": "A"
+        "workspace_key": "A",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Associative mode",
       "adapter": {
@@ -5395,7 +5918,9 @@
     {
       "operation_id": "assemblies.non_associative_mode",
       "paths": {
-        "workspace_key": "N"
+        "workspace_key": "N",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Non-associative mode",
       "adapter": {
@@ -5412,7 +5937,9 @@
     {
       "operation_id": "assemblies.make_selected_component_work_part",
       "paths": {
-        "workspace_key": "P"
+        "workspace_key": "P",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Make selected component Work Part",
       "adapter": {
@@ -5429,7 +5956,9 @@
     {
       "operation_id": "assemblies.update_selected_links___all_links_in_scope",
       "paths": {
-        "workspace_key": "U"
+        "workspace_key": "U",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Update selected links / all links in scope",
       "adapter": {
@@ -5446,7 +5975,9 @@
     {
       "operation_id": "assemblies.edit_link_parameters",
       "paths": {
-        "workspace_key": "E"
+        "workspace_key": "E",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Edit Link Parameters",
       "adapter": {
@@ -5463,7 +5994,9 @@
     {
       "operation_id": "assemblies.replace_source_geometry",
       "paths": {
-        "workspace_key": "R"
+        "workspace_key": "R",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Replace Source Geometry",
       "adapter": {
@@ -5480,7 +6013,9 @@
     {
       "operation_id": "assemblies.locate_and_highlight_source",
       "paths": {
-        "workspace_key": "L"
+        "workspace_key": "L",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Locate and highlight Source",
       "adapter": {
@@ -5497,7 +6032,9 @@
     {
       "operation_id": "assemblies.dependency_and_timestamp_diagnostics",
       "paths": {
-        "workspace_key": "I"
+        "workspace_key": "I",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Dependency and timestamp diagnostics",
       "adapter": {
@@ -5514,7 +6051,9 @@
     {
       "operation_id": "assemblies.toggle_hide_source_after_successful_link",
       "paths": {
-        "workspace_key": "H"
+        "workspace_key": "H",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Toggle Hide Source after successful link",
       "adapter": {
@@ -5531,7 +6070,9 @@
     {
       "operation_id": "assemblies.assign_result_to_logical_layer___wave_",
       "paths": {
-        "workspace_key": "Y"
+        "workspace_key": "Y",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Assign result to logical layer `@wave`",
       "adapter": {
@@ -5548,7 +6089,9 @@
     {
       "operation_id": "assemblies.break_link",
       "paths": {
-        "workspace_key": "K"
+        "workspace_key": "K",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Break Link",
       "adapter": {
@@ -5565,7 +6108,9 @@
     {
       "operation_id": "assemblies.source_collector___target_part___options",
       "paths": {
-        "direct": "Tab"
+        "direct": "Tab",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Source collector → target part → options",
       "adapter": {
@@ -5582,7 +6127,9 @@
     {
       "operation_id": "assemblies.____________________________________nx_dialog____________________cancel",
       "paths": {
-        "direct": "Esc"
+        "direct": "Esc",
+        "leader": [],
+        "secondary_aliases": []
       },
       "command_name": "Вернуться на уровень выше; активный NX dialog получает отдельный Cancel",
       "adapter": {
@@ -5602,7 +6149,8 @@
         "leader": [
           "C",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "New Sheet",
       "adapter": {
@@ -5622,7 +6170,8 @@
         "leader": [
           "V",
           "B"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Base View",
       "adapter": {
@@ -5642,7 +6191,8 @@
         "leader": [
           "V",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Projected View",
       "adapter": {
@@ -5662,7 +6212,8 @@
         "leader": [
           "V",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Section View",
       "adapter": {
@@ -5682,7 +6233,8 @@
         "leader": [
           "V",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Detail View",
       "adapter": {
@@ -5702,7 +6254,8 @@
         "leader": [
           "V",
           "O"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Breakout Section",
       "adapter": {
@@ -5722,7 +6275,8 @@
         "leader": [
           "V",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Break View",
       "adapter": {
@@ -5742,7 +6296,8 @@
         "leader": [
           "V",
           "Y"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "View Style",
       "adapter": {
@@ -5762,7 +6317,8 @@
         "leader": [
           "V",
           "U"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Update Views",
       "adapter": {
@@ -5780,8 +6336,11 @@
       "operation_id": "drafting.sheet_navigator___sheet_settings",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "S"
+        ],
+        "secondary_aliases": [
+          "M->S"
         ]
       },
       "command_name": "Sheet Navigator / Sheet Settings",
@@ -5800,8 +6359,11 @@
       "operation_id": "drafting.view_management",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "V"
+        ],
+        "secondary_aliases": [
+          "M->V"
         ]
       },
       "command_name": "View Management",
@@ -5823,7 +6385,8 @@
           "A",
           "D",
           "Q"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Rapid Dimension",
       "adapter": {
@@ -5844,7 +6407,8 @@
           "A",
           "D",
           "L"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Linear Dimension",
       "adapter": {
@@ -5865,7 +6429,8 @@
           "A",
           "D",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Angular Dimension",
       "adapter": {
@@ -5886,7 +6451,8 @@
           "A",
           "D",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Radial Dimension",
       "adapter": {
@@ -5907,7 +6473,8 @@
           "A",
           "D",
           "O"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Diameter Dimension",
       "adapter": {
@@ -5928,7 +6495,8 @@
           "A",
           "D",
           "H"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Hole Callout",
       "adapter": {
@@ -5949,7 +6517,8 @@
           "A",
           "D",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Chamfer Dimension",
       "adapter": {
@@ -5970,7 +6539,8 @@
           "A",
           "D",
           "G"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Arc Length Dimension",
       "adapter": {
@@ -5990,7 +6560,8 @@
         "leader": [
           "A",
           "N"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Note",
       "adapter": {
@@ -6011,7 +6582,8 @@
           "A",
           "G",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Datum Feature Symbol",
       "adapter": {
@@ -6032,7 +6604,8 @@
           "A",
           "G",
           "F"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Feature Control Frame",
       "adapter": {
@@ -6052,7 +6625,8 @@
         "leader": [
           "A",
           "F"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Surface Finish",
       "adapter": {
@@ -6072,7 +6646,8 @@
         "leader": [
           "A",
           "W"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Weld Symbol",
       "adapter": {
@@ -6093,7 +6668,8 @@
           "A",
           "C",
           "M"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Center Mark",
       "adapter": {
@@ -6114,7 +6690,8 @@
           "A",
           "C",
           "L"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Centerline",
       "adapter": {
@@ -6135,7 +6712,8 @@
           "A",
           "C",
           "B"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Bolt Circle Centerline",
       "adapter": {
@@ -6155,7 +6733,8 @@
         "leader": [
           "A",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Parts List",
       "adapter": {
@@ -6175,7 +6754,8 @@
         "leader": [
           "A",
           "L"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Parts List, legacy alias",
       "adapter": {
@@ -6195,7 +6775,8 @@
         "leader": [
           "A",
           "B"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Balloon",
       "adapter": {
@@ -6215,7 +6796,8 @@
         "leader": [
           "A",
           "T"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Table",
       "adapter": {
@@ -6235,7 +6817,8 @@
         "leader": [
           "A",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Revision Symbol / Revision Table",
       "adapter": {
@@ -6253,8 +6836,11 @@
       "operation_id": "drafting.update_all_drawing_objects",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "U"
+        ],
+        "secondary_aliases": [
+          "P->U"
         ]
       },
       "command_name": "Update All Drawing Objects",
@@ -6275,7 +6861,8 @@
         "leader": [
           "F",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Export PDF",
       "adapter": {
@@ -6295,7 +6882,8 @@
         "leader": [
           "F",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Export DXF/DWG",
       "adapter": {
@@ -6315,7 +6903,8 @@
         "leader": [
           "C",
           "T"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Through Curves",
       "adapter": {
@@ -6335,7 +6924,8 @@
         "leader": [
           "C",
           "M"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Through Curve Mesh",
       "adapter": {
@@ -6355,7 +6945,8 @@
         "leader": [
           "C",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Studio Surface",
       "adapter": {
@@ -6375,7 +6966,8 @@
         "leader": [
           "C",
           "W"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Swept Surface",
       "adapter": {
@@ -6395,7 +6987,8 @@
         "leader": [
           "C",
           "B"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Bridge Surface",
       "adapter": {
@@ -6415,7 +7008,8 @@
         "leader": [
           "C",
           "F"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Fill Surface",
       "adapter": {
@@ -6435,7 +7029,8 @@
         "leader": [
           "C",
           "N"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "N-Sided Surface",
       "adapter": {
@@ -6455,7 +7050,8 @@
         "leader": [
           "C",
           "O"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Offset Surface",
       "adapter": {
@@ -6475,7 +7071,8 @@
         "leader": [
           "E",
           "T"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Trim Sheet",
       "adapter": {
@@ -6495,7 +7092,8 @@
         "leader": [
           "E",
           "X"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Extend Sheet",
       "adapter": {
@@ -6515,7 +7113,8 @@
         "leader": [
           "E",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Sew",
       "adapter": {
@@ -6535,7 +7134,8 @@
         "leader": [
           "E",
           "U"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Untrim",
       "adapter": {
@@ -6555,7 +7155,8 @@
         "leader": [
           "E",
           "M"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Match Edge",
       "adapter": {
@@ -6575,7 +7176,8 @@
         "leader": [
           "E",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Replace Face",
       "adapter": {
@@ -6595,7 +7197,8 @@
         "leader": [
           "T",
           "H"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Thicken",
       "adapter": {
@@ -6613,8 +7216,11 @@
       "operation_id": "surface.continuity_analysis",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "C"
+        ],
+        "secondary_aliases": [
+          "I->C"
         ]
       },
       "command_name": "Continuity Analysis",
@@ -6633,8 +7239,11 @@
       "operation_id": "surface.zebra___reflection_analysis",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "Z"
+        ],
+        "secondary_aliases": [
+          "I->Z"
         ]
       },
       "command_name": "Zebra / Reflection Analysis",
@@ -6653,8 +7262,11 @@
       "operation_id": "surface.examine_geometry",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "G"
+        ],
+        "secondary_aliases": [
+          "I->G"
         ]
       },
       "command_name": "Examine Geometry",
@@ -6675,7 +7287,8 @@
         "leader": [
           "C",
           "T"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Tab",
       "adapter": {
@@ -6695,7 +7308,8 @@
         "leader": [
           "C",
           "F"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Flange",
       "adapter": {
@@ -6715,7 +7329,8 @@
         "leader": [
           "C",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Contour Flange",
       "adapter": {
@@ -6735,7 +7350,8 @@
         "leader": [
           "C",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Convert Solid to Sheet Metal",
       "adapter": {
@@ -6755,7 +7371,8 @@
         "leader": [
           "C",
           "N"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Normal Cutout",
       "adapter": {
@@ -6775,7 +7392,8 @@
         "leader": [
           "C",
           "J"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Jog",
       "adapter": {
@@ -6795,7 +7413,8 @@
         "leader": [
           "C",
           "H"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Hem",
       "adapter": {
@@ -6815,7 +7434,8 @@
         "leader": [
           "C",
           "B"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Bead",
       "adapter": {
@@ -6835,7 +7455,8 @@
         "leader": [
           "C",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Dimple",
       "adapter": {
@@ -6855,7 +7476,8 @@
         "leader": [
           "C",
           "L"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Louver",
       "adapter": {
@@ -6875,7 +7497,8 @@
         "leader": [
           "E",
           "B"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Bend",
       "adapter": {
@@ -6895,7 +7518,8 @@
         "leader": [
           "E",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Corner Relief",
       "adapter": {
@@ -6915,7 +7539,8 @@
         "leader": [
           "T",
           "U"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Unbend",
       "adapter": {
@@ -6935,7 +7560,8 @@
         "leader": [
           "T",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Rebend",
       "adapter": {
@@ -6953,8 +7579,11 @@
       "operation_id": "sheetmetal.flat_pattern",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "P"
+        ],
+        "secondary_aliases": [
+          "P->P"
         ]
       },
       "command_name": "Flat Pattern",
@@ -6973,8 +7602,11 @@
       "operation_id": "sheetmetal.edit_bend_sequence",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "S"
+        ],
+        "secondary_aliases": [
+          "P->S"
         ]
       },
       "command_name": "Edit Bend Sequence",
@@ -6993,8 +7625,11 @@
       "operation_id": "sheetmetal.validate_sheet_metal",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "V"
+        ],
+        "secondary_aliases": [
+          "P->V"
         ]
       },
       "command_name": "Validate Sheet Metal",
@@ -7015,7 +7650,8 @@
         "leader": [
           "F",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Export Flat Pattern DXF",
       "adapter": {
@@ -7036,7 +7672,8 @@
           "A",
           "D",
           "Q"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Rapid PMI Dimension",
       "adapter": {
@@ -7057,7 +7694,8 @@
           "A",
           "D",
           "L"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Linear PMI Dimension",
       "adapter": {
@@ -7078,7 +7716,8 @@
           "A",
           "D",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Angular PMI Dimension",
       "adapter": {
@@ -7099,7 +7738,8 @@
           "A",
           "D",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Radial PMI Dimension",
       "adapter": {
@@ -7120,7 +7760,8 @@
           "A",
           "D",
           "O"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Diameter PMI Dimension",
       "adapter": {
@@ -7140,7 +7781,8 @@
         "leader": [
           "A",
           "H"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Hole Callout",
       "adapter": {
@@ -7160,7 +7802,8 @@
         "leader": [
           "A",
           "N"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "PMI Note",
       "adapter": {
@@ -7181,7 +7824,8 @@
           "A",
           "G",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Datum Feature Symbol",
       "adapter": {
@@ -7202,7 +7846,8 @@
           "A",
           "G",
           "F"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Feature Control Frame",
       "adapter": {
@@ -7222,7 +7867,8 @@
         "leader": [
           "A",
           "F"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Surface Finish",
       "adapter": {
@@ -7242,7 +7888,8 @@
         "leader": [
           "A",
           "W"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Weld Symbol",
       "adapter": {
@@ -7260,8 +7907,11 @@
       "operation_id": "pmi.model_views",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "V"
+        ],
+        "secondary_aliases": [
+          "M->V"
         ]
       },
       "command_name": "Model Views",
@@ -7280,8 +7930,11 @@
       "operation_id": "pmi.annotation_plane___orientation",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "P"
+        ],
+        "secondary_aliases": [
+          "M->P"
         ]
       },
       "command_name": "Annotation Plane / Orientation",
@@ -7300,8 +7953,11 @@
       "operation_id": "pmi.validate_pmi",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "V"
+        ],
+        "secondary_aliases": [
+          "P->V"
         ]
       },
       "command_name": "Validate PMI",
@@ -7320,8 +7976,11 @@
       "operation_id": "pmi.convert_drawing_objects_to_pmi",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "C"
+        ],
+        "secondary_aliases": [
+          "P->C"
         ]
       },
       "command_name": "Convert Drawing Objects to PMI",
@@ -7340,8 +7999,11 @@
       "operation_id": "pmi.publish_technical_data_package",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "T"
+        ],
+        "secondary_aliases": [
+          "P->T"
         ]
       },
       "command_name": "Publish Technical Data Package",
@@ -7360,8 +8022,11 @@
       "operation_id": "pmi.mbd_rules___reuse_rules",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "R"
+        ],
+        "secondary_aliases": [
+          "M->R"
         ]
       },
       "command_name": "MBD Rules / Reuse Rules",
@@ -7382,7 +8047,8 @@
         "leader": [
           "C",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Create CAM Setup",
       "adapter": {
@@ -7402,7 +8068,8 @@
         "leader": [
           "C",
           "M"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Create / Edit MCS",
       "adapter": {
@@ -7422,7 +8089,8 @@
         "leader": [
           "C",
           "G"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Create Geometry Group",
       "adapter": {
@@ -7443,7 +8111,8 @@
           "C",
           "G",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Define Part Geometry",
       "adapter": {
@@ -7464,7 +8133,8 @@
           "C",
           "G",
           "B"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Define Blank",
       "adapter": {
@@ -7485,7 +8155,8 @@
           "C",
           "G",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Define Check / Fixture Geometry",
       "adapter": {
@@ -7505,7 +8176,8 @@
         "leader": [
           "C",
           "T"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Create Tool",
       "adapter": {
@@ -7525,7 +8197,8 @@
         "leader": [
           "C",
           "O"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Create Operation",
       "adapter": {
@@ -7543,8 +8216,11 @@
       "operation_id": "manufacturing.operation_navigator",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "N"
+        ],
+        "secondary_aliases": [
+          "M->N"
         ]
       },
       "command_name": "Operation Navigator",
@@ -7565,7 +8241,8 @@
         "leader": [
           "E",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Edit Operation Parameters",
       "adapter": {
@@ -7585,7 +8262,8 @@
         "leader": [
           "E",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Duplicate Operation",
       "adapter": {
@@ -7605,7 +8283,8 @@
         "leader": [
           "T",
           "O"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Reorder Operation",
       "adapter": {
@@ -7625,7 +8304,8 @@
         "leader": [
           "X",
           "O"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Delete Operation",
       "adapter": {
@@ -7645,7 +8325,8 @@
         "leader": [
           "X",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Suppress Operation",
       "adapter": {
@@ -7665,7 +8346,8 @@
         "leader": [
           "E",
           "U"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Unsuppress Operation",
       "adapter": {
@@ -7683,8 +8365,11 @@
       "operation_id": "manufacturing.generate_selected_toolpath",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "G"
+        ],
+        "secondary_aliases": [
+          "P->G"
         ]
       },
       "command_name": "Generate Selected Toolpath",
@@ -7703,8 +8388,11 @@
       "operation_id": "manufacturing.generate_all",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "A"
+        ],
+        "secondary_aliases": [
+          "P->A"
         ]
       },
       "command_name": "Generate All",
@@ -7723,8 +8411,11 @@
       "operation_id": "manufacturing.background_generate",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "B"
+        ],
+        "secondary_aliases": [
+          "P->B"
         ]
       },
       "command_name": "Background Generate",
@@ -7743,8 +8434,11 @@
       "operation_id": "manufacturing.verify_toolpath",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "V"
+        ],
+        "secondary_aliases": [
+          "P->V"
         ]
       },
       "command_name": "Verify Toolpath",
@@ -7763,8 +8457,11 @@
       "operation_id": "manufacturing.machine_simulation",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "S"
+        ],
+        "secondary_aliases": [
+          "P->S"
         ]
       },
       "command_name": "Machine Simulation",
@@ -7783,8 +8480,11 @@
       "operation_id": "manufacturing.collision___gouge_check",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "C"
+        ],
+        "secondary_aliases": [
+          "P->C"
         ]
       },
       "command_name": "Collision / Gouge Check",
@@ -7803,8 +8503,11 @@
       "operation_id": "manufacturing.postprocess",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "P"
+        ],
+        "secondary_aliases": [
+          "P->P"
         ]
       },
       "command_name": "Postprocess",
@@ -7823,8 +8526,11 @@
       "operation_id": "manufacturing.shop_documentation",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "D"
+        ],
+        "secondary_aliases": [
+          "P->D"
         ]
       },
       "command_name": "Shop Documentation",
@@ -7845,7 +8551,8 @@
         "leader": [
           "C",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "New Analysis / Solution",
       "adapter": {
@@ -7865,7 +8572,8 @@
         "leader": [
           "C",
           "F"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "New FEM / Simulation File",
       "adapter": {
@@ -7883,8 +8591,11 @@
       "operation_id": "simulation.assign_material___physical_property",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "M"
+        ],
+        "secondary_aliases": [
+          "M->M"
         ]
       },
       "command_name": "Assign Material / Physical Property",
@@ -7905,7 +8616,8 @@
         "leader": [
           "C",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Connection",
       "adapter": {
@@ -7925,7 +8637,8 @@
         "leader": [
           "C",
           "M"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Mesh",
       "adapter": {
@@ -7946,7 +8659,8 @@
           "C",
           "M",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Mesh Control",
       "adapter": {
@@ -7966,7 +8680,8 @@
         "leader": [
           "C",
           "L"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Load",
       "adapter": {
@@ -7986,7 +8701,8 @@
         "leader": [
           "C",
           "B"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Boundary Condition / Constraint",
       "adapter": {
@@ -8004,8 +8720,11 @@
       "operation_id": "simulation.simulation_navigator",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "N"
+        ],
+        "secondary_aliases": [
+          "M->N"
         ]
       },
       "command_name": "Simulation Navigator",
@@ -8024,8 +8743,11 @@
       "operation_id": "simulation.solve",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "S"
+        ],
+        "secondary_aliases": [
+          "P->S"
         ]
       },
       "command_name": "Solve",
@@ -8044,8 +8766,11 @@
       "operation_id": "simulation.open_results",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "R"
+        ],
+        "secondary_aliases": [
+          "P->R"
         ]
       },
       "command_name": "Open Results",
@@ -8064,8 +8789,11 @@
       "operation_id": "simulation.probe_result",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "P"
+        ],
+        "secondary_aliases": [
+          "I->P"
         ]
       },
       "command_name": "Probe Result",
@@ -8084,8 +8812,11 @@
       "operation_id": "simulation.contour___result_display",
       "paths": {
         "leader": [
-          "I",
+          "Q",
           "C"
+        ],
+        "secondary_aliases": [
+          "I->C"
         ]
       },
       "command_name": "Contour / Result Display",
@@ -8104,8 +8835,11 @@
       "operation_id": "simulation.publish_analysis_report",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "D"
+        ],
+        "secondary_aliases": [
+          "P->D"
         ]
       },
       "command_name": "Publish Analysis Report",
@@ -8126,7 +8860,8 @@
         "leader": [
           "C",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Create Route",
       "adapter": {
@@ -8146,7 +8881,8 @@
         "leader": [
           "C",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Place Routing Part",
       "adapter": {
@@ -8166,7 +8902,8 @@
         "leader": [
           "C",
           "F"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Place Fitting",
       "adapter": {
@@ -8186,7 +8923,8 @@
         "leader": [
           "C",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Create Stock / Segment",
       "adapter": {
@@ -8206,7 +8944,8 @@
         "leader": [
           "E",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Edit Route",
       "adapter": {
@@ -8226,7 +8965,8 @@
         "leader": [
           "E",
           "S"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Edit Segment / Stock",
       "adapter": {
@@ -8246,7 +8986,8 @@
         "leader": [
           "T",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Move Routing Part",
       "adapter": {
@@ -8264,8 +9005,11 @@
       "operation_id": "routing.routing_navigator",
       "paths": {
         "leader": [
-          "M",
+          "W",
           "N"
+        ],
+        "secondary_aliases": [
+          "M->N"
         ]
       },
       "command_name": "Routing Navigator",
@@ -8284,8 +9028,11 @@
       "operation_id": "routing.validate_route",
       "paths": {
         "leader": [
-          "P",
+          "R",
           "V"
+        ],
+        "secondary_aliases": [
+          "P->V"
         ]
       },
       "command_name": "Validate Route",
@@ -8306,7 +9053,8 @@
         "leader": [
           "A",
           "B"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Routing BOM / Parts List",
       "adapter": {
@@ -8326,7 +9074,8 @@
         "leader": [
           "F",
           "E"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Export Routing Data",
       "adapter": {
@@ -8346,7 +9095,8 @@
         "leader": [
           "G",
           "M"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Modeling",
       "adapter": {
@@ -8366,7 +9116,8 @@
         "leader": [
           "G",
           "A"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Assemblies",
       "adapter": {
@@ -8386,7 +9137,8 @@
         "leader": [
           "G",
           "D"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Drafting",
       "adapter": {
@@ -8406,7 +9158,8 @@
         "leader": [
           "G",
           "H"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Sheet Metal",
       "adapter": {
@@ -8426,7 +9179,8 @@
         "leader": [
           "G",
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Manufacturing / CAM",
       "adapter": {
@@ -8446,7 +9200,8 @@
         "leader": [
           "G",
           "N"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Simulation",
       "adapter": {
@@ -8466,7 +9221,8 @@
         "leader": [
           "G",
           "P"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "PMI",
       "adapter": {
@@ -8486,7 +9242,8 @@
         "leader": [
           "G",
           "R"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Routing",
       "adapter": {
@@ -8506,7 +9263,8 @@
         "leader": [
           "G",
           "O"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Mold Wizard",
       "adapter": {
@@ -8526,7 +9284,8 @@
         "leader": [
           "G",
           "L"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Reuse Library",
       "adapter": {
@@ -8546,7 +9305,8 @@
         "leader": [
           "G",
           "V"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Gateway / View and Analysis",
       "adapter": {
@@ -8565,7 +9325,8 @@
       "paths": {
         "leader": [
           "C"
-        ]
+        ],
+        "secondary_aliases": []
       },
       "command_name": "Circle",
       "adapter": {

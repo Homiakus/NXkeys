@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <NxOpenManagedDir Condition="'$(NxOpenManagedDir)' == '' and Exists('$(UGII_BASE_DIR)\NXBIN\managed_core\NXOpen.dll')">$(UGII_BASE_DIR)\NXBIN\managed_core</NxOpenManagedDir>
+    <NxOpenManagedDir Condition="'$(NxOpenManagedDir)' == ''">$(UGII_BASE_DIR)\NXBIN\managed</NxOpenManagedDir>
+  </PropertyGroup>
+</Project>

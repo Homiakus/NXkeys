@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <AssemblyName>NxEskd.Validate</AssemblyName>
+    <RootNamespace>NxEskd.Commands.Validate</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\NxEskd.NxRuntime\NxEskd.NxRuntime.csproj" />
+  </ItemGroup>
+</Project>

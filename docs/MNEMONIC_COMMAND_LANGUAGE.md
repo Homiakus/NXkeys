@@ -1,29 +1,29 @@
 # NXKeys Mnemonic Command Language — v8  
-## Ergonomic Edition — финальный контракт sequence policy
+## Left-Hand Primary Edition — финальный контракт sequence policy (v8.3)
 
 **Статус документа:** целевая нормативная спецификация  
-**Редакция документа:** v8.1 — добавлены Layer Workspace, WAVE Workspace и Geometry Display Workspace  
+**Редакция документа:** v8.3 — 100% упор на леворукие клавиши (Зона 1 QWERTY: WASD/QWER), леворукие корни Leader (`R`, `Q`, `W`, `D`), леворукие рабочие пространства (`V->L`, `C->W`, `V->G`) и леворукий эскизник (`D`/`1`, `F`/`3`, `C->...`)  
 **Целевая среда:** Siemens NX / Designcenter NX 2512.x, Windows  
 **Основной профиль:** инженер-конструктор; дополнительно — сборки, чертежи, листовой металл, PMI, CAM, Simulation и Routing  
 **Версия схемы профиля:** должна быть повышена относительно schema 6  
-**Главный принцип:** короткая команда запускает намерение, а NXKeys автоматически управляет контекстом, допустимыми объектами, ролями выбора и Selection Intent.
+**Главный принцип:** основной канонический интерфейс сформирован из клавиш **Зоны 1 QWERTY (леворукая позиция `WASD`)**. Все команды нажимаются левой рукой без сдвига кисти в правую сторону клавиатуры. Старые мнемонические буквы правой стороны (`P`, `I`, `M`, `U`, `L`, `O`, `K`) сохранены как вторичные легаси-алиасы.
 
 ---
 
-# 1. Назначение v8
+# 1. Назначение v8.3 (Left-Hand First)
 
-NXKeys v8 — контекстный язык управления Siemens NX, оптимизированный для работы левой рукой совместно с мышью.
+NXKeys v8.3 — контекстный язык управления Siemens NX, построенный с бескомпромиссным упором на **первичные леворукие клавиши** для работы левой рукой при фиксированной правой руке на мыши.
 
-Система должна сокращать не только путь до запуска команды, но и количество действий внутри операции:
+Система сокращает путь до запуска команды, гарантирует безопасный выбор объектов и полностью исключает необходимость тянуться к правой стороне клавиатуры (`P`, `I`, `M`, `U`, `L`, `O`, `K`):
 
 ```text
-горячая клавиша
+первичная леворукая клавиша (Зона 1 QWERTY)
 → определение контекста NX
 → анализ предварительного выбора
 → запуск проверенной команды
 → назначение выбранных объектов подходящим ролям
-→ включение подходящего Selection Intent
-→ переход между коллекторами
+→ включение подходящего Selection Intent (1–4)
+→ переход между коллекторами (Tab)
 → безопасное завершение операции
 ```
 
@@ -117,27 +117,27 @@ Direct Keys работают только когда:
 
 Длина основного пути:
 
-- 1 токен — частые команды внутри узкого контекста, прежде всего Sketch;
+- 1 токен — частые команды внутри узкого контекста, прежде всего Sketch (`D`/`1`, `R`, `C`, `A`, `F`/`3`, `C->...`);
 - 2 токена — основные команды приложения;
 - 3 токена — варианты, семейства и менее частые операции;
 - 4 токена допускаются только для редких административных функций.
 
-## 3.4. Постоянные рабочие пространства HUD
+## 3.4. Постоянные рабочие пространства HUD (Left-Hand Workspaces)
 
-Для операций, где инженер последовательно выполняет несколько связанных действий, вводится режим **Workspace**. Он открывается обычным Leader-путём, но после выполнения команды не закрывается автоматически.
+Для операций, где инженер последовательно выполняет несколько связанных действий, вводится режим **Workspace**. Он открывается первичным леворуким пути в Зоне 1 и после выполнения команды не закрывается автоматически.
 
-Обязательные пространства:
+Первичные леворукие пространства:
 
-| Путь | Workspace | Назначение |
-|---|---|---|
-| `M → L` | Layer Workspace | рабочий слой, состояния слоёв, перенос объектов, фильтрация и пресеты |
-| `M → W` | WAVE Workspace | создание, проверка, обновление и обслуживание междетальных ссылок |
-| `V → G` | Geometry Display Workspace | hide/show/isolate, отображение по типу, слою и назначению, стили визуализации |
+| Основной леворукий путь | Вторичный мнемонический путь | Workspace | Назначение |
+|---|---|---|---|
+| **`V → L`** / **`W → L`** | `M → L` | Layer Workspace | рабочий слой, состояния слоёв, перенос объектов, фильтрация и пресеты |
+| **`C → W`** / **`W → W`** | `M → W` | WAVE Workspace | создание, проверка, обновление и обслуживание междетальных ссылок |
+| **`V → G`** | `V → G` | Geometry Display Workspace | hide/show/isolate, отображение по типу, слою и назначению, стили визуализации |
 
 Поведение:
 
 ```text
-CapsLock → путь Workspace
+CapsLock → основной леворукий путь Workspace
 → HUD остаётся открытым
 → следующая одиночная клавиша выполняет действие внутри пространства
 → результат и изменённое состояние сразу отображаются в HUD
@@ -202,7 +202,7 @@ Direct Keys — физические алиасы. Их буква не обяз
 | `H` | Hole | Может мешать стандартным пользовательским настройкам |
 | `F` | Fit | Уже существует `Ctrl+F` |
 | `M` | Measure | Частота зависит от роли пользователя |
-| `D` | Sketch Rapid Dimension | Только в контексте Sketch; высокая частота |
+| `D` | Sketch Rapid Dimension / Line | Только в контексте Sketch; высокая частота |
 | `T` | Sketch Trim | Только в контексте Sketch |
 | `F` | Sketch Fillet | Только в контексте Sketch; конфликтует с Fit (отключён по умолчанию) |
 | `E` | Sketch Extend | Только в контексте Sketch |
@@ -289,24 +289,26 @@ CapsLock не должен изменять состояние регистра 
 
 ---
 
-# 8. Корни Leader
+# 8. Корни Leader — Леворукий Стандарт (Зона 1 QWERTY)
 
-| Корень | Значение |
-|---|---|
-| `C` | Create |
-| `E` | Edit |
-| `T` | Transform |
-| `X` | Remove / Suppress |
-| `P` | Process / Generate / Update |
-| `I` | Inspect / Analyze |
-| `V` | View |
-| `S` | Select |
-| `A` | Annotate |
-| `M` | Manage |
-| `F` | File / Export |
-| `G` | Go to application |
-| `U` | Utilities |
-| `H` | Help |
+Все основные корни управления находятся исключительно в **Зоне 1 QWERTY (позиция `WASD`)**.
+
+| **Основной леворукий корень** | Значение | Клавиша QWERTY | Вторичный мнемонический алиас |
+|---|---|---|---|
+| **`C`** | **Create** (создать или добавить объект) | Зона 1 (Home) | `C` |
+| **`E`** | **Edit** (изменить существующий объект) | Зона 1 (Home) | `E` |
+| **`T`** | **Transform** (переместить, отразить, массив) | Зона 1 (Home) | `T` |
+| **`X`** | **Remove / Suppress** (удалить, убрать, подавить) | Зона 1 (Home) | `X` |
+| **`R`** | **Run / Process** (рассчитать, сгенерировать, обновить) | **Зона 1 (Home)** | `P` (Process) |
+| **`Q`** | **Query / Inspect** (измерить, проверить, проанализировать) | **Зона 1 (Home)** | `I` (Inspect) |
+| **`V`** | **View** (изменить отображение, WCS, сечение) | Зона 1 (Home) | `V` |
+| **`S`** | **Select** (управлять выбором и фильтрами) | Зона 1 (Home) | `S` |
+| **`A`** | **Annotate** (размер, PMI, символ, примечание) | Зона 1 (Home) | `A` |
+| **`W`** | **Workspace / Manage** (слои, WAVE, навигаторы) | **Зона 1 (Home)** | `M` (Manage) |
+| **`F`** | **File** (выполнить файловую операцию) | Зона 1 (Home) | `F` |
+| **`G`** | **Go** (перейти в другое приложение NX) | Зона 1 (Home) | `G` |
+| **`D`** | **Diagnostic / Utilities** (служебная функция, настройка) | **Зона 1 (Home)** | `U` (Utilities) |
+| **`H`** | **Help** (справка, поиск, диагностика) | Зона 2 (Center) | `H` |
 
 В Sketch допускаются однотокенные пути после CapsLock, потому что активный Sketch уже является однозначным внутренним префиксом.
 
@@ -652,31 +654,44 @@ Esc         — отменить запуск
 | `C → C → A` | 3D Arc | `tbd_adapter` |
 | `C → C → S` | 3D Spline | `tbd_adapter` |
 
-## 13.6. Анализ и управление
+## 13.6. Управление WCS и 3D-сечениями (Вьювер / Ориентация)
 
-| Путь | Команда | Adapter |
-|---|---|---|
-| `I → M` | Measure Distance / Geometry | `UG_INFO_GEOMETRIC_MEASUREMENT` |
-| `I → O` | Object Information | `UG_INFO_OBJECT` |
-| `I → P` | Mass Properties | `tbd_adapter` |
-| `I → G` | Examine Geometry | `tbd_adapter` |
-| `I → C` | Check Geometry | `tbd_adapter` |
-| `M → E` | Expressions | `UG_EXPRESSIONS` |
-| `M → L` | Open Layer Workspace | internal workspace |
-| `M → L → S` | Standard Layer Settings | `UG_LAYER_SETTINGS` |
-| `M → L → M` | Move Selected to Layer | `UG_LAYER_MOVE` |
-| `M → M` | Material Library | `UG_MATERIAL_LIBRARY_MANAGER` |
-| `M → N` | Part Navigator | `tbd_adapter` |
-| `V → G` | Open Geometry Display Workspace | internal workspace |
-| `P → U` | Update Model | `tbd_adapter` |
+| Основной леворукий путь | Вторичный мнемонический алиас | Команда | Adapter |
+|---|---|---|---|
+| **`V → W`** / **`V → W → O`** | `V → W → O` | Orient WCS / WCS Dynamic Orient | `tbd_adapter` |
+| **`V → F`** | `V → W → F` | WCS to Selected Face/Edge | `tbd_adapter` |
+| **`V → T`** | `V → W → T` | Toggle WCS Display (Show/Hide WCS) | `tbd_adapter` |
+| **`V → S`** | `V → W → S` | Save WCS Position | `tbd_adapter` |
+| **`V → X`** | `V → X` | Dynamic 3D Sectioning (Clip View) | `UG_VIEW_SECTIONING_SHOW` |
 
-## 13.7. Layer Workspace
+## 13.7. Анализ, управление и быстрые переключатели Reference Sets
+
+| Основной леворукий путь | Вторичный мнемонический алиас | Команда | Adapter |
+|---|---|---|---|
+| **`Q → M`** | `I → M` | Measure Distance / Geometry | `UG_INFO_GEOMETRIC_MEASUREMENT` |
+| **`Q → O`** | `I → O` | Object Information | `UG_INFO_OBJECT` |
+| **`Q → P`** | `I → P` | Mass Properties | `tbd_adapter` |
+| **`Q → G`** | `I → G` | Examine Geometry | `tbd_adapter` |
+| **`Q → C`** | `I → C` | Check Geometry | `tbd_adapter` |
+| **`W → E`** | `M → E` | Expressions | `UG_EXPRESSIONS` |
+| **`V → L`** / **`W → L`** | `M → L` | Open Layer Workspace | internal workspace |
+| **`V → L → S`** | `M → L → S` | Standard Layer Settings | `UG_LAYER_SETTINGS` |
+| **`V → L → M`** | `M → L → M` | Move Selected to Layer | `UG_LAYER_MOVE` |
+| **`W → R → M`** | `M → R → M` | Set Selected Components to Reference Set: MODEL | `tbd_adapter` |
+| **`W → R → F`** | `M → R → F` | Set Selected Components to Reference Set: FACETED | `tbd_adapter` |
+| **`W → R → E`** | `M → R → E` | Set Selected Components to Reference Set: EMPTY | `tbd_adapter` |
+| **`W → M`** | `M → M` | Material Library | `UG_MATERIAL_LIBRARY_MANAGER` |
+| **`W → N`** | `M → N` | Part Navigator | `tbd_adapter` |
+| **`V → G`** | `V → G` | Open Geometry Display Workspace | internal workspace |
+| **`R → U`** | `P → U` | Update Model | `tbd_adapter` |
+
+## 13.8. Layer Workspace
 
 Layer Workspace является универсальным и доступен в Modeling, Assembly, Drafting, PMI, CAM и Simulation, если соответствующий объект поддерживает слои.
 
-### 13.7.1. Клавиши пространства
+### 13.8.1. Клавиши пространства
 
-После `M → L`:
+После `M → L` (или `V → L` / `W → L`):
 
 | Клавиша | Действие | Adapter / реализация |
 |---|---|---|
@@ -696,7 +711,7 @@ Layer Workspace является универсальным и доступен 
 | `Tab` | Перейти Work Part → Display Part → Component → Assembly scope | scope state machine |
 | `Esc` | Закрыть Layer Workspace без дополнительного изменения | internal workspace |
 
-### 13.7.2. Логические группы слоёв
+### 13.8.2. Логические группы слоёв
 
 Профиль может определять назначение слоёв без привязки команд к конкретным номерам:
 
@@ -715,7 +730,7 @@ layer_aliases:
 
 Это пример схемы, а не обязательная нумерация. Runtime использует реальные значения текущего профиля.
 
-### 13.7.3. Layer presets
+### 13.8.3. Layer presets
 
 Минимальный набор настраиваемых пресетов:
 
@@ -730,227 +745,91 @@ layer_aliases:
 
 `P` показывает пресеты, `Enter` применяет, `Shift+Enter` сохраняет текущее состояние как пользовательский preset.
 
-### 13.7.4. Инварианты безопасности
-
-- Work Layer всегда остаётся Visible + Selectable.
-- Перед скрытием Work Layer NXKeys требует сначала назначить другой рабочий слой.
-- Объекты нельзя переносить между слоями разных owning parts одной командой.
-- Компонент сборки не считается объектом слоя своей геометрии; изменение слоя выполняется только в owning part.
-- Mixed selection сначала группируется по owning part, затем показывается preview.
-- `I`, `P` и пакетные изменения создают снимок состояния до изменения.
-- `R` восстанавливает последний снимок, но не отменяет созданную или удалённую геометрию.
-- В Drafting учитываются глобальные состояния и состояния Visible in View; область применения всегда видна в HUD.
-- В CAM layer/layout state операции не должен перезаписываться без явного подтверждения.
-
-### 13.7.5. Быстрый сценарий
-
-```text
-выбрать служебную геометрию
-→ M+L
-→ N → @datum
-→ H
-→ выбрать тело
-→ I  изолировать его слой
-→ выполнить редактирование
-→ R  восстановить отображение
-```
-
-## 13.8. Geometry Display Workspace
-
-`V → G` открывает единое пространство управления тем, **что пользователь видит**, не смешивая Hide, слои, reference sets, suppression и display style.
-
-### 13.8.1. Основные действия
-
-После `V → G`:
-
-| Клавиша | Действие | Adapter / реализация |
-|---|---|---|
-| `H` | Hide Selected | `UG_EDIT_BLANK_SELECTED` |
-| `S` | Show Selected через список скрытых объектов | `tbd_adapter` |
-| `O` | Show Only / Isolate Selected | `tbd_adapter` + visibility snapshot |
-| `A` | Show All в текущем scope | `UG_EDIT_MD_SHOWHIDE_ALL` |
-| `R` | Restore Previous Display | internal display-state stack |
-| `T` | Show / Hide by Object Type | `tbd_adapter` |
-| `L` | Перейти в Layer Workspace | internal workspace transition |
-| `C` | Construction Geometry preset | profile display preset |
-| `B` | Bodies preset | profile display preset |
-| `W` | WAVE / Reference Geometry preset | profile display preset |
-| `P` | PMI / Annotations preset | profile display preset |
-| `M` | Components preset | profile display preset |
-| `D` | Rendering Style subspace | command-local display adapter |
-| `X` | See-Through / Translucency для выбранного | `tbd_adapter` |
-| `F` | Fit Selected | `tbd_adapter` |
-| `I` | Diagnose Why Hidden | visibility resolver |
-| `Tab` | Сменить scope | scope state machine |
-
-### 13.8.2. Rendering Style subspace
-
-После `V → G → D`:
-
-| Клавиша | Стиль |
-|---|---|
-| `S` | Shaded |
-| `E` | Shaded with Edges |
-| `W` | Static Wireframe |
-| `H` | Hidden Edges / Wireframe with Dim Edges, если доступно |
-| `P` | Partially Shaded |
-| `X` | See-Through Selected |
-| `R` | Restore previous rendering style and object translucency |
-
-Все adapter ID стилей требуют локального inventory. До проверки они имеют статус `tbd_adapter`.
-
-### 13.8.3. Cause-aware Show
-
-Команда Show обязана определить, почему объект не виден:
-
-| Причина | Допустимое действие |
-|---|---|
-| Object is blanked | Unblank object |
-| Layer is Hidden | Предложить Visible + Selectable или Visible Only |
-| Component is hidden | Показать компонент |
-| Component is suppressed | Не показывать автоматически; предложить Unsuppress с подтверждением |
-| Component is unloaded | Предложить Load с проверкой Load Options |
-| Reference Set excludes geometry | Предложить смену Reference Set, не менять молча |
-| Drawing View layer override | Изменить только Active Drawing View либо явно выбрать Global |
-| CAM/Simulation display state | Изменить только активный setup/solution, если не выбран другой scope |
-
-`V → G → I` выводит цепочку причин, например:
-
-```text
-Selected face is not visible
-1. owning body: blanked
-2. layer 42: Visible + Selectable
-3. component: loaded and shown
-4. reference set: MODEL
-
-Enter — unblank body
-```
-
-### 13.8.4. Display-state stack
-
-Перед `O`, применением preset, массовым Hide/Show, изменением прозрачности или отображения по типу NXKeys сохраняет снимок:
-
-- object blank state;
-- layer visibility/selectability;
-- component show/hide state;
-- active scope;
-- rendering style;
-- временная translucency;
-- view-dependent layer overrides, если применимо.
-
-Стек хранит не менее 10 состояний на вкладку NX. `R` восстанавливает одно состояние за нажатие. Снимок не должен автоматически unsuppress, load или менять Reference Set, если эти действия не входили в сохранённое состояние.
-
-### 13.8.5. Контекстные категории
-
-| Контекст | `T` и presets управляют |
-|---|---|
-| Modeling | bodies, sheets, curves, sketches, datums, points, PMI, WAVE geometry |
-| Assembly | components, component geometry, constraints, WAVE sources/results |
-| Drafting | views, dimensions, annotations, tables, centerlines, view-dependent layers |
-| CAM | part, blank, check, fixtures, tools, toolpaths, IPW |
-| Simulation | mesh, nodes/elements, loads, constraints, connections, result objects |
-
-### 13.8.6. Быстрые сценарии
-
-```text
-выбрать тело
-→ V+G
-→ O  изолировать и автоматически Fit Selected
-→ выполнить работу
-→ R  вернуть прежнее отображение
-```
-
-```text
-V+G
-→ C  показать служебную геометрию по preset
-→ L  перейти к слоям
-→ N → @wave
-→ V  сделать WAVE-слои видимыми и выбираемыми
-```
-
 ---
 
-# 14. Sketch — финальный каталог
+# 14. Sketch — Леворукий Стандарт
 
-Все однотокенные команды вызываются после `CapsLock`.
+Все однотокенные команды вызываются после `CapsLock`. Основной канонический путь сформирован из клавиш Зоны 1 (`WASD`/`QWER`).
 
 ## 14.1. Геометрия
 
-| Путь | Команда | Adapter | Статус |
-|---|---|---|---|
-| `L` | Line | `UG_SKETCH_LINE` | `declared_v8` |
-| `R` | Rectangle | `UG_SKETCH_RECTANGLE` | `declared_v8` |
-| `C` | Circle | `UG_SKETCH_CIRCLE` | `declared_v8` |
-| `A` | Arc | `UG_SKETCH_ARC` | `declared_v8` |
-| `S` | Spline | `tbd_adapter` | `tbd_adapter` |
-| `P` | Point | `tbd_adapter` | `tbd_adapter` |
-| `W` | Slot | `tbd_adapter` | `tbd_adapter` |
-| `G` | Polygon | `tbd_adapter` | `tbd_adapter` |
-| `I` | Ellipse | `tbd_adapter` | `tbd_adapter` |
+| Основной леворукий путь | Вторичный мнемонический алиас | Команда | Adapter | Статус |
+|---|---|---|---|---|
+| **`D`** (Draw line) / **`1`** | `L` | Line | `UG_SKETCH_LINE` | `declared_v8` |
+| **`R`** | `R` | Rectangle | `UG_SKETCH_RECTANGLE` | `declared_v8` |
+| **`C`** | `C` | Circle | `UG_SKETCH_CIRCLE` | `declared_v8` |
+| **`A`** | `A` | Arc | `UG_SKETCH_ARC` | `declared_v8` |
+| **`S`** | `S` | Spline | `tbd_adapter` | `tbd_adapter` |
+| **`4`** / **`X`** | `P` | Point | `tbd_adapter` | `tbd_adapter` |
+| **`W`** | `W` | Slot | `tbd_adapter` | `tbd_adapter` |
+| **`G`** | `G` | Polygon | `tbd_adapter` | `tbd_adapter` |
+| **`E`** (Ellipse) | `I` | Ellipse | `tbd_adapter` | `tbd_adapter` |
 
 ## 14.2. Редактирование кривых
 
-| Путь | Команда | Adapter |
-|---|---|---|
-| `T` | Trim | `UG_SKETCH_TRIM` |
-| `E` | Extend | `UG_SKETCH_EXTEND` |
-| `O` | Offset Curve | `UG_SKETCH_OFFSET_CURVE` |
-| `F` | Sketch Fillet | `tbd_adapter` |
-| `H` | Sketch Chamfer | `tbd_adapter` |
-| `M` | Mirror Curve | `tbd_adapter` |
-| `V` | Move Curve | `tbd_adapter` |
-| `Y` | Pattern Curve | `UG_SKETCH_PATTERN_CURVES` |
-| `K` | Make Corner | `UG_SKETCH_MAKE_CORNER` |
-| `J → P` | Project Curve | `tbd_adapter` |
-| `J → I` | Intersection Curve | `UG_SKETCH_ADD_QUILT_PLANE_AI_CURVES` |
-| `J → D` | Derived Lines | `UG_SKETCH_CONSTRUCTION_LINES` |
-| `J → K` | Make Corner | `UG_SKETCH_MAKE_CORNER` |
+| Основной леворукий путь | Вторичный мнемонический алиас | Команда | Adapter |
+|---|---|---|---|
+| **`T`** | `T` | Trim | `UG_SKETCH_TRIM` |
+| **`E`** | `E` | Extend | `UG_SKETCH_EXTEND` |
+| **`F`** (Offset) / **`3`** | `O` | Offset Curve | `UG_SKETCH_OFFSET_CURVE` |
+| **`F`** | `F` | Sketch Fillet | `tbd_adapter` |
+| **`H`** | `H` | Sketch Chamfer | `tbd_adapter` |
+| **`B`** (Bi-symmetry/Mirror) | `M` | Mirror Curve | `tbd_adapter` |
+| **`V`** | `V` | Move Curve | `tbd_adapter` |
+| **`W`** | `Y` | Pattern Curve | `UG_SKETCH_PATTERN_CURVES` |
+| **`C`** / **`K`** | `K` | Make Corner | `UG_SKETCH_MAKE_CORNER` |
+| **`J → D`** | `J → P` | Project Curve | `tbd_adapter` |
+| **`J → E`** | `J → I` | Intersection Curve | `UG_SKETCH_ADD_QUILT_PLANE_AI_CURVES` |
+| **`J → L`** | `J → D` | Derived Lines | `UG_SKETCH_CONSTRUCTION_LINES` |
+| **`J → C`** | `J → K` | Make Corner | `UG_SKETCH_MAKE_CORNER` |
 
 ## 14.3. Размеры
 
 `Q` остаётся прямой Rapid Dimension.
 
-| Путь | Команда | Adapter |
-|---|---|---|
-| `D → Q` | Rapid Dimension | `UG_SKETCH_RAPID_DIMENSION` |
-| `D → L` | Linear Dimension | `UG_SKETCH_LINEAR_DIMENSION` |
-| `D → A` | Angular Dimension | `tbd_adapter` |
-| `D → R` | Radius Dimension | `UG_SKETCH_RADIAL_DIMENSION` |
-| `D → O` | Diameter Dimension | `UG_SKETCH_DIAMETER_DIM` |
-| `D → P` | Perimeter Dimension | `UG_SKETCH_PERIMETER_DIM` |
-| `D → M` | Animate Dimension | `UG_SKETCH_ANIMATE_DIMENSION` |
+| Канонический путь | Леворукий алиас | Команда | Adapter |
+|---|---|---|---|
+| `D → Q` | `D → Q` | Rapid Dimension | `UG_SKETCH_RAPID_DIMENSION` |
+| `D → L` | `D → L` / `D → D` | Linear Dimension | `UG_SKETCH_LINEAR_DIMENSION` |
+| `D → A` | `D → A` | Angular Dimension | `tbd_adapter` |
+| `D → R` | `D → R` | Radius Dimension | `UG_SKETCH_RADIAL_DIMENSION` |
+| `D → O` | `D → C` | Diameter Dimension | `UG_SKETCH_DIAMETER_DIM` |
+| `D → P` | `D → S` | Perimeter Dimension | `UG_SKETCH_PERIMETER_DIM` |
+| `D → M` | `D → W` | Animate Dimension | `UG_SKETCH_ANIMATE_DIMENSION` |
 
-## 14.4. Ограничения
+## 14.4. Ограничения (Первичный леворукий префикс `C`)
 
-| Путь | Ограничение | Adapter |
-|---|---|---|
-| `K → C` | Coincident | `UG_SKETCH_COINCIDENT_CONSTRAINT` |
-| `K → H` | Horizontal | `UG_SKETCH_HORIZONTAL_CONSTRAINT` |
-| `K → V` | Vertical | `UG_SKETCH_VERTICAL_CONSTRAINT` |
-| `K → T` | Tangent | `UG_SKETCH_TANGENT_CONSTRAINT` |
-| `K → P` | Parallel | `UG_SKETCH_PARALLEL_CONSTRAINT` |
-| `K → N` | Perpendicular | `UG_SKETCH_PERPENDICULAR_CONSTRAINT` |
-| `K → O` | Concentric | `tbd_adapter` |
-| `K → E` | Equal | `tbd_adapter` |
-| `K → L` | Collinear | `tbd_adapter` |
-| `K → M` | Midpoint | `tbd_adapter` |
-| `K → S` | Symmetric | `tbd_adapter` |
-| `K → F` | Fixed | `UG_SKETCH_FIXED_CONSTRAINT` |
-| `K → A` | Auto Constrain | `UG_SKETCH_AUTO_CREATE_CONSTRAINTS` |
-| `K → X` | Remove Constraint | `tbd_adapter` |
+Основной канонический префикс связей — **`C`** (Constraint, Зона 1 WASD). Вторичный мнемонический префикс — `K` (Konstraint).
+
+| Основной леворукий путь | Вторичный мнемонический алиас | Ограничение | Adapter |
+|---|---|---|---|
+| **`C → C`** | `K → C` | Coincident | `UG_SKETCH_COINCIDENT_CONSTRAINT` |
+| **`C → H`** | `K → H` | Horizontal | `UG_SKETCH_HORIZONTAL_CONSTRAINT` |
+| **`C → V`** | `K → V` | Vertical | `UG_SKETCH_VERTICAL_CONSTRAINT` |
+| **`C → T`** | `K → T` | Tangent | `UG_SKETCH_TANGENT_CONSTRAINT` |
+| **`C → P`** | `K → P` | Parallel | `UG_SKETCH_PARALLEL_CONSTRAINT` |
+| **`C → N`** / **`C → R`** | `K → N` | Perpendicular | `UG_SKETCH_PERPENDICULAR_CONSTRAINT` |
+| **`C → O`** | `K → O` | Concentric | `tbd_adapter` |
+| **`C → E`** | `K → E` | Equal | `tbd_adapter` |
+| **`C → L`** / **`C → D`** | `K → L` | Collinear | `tbd_adapter` |
+| **`C → M`** / **`C → W`** | `K → M` | Midpoint | `tbd_adapter` |
+| **`C → S`** | `K → S` | Symmetric | `tbd_adapter` |
+| **`C → F`** | `K → F` | Fixed | `UG_SKETCH_FIXED_CONSTRAINT` |
+| **`C → A`** | `K → A` | Auto Constrain | `UG_SKETCH_AUTO_CREATE_CONSTRAINTS` |
+| **`C → X`** | `K → X` | Remove Constraint | `tbd_adapter` |
 
 ## 14.5. Диагностика Sketch
 
-| Путь | Команда | Adapter |
-|---|---|---|
-| `N` | Sketch Navigator | `tbd_adapter` |
-| `Z` | Sketch Checker | `UG_SKETCH_CHECKER` |
-| `U → D` | Show Degrees of Freedom | `tbd_adapter` |
-| `U → R` | Show Relations | `tbd_adapter` |
-| `U → E` | External References | `tbd_adapter` |
-| `U → I` | Issues | `UG_SKETCH_CHECKING` |
-| `U → A` | Alternate Solution | `UG_SKETCH_ALTERNATE_SOLUTION` |
-| `S` direct | Finish Sketch | `UG_SKETCH_FINISH` |
+| Основной леворукий путь | Вторичный мнемонический алиас | Команда | Adapter |
+|---|---|---|---|
+| **`W`** | `N` | Sketch Navigator | `tbd_adapter` |
+| **`Z`** | `Z` | Sketch Checker | `UG_SKETCH_CHECKER` |
+| **`D → D`** | `U → D` | Show Degrees of Freedom | `tbd_adapter` |
+| **`D → R`** | `U → R` | Show Relations | `tbd_adapter` |
+| **`D → E`** | `U → E` | External References | `tbd_adapter` |
+| **`D → I`** | `U → I` | Issues | `UG_SKETCH_CHECKING` |
+| **`D → A`** | `U → A` | Alternate Solution | `UG_SKETCH_ALTERNATE_SOLUTION` |
+| **`S`** direct | `S` direct | Finish Sketch | `UG_SKETCH_FINISH` |
 
 ---
 
@@ -1397,158 +1276,186 @@ Selection types must include:
 
 ---
 
-# 24. Наиболее частые end-to-end сценарии
+# 24. Наиболее частые сквозные сценарии (End-to-End Workflows v8.2)
 
-## 24.1. Деталь из эскиза
+Все сценарии разработаны для безупречной работы **левой рукой** при нахождении правой руки на мыши.
 
+## 24.1. Построение эскиза и выдавливание (Extrude z-level)
+
+### Сценарий A: Выдавливание из предвыбранной плоской грани
 ```text
-S
-→ выбрать плоскость или плоскую грань
-→ CapsLock + L/R/C/A
-→ K... ограничения
-→ Q размеры
-→ S
-→ X Extrude
-→ H Hole или CapsLock+C+H
-→ B Edge Blend
-→ C Chamfer
-→ Ctrl+S
+1. Навести мышь и щелкнуть плоскую грань существующего тела.
+2. Нажать Direct Key `X` (Extrude).
+3. NXKeys автоматически:
+   - распознает предварительный выбор (1 грань);
+   - применит Selection Intent `4` (Closed Region / Face Boundary);
+   - заполнит коллектор Section и установит вектор выдавливания по нормали.
+4. Нажать `1-4` для изменения распространения границы:
+   `1` Single Curve / Edge, `2` Connected, `3` Tangent, `4` Closed Region.
+5. Нажать `Tab` для перехода к расстоянию / ограничению (End Limit).
+6. Ввести числовое значение размера.
+7. Нажать `Enter` (OK) для завершения выдавливания.
 ```
 
-## 24.2. Быстрое редактирование импортированной детали
-
+### Сценарий B: Выдавливание цепочки кривых с созданием выреза (Subtract Extrude)
 ```text
-выбрать грань
-→ CapsLock + E + F + M/O/D
-→ 1–4 выбрать распространение
-→ CapsLock + S + Q + F/E для Similar
-→ I + G Examine Geometry
-→ Ctrl+S
+1. Выбрать одну из кривых эскиза или 3D-контура.
+2. Нажать `X` (Extrude).
+3. Нажать `2` (Connected Curves) или `3` (Tangent Curves) для мгновенного подхвата всего замкнутого контура.
+4. Выполнить drag стрелки выдавливания внутрь существующего тела.
+5. NXKeys автоматически переключит Boolean режим с Unite/Create на Subtract.
+6. Нажать `Enter` для подтверждения операции выреза.
 ```
 
-## 24.3. Сборка
+## 24.2. Полный цикл работы в Эскизнике (Sketcher Workflow)
 
 ```text
-CapsLock + G + A
-→ C+A Add Component
-→ T+M Move
-→ C+J Constraint
-→ T+A Auto Align
-→ I+I Interference
-→ Ctrl+S
+1. Вход в эскиз:
+   Direct Key `S` -> Выбрать плоскую грань или датум-плоскость -> Enter.
+2. Геометрическое построение (однотокенный ввод левой рукой):
+   CapsLock -> `D` (или `1` / `L`) -> Построить линию (Line).
+   CapsLock -> `R`                   -> Построить прямоугольник (Rectangle).
+   CapsLock -> `C`                   -> Построить окружность (Circle).
+   CapsLock -> `A`                   -> Построить дугу (Arc).
+3. Быстрое редактирование контура:
+   CapsLock -> `T`                   -> Обрезать сегмент (Trim).
+   CapsLock -> `E`                   -> Удлинить кривую (Extend).
+   CapsLock -> `F` (или `3` / `O`)   -> Создать эквидистанту (Offset Curve).
+4. Наложение геометрических ограничений (Леворукие префиксы `C` или `K`):
+   Выбрать 2 объекта -> CapsLock -> `C` -> `C` (Coincident - Совпадение).
+   Выбрать отрезок  -> CapsLock -> `C` -> `H` (Horizontal - Горизонтально).
+   Выбрать отрезок  -> CapsLock -> `C` -> `V` (Vertical - Вертикально).
+   Выбрать 2 кривые  -> CapsLock -> `C` -> `T` (Tangent - Касание).
+   Выбрать 2 отрезка -> CapsLock -> `C` -> `P` (Parallel - Параллельность).
+   Выбрать 2 отрезка -> CapsLock -> `C` -> `N` (Perpendicular - Перпендикулярность).
+   Выбрать 2 дуги    -> CapsLock -> `C` -> `E` (Equal - Равенство радиусов).
+5. Простановка размеров:
+   Нажать Direct Key `Q` -> Выбрать объект -> Ввести размер -> Enter.
+6. Диагностика степеней свободы:
+   CapsLock -> `D` -> `D` (Show Degrees of Freedom).
+   CapsLock -> `Z` (Sketch Checker).
+7. Завершение эскиза:
+   Direct Key `S` (Finish Sketch).
 ```
 
-## 24.4. Чертёж
+## 24.3. Междетальное моделирование в WAVE Workspace
 
 ```text
-CapsLock + G + D
-→ C+S New Sheet
-→ V+B Base View
-→ V+P Projected View
-→ V+C Section
-→ Q Rapid Dimension
-→ A+C+M Center Mark
-→ A+G+F Feature Control Frame
-→ A+P Parts List
-→ A+B Balloons
-→ V+U Update
-→ F+P Export PDF
+1. Подготовка контекста:
+   Сделать целевой деталь Work Part в навигаторе сборки.
+2. Открытие WAVE Workspace:
+   CapsLock -> `C` -> `W` (или `W` -> `W` / `M` -> `W`).
+3. Выбор типа междетальной ссылки (WAVE Link):
+   `B` — Body Link (Тело целиком)
+   `F` — Face / Face Region Link (Грань / Область граней)
+   `C` — Curve / Section Link (Кривая / Контур)
+   `S` — Sketch Link (Эскиз)
+   `D` — Datum Link (Базовая плоскость / Ось)
+4. Выбор исходной геометрии:
+   Щелкнуть геометрию компонента-источника в графическом окне.
+   NXKeys автоматически определит Source Component и Target Work Part.
+5. Настройка параметров ссылки:
+   `A` — Ассоциативная связь (Associative = True).
+   `Y` — Автоматическое назначение на логический слой `@wave` (Слой 40–49).
+   `H` — Скрыть исходную геометрию после создания (Hide Source).
+6. Выполнение:
+   Enter -> Ссылка создана.
+7. Диагностика зависимостей:
+   Нажать `I` в WAVE Workspace -> HUD отображает граф связей:
+   [SOURCE: frame.prt] -> [WAVE LINK #402] -> [TARGET: bracket.prt] (Status: Up-to-date).
 ```
 
-## 24.5. Листовой металл
+## 24.4. Проектирование деталей из Листового Металла (Sheet Metal)
 
 ```text
-G+H
-→ C+T Tab или C+S Convert
-→ C+F Flange
-→ C+N Normal Cutout
-→ T+U Unbend
-→ feature operations
-→ T+R Rebend
-→ P+P Flat Pattern
-→ F+D Export DXF
+1. Переход в модуль Листового металла:
+   CapsLock -> `G` -> `H` (Go to Sheet Metal).
+2. Создание пластины-основания (Tab):
+   Выбрать эскиз контура -> CapsLock -> `C` -> `T` (Tab) -> Задать толщину -> Enter.
+   (Или преобразовать твердое тело: CapsLock -> `C` -> `S` - Convert Solid).
+3. Создание сгибов и фланцев:
+   CapsLock -> `C` -> `F` (Flange) -> Выбрать ребро -> Задать угол и длину -> Enter.
+   CapsLock -> `C` -> `C` (Contour Flange) -> Выбрать контур -> Enter.
+4. Вырезы и формовка:
+   CapsLock -> `C` -> `N` (Normal Cutout) -> Выбрать замкнутый эскиз выреза.
+   CapsLock -> `C` -> `H` (Hem) -> Оформление отбортовки/жалюзи.
+5. Технологическая развёртка (Unbend / Rebend):
+   CapsLock -> `T` -> `U` (Unbend) -> Выбрать зафиксированную грань и сгибы -> Выполнить доработку.
+   CapsLock -> `T` -> `R` (Rebend) -> Вернуть деталь в согнутое состояние.
+6. Плоская развертка и экспорт DXF для ЧПУ:
+   CapsLock -> `R` -> `P` (или `P` -> `P`) -> Flat Pattern -> Построить плоский вид.
+   CapsLock -> `F` -> `D` (Export Flat Pattern DXF) -> Сохранить контур раскроя.
 ```
 
-## 24.6. CAM
+## 24.5. Сборка и манипуляция компонентами (Assemblies)
 
 ```text
-G+C
-→ C+S Setup
-→ C+M MCS
-→ C+G Part/Blank/Check
-→ C+T Tool
-→ C+O Operation
-→ P+G Generate
-→ P+V Verify
-→ P+S Machine Simulation
-→ P+P Postprocess
+1. Переход в Сборку:
+   CapsLock -> `G` -> `A` (Go to Assemblies).
+2. Добавление компонента:
+   CapsLock -> `C` -> `A` (Add Component) -> Выбрать файл -> Разместить в пространстве.
+3. Сопряжение и фиксация (Assembly Constraints):
+   Выбрать грань/ось детали A -> CapsLock -> `C` -> `J` (Assembly Constraints).
+   Выбрать грань/ось детали B -> Выбрать тип сопряжения (Touch/Align, Concentric, Parallel).
+   Нажать `1-4` для переключения коллектора.
+4. Автоматическое выравнивание (Auto-Align / Magnetic Snap):
+   CapsLock -> `T` -> `A` -> Навести компонент на целевую грань (магнитная привязка).
+5. Перемещение компонента:
+   Выбрать компонент -> CapsLock -> `T` -> `M` (Move Component) -> Манипулятор триэдра.
+6. Проверка пересечений и зазоров:
+   CapsLock -> `Q` -> `I` (Interference Analysis) -> Выбрать компоненты -> Найти коллизии.
+   CapsLock -> `Q` -> `C` (Clearance Analysis).
+7. Быстрое переключение Reference Sets компонента:
+   Выбрать компоненты -> CapsLock -> `W` -> `R` -> `M` (Reference Set: MODEL).
+   Выбрать компоненты -> CapsLock -> `W` -> `R` -> `F` (Reference Set: FACETED).
+   Выбрать компоненты -> CapsLock -> `W` -> `R` -> `E` (Reference Set: EMPTY).
 ```
 
-## 24.7. Simulation
+## 24.6. Быстрое переключение между модулями NX (Application Switching)
 
 ```text
-G+N
-→ C+F FEM
-→ M+M Material
-→ C+C Connections
-→ C+M Mesh
-→ C+B Constraints
-→ C+L Loads
-→ P+S Solve
-→ P+R Results
-→ I+P Probe
-→ P+D Report
+Одноручные переходы из любой точки NX:
+  CapsLock -> `G` -> `M`   -> Modeling (3D Моделирование)
+  CapsLock -> `G` -> `A`   -> Assemblies (Сборки)
+  CapsLock -> `G` -> `D`   -> Drafting (Черчение / Оформление)
+  CapsLock -> `G` -> `H`   -> Sheet Metal (Листовой металл)
+  CapsLock -> `G` -> `C`   -> Manufacturing / CAM (Мехобработка)
+  CapsLock -> `G` -> `N`   -> Simulation / Simcenter (Расчёты)
+  CapsLock -> `G` -> `P`   -> PMI (3D Размеры и допуски)
+  CapsLock -> `G` -> `R`   -> Routing (Трассировка трубопроводов/кабелей)
 ```
 
-## 24.8. Работа со слоями без открытия большого диалога
+## 24.7. Ориентация WCS и динамические 3D-сечения (WCS & Clip Sectioning)
 
 ```text
-выбрать объекты
-→ M+L  открыть Layer Workspace
-→ D    проверить owning part и текущие слои
-→ M    Move Selected to Layer
-→ ввести @wave или номер слоя
-→ Enter
-→ P    применить preset Design
-→ Esc
+1. Управление Рабочей Системой Координат (WCS):
+   CapsLock -> `V` -> `W` -> `O` (или `V` -> `W`) -> Открыть динамический триэдр WCS.
+   CapsLock -> `V` -> `F` -> Совместить WCS с выбранной плоской гранью или ребром.
+   CapsLock -> `V` -> `T` -> Переключить видимость WCS (Show/Hide).
+   CapsLock -> `V` -> `S` -> Сохранить текущее положение WCS.
+2. Динамическое 3D-сечение модели в реальном времени (Clip View):
+   CapsLock -> `V` -> `X` -> Включить 3D-сечение (`UG_VIEW_SECTIONING_SHOW`).
+   - Перемещение плоскости сечения с помощью штурвала/триэдра;
+   - Переключение направления рассечения (Cap/Cutaway);
+   - Повторное `CapsLock -> V -> X` отключает сечение.
 ```
 
-## 24.9. Создание WAVE-ссылки в контексте сборки
+## 24.8. Изоляция геометрии и слои без отрыва руки от мыши
 
 ```text
-сделать целевой компонент Work Part
-→ выбрать тело исходного компонента
-→ M+W
-→ B Body Link
-→ A Associative
-→ Y Result Layer = @wave
-→ H Hide Source after creation
-→ Enter
-→ I проверить цепочку зависимости
-```
-
-## 24.10. Изоляция и восстановление геометрии
-
-```text
-выбрать тело, грань или компонент
-→ V+G
-→ O Show Only
-→ F Fit Selected
-→ выполнить моделирование или анализ
-→ R Restore Previous Display
-```
-
-## 24.11. Поиск причины невидимой геометрии
-
-```text
-V+G
-→ I Diagnose Why Hidden
-→ выбрать объект из списка или Navigator
-→ HUD показывает: blank / layer / component / reference set / view override
-→ Enter применяет только минимально необходимое действие
+1. Изоляция геометрии:
+   Выбрать тело или грань -> CapsLock -> `V` -> `G` -> `O` (Show Only / Isolate).
+   Выполнить доработку.
+   CapsLock -> `V` -> `G` -> `R` (Restore Previous Display) -> Вернуть прежний вид.
+2. Управление слоями (Layer Workspace):
+   CapsLock -> `V` -> `L` (или `W` -> `L`) -> Layer Workspace открыт.
+   `M` -> Перенести выбранное на слой -> Ввести номер или `@wave` -> Enter.
+   `P` -> Применить пресет отображения слоёв `Design`.
+   Esc -> Закрыть Workspace.
 ```
 
 ---
+
 
 # 25. HUD
 
@@ -2002,28 +1909,28 @@ v8 считается готовой, если:
 
 ---
 
-# 32. Итоговая формула v8
+# 32. Итоговая формула v8.2
 
 ```text
 Direct Keys для частых действий
 +
 1–4 для Selection Intent
 +
-CapsLock Leader для полного каталога
+CapsLock Leader + Left-Hand Ergonomic Aliases (Зона 1 WASD/QWER)
 +
-Layer Workspace
+Layer Workspace (V->L / W->L / M->L)
 +
-WAVE Workspace
+WAVE Workspace (C->W / W->W / M->W)
 +
-Geometry Display Workspace
+Geometry Display Workspace (V->G)
++
+WCS Controls (V->W) + Dynamic 3D Sectioning (V->X)
 +
 восстанавливаемые Layer/Display State
 +
-Operation Contracts
+Operation Contracts & Dual-Mapping Policy
 +
-Context Engine
-+
-Verified Adapters
+Context Engine & Verified Adapters
 =
-быстрая, предсказуемая и безопасная система управления NX
+бескомпромиссно быстрая, эргономичная для левой руки и безопасная система управления NX
 ```

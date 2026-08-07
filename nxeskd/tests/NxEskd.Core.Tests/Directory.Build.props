@@ -1,0 +1,7 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <ItemGroup>
+    <!-- Superseded by RepositoryArchitectureGuardTests.fixed.cs and RepositoryArchitectureAdditionalTests.cs. -->
+    <Compile Remove="RepositoryArchitectureGuardTests.cs" />
+  </ItemGroup>
+</Project>

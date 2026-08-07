@@ -1,0 +1,143 @@
+{
+  "version": "1.2.0",
+  "targetNxRelease": "2512",
+  "description": "Базовые альтернативные имена NX Open API на основе полного каталога NX 2512 (NX2512_Full_Function_API_Catalog_20260804_011429). Runtime объединяет их с автоматически синхронизированной картой установленной NX и со встроенными безопасными fallback-именами.",
+  "aliases": {
+    "sheet.collection": [
+      "DrawingSheets",
+      "DrawingSheetCollection"
+    ],
+    "sheet.createFromTemplate": [
+      "CreateSheetFromTemplate",
+      "CreateDrawingSheetFromTemplate",
+      "AddSheetFromTemplate"
+    ],
+    "sheet.builder": [
+      "CreateDrawingSheetBuilder",
+      "DrawingSheetBuilder",
+      "CreateSheetBuilder"
+    ],
+    "view.collection": [
+      "DraftingViews",
+      "DrawingViews",
+      "DraftingViewCollection"
+    ],
+    "view.baseBuilder": [
+      "CreateBaseViewBuilder",
+      "BaseViewBuilder"
+    ],
+    "view.projectedBuilder": [
+      "CreateProjectedViewBuilder",
+      "ProjectedViewBuilder"
+    ],
+    "view.sectionBuilder": [
+      "CreateSectionViewBuilder",
+      "SectionViewBuilder",
+      "CreateOrlandoSectionViewBuilder",
+      "OrlandoSectionViewBuilder"
+    ],
+    "view.detailBuilder": [
+      "CreateDetailViewBuilder",
+      "DetailViewBuilder"
+    ],
+    "view.drawingBuilder": [
+      "CreateDrawingViewBuilder",
+      "DrawingViewBuilder"
+    ],
+    "view.updateAll": [
+      "UpdateViews",
+      "UpdateAll",
+      "UpdateOutOfDateViews"
+    ],
+    "titleBlock.collection": [
+      "TitleBlocks",
+      "TitleBlockCollection",
+      "BordersAndTitleBlocks"
+    ],
+    "titleBlock.editBuilder": [
+      "CreateEditTitleBlockBuilder",
+      "CreateTitleBlockBuilder",
+      "CreateBordersAndTitleBlockBuilder",
+      "BordersAndTitleBlockBuilder"
+    ],
+    "titleBlock.setCell": [
+      "SetCellValue",
+      "SetValueForLabel",
+      "SetCellText",
+      "SetValue"
+    ],
+    "pmi.inheritStyle": [
+      "InheritPmi",
+      "ViewStyleInheritPmi"
+    ],
+    "pmi.setMode": [
+      "SetInheritPmiMode",
+      "SetPmi"
+    ],
+    "pmi.setToDrawing": [
+      "SetInheritPmiToDrawing",
+      "SetPmiToDrawing"
+    ],
+    "partsList.collection": [
+      "PartsLists",
+      "PartsListCollection"
+    ],
+    "partsList.builder": [
+      "CreatePartsListBuilder",
+      "PartsListBuilder"
+    ],
+    "balloon.collection": [
+      "Balloons",
+      "IdSymbols",
+      "BalloonNotes"
+    ],
+    "balloon.builder": [
+      "CreateBalloonBuilder",
+      "CreateIdSymbolBuilder",
+      "CreateBalloonNoteBuilder",
+      "BalloonNoteBuilder"
+    ],
+    "sheetMetal.manager": [
+      "SheetmetalManager",
+      "SheetMetalManager"
+    ],
+    "flatPattern.builder": [
+      "CreateFlatPatternBuilder",
+      "CreateFlatSolidBuilder",
+      "FlatPatternBuilder"
+    ],
+    "note.builder": [
+      "CreateDraftingNoteBuilder",
+      "CreateNoteBuilder",
+      "DraftingNoteBuilder"
+    ],
+    "table.builder": [
+      "CreateTableSectionBuilder",
+      "CreateTabularNoteBuilder",
+      "CreateTableBuilder"
+    ],
+    "annotation.autoArrange": [
+      "AutoArrangeAnnotations",
+      "ArrangeAnnotations",
+      "OptimizeAnnotationLayout",
+      "OrganizeDimensions"
+    ],
+    "export.plotManager": [
+      "PlotManager",
+      "PrintManager"
+    ],
+    "export.pdfBuilder": [
+      "CreatePrintPdfbuilder",
+      "CreatePrintPdfBuilder",
+      "CreatePrintPDFBuilder",
+      "CreatePdfBuilder",
+      "PrintPDFBuilder"
+    ],
+    "export.dxfBuilder": [
+      "CreateDxfdwgCreator",
+      "CreateDxfCreator",
+      "CreateDxfdwgBuilder",
+      "DxfdwgCreator"
+    ]
+  }
+}

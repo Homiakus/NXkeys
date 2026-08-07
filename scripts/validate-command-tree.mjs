@@ -65,8 +65,8 @@ try {
   const docsReadme = text("docs/README.md");
   const knownPaths = parseKnownPaths(generatorSource);
 
-  if (![4, 5, 6].includes(profile.schema_version)) fail(`source profile schema_version must be 4, 5 or 6, got ${profile.schema_version}.`);
-  if (!/CurrentSchemaVersion\s*=\s*6/.test(modelSource)) fail("Schema model must expose schema v6 runtime migration.");
+  if (![4, 5, 6, 8].includes(profile.schema_version)) fail(`source profile schema_version must be 4, 5, 6 or 8, got ${profile.schema_version}.`);
+  if (!/CurrentSchemaVersion\s*=\s*[68]/.test(modelSource)) fail("Schema model must expose schema v6 or v8 runtime migration.");
   for (const required of ["path", "path_labels", "aliases", "search_aliases", "MnemonicPathGenerator.Apply"])
     if (!modelSource.includes(required)) fail(`Schema v5 model missing mnemonic feature: ${required}.`);
   if (!modelSource.includes("catalog_backed_support")) fail("Schema model must preserve catalog-backed support traceability.");
@@ -190,11 +190,10 @@ try {
     fail(`Removed menu subsystem reference found in ${relative}.`);
 
   const htmlMarkers = [
-    'data-panel="current"', 'data-panel="matrix"', 'data-panel="basic"', 'data-panel="fsm"',
-    'id="adaptiveGrid"', 'id="moduleSelect"', 'id="matrix"', 'id="basic"',
-    '../config/nx2512-pro-hybrid.json', '../config/nx2512-state-machines.json',
-    'function renderGrid()', 'function renderMatrix()', 'function renderBasic()', 'function renderPolicy()',
-    'dataTransfer.files'
+    'data-panel="overview"', 'data-panel="leader"', 'data-panel="direct"', 'data-panel="workspaces"',
+    'id="leaderGrid"', 'id="directGrid"', 'id="allOpsTable"',
+    'nx2512-v8-profile.json',
+    'getOperations'
   ];
   for (const marker of htmlMarkers) if (!html.includes(marker)) fail(`HTML marker missing: ${marker}.`);
   if (/<script[^>]+\bsrc\s*=/i.test(html)) fail("HTML must not depend on external scripts.");

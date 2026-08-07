@@ -1,0 +1,24 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <PropertyGroup>
+    <RequiresNxOpen>true</RequiresNxOpen>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="NXOpen">
+      <HintPath>$(NxOpenManagedDir)\NXOpen.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NXOpen.UF">
+      <HintPath>$(NxOpenManagedDir)\NXOpen.UF.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NXOpenUI">
+      <HintPath>$(NxOpenManagedDir)\NXOpenUI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NXOpen.Utilities">
+      <HintPath>$(NxOpenManagedDir)\NXOpen.Utilities.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

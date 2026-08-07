@@ -4,9 +4,9 @@
 - Selected frequencies: **K3, K4, K5**
 - Selected unique intents: **885**
 - Runtime support commands: **284**
-- Generated module rows: **2355**
-- Enabled rows: **692**
-- Existing rows: **365**
+- Generated module rows: **2354**
+- Enabled rows: **691**
+- Existing rows: **364**
 - Resolved rows: **327**
 - Ambiguous rows: **45**
 - Unresolved rows: **1618**
@@ -1084,18 +1084,18 @@
 | Avoidance Geometry | manufacturing | K4 | unresolved | UG_MODELING_EXTRACT_GEOMETRY (0.45)<br>UG_ASSY_WAVE_LINKER (0.27)<br>UG_MODELING_WAVE_LINKER (0.27) |
 | Collision Avoidance | manufacturing | K3 | unresolved | — |
 | Automatic Tool Axis | manufacturing | K4 | unresolved | UG_CAM_CREATE_TOOL (0.33)<br>UG_CAM_GENERATE_TOOL_PATH (0.33)<br>UG_CAM_VERIFY_TOOL_PATH (0.28) |
-| Blade Finish | manufacturing | K3 | unresolved | UG_SKETCH_FINISH (0.35)<br>UG_PMI_SURFACE_FINISH (0.32) |
-| Hub Finish | manufacturing | K3 | unresolved | UG_SKETCH_FINISH (0.33)<br>UG_PMI_SURFACE_FINISH (0.30) |
-| Fillet Finish | manufacturing | K3 | unresolved | UG_SKETCH_FINISH (0.38)<br>UG_MODELING_BLEND_FEATURE (0.29)<br>UG_PMI_SURFACE_FINISH (0.29) |
+| Blade Finish | manufacturing | K3 | unresolved | UG_PMI_SURFACE_FINISH (0.32) |
+| Hub Finish | manufacturing | K3 | unresolved | UG_PMI_SURFACE_FINISH (0.30) |
+| Fillet Finish | manufacturing | K3 | unresolved | UG_MODELING_BLEND_FEATURE (0.29)<br>UG_PMI_SURFACE_FINISH (0.29) |
 | Blade Blend | manufacturing | K3 | unresolved | UG_MODELING_BLEND_FEATURE (0.46) |
 | Multi-Axis Deburring | manufacturing | K3 | unresolved | — |
 | Geodesic Milling | manufacturing | K4 | unresolved | — |
 | Multi-Axis Additive | manufacturing | K3 | unresolved | — |
 | Facing | manufacturing | K3 | unresolved | — |
 | Rough Turn OD | manufacturing | K3 | unresolved | — |
-| Finish Turn OD | manufacturing | K3 | unresolved | UG_SKETCH_FINISH (0.35)<br>UG_PMI_SURFACE_FINISH (0.26) |
+| Finish Turn OD | manufacturing | K3 | unresolved | UG_PMI_SURFACE_FINISH (0.26) |
 | Rough Bore | manufacturing | K3 | unresolved | — |
-| Finish Bore | manufacturing | K3 | unresolved | UG_SKETCH_FINISH (0.42)<br>UG_PMI_SURFACE_FINISH (0.30) |
+| Finish Bore | manufacturing | K3 | unresolved | UG_PMI_SURFACE_FINISH (0.30) |
 | Back Turn | manufacturing | K3 | unresolved | — |
 | Grooving OD | manufacturing | K3 | unresolved | — |
 | Grooving ID | manufacturing | K3 | unresolved | — |

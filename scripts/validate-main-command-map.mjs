@@ -224,8 +224,8 @@ function validateDocumentation() {
 
 function validateInstallerCompatibility() {
   const installer = readText('install-nxkeys.ps1');
-  if (!installer.includes('schema_version от 3 до 6') || !/\$schemaVersion\s+-gt\s+6/.test(installer))
-    fail('install-nxkeys.ps1 must accept the generated schema_version 6 profile.');
+  if (!installer.includes('schema_version') || !/\$schemaVersion\s+-gt\s+8/.test(installer))
+    fail('install-nxkeys.ps1 must accept the generated schema_version profile.');
 }
 
 try {

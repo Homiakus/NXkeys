@@ -1,10 +1,10 @@
 # Command Sequence Audit
 
-- Sequence policy: **v7**
+- Sequence policy: **v8**
 - Full source intents: **1169**
 - Runtime selected intents: **885**
 - Runtime modules: **14**
-- Sequence rows including aliases: **2369**
+- Sequence rows including aliases: **2381**
 - Path conflicts: **0**
 - Modules missing selection filters: **0**
 - Modules missing/violating switches: **0**
@@ -15,10 +15,10 @@
 
 | Frequency | Count | Average length | Over target | By length |
 |---|---:|---:|---:|---|
-| K3 | 966 | 3.96 | 0 | 3:42, 4:923, 5:1 |
-| K4 | 786 | 3 | 0 | 3:786 |
-| K5 | 309 | 2.03 | 0 | 2:300, 3:9 |
-| support | 281 | 2.09 | 0 | 2:272, 3:1, 5:8 |
+| K3 | 966 | 3.95 | 0 | 2:4, 3:38, 4:924 |
+| K4 | 786 | 2.99 | 0 | 2:6, 3:780 |
+| K5 | 309 | 2.01 | 0 | 2:305, 3:4 |
+| support | 293 | 2.06 | 0 | 2:284, 3:1, 4:8 |
 
 ## Selection Coverage
 

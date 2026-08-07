@@ -1,4 +1,4 @@
-export const SEQUENCE_POLICY_VERSION = 7;
+export const SEQUENCE_POLICY_VERSION = 8;
 
 export const FREQUENCY_TARGET_LENGTH = {
   K5: 2,

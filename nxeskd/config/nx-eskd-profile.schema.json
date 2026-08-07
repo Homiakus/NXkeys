@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nx-eskd-profile.schema.json",
+  "title": "NX ESKD Drawing Generation Profile",
+  "type": "object",
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "documentType",
+    "profileId",
+    "targetEnvironment",
+    "execution",
+    "templateCatalog",
+    "titleBlocks",
+    "draftingStyles",
+    "viewGeneration",
+    "pmiInheritance",
+    "validation",
+    "job"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$" },
+    "documentType": {
+      "type": "string",
+      "enum": ["nx-eskd-drawing-generation-profile"]
+    },
+    "profileId": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "profileName": { "type": "string" },
+    "profileStatus": { "type": "string" },
+    "targetEnvironment": {
+      "type": "object",
+      "required": ["nxRelease", "units", "drawingStandard"],
+      "properties": {
+        "_description": { "type": "string" },
+        "nxProduct": { "type": "string" },
+        "nxRelease": { "type": "string", "minLength": 1 },
+        "nxOpenLanguage": { "type": "string" },
+        "units": { "type": "string", "enum": ["millimeter", "inch"] },
+        "locale": { "type": "string" },
+        "decimalSeparator": { "type": "string" },
+        "drawingStandard": { "type": "string", "enum": ["ESKD"] },
+        "projectionMethod": { "type": "string", "enum": ["first_angle", "third_angle"] },
+        "managedMode": { "type": "string" },
+        "teamcenterMode": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "documentation": { "type": "object" },
+    "standardsProfile": { "type": "object" },
+    "paths": { "type": "object" },
+    "execution": {
+      "type": "object",
+      "required": ["dryRun", "rollbackOnError", "preserveManualObjects", "allowUnknownJsonProperties"],
+      "properties": {
+        "_description": { "type": "string" },
+        "mode": { "type": "string" },
+        "strictMode": { "type": "boolean" },
+        "dryRun": { "type": "boolean" },
+        "previewBeforeCommit": { "type": "boolean" },
+        "singleUndoTransaction": { "type": "boolean" },
+        "rollbackOnError": { "type": "boolean" },
+        "saveOnlyWhenValid": { "type": "boolean" },
+        "preserveManualObjects": { "type": "boolean" },
+        "preserveManualViewPositions": { "type": "boolean" },
+        "preserveManualDimensions": { "type": "boolean" },
+        "preserveManualNotes": { "type": "boolean" },
+        "allowUnknownJsonProperties": { "type": "boolean" },
+        "idempotency": { "type": "object" },
+        "updateSequence": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "valueResolution": { "type": "object" },
+    "modelAnalysis": { "type": "object" },
+    "templateCatalog": {
+      "type": "object",
+      "required": ["templates"],
+      "properties": {
+        "_description": { "type": "string" },
+        "selectionMode": { "type": "string" },
+        "templates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "file"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "file": { "type": "string", "minLength": 1 },
+              "format": { "type": "string" },
+              "orientation": { "type": "string" },
+              "documentKinds": { "type": "array", "items": { "type": "string" } },
+              "borderObjectName": { "type": "string" },
+              "titleBlockObjectName": { "type": "string" },
+              "namedRegions": { "type": "array", "items": { "type": "string" } },
+              "priority": { "type": "integer" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "selectionRules": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "sheetFormats": { "type": "object" },
+    "bordersAndZones": { "type": "object" },
+    "titleBlocks": {
+      "type": "object",
+      "required": ["activeDefinition", "definitions"],
+      "properties": {
+        "_description": { "type": "string" },
+        "activeDefinition": { "type": "string", "minLength": 1 },
+        "definitions": { "type": "array", "minItems": 1 },
+        "additionalColumns": { "type": "object" },
+        "changeTable": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "draftingStyles": { "type": "object" },
+    "layers": { "type": "object" },
+    "scalePolicy": { "type": "object" },
+    "viewGeneration": { "type": "object" },
+    "pmiInheritance": { "type": "object" },
+    "partsListAndBalloons": { "type": "object" },
+    "sheetMetalFlatPattern": { "type": "object" },
+    "technicalRequirements": { "type": "object" },
+    "tables": { "type": "object" },
+    "layoutSolver": { "type": "object" },
+    "validation": {
+      "type": "object",
+      "required": ["checks"],
+      "properties": {
+        "_description": { "type": "string" },
+        "runBeforeGeneration": { "type": "boolean" },
+        "runAfterGeneration": { "type": "boolean" },
+        "failOnErrors": { "type": "boolean" },
+        "failOnWarnings": { "type": "boolean" },
+        "maximumWarnings": { "type": "integer", "minimum": 0 },
+        "checks": { "type": "array", "items": { "type": "object" } },
+        "manualReviewChecklist": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "output": { "type": "object" },
+    "ui": { "type": "object" },
+    "job": {
+      "type": "object",
+      "required": ["jobId", "documentKind", "document", "sheetPlan"],
+      "properties": {
+        "_description": { "type": "string" },
+        "jobId": { "type": "string", "minLength": 1 },
+        "documentKind": {
+          "type": "string",
+          "enum": [
+            "part_drawing",
+            "assembly_drawing",
+            "sheet_metal_drawing",
+            "installation_drawing",
+            "overall_drawing"
+          ]
+        },
+        "source": { "type": "object" },
+        "document": {
+          "type": "object",
+          "required": ["designation", "name"],
+          "properties": {
+            "designation": { "type": "string", "minLength": 1 },
+            "name": { "type": "string", "minLength": 1 },
+            "revision": { "type": "string" },
+            "organization": { "type": "string" },
+            "material": { "type": "string" },
+            "status": { "type": "string" },
+            "changeHistory": { "type": "array" }
+          },
+          "additionalProperties": false
+        },
+        "approvals": { "type": "object" },
+        "sheetPlan": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "templateId", "format", "orientation", "views"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "role": { "type": "string" },
+              "templateId": { "type": "string", "minLength": 1 },
+              "format": { "type": "string", "enum": ["A0", "A1", "A2", "A3", "A4"] },
+              "orientation": { "type": "string", "enum": ["landscape", "portrait"] },
+              "scale": { "type": "string", "minLength": 1 },
+              "views": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["id", "type"],
+                  "properties": {
+                    "id": { "type": "string", "minLength": 1 },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "base", "projected", "section", "half_section",
+                        "stepped_section", "detail", "flat_pattern"
+                      ]
+                    },
+                    "name": { "type": "string" },
+                    "parentViewId": { "type": "string" },
+                    "direction": { "type": "string", "enum": ["top", "bottom", "left", "right"] },
+                    "modelView": { "type": "string" },
+                    "fallbackModelView": { "type": "string" },
+                    "placement": { "type": "object" },
+                    "scale": { "type": "object" },
+                    "hiddenLines": { "type": "string" },
+                    "inheritFlatPatternPmi": { "type": "boolean" },
+                    "section": { "type": "object" }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "pmiOverrides": { "type": "object" },
+        "technicalRequirements": { "type": "object" },
+        "sheetMetalFlatPattern": { "type": "object" },
+        "overrides": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "nxOpenImplementationMapping": { "type": "object" }
+  },
+  "additionalProperties": false
+}

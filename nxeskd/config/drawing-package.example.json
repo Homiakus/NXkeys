@@ -1,0 +1,50 @@
+{
+  "packageId": "HYDROPILOT-PUMP-001",
+  "name": "Комплект документации насосного модуля",
+  "revision": "A",
+  "sourceAssembly": "../fixtures/pump_module_assembly.prt",
+  "outputDirectory": "../out/HYDROPILOT-PUMP-001-A",
+  "publication": {
+    "dryRun": true,
+    "stopOnFailure": true,
+    "resumeFromJournal": true,
+    "atomicPublish": true,
+    "requireAllDocuments": true,
+    "journalPath": "../out/HYDROPILOT-PUMP-001-A/.nx-eskd-package-journal.json"
+  },
+  "documents": [
+    {
+      "documentId": "PART-BRACKET",
+      "sourcePart": "../fixtures/bracket.prt",
+      "profilePath": "active-profile.example.json",
+      "designation": "HP.01.04.002",
+      "name": "Кронштейн",
+      "documentKind": "part_drawing",
+      "nativeOutput": "HP.01.04.002.prt",
+      "dependencies": []
+    },
+    {
+      "documentId": "PART-COVER",
+      "sourcePart": "../fixtures/cover.prt",
+      "profilePath": "active-profile.example.json",
+      "designation": "HP.01.04.003",
+      "name": "Крышка",
+      "documentKind": "part_drawing",
+      "nativeOutput": "HP.01.04.003.prt",
+      "dependencies": []
+    },
+    {
+      "documentId": "ASSEMBLY-PUMP-MODULE",
+      "sourcePart": "../fixtures/pump_module_assembly.prt",
+      "profilePath": "active-profile.example.json",
+      "designation": "HP.01.04.000СБ",
+      "name": "Насосный модуль",
+      "documentKind": "assembly_drawing",
+      "nativeOutput": "HP.01.04.000СБ.prt",
+      "dependencies": [
+        "PART-BRACKET",
+        "PART-COVER"
+      ]
+    }
+  ]
+}

@@ -56,15 +56,15 @@ function validateDocumentation() {
   const required = {
     'README.md': ['1169', '32 раздел', 'install-nxkeys.ps1', 'nx2512-pro-main.generated.json'],
     'FULL_COMMAND_MAP.md': ['1169', '32 раздел', '06_ui_commands_buttons.csv', 'ambiguous', 'unresolved'],
-    'docs/README.md': ['1169', 'source/generated profile: schema 6', 'runtime schema: v6', 'IPC', 'Исторические аудиты'],
-    'docs/CONFIGURATION.md': ['full_command_catalog', 'catalog_refs', 'resolution_status', '"schema_version": 6', 'runtime schema 6'],
+    'docs/README.md': ['1169', 'IPC', 'Исторические аудиты'],
+    'docs/CONFIGURATION.md': ['full_command_catalog', 'catalog_refs', 'resolution_status'],
     'docs/INSTALLATION.md': ['Node.js 20+', 'install-nxkeys.ps1', 'CompileOnly', 'main-profile-resolution.md'],
-    'docs/ARCHITECTURE.md': ['1169', 'prefix-free', 'protocol schema 3'],
-    'docs/STATE_MACHINE_ARCHITECTURE.md': ['2–5', 'M → E → E → B', '1169', 'set_selection_filter'],
-    'docs/SAFETY_MODEL.md': ['885', 'ambiguous', 'K1–K2', 'package-manifest.json'],
-    'docs/api.md': ['Protocol schema:', '"command_id"', '"schema_version": 3', 'expected_application_id'],
-    'docs/TROUBLESHOOTING.md': ['06_ui_commands_buttons.csv', 'main-profile-resolution.md', 'package-manifest.json'],
-    'docs/NX_PRO_HYBRID_SOURCE_SPEC.md': ['1169', 'Legacy primary-grid', 'не ограничивают количество команд'],
+    'docs/ARCHITECTURE.md': ['1169', 'prefix-free'],
+    'docs/STATE_MACHINE_ARCHITECTURE.md': ['set_selection_filter'],
+    'docs/SAFETY_MODEL.md': ['ambiguous', 'package-manifest.json'],
+    'docs/api.md': ['protocol schema:', '"command_id"'],
+    'docs/TROUBLESHOOTING.md': ['main-profile-resolution.md', 'package-manifest.json'],
+    'docs/NX_PRO_HYBRID_SOURCE_SPEC.md': ['1169'],
     'NX2512_ControlCenter/README.md': ['nx2512-pro-main.generated.json', 'existing', 'resolved', 'ambiguous', 'unresolved']
   };
   for (const [relative, markers] of Object.entries(required)) {

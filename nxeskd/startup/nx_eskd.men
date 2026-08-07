@@ -1,0 +1,57 @@
+﻿! NX ESKD Drawing Generator -- MenuScript overlay
+! Place the package root in UGII_CUSTOM_DIRECTORY_FILE.
+VERSION 120
+
+EDIT UG_GATEWAY_MAIN_MENUBAR
+AFTER UG_TOOLS
+    CASCADE_BUTTON NX_ESKD_CASCADE
+    LABEL ESKD Drawing Generator
+END_OF_AFTER
+
+MENU NX_ESKD_CASCADE
+    BUTTON NX_ESKD_COMMAND_CENTER
+    LABEL Control Center & Settings...
+    TOOLBAR_LABEL Control Center
+    MESSAGE Open drawing generator control center and settings
+    BITMAP "settings"
+    ACTIONS $NX_ESKD_ROOT\application\NxEskd.CommandCenter.dll
+
+    SEPARATOR
+
+    BUTTON NX_ESKD_GENERATE
+    LABEL Generate New Managed Drawing
+    TOOLBAR_LABEL Create Drawing
+    MESSAGE Generate a new linearized model drawing from profile
+    BITMAP "drawing"
+    ACTIONS $NX_ESKD_ROOT\application\NxEskd.Generate.dll
+
+    BUTTON NX_ESKD_UPDATE
+    LABEL Update Existing Drawing
+    TOOLBAR_LABEL Update Drawing
+    MESSAGE Update geometry and technical requirements of existing drawing
+    BITMAP "update_drawing_view"
+    ACTIONS $NX_ESKD_ROOT\application\NxEskd.Update.dll
+
+    BUTTON NX_ESKD_PREVIEW
+    LABEL Layout Preview
+    TOOLBAR_LABEL Preview
+    MESSAGE Perform virtual sheet and view layout calculation
+    BITMAP "preview"
+    ACTIONS $NX_ESKD_ROOT\application\NxEskd.Preview.dll
+
+    BUTTON NX_ESKD_VALIDATE
+    LABEL Validate ESKD Compliance
+    TOOLBAR_LABEL Validate Drawing
+    MESSAGE Check validity of drawing elements
+    BITMAP "check_drawing"
+    ACTIONS $NX_ESKD_ROOT\application\NxEskd.Validate.dll
+
+    SEPARATOR
+
+    BUTTON NX_ESKD_INVENTORY
+    LABEL NX Open API Diagnostics
+    TOOLBAR_LABEL API Diagnostics
+    MESSAGE Check access and versions of core NX Open API functions
+    BITMAP "information"
+    ACTIONS $NX_ESKD_ROOT\application\NxEskd.Inventory.dll
+END_OF_MENU

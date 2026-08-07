@@ -1,0 +1,432 @@
+[
+  {
+    "path": ".gitignore",
+    "sha256": "20dc15f9727d556b1b1ad7602a2ed08bb0be360da3e25946f2ae0ce1836dc03d",
+    "size": 55
+  },
+  {
+    "path": "Directory.Build.props",
+    "sha256": "3e8dbb680e6bfb309b668fc1878c2c3cbdf84399503de58347d0d882a17bfbac",
+    "size": 455
+  },
+  {
+    "path": "LICENSE",
+    "sha256": "ec4ab498897ee0d12aa7f8e354f3a7d4fd1baaf9db18dbf99927ffb78bed08ed",
+    "size": 797
+  },
+  {
+    "path": "NxEskdDrawingAutomation.sln",
+    "sha256": "c9138c7e135dc5d15ebc2aa2f8ea0eb64b8487b197985235da583b800046cb32",
+    "size": 5542
+  },
+  {
+    "path": "README.md",
+    "sha256": "ae1eff55347b52985ef13979772becd961020cf93f87e58146592cb26a4e7b1e",
+    "size": 8343
+  },
+  {
+    "path": "config/active-profile.example.json",
+    "sha256": "96cdcd51c16aaf6a88a1982f1378bcab4ad65d197d7135f605d1a822c1a61b03",
+    "size": 67206
+  },
+  {
+    "path": "config/nx-eskd-profile.schema.json",
+    "sha256": "997b0e927d7d54eaa294a69c33c22d3d40b8e328bbd57afe6ddced6582f7fe6f",
+    "size": 2250
+  },
+  {
+    "path": "config/nx2512-api-map.json",
+    "sha256": "d62179bfa54d391c5ad1c0130869a43bb7d1fddeb78f8419b31fd5d991c5296c",
+    "size": 2709
+  },
+  {
+    "path": "docs/ARCHITECTURE.md",
+    "sha256": "a2da4c1dd1ed86e0a2e6990a0bf17f85dcbe49d711f06ac9a834d9119622a8c5",
+    "size": 1673
+  },
+  {
+    "path": "docs/INSTALLATION.md",
+    "sha256": "73409dc651eea1083e85d763cef1b2cac574fff220b891ea008ee1d31e33f718",
+    "size": 783
+  },
+  {
+    "path": "docs/KNOWN_LIMITATIONS.md",
+    "sha256": "bf00a94b23c6ba6a3526208a004406378a05a5afaeb0067d71fc6e0871d745fe",
+    "size": 1407
+  },
+  {
+    "path": "docs/NX2512_API_VERIFICATION.md",
+    "sha256": "e29388644b6d4e2f2859ce85d0e95b226574d4f51f07d87831af37142cd25c24",
+    "size": 2534
+  },
+  {
+    "path": "docs/PMI_WORKFLOW.md",
+    "sha256": "333778fdb9db51a881154e8d8a87a1023ac251dcf3b3dea12ad8d69f998235f5",
+    "size": 1817
+  },
+  {
+    "path": "docs/SOURCE_VALIDATION.md",
+    "sha256": "f4285764ce9c5e6d86f19f834c63c707679b230bc94112a6e2492cf613a20579",
+    "size": 1628
+  },
+  {
+    "path": "docs/TEMPLATE_CONTRACT.md",
+    "sha256": "daf5e98692a6f85bbb53b4c5c772084df15bd5194bb16297bd20fc4a736241df",
+    "size": 1624
+  },
+  {
+    "path": "global.json",
+    "sha256": "de2c8562cde9a1e30b0fd06842a2bb514718d4c2f72266ef7afd2b90e058ec14",
+    "size": 108
+  },
+  {
+    "path": "scripts/build.ps1",
+    "sha256": "6bfc3abfa3d3898ebba8d17313623baff543e2b0a95e61473c679a302b2409e9",
+    "size": 4522
+  },
+  {
+    "path": "scripts/install.ps1",
+    "sha256": "b452d800cb2baed5e6205a2e88758cde9a32e2bad6cd74b28a25b16d8fde7ab0",
+    "size": 2555
+  },
+  {
+    "path": "scripts/run-smoke-tests.ps1",
+    "sha256": "bdb7526bdce82380e98196c0e165fee31555caddb8fd563baa800f16060f5341",
+    "size": 393
+  },
+  {
+    "path": "scripts/uninstall.ps1",
+    "sha256": "88eff7910af6dd29ec4b1b3253c0a735f5bd97e3beda5435fcab44b86c787ed5",
+    "size": 891
+  },
+  {
+    "path": "src/NxEskd.Commands/CommandCenter/EntryPoint.cs",
+    "sha256": "501401ea85371473a92f81d98b434e225cdc4be786e12c9ef95ac5f14d0b55ed",
+    "size": 295
+  },
+  {
+    "path": "src/NxEskd.Commands/CommandCenter/NxEskd.CommandCenter.csproj",
+    "sha256": "9c0ee6eee9eccfe60982036682415c629637768011766ade3af0aed77bae1b21",
+    "size": 505
+  },
+  {
+    "path": "src/NxEskd.Commands/Generate/EntryPoint.cs",
+    "sha256": "f1b26ee44553c6e8e28c376b97cf0184f50380c3dfade80e45514ee956707a2c",
+    "size": 326
+  },
+  {
+    "path": "src/NxEskd.Commands/Generate/NxEskd.Generate.csproj",
+    "sha256": "652040f00f17beb98a4aa1462b383ced9e4549467b2558c2f1efa887e8a6a976",
+    "size": 495
+  },
+  {
+    "path": "src/NxEskd.Commands/Inventory/EntryPoint.cs",
+    "sha256": "e24189493b7783822e299abb30009205200e291385af2144ae2117e0adcd6af2",
+    "size": 328
+  },
+  {
+    "path": "src/NxEskd.Commands/Inventory/NxEskd.Inventory.csproj",
+    "sha256": "5e5009bb355b9180c941ceae0b425660d242712b443e2f8e9acc5ce8f922a99e",
+    "size": 497
+  },
+  {
+    "path": "src/NxEskd.Commands/Preview/EntryPoint.cs",
+    "sha256": "d2f657dd314f6b1d5a19c884087da992f1ea5873c47ecf879702f922aea893d4",
+    "size": 324
+  },
+  {
+    "path": "src/NxEskd.Commands/Preview/NxEskd.Preview.csproj",
+    "sha256": "09ce1e4bc0ff132127f78364a1db296e608b85cae9fcdcd4721f9d74863399e2",
+    "size": 493
+  },
+  {
+    "path": "src/NxEskd.Commands/Update/EntryPoint.cs",
+    "sha256": "0e83df86afb40cfbcfb92eed22ea58e5a9ddd9c440c029cbdcee8512fc98e617",
+    "size": 322
+  },
+  {
+    "path": "src/NxEskd.Commands/Update/NxEskd.Update.csproj",
+    "sha256": "26669f774e9ca9cb568b0f81bcb3fe68de88052a4a43645b98f033296512e075",
+    "size": 343
+  },
+  {
+    "path": "src/NxEskd.Commands/Validate/EntryPoint.cs",
+    "sha256": "fb6e29bbdaea51aea6c74ce78f672045a00b2d9f13ac1a12823cc8e1fb20f519",
+    "size": 326
+  },
+  {
+    "path": "src/NxEskd.Commands/Validate/NxEskd.Validate.csproj",
+    "sha256": "55d61827c6b9f5e5ada12ec6a8109739ff62b036e8f0ab183355cd1db5ed60b6",
+    "size": 495
+  },
+  {
+    "path": "src/NxEskd.Configurator/App.xaml",
+    "sha256": "f59523e75cc2f166a6733f19da0dd19cd325f003551fc835ebbcff1de3c32880",
+    "size": 625
+  },
+  {
+    "path": "src/NxEskd.Configurator/App.xaml.cs",
+    "sha256": "f5ad4ac6994993cf17faa5b8cfade616348685209cc53d264b84bbf5ed0714ef",
+    "size": 98
+  },
+  {
+    "path": "src/NxEskd.Configurator/EditableSetting.cs",
+    "sha256": "d4cb7bee05b7dbcbf9c37ac29950b22b6bb15019b1eeca0b97195bff251da765",
+    "size": 1744
+  },
+  {
+    "path": "src/NxEskd.Configurator/JsonEditor.cs",
+    "sha256": "5479c9054535986a1af8b8b80d448593f7a2cd765ca22bd826b04d34be01fe7d",
+    "size": 2280
+  },
+  {
+    "path": "src/NxEskd.Configurator/MainWindow.xaml",
+    "sha256": "2659f687134811ad7f45d63efc82e5b25822af38d9bf8b1f1e74e070047cf4f0",
+    "size": 9178
+  },
+  {
+    "path": "src/NxEskd.Configurator/MainWindow.xaml.cs",
+    "sha256": "1093d4acaed0c060fc0f0eafffc44bdae9e7c3d0343d7c5f853e01c6f05e07ac",
+    "size": 9720
+  },
+  {
+    "path": "src/NxEskd.Configurator/NxEskd.Configurator.csproj",
+    "sha256": "949ec43ec30dce4ddf53a6872caa0c751a0ab8bd09943921be2af4053f049fa0",
+    "size": 404
+  },
+  {
+    "path": "src/NxEskd.Core/Configuration/JsonFlattener.cs",
+    "sha256": "ec2536d12a3dfe1223d307c310656bf7bacedc4ac1b19d7f9a999964e8312916",
+    "size": 2697
+  },
+  {
+    "path": "src/NxEskd.Core/Configuration/JsonNavigator.cs",
+    "sha256": "e4a1b3e092479f20fa7e664fec485f55918f46183f14517bf5b4fd369cb8225a",
+    "size": 3994
+  },
+  {
+    "path": "src/NxEskd.Core/Configuration/ProfileDocument.cs",
+    "sha256": "e547dc5c0037515ffcc6c1ab168e1928b6859eafe92d091f766b225afc1513c2",
+    "size": 1214
+  },
+  {
+    "path": "src/NxEskd.Core/Configuration/ProfileLoader.cs",
+    "sha256": "e9837229174efb1597d2f3d262b585692fea77ce02ac2590df0bcfb5fcb11e61",
+    "size": 1569
+  },
+  {
+    "path": "src/NxEskd.Core/Configuration/ProfileValidator.cs",
+    "sha256": "63040fced060d7c6865df35d74d3cd6e0441fcb3daece26b3b8c6383b2d14629",
+    "size": 9415
+  },
+  {
+    "path": "src/NxEskd.Core/Configuration/VariableExpander.cs",
+    "sha256": "5639d26fe16383470c3e29d496ea958dca6837f20c750b815ce478263a45556a",
+    "size": 1978
+  },
+  {
+    "path": "src/NxEskd.Core/Diagnostics/IssueSeverity.cs",
+    "sha256": "f323b26859a7f2e1e7a3b358acdb61a3ac9d4fd48dc54addfb461dab2c185c06",
+    "size": 150
+  },
+  {
+    "path": "src/NxEskd.Core/Diagnostics/ValidationIssue.cs",
+    "sha256": "5e60d277b2865dcffb4e5f1249db0eed06bf1be50bd70cdf7a4e4ef90dec53eb",
+    "size": 288
+  },
+  {
+    "path": "src/NxEskd.Core/Diagnostics/ValidationReport.cs",
+    "sha256": "3af8bdde765609d43ccf282888e2f4f54d828d139e512375dcf20cad134b9338",
+    "size": 1187
+  },
+  {
+    "path": "src/NxEskd.Core/Layout/Geometry.cs",
+    "sha256": "9c3417e3933a590f9e51063804903419ae706678d5374b76a73abd6d30075322",
+    "size": 1089
+  },
+  {
+    "path": "src/NxEskd.Core/Layout/LayoutSolver.cs",
+    "sha256": "27c434fb8c75a12a31415996eaca6792d7e51c49378479f7a05fbb2bd43830f5",
+    "size": 2894
+  },
+  {
+    "path": "src/NxEskd.Core/NxEskd.Core.csproj",
+    "sha256": "dd226168329232ecaccd84fbd9bf208d152622dc78f5ee2e1be106efadcbc139",
+    "size": 220
+  },
+  {
+    "path": "src/NxEskd.Core/Planning/DrawingPlan.cs",
+    "sha256": "ef18859caecf05570f5a12b402a9b8745f3e295b053d9f62e266e14a852c2462",
+    "size": 1200
+  },
+  {
+    "path": "src/NxEskd.Core/Planning/DrawingPlanner.cs",
+    "sha256": "945b2b6eb2559fb6dab166bb041916d85cf85818091e88e602a7ad918a24db4f",
+    "size": 4852
+  },
+  {
+    "path": "src/NxEskd.Core/Runtime/CommandRequest.cs",
+    "sha256": "3778e6525d4bc273de401df5bee816a1874133d7f5757828779058bc364f832a",
+    "size": 1151
+  },
+  {
+    "path": "src/NxEskd.Core/Runtime/DrawingEngine.cs",
+    "sha256": "d39fd203851faa1a5d0e3f1f4964c0556e090568115cb78f92ec8c2e07a3eeea",
+    "size": 3239
+  },
+  {
+    "path": "src/NxEskd.Core/Runtime/ExecutionReport.cs",
+    "sha256": "f78af198b4b7668b41cc6cd42936dc4a75ad89a74f84740dd8fce613ef202f39",
+    "size": 1239
+  },
+  {
+    "path": "src/NxEskd.Core/Runtime/IExecutionAdapter.cs",
+    "sha256": "150827c78efd4c8d281c502abd870741d6b30ded8274ea892650c5f2bb18791c",
+    "size": 732
+  },
+  {
+    "path": "src/NxEskd.Core/Utilities/Hashing.cs",
+    "sha256": "0d90811419471af22d6f550417ecc0280e21ae2a40cebf11a0025d015ff761a9",
+    "size": 460
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/BuildInfo.cs",
+    "sha256": "3aab9edf5788bafc9bea66f4806f2b3f386c0b92976e2bd3ba102ca05e1b9edc",
+    "size": 107
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/CommandHost.cs",
+    "sha256": "9a546643189b83069fa8a1158f4b140b3f7fa7c97746fccb72954ffeefffd746",
+    "size": 6707
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxAnnotationLayoutService.cs",
+    "sha256": "72aab805cae33d4522606e3876557f2d72276661ededd823ab9bdd97107ce2f4",
+    "size": 1583
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxApiMap.cs",
+    "sha256": "444c313e2a3dd58447dbdf98b7d3d0608ea9e5c882f32e776020bebcd2c06c1f",
+    "size": 887
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxAttributeService.cs",
+    "sha256": "f3dd379ced055f2f387bfb106e9c740b355f731f3a2700617a3afbe41258c363",
+    "size": 4533
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxCapabilityScanner.cs",
+    "sha256": "9b55806d70319c779b1185f98829d9a0053abd0b1f689ea3890b73c260a0fb6b",
+    "size": 3344
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxEskd.NxRuntime.csproj",
+    "sha256": "28312beeb18425225260f98d45b7ac02f4f26e32f701374ff6f910ba1bcbca43",
+    "size": 674
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxExecutionAdapter.cs",
+    "sha256": "c9034a430d299c0b41d82a3ba48976b2df75cecd16807f050f6881d1f3685fe6",
+    "size": 6807
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxExportService.cs",
+    "sha256": "74de815bc8f8338e7f137670cf8756dc4d36086ac991e3e8b7777b588a8039c8",
+    "size": 3357
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxFlatPatternService.cs",
+    "sha256": "8443742b11e35cf85471abc1e2203cd74a64435d03d8b63208487e5ac7384f4a",
+    "size": 3232
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxLayerService.cs",
+    "sha256": "afa0af7b349633f43a799bcad5c87f6b04b1aef5f5c8b75d159c44c35441d14b",
+    "size": 962
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxLog.cs",
+    "sha256": "e72576b9433f39de409920bf760b166dbe1af8fca1ac93b0356bacaba79237ad",
+    "size": 759
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxObjectTools.cs",
+    "sha256": "d7f776759318df2c1b4cc5d304c6ac1dafa24e9cff04e1300f6cc41036448896",
+    "size": 2733
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxPartsListService.cs",
+    "sha256": "87b2b8dcaa8f9a32f82fc37a6e0c661c817e9454c4d496455ce5c5de9d3469c9",
+    "size": 2113
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxPmiService.cs",
+    "sha256": "d2d5aaf38bd9afe85f086e40ccd10a7fbf8613e60e6f0814c58b7fb10d06e9c2",
+    "size": 4467
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxReflection.cs",
+    "sha256": "64efeea4716010b391066da2a9d68147b7bdb41528f66e643e89b67df1bf9047",
+    "size": 6595
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxServiceContext.cs",
+    "sha256": "dae734197c91fcfa45f7dbab606629b77402eb25ea01969c951f92d3ae1825d9",
+    "size": 610
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxSheetService.cs",
+    "sha256": "455d649c00dd472b8d619a97c1fd5c3607f6d8c1374de9c03377b50d27b0de4c",
+    "size": 5402
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxStyleService.cs",
+    "sha256": "7c4964e9362fbd713552ff0767fd96193598dd23d3735a19c701923bf090c5bb",
+    "size": 1957
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxTableService.cs",
+    "sha256": "f1f1fbc592c20dc5b9d089de40f20b323ae4f693b905fcfeff5e685f5d656861",
+    "size": 2152
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxTechnicalRequirementsService.cs",
+    "sha256": "3ab71ab2dc0046604366b032de8b40d3ee319a9ef4fe9de988f6071464f39a39",
+    "size": 4274
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxTitleBlockService.cs",
+    "sha256": "5ddc3956447b5e03da3193c4e8f80ae13628704d96ea46549b7c835e8487606b",
+    "size": 4072
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxValidationService.cs",
+    "sha256": "e46de5b04cb007056f9d90d282fb2d5099eecde8fc098fa9b4e86528511627c1",
+    "size": 3478
+  },
+  {
+    "path": "src/NxEskd.NxRuntime/NxViewService.cs",
+    "sha256": "306e208836a8877e19ba1a386406d49299a91833c8e69ebd92987c5781839b56",
+    "size": 12492
+  },
+  {
+    "path": "startup/nx_eskd.men",
+    "sha256": "27dd48525f5ac2a4394f6a7a2ce381f96242ecf3c5b4a51ec1cd1e87fdb96275",
+    "size": 1188
+  },
+  {
+    "path": "templates/README.md",
+    "sha256": "826e95f4003bc0ea55f1afed0aaecb7fdc4b5c011efe483f43bc7e603d00b9e4",
+    "size": 292
+  },
+  {
+    "path": "tests/NxEskd.SmokeTests/NxEskd.SmokeTests.csproj",
+    "sha256": "6a19c2453f6510fe004802ab9e49fdecb7f88d549730dc674caf5905b041c194",
+    "size": 317
+  },
+  {
+    "path": "tests/NxEskd.SmokeTests/Program.cs",
+    "sha256": "66ca6f22c1f1689990275e9804a3411de9fbc3ec500d1f25932b72bc9265b30d",
+    "size": 1958
+  }
+]

@@ -1,0 +1,2299 @@
+{
+  "$schema": "./nx-eskd-profile.schema.json",
+  "schemaVersion": "1.0.0",
+  "documentType": "nx-eskd-drawing-generation-profile",
+  "profileId": "RU_ESKD_NX2512_FULL_EXAMPLE",
+  "profileName": "Полный профиль автоматического формирования чертежей ЕСКД в Siemens NX",
+  "profileStatus": "example",
+  "targetEnvironment": {
+    "_description": "Ограничения совместимости. Плагин обязан проверить их до изменения модели.",
+    "nxProduct": "Siemens NX / Designcenter NX",
+    "nxRelease": "2512",
+    "nxOpenLanguage": "CSharp",
+    "units": "millimeter",
+    "locale": "ru-RU",
+    "decimalSeparator": ",",
+    "drawingStandard": "ESKD",
+    "projectionMethod": "first_angle",
+    "managedMode": "native_nx",
+    "teamcenterMode": "optional"
+  },
+  "documentation": {
+    "_description": "Самодокументирующая часть. Не влияет на построение, но используется UI, справкой и генератором документации.",
+    "purpose": [
+      "Выбрать формат, ориентацию, рамку и шаблон листа.",
+      "Создать и заполнить основную надпись и дополнительные графы.",
+      "Настроить шрифты, линии, размеры, допуски, шероховатость и штриховку.",
+      "Создать виды, разрезы, сечения, выносные и разорванные виды.",
+      "Перенести PMI из 3D-модели в чертеж и автоматически разложить аннотации.",
+      "Создать спецификацию, позиции, таблицы и технические требования.",
+      "Сформировать и оформить развертку листового металла.",
+      "Проверить чертеж по формализованным правилам ЕСКД.",
+      "Повторно обновлять автоматически созданные объекты без дублирования."
+    ],
+    "controlledObjectCatalog": [
+      {
+        "id": "sheets",
+        "managed": "Листы чертежа",
+        "controls": [
+          "количество и порядок листов",
+          "формат и ориентация",
+          "масштаб листа",
+          "название и номер",
+          "создание дополнительных листов при переполнении",
+          "применение шаблона PRT"
+        ]
+      },
+      {
+        "id": "borders",
+        "managed": "Рамки, зоны и координатная сетка",
+        "controls": [
+          "отступы рамки",
+          "зоны по сторонам листа",
+          "буквенно-цифровые обозначения зон",
+          "центровочные метки",
+          "обрезные метки",
+          "служебные области, запрещенные для размещения видов"
+        ]
+      },
+      {
+        "id": "titleBlocks",
+        "managed": "Основные надписи, дополнительные графы и таблицы изменений",
+        "controls": [
+          "выбор формы штампа",
+          "поиск ячеек по стабильным меткам",
+          "источники данных",
+          "форматирование значений",
+          "обязательность полей",
+          "синхронизация с атрибутами NX и Teamcenter"
+        ]
+      },
+      {
+        "id": "draftingStyles",
+        "managed": "Стили оформления",
+        "controls": [
+          "шрифты и высоты текста",
+          "линии и толщины",
+          "стрелки и засечки",
+          "размеры и точность",
+          "геометрические допуски",
+          "шероховатость",
+          "обозначения сварки",
+          "штриховка",
+          "центровые линии и метки"
+        ]
+      },
+      {
+        "id": "views",
+        "managed": "Чертежные виды",
+        "controls": [
+          "главный и проекционные виды",
+          "изометрия",
+          "разрезы и сечения",
+          "выносные виды",
+          "разорванные виды",
+          "обрезка и границы",
+          "скрытые линии",
+          "видимость слоев и компонентов",
+          "масштаб и размещение"
+        ]
+      },
+      {
+        "id": "pmi",
+        "managed": "Перенос PMI",
+        "controls": [
+          "выбор модельных видов и групп PMI",
+          "типы переносимых объектов",
+          "ассоциативность",
+          "дедупликация",
+          "распределение по чертежным видам",
+          "автоматическое размещение",
+          "перенос PMI развертки"
+        ]
+      },
+      {
+        "id": "partsLists",
+        "managed": "Спецификации и позиции",
+        "controls": [
+          "структура BOM",
+          "уровни сборки",
+          "объединение одинаковых компонентов",
+          "колонки и сортировка",
+          "позиции и выноски",
+          "синхронизация с составом сборки"
+        ]
+      },
+      {
+        "id": "flatPatterns",
+        "managed": "Развертки листового металла",
+        "controls": [
+          "создание или выбор Flat Pattern",
+          "ориентация",
+          "показ линий сгиба",
+          "направление сгибов",
+          "показ технологических элементов",
+          "перенос Flat Pattern PMI",
+          "габариты заготовки",
+          "таблица гибов",
+          "экспорт DXF"
+        ]
+      },
+      {
+        "id": "validation",
+        "managed": "Автоматическая проверка",
+        "controls": [
+          "выход за рамку",
+          "пересечения",
+          "пустые поля",
+          "устаревшие виды",
+          "повторные размеры",
+          "неверный масштаб",
+          "ошибки позиций",
+          "неразрешенные ручные подмены"
+        ]
+      }
+    ],
+    "importantImplementationNotes": [
+      "JSON не должен хранить временные NX Tag как постоянные идентификаторы.",
+      "Объекты следует искать по имени, атрибуту, типу, группе PMI или логическому managedId.",
+      "Геометрию рамки и штампа предпочтительно хранить в нативных PRT-шаблонах.",
+      "Плагин должен изменять только объекты с признаком AUTO_DWG_MANAGED=true.",
+      "Инженерные значения допусков, шероховатости и материалов нельзя придумывать по геометрии.",
+      "Все операции генерации должны выполняться в одной откатываемой транзакции NX Undo."
+    ]
+  },
+  "standardsProfile": {
+    "_description": "Нормативные ссылки и внутренние профили. Перед промышленным выпуском редакции стандартов сверяются с локальной нормативной базой предприятия.",
+    "country": "RU",
+    "system": "ESKD",
+    "standards": [
+      {
+        "code": "ГОСТ Р 2.104-2023",
+        "area": "основные надписи"
+      },
+      {
+        "code": "ГОСТ Р 2.109-2023",
+        "area": "основные требования к чертежам"
+      },
+      {
+        "code": "ГОСТ 2.301-68",
+        "area": "форматы"
+      },
+      {
+        "code": "ГОСТ 2.302-68",
+        "area": "масштабы"
+      },
+      {
+        "code": "ГОСТ 2.303-68",
+        "area": "линии"
+      },
+      {
+        "code": "ГОСТ 2.304-81",
+        "area": "чертежные шрифты"
+      },
+      {
+        "code": "ГОСТ 2.305-2008",
+        "area": "виды, разрезы и сечения"
+      },
+      {
+        "code": "ГОСТ 2.306-68",
+        "area": "штриховка"
+      },
+      {
+        "code": "ГОСТ 2.307-2011",
+        "area": "размеры и предельные отклонения"
+      },
+      {
+        "code": "ГОСТ Р 2.308-2023",
+        "area": "геометрические допуски"
+      },
+      {
+        "code": "ГОСТ 2.309-73",
+        "area": "шероховатость"
+      },
+      {
+        "code": "ГОСТ 2.310-2022",
+        "area": "покрытия и обработка"
+      },
+      {
+        "code": "ГОСТ 2.311-68",
+        "area": "резьбы"
+      },
+      {
+        "code": "ГОСТ 2.312-72",
+        "area": "сварные соединения"
+      },
+      {
+        "code": "ГОСТ Р 2.316-2023",
+        "area": "надписи, технические требования и таблицы"
+      },
+      {
+        "code": "ГОСТ Р 2.051-2023",
+        "area": "электронные конструкторские документы"
+      }
+    ],
+    "companyStandards": [
+      {
+        "id": "STO_DRAFTING_001",
+        "name": "Корпоративный профиль оформления NX",
+        "revision": "A",
+        "required": false
+      }
+    ],
+    "ruleSeverity": {
+      "ERROR": "Запрещает выпуск и сохранение в статус Released.",
+      "WARNING": "Разрешает генерацию, но требует просмотра.",
+      "MANUAL_REVIEW": "Решение должен подтвердить конструктор.",
+      "INFO": "Информационное сообщение.",
+      "AUTOFIX": "Нарушение может быть исправлено автоматически."
+    }
+  },
+  "paths": {
+    "_description": "Пути разрешаются относительно каталога профиля, переменных окружения или централизованного каталога.",
+    "rootVariable": "NX_ESKD_ROOT",
+    "templates": "${NX_ESKD_ROOT}/templates",
+    "symbols": "${NX_ESKD_ROOT}/symbols",
+    "fonts": "${NX_ESKD_ROOT}/fonts",
+    "rules": "${NX_ESKD_ROOT}/rules",
+    "exports": "${PART_DIR}/exports",
+    "reports": "${PART_DIR}/reports",
+    "logs": "${LOCAL_APP_DATA}/NxEskdGenerator/logs",
+    "pathResolutionOrder": [
+      "absolute_path",
+      "profile_relative",
+      "environment_variable",
+      "nx_customer_defaults",
+      "fallback"
+    ],
+    "missingPathPolicy": "error"
+  },
+  "execution": {
+    "_description": "Общее поведение плагина.",
+    "mode": "create_or_update",
+    "strictMode": true,
+    "dryRun": false,
+    "previewBeforeCommit": true,
+    "singleUndoTransaction": true,
+    "rollbackOnError": true,
+    "saveOnlyWhenValid": true,
+    "preserveManualObjects": true,
+    "preserveManualViewPositions": false,
+    "preserveManualDimensions": true,
+    "preserveManualNotes": true,
+    "allowUnknownJsonProperties": false,
+    "idempotency": {
+      "enabled": true,
+      "managedAttribute": "AUTO_DWG_MANAGED",
+      "managedIdAttribute": "AUTO_DWG_ID",
+      "profileIdAttribute": "AUTO_DWG_PROFILE_ID",
+      "configHashAttribute": "AUTO_DWG_CONFIG_HASH",
+      "generatorVersionAttribute": "AUTO_DWG_GENERATOR_VERSION",
+      "deleteManagedObjectsMissingFromConfig": true,
+      "neverDeleteUnmanagedObjects": true
+    },
+    "updateSequence": [
+      "validate_input",
+      "resolve_values",
+      "analyze_model",
+      "build_drawing_plan",
+      "set_undo_mark",
+      "create_or_update_sheets",
+      "create_or_update_views",
+      "inherit_pmi",
+      "create_dimensions_and_annotations",
+      "create_tables_and_parts_lists",
+      "layout_objects",
+      "update_all_views",
+      "validate_result",
+      "save",
+      "export",
+      "write_report"
+    ]
+  },
+  "valueResolution": {
+    "_description": "Единая система получения значений для штампов, таблиц и примечаний.",
+    "precedence": [
+      "job_override",
+      "json_profile",
+      "teamcenter_property",
+      "nx_part_attribute",
+      "nx_object_attribute",
+      "nx_expression",
+      "computed_value",
+      "default_value"
+    ],
+    "missingValuePolicy": "error_for_required_warn_for_optional",
+    "emptyStringIsMissing": true,
+    "trimWhitespace": true,
+    "normalizeLineEndings": true,
+    "dateFormat": "dd.MM.yyyy",
+    "massFormat": "0.###",
+    "scaleFormat": "ratio",
+    "booleanText": {
+      "true": "Да",
+      "false": "Нет"
+    },
+    "computedFunctions": [
+      "body_mass",
+      "assembly_mass",
+      "bounding_box_x",
+      "bounding_box_y",
+      "bounding_box_z",
+      "sheet_count",
+      "active_sheet_number",
+      "main_view_scale",
+      "material_name",
+      "flat_pattern_width",
+      "flat_pattern_height",
+      "flat_pattern_area",
+      "bend_count",
+      "component_quantity",
+      "current_date",
+      "config_hash"
+    ]
+  },
+  "modelAnalysis": {
+    "_description": "Что плагин извлекает из модели до планирования чертежа.",
+    "loadPolicy": "fully_load_required_components",
+    "analyze": {
+      "partType": true,
+      "units": true,
+      "solidBodies": true,
+      "sheetBodies": true,
+      "boundingBoxes": true,
+      "massProperties": true,
+      "materials": true,
+      "namedModelViews": true,
+      "datumPlanes": true,
+      "datumAxes": true,
+      "coordinateSystems": true,
+      "pmiObjects": true,
+      "pmiGroups": true,
+      "featureNames": true,
+      "objectAttributes": true,
+      "assemblyStructure": true,
+      "arrangements": true,
+      "referenceSets": true,
+      "explodedViews": true,
+      "sheetMetalFeatures": true,
+      "flatPatterns": true,
+      "weldFeatures": true,
+      "holesAndThreads": true
+    },
+    "classification": {
+      "enabled": true,
+      "rules": [
+        {
+          "result": "sheet_metal_part",
+          "whenAny": [
+            {
+              "hasApplicationData": "sheet_metal"
+            },
+            {
+              "hasFeatureType": "flat_pattern"
+            },
+            {
+              "partAttribute": {
+                "name": "PART_CLASS",
+                "equals": "SHEET_METAL"
+              }
+            }
+          ]
+        },
+        {
+          "result": "assembly",
+          "when": {
+            "componentCountGreaterThan": 0
+          }
+        },
+        {
+          "result": "machined_part",
+          "fallback": true
+        }
+      ]
+    }
+  },
+  "templateCatalog": {
+    "_description": "Каталог нативных PRT-шаблонов. Рамка, зоны и штамп находятся в шаблоне; JSON выбирает и заполняет их.",
+    "selectionMode": "automatic_with_override",
+    "templates": [
+      {
+        "id": "ESKD_A4_PORTRAIT_PART",
+        "file": "${NX_ESKD_ROOT}/templates/ESKD_A4_PORTRAIT_PART.prt",
+        "format": "A4",
+        "orientation": "portrait",
+        "documentKinds": [
+          "part_drawing"
+        ],
+        "borderObjectName": "AUTO_BORDER",
+        "titleBlockObjectName": "AUTO_TITLE_BLOCK_FORM_1",
+        "namedRegions": [
+          "DRAWING_WORK_AREA",
+          "TITLE_BLOCK_AREA",
+          "CHANGE_TABLE_AREA",
+          "TECH_REQUIREMENTS_AREA"
+        ],
+        "priority": 100
+      },
+      {
+        "id": "ESKD_A3_LANDSCAPE_PART",
+        "file": "${NX_ESKD_ROOT}/templates/ESKD_A3_LANDSCAPE_PART.prt",
+        "format": "A3",
+        "orientation": "landscape",
+        "documentKinds": [
+          "part_drawing",
+          "sheet_metal_drawing"
+        ],
+        "borderObjectName": "AUTO_BORDER",
+        "titleBlockObjectName": "AUTO_TITLE_BLOCK_FORM_1",
+        "namedRegions": [
+          "DRAWING_WORK_AREA",
+          "TITLE_BLOCK_AREA",
+          "CHANGE_TABLE_AREA",
+          "TECH_REQUIREMENTS_AREA",
+          "BEND_TABLE_AREA"
+        ],
+        "priority": 90
+      },
+      {
+        "id": "ESKD_A2_LANDSCAPE_ASSEMBLY",
+        "file": "${NX_ESKD_ROOT}/templates/ESKD_A2_LANDSCAPE_ASSEMBLY.prt",
+        "format": "A2",
+        "orientation": "landscape",
+        "documentKinds": [
+          "assembly_drawing"
+        ],
+        "borderObjectName": "AUTO_BORDER",
+        "titleBlockObjectName": "AUTO_TITLE_BLOCK_FORM_1",
+        "namedRegions": [
+          "DRAWING_WORK_AREA",
+          "TITLE_BLOCK_AREA",
+          "CHANGE_TABLE_AREA",
+          "TECH_REQUIREMENTS_AREA",
+          "PARTS_LIST_AREA"
+        ],
+        "priority": 80
+      }
+    ],
+    "selectionRules": {
+      "preferredSmallestFormat": true,
+      "allowedFormats": [
+        "A4",
+        "A3",
+        "A2",
+        "A1",
+        "A0"
+      ],
+      "allowAdditionalFormats": true,
+      "minDrawingAreaFill": 0.3,
+      "maxDrawingAreaFill": 0.75,
+      "formatEscalationOrder": [
+        "A4",
+        "A3",
+        "A2",
+        "A1",
+        "A0"
+      ],
+      "whenOverflow": [
+        "repack_layout",
+        "try_next_smaller_scale",
+        "try_larger_format",
+        "create_next_sheet"
+      ]
+    }
+  },
+  "sheetFormats": {
+    "_description": "Размеры листов и правила ориентации.",
+    "formats": {
+      "A0": {
+        "widthMm": 1189.0,
+        "heightMm": 841.0
+      },
+      "A1": {
+        "widthMm": 841.0,
+        "heightMm": 594.0
+      },
+      "A2": {
+        "widthMm": 594.0,
+        "heightMm": 420.0
+      },
+      "A3": {
+        "widthMm": 420.0,
+        "heightMm": 297.0
+      },
+      "A4": {
+        "widthMm": 210.0,
+        "heightMm": 297.0
+      }
+    },
+    "orientationRules": {
+      "A4": [
+        "portrait"
+      ],
+      "A3": [
+        "landscape",
+        "portrait"
+      ],
+      "A2": [
+        "landscape",
+        "portrait"
+      ],
+      "A1": [
+        "landscape",
+        "portrait"
+      ],
+      "A0": [
+        "landscape",
+        "portrait"
+      ]
+    },
+    "defaultOrientation": "landscape",
+    "multiSheet": {
+      "enabled": true,
+      "consistentFormatAcrossSheets": true,
+      "allowDetailSheetDifferentFormat": false,
+      "sheetNamePattern": "Лист {sheetNumber}",
+      "startNumber": 1
+    }
+  },
+  "bordersAndZones": {
+    "_description": "Управление рамками, полями, зонами и служебными областями. По умолчанию геометрия импортируется из шаблона.",
+    "creationMode": "use_template_object",
+    "borderSelector": {
+      "objectName": "AUTO_BORDER",
+      "fallbackByAttribute": {
+        "AUTO_OBJECT_TYPE": "BORDER"
+      }
+    },
+    "marginsMm": {
+      "left": 20.0,
+      "right": 5.0,
+      "top": 5.0,
+      "bottom": 5.0
+    },
+    "zones": {
+      "enabled": true,
+      "showTop": true,
+      "showBottom": true,
+      "showLeft": true,
+      "showRight": true,
+      "horizontalLabels": "numeric",
+      "verticalLabels": "alphabetic",
+      "skipLetters": [
+        "I",
+        "O"
+      ],
+      "zoneSizeMm": 50.0,
+      "textStyleId": "TEXT_ZONE"
+    },
+    "centeringMarks": {
+      "enabled": true,
+      "lengthMm": 5.0,
+      "lineStyleId": "LINE_THIN"
+    },
+    "trimMarks": {
+      "enabled": false,
+      "lineStyleId": "LINE_THIN"
+    },
+    "reservedRegions": [
+      {
+        "id": "TITLE_BLOCK_AREA",
+        "source": "template_named_region",
+        "required": true,
+        "collisionPolicy": "forbidden"
+      },
+      {
+        "id": "CHANGE_TABLE_AREA",
+        "source": "template_named_region",
+        "required": false,
+        "collisionPolicy": "forbidden"
+      },
+      {
+        "id": "TECH_REQUIREMENTS_AREA",
+        "source": "template_named_region",
+        "required": false,
+        "collisionPolicy": "reserved_when_used"
+      },
+      {
+        "id": "PARTS_LIST_AREA",
+        "source": "template_named_region",
+        "required": false,
+        "collisionPolicy": "reserved_when_used"
+      }
+    ],
+    "updatePolicy": "replace_format_preserve_managed_content"
+  },
+  "titleBlocks": {
+    "_description": "Настройка основной надписи. Ячейки идентифицируются по меткам, а не по координатам.",
+    "activeDefinition": "ESKD_FORM_1",
+    "definitions": [
+      {
+        "id": "ESKD_FORM_1",
+        "objectSelector": {
+          "objectName": "AUTO_TITLE_BLOCK_FORM_1",
+          "fallbackByAttribute": {
+            "AUTO_OBJECT_TYPE": "TITLE_BLOCK"
+          }
+        },
+        "requiredLabels": [
+          "DOCUMENT_DESIGNATION",
+          "DOCUMENT_NAME",
+          "MATERIAL",
+          "MASS",
+          "SCALE",
+          "SHEET_NUMBER",
+          "TOTAL_SHEETS"
+        ],
+        "cells": [
+          {
+            "label": "DOCUMENT_DESIGNATION",
+            "description": "Обозначение документа.",
+            "required": true,
+            "value": {
+              "source": "nx_part_attribute",
+              "name": "DB_PART_NO",
+              "fallbackPath": "$.job.document.designation"
+            },
+            "format": {
+              "uppercase": true,
+              "maxLength": 64
+            },
+            "writeBackAttribute": "DRAWING_NUMBER"
+          },
+          {
+            "label": "DOCUMENT_NAME",
+            "description": "Наименование изделия или документа.",
+            "required": true,
+            "value": {
+              "source": "nx_part_attribute",
+              "name": "DB_PART_NAME",
+              "fallbackPath": "$.job.document.name"
+            },
+            "format": {
+              "uppercase": false,
+              "maxLines": 3,
+              "wrap": true
+            },
+            "writeBackAttribute": "DRAWING_NAME"
+          },
+          {
+            "label": "MATERIAL",
+            "description": "Материал детали. Для сборочного чертежа может быть пустым по профилю.",
+            "requiredWhen": {
+              "documentKind": "part_drawing"
+            },
+            "value": {
+              "source": "nx_part_attribute",
+              "name": "MATERIAL",
+              "fallbackPath": "$.job.document.material"
+            },
+            "format": {
+              "maxLines": 3,
+              "wrap": true
+            }
+          },
+          {
+            "label": "MASS",
+            "description": "Масса изделия, вычисленная по выбранным телам или компонентам.",
+            "required": false,
+            "value": {
+              "source": "computed_value",
+              "function": "body_mass"
+            },
+            "format": {
+              "pattern": "0.###",
+              "unitText": "",
+              "rounding": "half_up"
+            }
+          },
+          {
+            "label": "SCALE",
+            "description": "Основной масштаб листа.",
+            "required": true,
+            "value": {
+              "source": "computed_value",
+              "function": "main_view_scale"
+            },
+            "format": {
+              "pattern": "ratio"
+            }
+          },
+          {
+            "label": "SHEET_NUMBER",
+            "description": "Номер текущего листа.",
+            "required": true,
+            "value": {
+              "source": "computed_value",
+              "function": "active_sheet_number"
+            }
+          },
+          {
+            "label": "TOTAL_SHEETS",
+            "description": "Количество листов документа.",
+            "required": true,
+            "value": {
+              "source": "computed_value",
+              "function": "sheet_count"
+            }
+          },
+          {
+            "label": "DEVELOPED_BY",
+            "description": "Разработал.",
+            "required": false,
+            "value": {
+              "source": "job_override",
+              "path": "$.job.approvals.developedBy"
+            }
+          },
+          {
+            "label": "CHECKED_BY",
+            "description": "Проверил.",
+            "required": false,
+            "value": {
+              "source": "job_override",
+              "path": "$.job.approvals.checkedBy"
+            }
+          },
+          {
+            "label": "NORM_CONTROL_BY",
+            "description": "Нормоконтроль.",
+            "required": false,
+            "value": {
+              "source": "job_override",
+              "path": "$.job.approvals.normControlBy"
+            }
+          },
+          {
+            "label": "APPROVED_BY",
+            "description": "Утвердил.",
+            "required": false,
+            "value": {
+              "source": "job_override",
+              "path": "$.job.approvals.approvedBy"
+            }
+          },
+          {
+            "label": "REVISION",
+            "description": "Ревизия документа.",
+            "required": false,
+            "value": {
+              "source": "teamcenter_property",
+              "name": "item_revision_id",
+              "fallbackPath": "$.job.document.revision"
+            }
+          },
+          {
+            "label": "ORGANIZATION",
+            "description": "Организация.",
+            "required": false,
+            "value": {
+              "source": "json_profile",
+              "path": "$.job.document.organization"
+            }
+          }
+        ],
+        "overflowPolicy": {
+          "first": "wrap_text",
+          "second": "use_smaller_allowed_text_style",
+          "third": "error",
+          "never": "clip_text"
+        }
+      }
+    ],
+    "additionalColumns": {
+      "enabled": true,
+      "source": "template",
+      "fillFromJob": true
+    },
+    "changeTable": {
+      "enabled": true,
+      "objectName": "AUTO_CHANGE_TABLE",
+      "placementRegion": "CHANGE_TABLE_AREA",
+      "columns": [
+        {
+          "id": "change",
+          "title": "Изм.",
+          "widthMm": 10.0
+        },
+        {
+          "id": "sheets",
+          "title": "Лист",
+          "widthMm": 12.0
+        },
+        {
+          "id": "document",
+          "title": "№ докум.",
+          "widthMm": 25.0
+        },
+        {
+          "id": "signature",
+          "title": "Подп.",
+          "widthMm": 17.0
+        },
+        {
+          "id": "date",
+          "title": "Дата",
+          "widthMm": 17.0
+        }
+      ],
+      "rowsSource": "job.document.changeHistory"
+    }
+  },
+  "draftingStyles": {
+    "_description": "Единый каталог оформления. Все объекты ссылаются на styleId.",
+    "fonts": {
+      "default": {
+        "id": "FONT_ESKD_DEFAULT",
+        "nxFontName": "GOST type A",
+        "fallbackNxFontName": "Arial",
+        "inclined": true,
+        "widthFactor": 1.0,
+        "lineSpacingFactor": 1.2
+      }
+    },
+    "textStyles": [
+      {
+        "id": "TEXT_SMALL",
+        "fontId": "FONT_ESKD_DEFAULT",
+        "heightMm": 2.5,
+        "aspectRatio": 0.7
+      },
+      {
+        "id": "TEXT_NORMAL",
+        "fontId": "FONT_ESKD_DEFAULT",
+        "heightMm": 3.5,
+        "aspectRatio": 0.7
+      },
+      {
+        "id": "TEXT_LARGE",
+        "fontId": "FONT_ESKD_DEFAULT",
+        "heightMm": 5.0,
+        "aspectRatio": 0.7
+      },
+      {
+        "id": "TEXT_TITLE",
+        "fontId": "FONT_ESKD_DEFAULT",
+        "heightMm": 7.0,
+        "aspectRatio": 0.7
+      },
+      {
+        "id": "TEXT_ZONE",
+        "fontId": "FONT_ESKD_DEFAULT",
+        "heightMm": 2.5,
+        "aspectRatio": 0.7
+      },
+      {
+        "id": "TEXT_BOM",
+        "fontId": "FONT_ESKD_DEFAULT",
+        "heightMm": 3.5,
+        "aspectRatio": 0.7
+      }
+    ],
+    "lineStyles": [
+      {
+        "id": "LINE_VISIBLE",
+        "nxLineFont": "solid",
+        "widthMm": 0.7,
+        "purpose": "visible_contour"
+      },
+      {
+        "id": "LINE_THIN",
+        "nxLineFont": "solid",
+        "widthMm": 0.25,
+        "purpose": "dimension_extension_hatching"
+      },
+      {
+        "id": "LINE_HIDDEN",
+        "nxLineFont": "dashed",
+        "widthMm": 0.25,
+        "purpose": "hidden_contour"
+      },
+      {
+        "id": "LINE_CENTER",
+        "nxLineFont": "centerline",
+        "widthMm": 0.25,
+        "purpose": "axes_centers"
+      },
+      {
+        "id": "LINE_SECTION",
+        "nxLineFont": "phantom",
+        "widthMm": 1.0,
+        "purpose": "section_cut"
+      },
+      {
+        "id": "LINE_BREAK",
+        "nxLineFont": "wavy",
+        "widthMm": 0.25,
+        "purpose": "break_line"
+      },
+      {
+        "id": "LINE_BEND_UP",
+        "nxLineFont": "dashed",
+        "widthMm": 0.25,
+        "purpose": "flat_pattern_bend_up"
+      },
+      {
+        "id": "LINE_BEND_DOWN",
+        "nxLineFont": "dash_dot",
+        "widthMm": 0.25,
+        "purpose": "flat_pattern_bend_down"
+      }
+    ],
+    "colors": {
+      "_description": "Цвета применяются для экранной диагностики; PDF по умолчанию монохромный.",
+      "visibleGeometry": 7,
+      "dimensions": 7,
+      "annotations": 7,
+      "warnings": 186,
+      "managedPreview": 36,
+      "bendUp": 36,
+      "bendDown": 186
+    },
+    "dimensions": {
+      "styleId": "DIM_ESKD_DEFAULT",
+      "textStyleId": "TEXT_NORMAL",
+      "dimensionLineStyleId": "LINE_THIN",
+      "extensionLineStyleId": "LINE_THIN",
+      "arrowType": "closed_filled",
+      "arrowLengthMm": 3.5,
+      "arrowAngleDeg": 15.0,
+      "firstDimensionOffsetMm": 10.0,
+      "parallelDimensionGapMm": 7.0,
+      "extensionBeyondArrowMinMm": 1.0,
+      "extensionBeyondArrowMaxMm": 5.0,
+      "textGapMm": 1.0,
+      "linearUnits": "mm_without_suffix",
+      "angularUnits": "degree",
+      "decimalPlacesDefault": 2,
+      "trailingZeros": "suppress",
+      "leadingZeros": "show",
+      "decimalSeparator": ",",
+      "associativityRequired": true,
+      "manualValueOverride": {
+        "allowed": false,
+        "allowWithAttribute": "ALLOW_DIM_TEXT_OVERRIDE",
+        "severityWhenDetected": "ERROR"
+      },
+      "toleranceDisplay": {
+        "default": "none",
+        "allowed": [
+          "none",
+          "limits",
+          "plus_minus",
+          "fit",
+          "deviation"
+        ],
+        "inheritFromPMI": true
+      },
+      "referenceDimension": {
+        "parentheses": true,
+        "suffix": "",
+        "styleId": "DIM_ESKD_DEFAULT"
+      }
+    },
+    "geometricTolerances": {
+      "textStyleId": "TEXT_NORMAL",
+      "frameLineStyleId": "LINE_THIN",
+      "inheritFromPMI": true,
+      "requireDatumResolution": true,
+      "allowAutomaticToleranceAssignment": false
+    },
+    "surfaceFinish": {
+      "textStyleId": "TEXT_NORMAL",
+      "inheritFromPMI": true,
+      "generalSymbolPlacement": "upper_right",
+      "allowAutomaticRoughnessAssignment": false
+    },
+    "weldSymbols": {
+      "textStyleId": "TEXT_NORMAL",
+      "inheritFromPMI": true,
+      "allowAutomaticWeldAssignment": false
+    },
+    "centerlines": {
+      "lineStyleId": "LINE_CENTER",
+      "extendBeyondGeometryMm": 3.0,
+      "automaticForCircularEdges": true,
+      "automaticForCylindricalFeatures": true,
+      "automaticBoltCircle": true,
+      "minimumDiameterMm": 2.0
+    },
+    "hatching": {
+      "lineStyleId": "LINE_THIN",
+      "defaultAngleDeg": 45.0,
+      "alternativeAnglesDeg": [
+        30.0,
+        60.0,
+        135.0
+      ],
+      "spacingMm": 3.0,
+      "minSpacingMm": 1.0,
+      "maxSpacingMm": 10.0,
+      "samePartConsistentAcrossViews": true,
+      "adjacentPartStrategy": [
+        "reverse_angle",
+        "change_spacing",
+        "phase_shift"
+      ],
+      "breakAroundText": true
+    }
+  },
+  "layers": {
+    "_description": "Семантическое распределение объектов по слоям.",
+    "managedLayers": [
+      {
+        "number": 230,
+        "name": "AUTO_DWG_VIEWS",
+        "purpose": "drawing_views"
+      },
+      {
+        "number": 231,
+        "name": "AUTO_DWG_DIMENSIONS",
+        "purpose": "dimensions"
+      },
+      {
+        "number": 232,
+        "name": "AUTO_DWG_PMI",
+        "purpose": "inherited_pmi"
+      },
+      {
+        "number": 233,
+        "name": "AUTO_DWG_NOTES",
+        "purpose": "notes"
+      },
+      {
+        "number": 234,
+        "name": "AUTO_DWG_TABLES",
+        "purpose": "tables"
+      },
+      {
+        "number": 235,
+        "name": "AUTO_DWG_BORDERS",
+        "purpose": "borders_title_blocks"
+      },
+      {
+        "number": 236,
+        "name": "AUTO_DWG_FLAT_PATTERN",
+        "purpose": "flat_pattern"
+      },
+      {
+        "number": 237,
+        "name": "AUTO_DWG_DIAGNOSTICS",
+        "purpose": "temporary_preview"
+      }
+    ],
+    "viewLayerVisibility": {
+      "default": "inherit_model_view",
+      "excludeLayers": [
+        236,
+        237
+      ],
+      "includeByViewId": {}
+    },
+    "componentLayerSynchronization": {
+      "enabled": false,
+      "source": "component_properties",
+      "preserveOriginal": true
+    }
+  },
+  "scalePolicy": {
+    "_description": "Допустимые масштабы и алгоритм автоматического выбора.",
+    "allowed": [
+      "10:1",
+      "5:1",
+      "4:1",
+      "2.5:1",
+      "2:1",
+      "1:1",
+      "1:2",
+      "1:2.5",
+      "1:4",
+      "1:5",
+      "1:10",
+      "1:15",
+      "1:20",
+      "1:25",
+      "1:40",
+      "1:50",
+      "1:75",
+      "1:100"
+    ],
+    "selection": {
+      "mode": "largest_fitting",
+      "preferred": "1:1",
+      "minimumViewFillRatio": 0.3,
+      "maximumViewFillRatio": 0.75,
+      "keepProjectedViewsSameScale": true,
+      "allowDetailViewLargerScale": true,
+      "allowIsometricRelativeScale": true
+    },
+    "localScaleLabel": {
+      "showWhenDifferentFromSheet": true,
+      "format": "{viewName} ({scale})",
+      "textStyleId": "TEXT_NORMAL"
+    }
+  },
+  "viewGeneration": {
+    "_description": "Общие правила создания и оформления видов.",
+    "defaultStyle": {
+      "visibleLineStyleId": "LINE_VISIBLE",
+      "hiddenLineStyleId": "LINE_HIDDEN",
+      "smoothEdges": "visible",
+      "hiddenLines": "removed",
+      "threadRepresentation": "symbolic",
+      "showSilhouettes": true,
+      "showInterferenceEdges": false,
+      "shaded": false,
+      "monochrome": true
+    },
+    "mainViewSelection": {
+      "mode": "named_view_then_rules",
+      "preferredNamedViews": [
+        "DWG_FRONT",
+        "Front"
+      ],
+      "rules": [
+        "prefer_working_position",
+        "maximize_functional_feature_visibility",
+        "minimize_hidden_lines",
+        "prefer_stable_base_horizontal",
+        "maximize_projected_area"
+      ],
+      "manualReviewRequiredWhenAutoSelected": true
+    },
+    "availableViewTypes": [
+      "base",
+      "projected",
+      "section",
+      "half_section",
+      "stepped_section",
+      "revolved_section",
+      "removed_section",
+      "detail",
+      "auxiliary",
+      "broken",
+      "break_out",
+      "exploded",
+      "flat_pattern"
+    ],
+    "placement": {
+      "mode": "constraint_layout",
+      "viewToBorderGapMm": 10.0,
+      "viewToViewGapMm": 15.0,
+      "annotationToGeometryGapMm": 3.0,
+      "snapGridMm": 2.5,
+      "avoidReservedRegions": true,
+      "avoidOverlap": true,
+      "overflowPolicy": "create_next_sheet"
+    },
+    "projectedViews": {
+      "maintainAlignment": true,
+      "inheritScale": true,
+      "inheritStyle": true,
+      "defaultGapMm": 20.0
+    },
+    "sections": {
+      "designationSequence": [
+        "А",
+        "Б",
+        "В",
+        "Г",
+        "Д",
+        "Е",
+        "Ж",
+        "И",
+        "К",
+        "Л",
+        "М",
+        "Н"
+      ],
+      "skipLetters": [
+        "З",
+        "О",
+        "Х",
+        "Ъ",
+        "Ь",
+        "Ы"
+      ],
+      "cutLineStyleId": "LINE_SECTION",
+      "showArrows": true,
+      "showSectionLabel": true,
+      "autoHatching": true,
+      "excludeStandardFastenersFromHatching": true,
+      "preferNamedDatumPlanes": true,
+      "namedPlanePrefix": "DWG_SECTION_"
+    },
+    "detailViews": {
+      "designationSequence": [
+        "А",
+        "Б",
+        "В",
+        "Г",
+        "Д",
+        "Е",
+        "Ж",
+        "И",
+        "К"
+      ],
+      "boundary": "circle",
+      "defaultScaleRelativeToParent": 2.0,
+      "labelFormat": "{designation} ({scale})"
+    },
+    "brokenViews": {
+      "enabled": true,
+      "minimumAspectRatioToSuggest": 4.0,
+      "preserveFeatureRegions": true,
+      "breakLineStyleId": "LINE_BREAK"
+    },
+    "componentVisibility": {
+      "default": "all",
+      "excludeByAttribute": {
+        "DRAWING_HIDE": "true"
+      },
+      "excludeReferenceSetNames": [
+        "EMPTY",
+        "NO_SHOW"
+      ],
+      "standardFasteners": {
+        "allowSimplifiedRepresentation": true,
+        "excludeFromSectionHatching": true
+      }
+    }
+  },
+  "pmiInheritance": {
+    "_description": "Полная настройка автоматического переноса PMI в чертеж.",
+    "enabled": true,
+    "strategy": "model_view_and_group_driven",
+    "sourceSelection": {
+      "modelViewPriority": [
+        "explicit_view_mapping",
+        "associated_model_view",
+        "pmi_group_mapping",
+        "nearest_orientation",
+        "fallback_main_view"
+      ],
+      "modelViewNames": [
+        "DWG_FRONT",
+        "DWG_TOP",
+        "DWG_RIGHT",
+        "DWG_ISO",
+        "Front",
+        "Top",
+        "Right",
+        "Trimetric"
+      ],
+      "includePmiGroups": [
+        "DRAWING",
+        "MANUFACTURING",
+        "INSPECTION"
+      ],
+      "excludePmiGroups": [
+        "REFERENCE_ONLY",
+        "HIDDEN",
+        "INTERNAL"
+      ],
+      "includeByAttribute": {
+        "DRAWING_INCLUDE": "true"
+      },
+      "excludeByAttribute": {
+        "DRAWING_HIDE": "true"
+      },
+      "orphanPmiPolicy": "warning_and_place_on_best_view"
+    },
+    "includedTypes": {
+      "linearDimensions": true,
+      "angularDimensions": true,
+      "radialDimensions": true,
+      "diameterDimensions": true,
+      "ordinateDimensions": true,
+      "chamferDimensions": true,
+      "holeCallouts": true,
+      "threadCallouts": true,
+      "geometricTolerances": true,
+      "datumFeatureSymbols": true,
+      "datumTargets": true,
+      "surfaceFinishSymbols": true,
+      "weldSymbols": true,
+      "notes": true,
+      "labels": true,
+      "coordinateSystems": false,
+      "sectionSymbols": true,
+      "supplementalGeometry": false
+    },
+    "associativity": {
+      "required": true,
+      "keepSourceLink": true,
+      "updateWhenModelChanges": true,
+      "onLostAssociation": "error",
+      "allowSnapshotCopy": false
+    },
+    "viewMapping": [
+      {
+        "sourceModelView": "DWG_FRONT",
+        "targetDrawingViewId": "VIEW_FRONT",
+        "fallbackSourceModelView": "Front",
+        "orientationToleranceDeg": 2.0
+      },
+      {
+        "sourceModelView": "DWG_TOP",
+        "targetDrawingViewId": "VIEW_TOP",
+        "fallbackSourceModelView": "Top",
+        "orientationToleranceDeg": 2.0
+      },
+      {
+        "sourceModelView": "DWG_RIGHT",
+        "targetDrawingViewId": "VIEW_RIGHT",
+        "fallbackSourceModelView": "Right",
+        "orientationToleranceDeg": 2.0
+      },
+      {
+        "sourceModelView": "DWG_ISO",
+        "targetDrawingViewId": "VIEW_ISO",
+        "fallbackSourceModelView": "Trimetric",
+        "orientationToleranceDeg": 5.0
+      }
+    ],
+    "duplicateHandling": {
+      "enabled": true,
+      "identityKeys": [
+        "source_pmi_tag_during_session",
+        "source_object_persistent_name",
+        "semantic_signature",
+        "managed_id"
+      ],
+      "sameDimensionOnMultipleViews": "keep_best_readable_view",
+      "preferViewWith": [
+        "true_shape",
+        "visible_associated_geometry",
+        "least_overlap",
+        "source_model_view_match"
+      ],
+      "markSuppressedDuplicatesInReport": true
+    },
+    "placement": {
+      "mode": "automatic_with_preserved_semantics",
+      "preserveSourcePlane": true,
+      "preserveReadingDirection": true,
+      "allowMoveAlongDimensionLine": true,
+      "allowLeaderJog": true,
+      "allowFlipArrows": true,
+      "allowMoveToAnotherView": false,
+      "firstDimensionOffsetMm": 10.0,
+      "parallelDimensionGapMm": 7.0,
+      "minimumTextGapMm": 2.0,
+      "minimumGeometryGapMm": 1.5,
+      "collisionAvoidance": {
+        "enabled": true,
+        "checkAgainstGeometry": true,
+        "checkAgainstDimensions": true,
+        "checkAgainstNotes": true,
+        "checkAgainstTables": true,
+        "checkAgainstViewLabels": true,
+        "iterations": 50,
+        "unresolvedPolicy": "warning_and_highlight"
+      }
+    },
+    "dimensionChainAnalysis": {
+      "enabled": true,
+      "detectDuplicates": true,
+      "detectClosedChains": true,
+      "allowClosedChainWithReferenceDimension": true,
+      "preferBaselineDimensions": true,
+      "preferFunctionalDatums": true,
+      "datumNamePrefixes": [
+        "DATUM_",
+        "BASE_",
+        "DWG_BASE_"
+      ]
+    },
+    "fallbackDimensionGeneration": {
+      "_description": "Применяется только если нужный размер отсутствует в PMI. Не назначает инженерные допуски.",
+      "enabled": true,
+      "allowedRules": [
+        "overall_dimensions",
+        "hole_callout_from_recognized_hole_feature",
+        "sheet_thickness",
+        "flat_pattern_overall_dimensions"
+      ],
+      "createNominalOnly": true,
+      "assignTolerance": false,
+      "manualReviewRequired": true,
+      "createdAttribute": {
+        "AUTO_PROPOSED": "true"
+      }
+    },
+    "failurePolicy": {
+      "missingRequiredPmi": "error",
+      "unsupportedPmiType": "warning",
+      "unmappedModelView": "warning",
+      "ambiguousViewMapping": "manual_review",
+      "overlappingPmiAfterLayout": "warning"
+    }
+  },
+  "partsListAndBalloons": {
+    "_description": "Настройки спецификаций, BOM и позиционных обозначений для сборочных чертежей.",
+    "enabledWhen": {
+      "documentKind": "assembly_drawing"
+    },
+    "partsList": {
+      "enabled": true,
+      "source": "assembly_structure",
+      "placementRegion": "PARTS_LIST_AREA",
+      "objectName": "AUTO_PARTS_LIST",
+      "bomMode": "structured",
+      "levelMode": "top_level",
+      "includeSuppressed": false,
+      "includeReferenceComponents": false,
+      "includePhantomComponents": false,
+      "includeByReferenceSet": [
+        "MODEL",
+        "Entire Part"
+      ],
+      "excludeByAttribute": {
+        "BOM_EXCLUDE": "true"
+      },
+      "quantityMode": "rolled_up",
+      "mergeIdentical": {
+        "enabled": true,
+        "keys": [
+          "part_number",
+          "revision",
+          "material",
+          "standard_size"
+        ]
+      },
+      "positionNumbering": {
+        "mode": "automatic_stable",
+        "start": 1,
+        "increment": 1,
+        "preserveExisting": true,
+        "reuseDeletedNumbers": false
+      },
+      "sorting": [
+        {
+          "field": "categoryOrder",
+          "direction": "ascending"
+        },
+        {
+          "field": "partNumber",
+          "direction": "ascending"
+        }
+      ],
+      "columns": [
+        {
+          "id": "position",
+          "title": "Поз.",
+          "widthMm": 12.0,
+          "source": "position",
+          "textStyleId": "TEXT_BOM"
+        },
+        {
+          "id": "designation",
+          "title": "Обозначение",
+          "widthMm": 45.0,
+          "source": "attribute:DB_PART_NO",
+          "textStyleId": "TEXT_BOM"
+        },
+        {
+          "id": "name",
+          "title": "Наименование",
+          "widthMm": 65.0,
+          "source": "attribute:DB_PART_NAME",
+          "textStyleId": "TEXT_BOM"
+        },
+        {
+          "id": "quantity",
+          "title": "Кол.",
+          "widthMm": 12.0,
+          "source": "quantity",
+          "textStyleId": "TEXT_BOM"
+        },
+        {
+          "id": "note",
+          "title": "Примечание",
+          "widthMm": 35.0,
+          "source": "attribute:BOM_NOTE",
+          "textStyleId": "TEXT_BOM"
+        }
+      ],
+      "pagination": {
+        "enabled": true,
+        "repeatHeader": true,
+        "maximumRowsPerBlock": 35,
+        "overflowPolicy": "continue_on_next_sheet"
+      },
+      "associative": true,
+      "updateOnAssemblyChange": true
+    },
+    "balloons": {
+      "enabled": true,
+      "source": "parts_list_position",
+      "shape": "circle",
+      "textStyleId": "TEXT_NORMAL",
+      "leaderLineStyleId": "LINE_THIN",
+      "placement": "automatic_around_view",
+      "preferredViewIds": [
+        "VIEW_EXPLODED",
+        "VIEW_ISO",
+        "VIEW_FRONT"
+      ],
+      "groupIdenticalComponents": true,
+      "quantitySuffix": false,
+      "avoidCrossingLeaders": true,
+      "avoidGeometry": true,
+      "minimumGapMm": 5.0,
+      "duplicatePositionPolicy": "error",
+      "missingPositionPolicy": "error"
+    },
+    "explodedView": {
+      "enabled": true,
+      "sourceExplodedViewName": "EXPLODED",
+      "fallback": "do_not_auto_explode",
+      "showTrails": true,
+      "viewId": "VIEW_EXPLODED"
+    }
+  },
+  "sheetMetalFlatPattern": {
+    "_description": "Настройки развертки листового металла и ее чертежного вида.",
+    "enabledWhen": {
+      "modelClassification": "sheet_metal_part"
+    },
+    "flatPatternSource": {
+      "mode": "use_existing_then_create",
+      "preferredFeatureNames": [
+        "FLAT_PATTERN",
+        "РАЗВЕРТКА"
+      ],
+      "createIfMissing": true,
+      "stationaryFace": {
+        "mode": "attribute_then_largest_planar_face",
+        "attributeName": "FLAT_PATTERN_STATIONARY_FACE",
+        "manualReviewWhenAutomatic": true
+      },
+      "xDirection": {
+        "mode": "named_edge_then_longest_outer_edge",
+        "namedObject": "FLAT_PATTERN_X_EDGE",
+        "manualReviewWhenAutomatic": true
+      },
+      "updateBeforeUse": true
+    },
+    "drawingView": {
+      "id": "VIEW_FLAT_PATTERN",
+      "type": "flat_pattern",
+      "modelView": "Flat Pattern",
+      "sheetRole": "flat_pattern",
+      "scale": {
+        "mode": "largest_fitting",
+        "allowed": [
+          "2:1",
+          "1:1",
+          "1:2",
+          "1:2.5",
+          "1:4",
+          "1:5",
+          "1:10"
+        ],
+        "preferred": "1:1"
+      },
+      "orientation": {
+        "mode": "longest_side_horizontal",
+        "allowRotate90": true,
+        "mirror": false
+      },
+      "style": {
+        "hiddenLines": "removed",
+        "showTangentEdges": true,
+        "showSmoothEdges": true,
+        "showBendLines": true,
+        "showBendCenterlines": true,
+        "showFormingFeatures": true,
+        "showPunchCenters": true,
+        "showEtchGeometry": true,
+        "showToolingMarks": false
+      }
+    },
+    "bendLines": {
+      "enabled": true,
+      "upLineStyleId": "LINE_BEND_UP",
+      "downLineStyleId": "LINE_BEND_DOWN",
+      "unknownDirectionLineStyleId": "LINE_CENTER",
+      "showDirectionText": true,
+      "upText": "ВВЕРХ",
+      "downText": "ВНИЗ",
+      "textStyleId": "TEXT_SMALL",
+      "showAngle": true,
+      "showRadius": true,
+      "showSequenceNumber": true
+    },
+    "pmiInheritance": {
+      "_description": "Специальная настройка переноса PMI развертки. В NX ей соответствует наследование Flat Pattern PMI при размещении вида развертки.",
+      "enabled": true,
+      "inheritFlatPatternPmi": true,
+      "requireViewPlacementOptionEnabled": true,
+      "includeTypes": [
+        "linear_dimensions",
+        "angular_dimensions",
+        "radius_dimensions",
+        "bend_notes",
+        "hole_callouts",
+        "surface_finish",
+        "general_notes"
+      ],
+      "includePmiGroups": [
+        "FLAT_PATTERN",
+        "MANUFACTURING",
+        "LASER_CUT",
+        "BENDING"
+      ],
+      "excludePmiGroups": [
+        "FORMED_STATE_ONLY",
+        "HIDDEN"
+      ],
+      "recreateViewWhenSettingWasEnabledAfterPlacement": true,
+      "associative": true,
+      "autoArrange": true,
+      "collisionPolicy": "resolve_then_warn"
+    },
+    "automaticDimensions": {
+      "enabled": true,
+      "overallWidth": true,
+      "overallHeight": true,
+      "sheetThickness": true,
+      "holeCallouts": true,
+      "bendLocationDimensions": "pmi_only",
+      "edgeToHoleDimensions": "pmi_only",
+      "createNominalOnly": true,
+      "manualReviewRequired": true
+    },
+    "blankInformation": {
+      "showBoundingRectangle": false,
+      "calculateWidth": true,
+      "calculateHeight": true,
+      "calculateArea": true,
+      "calculatePerimeter": true,
+      "calculateWeight": true,
+      "writeAttributes": {
+        "FLAT_WIDTH": "flat_pattern_width",
+        "FLAT_HEIGHT": "flat_pattern_height",
+        "FLAT_AREA": "flat_pattern_area",
+        "BEND_COUNT": "bend_count"
+      }
+    },
+    "bendTable": {
+      "enabled": true,
+      "placementRegion": "BEND_TABLE_AREA",
+      "title": "Таблица гибов",
+      "columns": [
+        {
+          "id": "number",
+          "title": "№",
+          "source": "bend_sequence",
+          "widthMm": 10.0
+        },
+        {
+          "id": "angle",
+          "title": "Угол",
+          "source": "bend_angle",
+          "widthMm": 18.0
+        },
+        {
+          "id": "radius",
+          "title": "R",
+          "source": "inside_radius",
+          "widthMm": 18.0
+        },
+        {
+          "id": "direction",
+          "title": "Напр.",
+          "source": "bend_direction",
+          "widthMm": 20.0
+        },
+        {
+          "id": "note",
+          "title": "Примечание",
+          "source": "bend_note",
+          "widthMm": 40.0
+        }
+      ],
+      "textStyleId": "TEXT_SMALL",
+      "associative": true
+    },
+    "manufacturingValidation": {
+      "checkFlatPatternExists": true,
+      "checkSingleConnectedBlank": true,
+      "checkOverlappingFaces": true,
+      "checkSelfIntersection": true,
+      "checkZeroRadiusBends": true,
+      "checkMissingBendAllowance": true,
+      "checkMaterialAndThickness": true,
+      "checkBendDirection": true
+    },
+    "dxfExport": {
+      "enabled": true,
+      "file": "${PART_DIR}/exports/${DOCUMENT_DESIGNATION}_FLAT.dxf",
+      "units": "millimeter",
+      "version": "AutoCAD_2013",
+      "geometry": {
+        "outerContour": true,
+        "innerContours": true,
+        "bendLines": true,
+        "bendDirectionText": false,
+        "etchGeometry": true,
+        "constructionGeometry": false,
+        "dimensions": false,
+        "titleBlock": false
+      },
+      "layerMapping": {
+        "OUTER": "CUT_OUTER",
+        "INNER": "CUT_INNER",
+        "BEND_UP": "BEND_UP",
+        "BEND_DOWN": "BEND_DOWN",
+        "ETCH": "ETCH"
+      }
+    }
+  },
+  "technicalRequirements": {
+    "_description": "Формирование технических требований из библиотеки и задания.",
+    "enabled": true,
+    "placement": {
+      "preferredRegion": "TECH_REQUIREMENTS_AREA",
+      "firstSheetOnly": true,
+      "anchor": "top_left",
+      "maxColumnWidthMm": 185.0,
+      "columnGapMm": 15.0,
+      "allowMultipleColumns": true,
+      "textStyleId": "TEXT_NORMAL"
+    },
+    "numbering": {
+      "enabled": true,
+      "start": 1,
+      "format": "{number}. {text}",
+      "continuous": true
+    },
+    "groupOrder": [
+      "material_and_blank",
+      "heat_treatment",
+      "dimensions_and_tolerances",
+      "surface_quality",
+      "coating",
+      "assembly",
+      "welding",
+      "inspection",
+      "marking",
+      "packaging",
+      "references"
+    ],
+    "libraryRules": [
+      {
+        "id": "REMOVE_SHARP_EDGES",
+        "enabledWhen": {
+          "documentKind": "part_drawing"
+        },
+        "text": "Острые кромки притупить.",
+        "allowJobOverride": true
+      },
+      {
+        "id": "UNSPECIFIED_TOLERANCES",
+        "enabled": true,
+        "textSource": "job.technicalRequirements.unspecifiedTolerances",
+        "required": false
+      }
+    ],
+    "duplicateDetection": true,
+    "prohibitUnresolvedTokens": true
+  },
+  "tables": {
+    "_description": "Общие настройки табличных примечаний.",
+    "defaultStyle": {
+      "textStyleId": "TEXT_NORMAL",
+      "gridLineStyleId": "LINE_THIN",
+      "headerTextStyleId": "TEXT_NORMAL",
+      "cellPaddingMm": 1.0,
+      "repeatHeaderOnContinuation": true
+    },
+    "availableTypes": [
+      "revision",
+      "bend",
+      "hole",
+      "coordinate",
+      "inspection",
+      "custom"
+    ]
+  },
+  "layoutSolver": {
+    "_description": "Алгоритм компоновки листа после фактического создания и обновления видов.",
+    "enabled": true,
+    "measureActualViewBoundsAfterUpdate": true,
+    "objectTypes": [
+      "view",
+      "dimension",
+      "annotation",
+      "table",
+      "title_block",
+      "reserved_region"
+    ],
+    "priorityOrder": [
+      "title_block",
+      "reserved_regions",
+      "main_view",
+      "projected_views",
+      "sections",
+      "detail_views",
+      "flat_pattern_view",
+      "isometric_view",
+      "dimensions",
+      "notes",
+      "tables"
+    ],
+    "constraints": {
+      "keepProjectedAlignment": true,
+      "keepSectionAssociation": true,
+      "keepInsideBorder": true,
+      "avoidOverlap": true,
+      "preserveReadingDirection": true,
+      "minimumViewGapMm": 15.0,
+      "minimumBorderGapMm": 10.0,
+      "minimumTextGapMm": 3.0
+    },
+    "optimization": {
+      "objectiveOrder": [
+        "no_overlap",
+        "inside_border",
+        "maximum_scale",
+        "compact_layout",
+        "preferred_anchors",
+        "minimum_annotation_movement"
+      ],
+      "maxIterations": 200,
+      "timeLimitMs": 5000
+    },
+    "fallbacks": [
+      "move_secondary_views",
+      "reduce_local_detail_scale",
+      "reduce_sheet_scale",
+      "increase_format",
+      "create_next_sheet",
+      "report_unresolved"
+    ]
+  },
+  "validation": {
+    "_description": "Проверки до выпуска.",
+    "runBeforeGeneration": true,
+    "runAfterGeneration": true,
+    "failOnErrors": true,
+    "failOnWarnings": false,
+    "maximumWarnings": 50,
+    "checks": [
+      {
+        "id": "VAL_JSON_SCHEMA",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_TEMPLATE_EXISTS",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_REQUIRED_TITLE_BLOCK_LABELS",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_REQUIRED_VALUES",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_FORMAT_ALLOWED",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_SCALE_ALLOWED",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_OBJECTS_INSIDE_BORDER",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_VIEW_OVERLAP",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_ANNOTATION_OVERLAP",
+        "severity": "WARNING",
+        "enabled": true
+      },
+      {
+        "id": "VAL_EMPTY_VIEW",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_OUT_OF_DATE_VIEW",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_DIM_ASSOCIATIVITY",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_DUPLICATE_DIMENSIONS",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_CLOSED_DIMENSION_CHAIN",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_MANUAL_DIM_VALUE_OVERRIDE",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_MISSING_REQUIRED_PMI",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_UNRESOLVED_PMI_MAPPING",
+        "severity": "WARNING",
+        "enabled": true
+      },
+      {
+        "id": "VAL_DUPLICATE_BALLOONS",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_PARTS_LIST_MISMATCH",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_FLAT_PATTERN_VALID",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_TECH_REQ_UNRESOLVED_TOKEN",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_TEXT_TOO_SMALL",
+        "severity": "ERROR",
+        "enabled": true
+      },
+      {
+        "id": "VAL_LINE_STYLE_MAPPING",
+        "severity": "ERROR",
+        "enabled": true
+      }
+    ],
+    "manualReviewChecklist": [
+      "Главный вид выбран корректно.",
+      "Комплект видов достаточен и не избыточен.",
+      "PMI соответствует конструкторскому замыслу.",
+      "Базы и допуски назначены осознанно.",
+      "Развертка имеет правильную стационарную грань и ориентацию.",
+      "Технические требования относятся к данному изделию.",
+      "Спецификация соответствует принятой структуре изделия."
+    ]
+  },
+  "output": {
+    "_description": "Сохранение, публикация и отчеты.",
+    "savePart": true,
+    "saveMode": "save_current_or_save_as",
+    "updateBeforeSave": true,
+    "nativeDrawing": {
+      "enabled": true,
+      "file": "${PART_DIR}/${DOCUMENT_DESIGNATION}.prt"
+    },
+    "pdf": {
+      "enabled": true,
+      "file": "${PART_DIR}/exports/${DOCUMENT_DESIGNATION}.pdf",
+      "allSheets": true,
+      "monochrome": true,
+      "useLineWidths": true,
+      "rasterImages": "high_quality",
+      "textAsGeometry": false,
+      "embedFonts": true
+    },
+    "dxf": {
+      "enabledForFlatPattern": true
+    },
+    "step": {
+      "enabled": false
+    },
+    "executionReport": {
+      "enabled": true,
+      "file": "${PART_DIR}/reports/${DOCUMENT_DESIGNATION}.drawing-report.json",
+      "includeResolvedConfiguration": true,
+      "includeCreatedObjects": true,
+      "includeUpdatedObjects": true,
+      "includeSuppressedDuplicates": true,
+      "includeWarnings": true,
+      "includeValidationResults": true,
+      "includeTiming": true
+    }
+  },
+  "ui": {
+    "_description": "Минимальный интерфейс плагина внутри NX.",
+    "showProfileSelector": true,
+    "showJobFileSelector": true,
+    "showDryRun": true,
+    "showPreview": true,
+    "showResolvedValues": true,
+    "showModelAnalysis": true,
+    "showValidationResults": true,
+    "allowFieldOverrides": [
+      "document.designation",
+      "document.name",
+      "document.revision",
+      "approvals",
+      "technicalRequirements",
+      "sheet.format",
+      "sheet.orientation",
+      "view.scale"
+    ],
+    "requireConfirmationFor": [
+      "delete_managed_objects",
+      "replace_template",
+      "recreate_flat_pattern",
+      "save_over_existing_released_document"
+    ]
+  },
+  "job": {
+    "_description": "Полный пример конкретного задания. Этот блок обычно формируется пользователем или внешней системой.",
+    "jobId": "DWG-2026-000142",
+    "documentKind": "sheet_metal_drawing",
+    "source": {
+      "mode": "current_work_part",
+      "partFile": null,
+      "drawingStorage": "same_part",
+      "referenceSet": "Entire Part",
+      "arrangement": null
+    },
+    "document": {
+      "designation": "HP.01.04.002",
+      "name": "Кронштейн",
+      "revision": "А",
+      "organization": "HYDROPILOT",
+      "material": "Д16Т ГОСТ 4784",
+      "status": "На проверке",
+      "changeHistory": [
+        {
+          "change": "А",
+          "sheets": "1",
+          "document": "DWG-2026-000142",
+          "signature": "Иванов",
+          "date": "31.07.2026"
+        }
+      ]
+    },
+    "approvals": {
+      "developedBy": "Иванов",
+      "checkedBy": "Петров",
+      "normControlBy": "Смирнов",
+      "approvedBy": "Сидоров"
+    },
+    "sheetPlan": [
+      {
+        "id": "SHEET_1",
+        "role": "main",
+        "templateId": "ESKD_A3_LANDSCAPE_PART",
+        "format": "A3",
+        "orientation": "landscape",
+        "scale": "auto",
+        "views": [
+          {
+            "id": "VIEW_FRONT",
+            "type": "base",
+            "name": "Главный вид",
+            "modelView": "DWG_FRONT",
+            "fallbackModelView": "Front",
+            "placement": {
+              "mode": "auto",
+              "preferredAnchor": "center_left"
+            },
+            "scale": {
+              "inheritSheet": true
+            },
+            "hiddenLines": "removed"
+          },
+          {
+            "id": "VIEW_TOP",
+            "type": "projected",
+            "parentViewId": "VIEW_FRONT",
+            "direction": "top",
+            "placement": {
+              "mode": "aligned_auto",
+              "gapMm": 20.0
+            }
+          },
+          {
+            "id": "VIEW_RIGHT",
+            "type": "projected",
+            "parentViewId": "VIEW_FRONT",
+            "direction": "right",
+            "placement": {
+              "mode": "aligned_auto",
+              "gapMm": 20.0
+            }
+          },
+          {
+            "id": "VIEW_ISO",
+            "type": "base",
+            "name": "Изометрия",
+            "modelView": "Trimetric",
+            "placement": {
+              "mode": "auto",
+              "preferredAnchor": "top_right"
+            },
+            "scale": {
+              "relativeToMain": 0.5
+            },
+            "hiddenLines": "removed"
+          },
+          {
+            "id": "VIEW_SECTION_A",
+            "type": "section",
+            "parentViewId": "VIEW_FRONT",
+            "name": "А-А",
+            "section": {
+              "mode": "named_datum_plane",
+              "datumPlaneName": "DWG_SECTION_A",
+              "direction": "positive_normal"
+            },
+            "placement": {
+              "mode": "auto",
+              "preferredAnchor": "bottom_center"
+            }
+          }
+        ]
+      },
+      {
+        "id": "SHEET_2",
+        "role": "flat_pattern",
+        "templateId": "ESKD_A3_LANDSCAPE_PART",
+        "format": "A3",
+        "orientation": "landscape",
+        "scale": "auto",
+        "views": [
+          {
+            "id": "VIEW_FLAT_PATTERN",
+            "type": "flat_pattern",
+            "placement": {
+              "mode": "auto",
+              "preferredAnchor": "center"
+            },
+            "inheritFlatPatternPmi": true
+          }
+        ]
+      }
+    ],
+    "pmiOverrides": {
+      "requiredPmiIds": [],
+      "excludePmiIds": [],
+      "groupToView": {
+        "DRAWING_FRONT": "VIEW_FRONT",
+        "DRAWING_TOP": "VIEW_TOP",
+        "DRAWING_RIGHT": "VIEW_RIGHT",
+        "DRAWING_ISO": "VIEW_ISO",
+        "FLAT_PATTERN": "VIEW_FLAT_PATTERN"
+      }
+    },
+    "technicalRequirements": {
+      "unspecifiedTolerances": "Неуказанные предельные отклонения размеров — по утвержденному стандарту предприятия.",
+      "items": [
+        {
+          "group": "material_and_blank",
+          "text": "Материал — Д16Т ГОСТ 4784."
+        },
+        {
+          "group": "dimensions_and_tolerances",
+          "text": "Острые кромки притупить."
+        },
+        {
+          "group": "surface_quality",
+          "text": "Поверхности очистить от загрязнений и заусенцев."
+        }
+      ]
+    },
+    "overrides": {
+      "titleBlock": {},
+      "draftingStyles": {},
+      "validation": {}
+    }
+  },
+  "nxOpenImplementationMapping": {
+    "_description": "Подсказка разработчику. Точные классы и сигнатуры необходимо сверить с локальной документацией NX Open 2512.",
+    "areas": [
+      {
+        "configurationArea": "sheetFormats/templateCatalog",
+        "nxConcepts": [
+          "DrawingSheetCollection",
+          "DraftingDrawingSheetBuilder",
+          "drawing templates"
+        ]
+      },
+      {
+        "configurationArea": "titleBlocks",
+        "nxConcepts": [
+          "TitleBlockCollection",
+          "EditTitleBlockBuilder",
+          "tabular notes",
+          "part attributes"
+        ]
+      },
+      {
+        "configurationArea": "viewGeneration",
+        "nxConcepts": [
+          "BaseViewBuilder",
+          "ProjectedViewBuilder",
+          "SectionViewBuilder",
+          "DetailViewBuilder"
+        ]
+      },
+      {
+        "configurationArea": "pmiInheritance",
+        "nxConcepts": [
+          "PMI objects",
+          "model views",
+          "drawing view annotation inheritance"
+        ]
+      },
+      {
+        "configurationArea": "partsListAndBalloons",
+        "nxConcepts": [
+          "PartsListBuilder",
+          "parts list rows",
+          "ID balloons"
+        ]
+      },
+      {
+        "configurationArea": "sheetMetalFlatPattern",
+        "nxConcepts": [
+          "Flat Pattern feature",
+          "Flat Pattern drawing view",
+          "inherit flat pattern PMI"
+        ]
+      },
+      {
+        "configurationArea": "output.pdf",
+        "nxConcepts": [
+          "PrintPDFBuilder"
+        ]
+      }
+    ]
+  }
+}

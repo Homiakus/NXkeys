@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "sequence_policy_version": 7,
-  "generated_utc": "2026-08-03T18:16:34.509Z",
+  "sequence_policy_version": 8,
+  "generated_utc": "2026-08-07T13:27:13.182Z",
   "source_intents": 1169,
   "selected_runtime_intents": 885,
   "bootstrap_modules": 14,
@@ -837,6 +837,27 @@
       "command_name": "Switch to Inspect / View",
       "action": "switch_module",
       "target_module_id": "inspect_view",
+      "support_kind": "module_switch",
+      "frequency": "support",
+      "enabled": true,
+      "resolution_status": "existing",
+      "catalog_refs": [],
+      "target_length": 2
+    },
+    {
+      "module_id": "modeling",
+      "module_label": "Modeling",
+      "set_id": "module_switches",
+      "kind": "path",
+      "sequence": "GS",
+      "tokens": [
+        "G",
+        "S"
+      ],
+      "command_id": "UG_CREATE_SKETCH",
+      "command_name": "Switch to Sketch",
+      "action": "switch_module",
+      "target_module_id": "sketch",
       "support_kind": "module_switch",
       "frequency": "support",
       "enabled": true,
@@ -6545,10 +6566,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "CGL",
+      "sequence": "CL",
       "tokens": [
         "C",
-        "G",
         "L"
       ],
       "command_id": "UG_SKETCH_LINE",
@@ -6570,10 +6590,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "CGR",
+      "sequence": "CR",
       "tokens": [
         "C",
-        "G",
         "R"
       ],
       "command_id": "UG_SKETCH_RECTANGLE",
@@ -6594,10 +6613,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "CGC",
+      "sequence": "CC",
       "tokens": [
         "C",
-        "G",
         "C"
       ],
       "command_id": "UG_SKETCH_CIRCLE",
@@ -6618,10 +6636,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "CGA",
+      "sequence": "CA",
       "tokens": [
         "C",
-        "G",
         "A"
       ],
       "command_id": "UG_SKETCH_ARC",
@@ -6642,10 +6659,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "EGT",
+      "sequence": "ET",
       "tokens": [
         "E",
-        "G",
         "T"
       ],
       "command_id": "UG_SKETCH_TRIM",
@@ -6666,10 +6682,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "EGE",
+      "sequence": "EE",
       "tokens": [
         "E",
-        "G",
         "E"
       ],
       "command_id": "UG_SKETCH_EXTEND",
@@ -6690,10 +6705,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "TGO",
+      "sequence": "TO",
       "tokens": [
         "T",
-        "G",
         "O"
       ],
       "command_id": "UG_SKETCH_OFFSET_CURVE",
@@ -6714,10 +6728,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "CGVL2",
+      "sequence": "CVL2",
       "tokens": [
         "C",
-        "G",
         "V",
         "L",
         "2"
@@ -6738,10 +6751,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "CGVLM",
+      "sequence": "CVLM",
       "tokens": [
         "C",
-        "G",
         "V",
         "L",
         "M"
@@ -6764,10 +6776,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "CGVR2",
+      "sequence": "CVR2",
       "tokens": [
         "C",
-        "G",
         "V",
         "R",
         "2"
@@ -6788,10 +6799,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "CGVRC",
+      "sequence": "CVRC",
       "tokens": [
         "C",
-        "G",
         "V",
         "R",
         "C"
@@ -6812,10 +6822,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "CGVR3",
+      "sequence": "CVR3",
       "tokens": [
         "C",
-        "G",
         "V",
         "R",
         "3"
@@ -6836,10 +6845,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "CGVCC",
+      "sequence": "CVCC",
       "tokens": [
         "C",
-        "G",
         "V",
         "C",
         "C"
@@ -6860,10 +6868,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "CGVC3",
+      "sequence": "CVC3",
       "tokens": [
         "C",
-        "G",
         "V",
         "C",
         "3"
@@ -6884,10 +6891,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "CGVA3",
+      "sequence": "CVA3",
       "tokens": [
         "C",
-        "G",
         "V",
         "A",
         "3"
@@ -6908,10 +6914,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "CGVAC",
+      "sequence": "CVAC",
       "tokens": [
         "C",
-        "G",
         "V",
         "A",
         "C"
@@ -7146,10 +7151,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "EGF",
+      "sequence": "EF",
       "tokens": [
         "E",
-        "G",
         "F"
       ],
       "command_id": "UG_MODELING_BLEND_FEATURE",
@@ -7170,10 +7174,9 @@
       "module_label": "Sketch",
       "set_id": "sketch_core_intents",
       "kind": "path",
-      "sequence": "EGH",
+      "sequence": "EH",
       "tokens": [
         "E",
-        "G",
         "H"
       ],
       "command_id": "UG_MODELING_CHAMFER_FEATURE",
@@ -7601,10 +7604,9 @@
       "module_label": "Sketch",
       "set_id": "catalog_01",
       "kind": "path",
-      "sequence": "TGC",
+      "sequence": "TC",
       "tokens": [
         "T",
-        "G",
         "C"
       ],
       "command_id": "",
@@ -7625,10 +7627,9 @@
       "module_label": "Sketch",
       "set_id": "catalog_01",
       "kind": "path",
-      "sequence": "TGU",
+      "sequence": "TU",
       "tokens": [
         "T",
-        "G",
         "U"
       ],
       "command_id": "",
@@ -8153,10 +8154,9 @@
       "module_label": "Sketch",
       "set_id": "catalog_01",
       "kind": "path",
-      "sequence": "EGC",
+      "sequence": "EC",
       "tokens": [
         "E",
-        "G",
         "C"
       ],
       "command_id": "",
@@ -8177,10 +8177,9 @@
       "module_label": "Sketch",
       "set_id": "catalog_01",
       "kind": "path",
-      "sequence": "TGR",
+      "sequence": "TR",
       "tokens": [
         "T",
-        "G",
         "R"
       ],
       "command_id": "",
@@ -8225,10 +8224,9 @@
       "module_label": "Sketch",
       "set_id": "catalog_01",
       "kind": "path",
-      "sequence": "TGV",
+      "sequence": "TV",
       "tokens": [
         "T",
-        "G",
         "V"
       ],
       "command_id": "",
@@ -8249,10 +8247,9 @@
       "module_label": "Sketch",
       "set_id": "catalog_01",
       "kind": "path",
-      "sequence": "XGD",
+      "sequence": "XD",
       "tokens": [
         "X",
-        "G",
         "D"
       ],
       "command_id": "UG_EDIT_DELETE",
@@ -9245,6 +9242,27 @@
       "command_name": "Switch to Inspect / View",
       "action": "switch_module",
       "target_module_id": "inspect_view",
+      "support_kind": "module_switch",
+      "frequency": "support",
+      "enabled": true,
+      "resolution_status": "existing",
+      "catalog_refs": [],
+      "target_length": 2
+    },
+    {
+      "module_id": "assembly",
+      "module_label": "Assembly",
+      "set_id": "module_switches",
+      "kind": "path",
+      "sequence": "GS",
+      "tokens": [
+        "G",
+        "S"
+      ],
+      "command_id": "UG_CREATE_SKETCH",
+      "command_name": "Switch to Sketch",
+      "action": "switch_module",
+      "target_module_id": "sketch",
       "support_kind": "module_switch",
       "frequency": "support",
       "enabled": true,
@@ -14412,6 +14430,27 @@
     {
       "module_id": "drafting",
       "module_label": "Drafting",
+      "set_id": "module_switches",
+      "kind": "path",
+      "sequence": "GS",
+      "tokens": [
+        "G",
+        "S"
+      ],
+      "command_id": "UG_CREATE_SKETCH",
+      "command_name": "Switch to Sketch",
+      "action": "switch_module",
+      "target_module_id": "sketch",
+      "support_kind": "module_switch",
+      "frequency": "support",
+      "enabled": true,
+      "resolution_status": "existing",
+      "catalog_refs": [],
+      "target_length": 2
+    },
+    {
+      "module_id": "drafting",
+      "module_label": "Drafting",
       "set_id": "catalog_00",
       "kind": "path",
       "sequence": "FN",
@@ -19292,6 +19331,27 @@
     {
       "module_id": "pmi",
       "module_label": "PMI",
+      "set_id": "module_switches",
+      "kind": "path",
+      "sequence": "GS",
+      "tokens": [
+        "G",
+        "S"
+      ],
+      "command_id": "UG_CREATE_SKETCH",
+      "command_name": "Switch to Sketch",
+      "action": "switch_module",
+      "target_module_id": "sketch",
+      "support_kind": "module_switch",
+      "frequency": "support",
+      "enabled": true,
+      "resolution_status": "existing",
+      "catalog_refs": [],
+      "target_length": 2
+    },
+    {
+      "module_id": "pmi",
+      "module_label": "PMI",
       "set_id": "catalog_00",
       "kind": "path",
       "sequence": "FN",
@@ -22992,6 +23052,27 @@
     {
       "module_id": "surface",
       "module_label": "Surface",
+      "set_id": "module_switches",
+      "kind": "path",
+      "sequence": "GS",
+      "tokens": [
+        "G",
+        "S"
+      ],
+      "command_id": "UG_CREATE_SKETCH",
+      "command_name": "Switch to Sketch",
+      "action": "switch_module",
+      "target_module_id": "sketch",
+      "support_kind": "module_switch",
+      "frequency": "support",
+      "enabled": true,
+      "resolution_status": "existing",
+      "catalog_refs": [],
+      "target_length": 2
+    },
+    {
+      "module_id": "surface",
+      "module_label": "Surface",
       "set_id": "catalog_00",
       "kind": "path",
       "sequence": "FN",
@@ -26648,6 +26729,27 @@
       "command_name": "Switch to Inspect / View",
       "action": "switch_module",
       "target_module_id": "inspect_view",
+      "support_kind": "module_switch",
+      "frequency": "support",
+      "enabled": true,
+      "resolution_status": "existing",
+      "catalog_refs": [],
+      "target_length": 2
+    },
+    {
+      "module_id": "sheet_metal",
+      "module_label": "Sheet Metal",
+      "set_id": "module_switches",
+      "kind": "path",
+      "sequence": "GS",
+      "tokens": [
+        "G",
+        "S"
+      ],
+      "command_id": "UG_CREATE_SKETCH",
+      "command_name": "Switch to Sketch",
+      "action": "switch_module",
+      "target_module_id": "sketch",
       "support_kind": "module_switch",
       "frequency": "support",
       "enabled": true,
@@ -30527,6 +30629,27 @@
       "command_name": "Switch to Inspect / View",
       "action": "switch_module",
       "target_module_id": "inspect_view",
+      "support_kind": "module_switch",
+      "frequency": "support",
+      "enabled": true,
+      "resolution_status": "existing",
+      "catalog_refs": [],
+      "target_length": 2
+    },
+    {
+      "module_id": "manufacturing",
+      "module_label": "CAM / Manufacturing",
+      "set_id": "module_switches",
+      "kind": "path",
+      "sequence": "GS",
+      "tokens": [
+        "G",
+        "S"
+      ],
+      "command_id": "UG_CREATE_SKETCH",
+      "command_name": "Switch to Sketch",
+      "action": "switch_module",
+      "target_module_id": "sketch",
       "support_kind": "module_switch",
       "frequency": "support",
       "enabled": true,
@@ -39052,6 +39175,27 @@
     {
       "module_id": "simulation",
       "module_label": "CAE / Simulation",
+      "set_id": "module_switches",
+      "kind": "path",
+      "sequence": "GS",
+      "tokens": [
+        "G",
+        "S"
+      ],
+      "command_id": "UG_CREATE_SKETCH",
+      "command_name": "Switch to Sketch",
+      "action": "switch_module",
+      "target_module_id": "sketch",
+      "support_kind": "module_switch",
+      "frequency": "support",
+      "enabled": true,
+      "resolution_status": "existing",
+      "catalog_refs": [],
+      "target_length": 2
+    },
+    {
+      "module_id": "simulation",
+      "module_label": "CAE / Simulation",
       "set_id": "catalog_00",
       "kind": "path",
       "sequence": "FN",
@@ -42533,6 +42677,27 @@
       "command_name": "Switch to Inspect / View",
       "action": "switch_module",
       "target_module_id": "inspect_view",
+      "support_kind": "module_switch",
+      "frequency": "support",
+      "enabled": true,
+      "resolution_status": "existing",
+      "catalog_refs": [],
+      "target_length": 2
+    },
+    {
+      "module_id": "routing",
+      "module_label": "Routing",
+      "set_id": "module_switches",
+      "kind": "path",
+      "sequence": "GS",
+      "tokens": [
+        "G",
+        "S"
+      ],
+      "command_id": "UG_CREATE_SKETCH",
+      "command_name": "Switch to Sketch",
+      "action": "switch_module",
+      "target_module_id": "sketch",
       "support_kind": "module_switch",
       "frequency": "support",
       "enabled": true,
@@ -46513,6 +46678,27 @@
     {
       "module_id": "mold",
       "module_label": "Mold / Tooling",
+      "set_id": "module_switches",
+      "kind": "path",
+      "sequence": "GS",
+      "tokens": [
+        "G",
+        "S"
+      ],
+      "command_id": "UG_CREATE_SKETCH",
+      "command_name": "Switch to Sketch",
+      "action": "switch_module",
+      "target_module_id": "sketch",
+      "support_kind": "module_switch",
+      "frequency": "support",
+      "enabled": true,
+      "resolution_status": "existing",
+      "catalog_refs": [],
+      "target_length": 2
+    },
+    {
+      "module_id": "mold",
+      "module_label": "Mold / Tooling",
       "set_id": "catalog_00",
       "kind": "path",
       "sequence": "FN",
@@ -50125,6 +50311,27 @@
     {
       "module_id": "reuse",
       "module_label": "Reuse / Templates",
+      "set_id": "module_switches",
+      "kind": "path",
+      "sequence": "GS",
+      "tokens": [
+        "G",
+        "S"
+      ],
+      "command_id": "UG_CREATE_SKETCH",
+      "command_name": "Switch to Sketch",
+      "action": "switch_module",
+      "target_module_id": "sketch",
+      "support_kind": "module_switch",
+      "frequency": "support",
+      "enabled": true,
+      "resolution_status": "existing",
+      "catalog_refs": [],
+      "target_length": 2
+    },
+    {
+      "module_id": "reuse",
+      "module_label": "Reuse / Templates",
       "set_id": "catalog_00",
       "kind": "path",
       "sequence": "FN",
@@ -53581,6 +53788,27 @@
       "command_name": "Switch to Reuse / Templates",
       "action": "switch_module",
       "target_module_id": "reuse",
+      "support_kind": "module_switch",
+      "frequency": "support",
+      "enabled": true,
+      "resolution_status": "existing",
+      "catalog_refs": [],
+      "target_length": 2
+    },
+    {
+      "module_id": "inspect_view",
+      "module_label": "Inspect / View",
+      "set_id": "module_switches",
+      "kind": "path",
+      "sequence": "GS",
+      "tokens": [
+        "G",
+        "S"
+      ],
+      "command_id": "UG_CREATE_SKETCH",
+      "command_name": "Switch to Sketch",
+      "action": "switch_module",
+      "target_module_id": "sketch",
       "support_kind": "module_switch",
       "frequency": "support",
       "enabled": true,
@@ -57338,7 +57566,8 @@
         "routing",
         "mold",
         "reuse",
-        "inspect_view"
+        "inspect_view",
+        "sketch"
       ],
       "actual": [
         "assembly",
@@ -57351,6 +57580,7 @@
         "routing",
         "sheet_metal",
         "simulation",
+        "sketch",
         "surface"
       ],
       "missing": [],
@@ -57376,7 +57606,8 @@
         "routing",
         "mold",
         "reuse",
-        "inspect_view"
+        "inspect_view",
+        "sketch"
       ],
       "actual": [
         "drafting",
@@ -57389,6 +57620,7 @@
         "routing",
         "sheet_metal",
         "simulation",
+        "sketch",
         "surface"
       ],
       "missing": [],
@@ -57407,7 +57639,8 @@
         "routing",
         "mold",
         "reuse",
-        "inspect_view"
+        "inspect_view",
+        "sketch"
       ],
       "actual": [
         "assembly",
@@ -57420,6 +57653,7 @@
         "routing",
         "sheet_metal",
         "simulation",
+        "sketch",
         "surface"
       ],
       "missing": [],
@@ -57438,7 +57672,8 @@
         "routing",
         "mold",
         "reuse",
-        "inspect_view"
+        "inspect_view",
+        "sketch"
       ],
       "actual": [
         "assembly",
@@ -57451,6 +57686,7 @@
         "routing",
         "sheet_metal",
         "simulation",
+        "sketch",
         "surface"
       ],
       "missing": [],
@@ -57469,7 +57705,8 @@
         "routing",
         "mold",
         "reuse",
-        "inspect_view"
+        "inspect_view",
+        "sketch"
       ],
       "actual": [
         "assembly",
@@ -57482,7 +57719,8 @@
         "reuse",
         "routing",
         "sheet_metal",
-        "simulation"
+        "simulation",
+        "sketch"
       ],
       "missing": [],
       "forbidden": []
@@ -57500,7 +57738,8 @@
         "routing",
         "mold",
         "reuse",
-        "inspect_view"
+        "inspect_view",
+        "sketch"
       ],
       "actual": [
         "assembly",
@@ -57513,6 +57752,7 @@
         "reuse",
         "routing",
         "simulation",
+        "sketch",
         "surface"
       ],
       "missing": [],
@@ -57531,7 +57771,8 @@
         "routing",
         "mold",
         "reuse",
-        "inspect_view"
+        "inspect_view",
+        "sketch"
       ],
       "actual": [
         "assembly",
@@ -57544,6 +57785,7 @@
         "routing",
         "sheet_metal",
         "simulation",
+        "sketch",
         "surface"
       ],
       "missing": [],
@@ -57562,7 +57804,8 @@
         "routing",
         "mold",
         "reuse",
-        "inspect_view"
+        "inspect_view",
+        "sketch"
       ],
       "actual": [
         "assembly",
@@ -57575,6 +57818,7 @@
         "reuse",
         "routing",
         "sheet_metal",
+        "sketch",
         "surface"
       ],
       "missing": [],
@@ -57593,7 +57837,8 @@
         "simulation",
         "mold",
         "reuse",
-        "inspect_view"
+        "inspect_view",
+        "sketch"
       ],
       "actual": [
         "assembly",
@@ -57606,6 +57851,7 @@
         "reuse",
         "sheet_metal",
         "simulation",
+        "sketch",
         "surface"
       ],
       "missing": [],
@@ -57624,7 +57870,8 @@
         "simulation",
         "routing",
         "reuse",
-        "inspect_view"
+        "inspect_view",
+        "sketch"
       ],
       "actual": [
         "assembly",
@@ -57637,6 +57884,7 @@
         "routing",
         "sheet_metal",
         "simulation",
+        "sketch",
         "surface"
       ],
       "missing": [],
@@ -57655,7 +57903,8 @@
         "simulation",
         "routing",
         "mold",
-        "inspect_view"
+        "inspect_view",
+        "sketch"
       ],
       "actual": [
         "assembly",
@@ -57668,6 +57917,7 @@
         "routing",
         "sheet_metal",
         "simulation",
+        "sketch",
         "surface"
       ],
       "missing": [],
@@ -57686,7 +57936,8 @@
         "simulation",
         "routing",
         "mold",
-        "reuse"
+        "reuse",
+        "sketch"
       ],
       "actual": [
         "assembly",
@@ -57699,6 +57950,7 @@
         "routing",
         "sheet_metal",
         "simulation",
+        "sketch",
         "surface"
       ],
       "missing": [],
@@ -57715,44 +57967,45 @@
   "length_stats": {
     "K5": {
       "count": 309,
-      "total_length": 627,
+      "total_length": 622,
       "over_target": 0,
       "by_length": {
-        "2": 300,
-        "3": 9
+        "2": 305,
+        "3": 4
       },
-      "average_length": 2.03
+      "average_length": 2.01
     },
     "support": {
-      "count": 281,
-      "total_length": 587,
+      "count": 293,
+      "total_length": 603,
       "over_target": 0,
       "by_length": {
-        "2": 272,
+        "2": 284,
         "3": 1,
-        "5": 8
+        "4": 8
       },
-      "average_length": 2.09
+      "average_length": 2.06
     },
     "K3": {
       "count": 966,
-      "total_length": 3823,
+      "total_length": 3818,
       "over_target": 0,
       "by_length": {
-        "3": 42,
-        "4": 923,
-        "5": 1
+        "2": 4,
+        "3": 38,
+        "4": 924
       },
-      "average_length": 3.96
+      "average_length": 3.95
     },
     "K4": {
       "count": 786,
-      "total_length": 2358,
+      "total_length": 2352,
       "over_target": 0,
       "by_length": {
-        "3": 786
+        "2": 6,
+        "3": 780
       },
-      "average_length": 3
+      "average_length": 2.99
     }
   },
   "disabled_summary": {
@@ -61545,7 +61798,7 @@
         "command_name": "Pattern Curve",
         "frequency": "K4",
         "status": "unresolved",
-        "path": "TGC",
+        "path": "TC",
         "catalog_refs": [
           "nx2512-01-L0147"
         ],
@@ -61577,7 +61830,7 @@
         "command_name": "Mirror Curve",
         "frequency": "K4",
         "status": "unresolved",
-        "path": "TGU",
+        "path": "TU",
         "catalog_refs": [
           "nx2512-01-L0148"
         ],
@@ -62142,7 +62395,7 @@
         "command_name": "Corner",
         "frequency": "K3",
         "status": "unresolved",
-        "path": "EGC",
+        "path": "EC",
         "catalog_refs": [
           "nx2512-01-L0185"
         ],
@@ -62153,7 +62406,7 @@
         "command_name": "Move Curve",
         "frequency": "K4",
         "status": "unresolved",
-        "path": "TGR",
+        "path": "TR",
         "catalog_refs": [
           "nx2512-01-L0186"
         ],
@@ -62196,7 +62449,7 @@
         "command_name": "Scale Curve",
         "frequency": "K4",
         "status": "unresolved",
-        "path": "TGV",
+        "path": "TV",
         "catalog_refs": [
           "nx2512-01-L0188"
         ],
