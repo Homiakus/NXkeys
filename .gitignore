@@ -8,6 +8,7 @@
 .DS_Store
 Thumbs.db
 Desktop.ini
+.claude/
 .idea/
 .vs/
 .vscode/

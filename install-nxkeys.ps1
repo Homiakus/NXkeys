@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 # NXKeys installer menu revision: path-char-fix-v2
 param(
     [string]$ConfigPath,
@@ -28,19 +28,19 @@ param(
     они перемещаются в %LOCALAPPDATA%\NXKeys\conflict-backups\<дата>.
 
 .EXAMPLE
-    .\install-nxkeys-menu.ps1
+    .\install-nxkeys.ps1
 
 .EXAMPLE
-    .\install-nxkeys-menu.ps1 -Mode Audit
+    .\install-nxkeys.ps1 -Mode Audit
 
 .EXAMPLE
-    .\install-nxkeys-menu.ps1 -Mode CleanConflicts -Yes
+    .\install-nxkeys.ps1 -Mode CleanConflicts -Yes
 
 .EXAMPLE
-    .\install-nxkeys-menu.ps1 -Mode CleanInstall -Yes
+    .\install-nxkeys.ps1 -Mode CleanInstall -Yes
 
 .EXAMPLE
-    .\install-nxkeys-menu.ps1 -Mode Install -AutoCleanConflicts -Yes -Clean
+    .\install-nxkeys.ps1 -Mode Install -AutoCleanConflicts -Yes -Clean
 #>
 
 Set-StrictMode -Version Latest
@@ -884,6 +884,15 @@ if (-not $NoBuild) {
     if (Test-Path -LiteralPath $controlDist) { Remove-Item -LiteralPath $controlDist -Recurse -Force }
     & $dotnetExe publish $controlProject -c Release -r win-x64 --self-contained false -p:Platform=x64 -o $controlDist --nologo
     if ($LASTEXITCODE -ne 0) { throw "Публикация Control Center завершилась с кодом $LASTEXITCODE." }
+
+    Write-Step 'Сборка модуля чертежей ЕСКД (NxEskd)'
+    $nxeskdBuildScript = Join-Path $ScriptDir 'nxeskd\scripts\build.ps1'
+    if (Test-Path -LiteralPath $nxeskdBuildScript -PathType Leaf) {
+        $eskdArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $nxeskdBuildScript, '-SkipNxVersionCheck', '-SkipTests')
+        if ($NxRoot) { $eskdArgs += @('-NxRoot', $NxRoot) }
+        & $psExe @eskdArgs
+        if ($LASTEXITCODE -ne 0) { throw "Сборка NxEskd завершилась с кодом $LASTEXITCODE." }
+    }
 }
 
 foreach ($path in @(
@@ -902,6 +911,29 @@ try {
     Copy-DirectoryFiles $bridgeDist (Join-Path $staging 'bridge')
     Copy-DirectoryFiles $controlDist (Join-Path $staging 'control-center')
     Copy-Item -LiteralPath $config -Destination (Join-Path $staging 'nx2512-v8-profile.json') -Force
+
+    $nxeskdDist = Join-Path $ScriptDir 'nxeskd\dist\NxEskd'
+    if (Test-Path -LiteralPath $nxeskdDist -PathType Container) {
+        Write-Step 'Интеграция артефактов NxEskd в staging-набор'
+        $nxeskdApp = Join-Path $nxeskdDist 'application'
+        if (Test-Path -LiteralPath $nxeskdApp) {
+            Copy-DirectoryFiles $nxeskdApp (Join-Path $staging 'bridge')
+        }
+        $nxeskdBin = Join-Path $nxeskdDist 'bin'
+        if (Test-Path -LiteralPath $nxeskdBin) {
+            Copy-DirectoryFiles $nxeskdBin (Join-Path $staging 'eskd-configurator')
+        }
+        $nxeskdStartup = Join-Path $nxeskdDist 'startup'
+        if (Test-Path -LiteralPath $nxeskdStartup) {
+            Copy-DirectoryFiles $nxeskdStartup (Join-Path $staging 'eskd-startup')
+        }
+        $nxeskdTemplates = Join-Path $nxeskdDist 'templates'
+        if (Test-Path -LiteralPath $nxeskdTemplates) {
+            $stagingTemplates = Join-Path $staging 'templates'
+            New-Item -ItemType Directory -Force -Path $stagingTemplates | Out-Null
+            Copy-DirectoryFiles $nxeskdTemplates $stagingTemplates
+        }
+    }
 
     # NXKeys.Protocol загружается лениво командой health, поэтому обычный запуск apply
     # может пройти даже при ошибочном publish-наборе. Добавляем DLL в staging заранее.
@@ -942,6 +974,35 @@ try {
     if (-not $bridgeDeployed) {
         Write-Warning 'Не все Bridge DLL скопированы. Закрой NX и повтори установку.'
     }
+
+    # Deploy NxEskd startup MenuScript, configurator, templates and environment variables
+    $managedCustomDir = Join-Path $managedRoot 'custom'
+    $managedStartupDir = Join-Path $managedCustomDir 'startup'
+    New-Item -ItemType Directory -Force -Path $managedStartupDir | Out-Null
+
+    $stagedEskdStartup = Join-Path $staging 'eskd-startup'
+    if (Test-Path -LiteralPath $stagedEskdStartup -PathType Container) {
+        Copy-DirectoryFiles $stagedEskdStartup $managedStartupDir
+        Write-Host "  [+] Меню ЕСКД скопировано в $managedStartupDir" -ForegroundColor Green
+    }
+
+    $stagedEskdConfigurator = Join-Path $staging 'eskd-configurator'
+    if (Test-Path -LiteralPath $stagedEskdConfigurator -PathType Container) {
+        $managedEskdConfig = Join-Path $managedRoot 'eskd-configurator'
+        Copy-DirectoryFiles $stagedEskdConfigurator $managedEskdConfig
+        Copy-DirectoryFiles $stagedEskdConfigurator $managedAppDir
+        Write-Host "  [+] Конфигуратор ЕСКД скопирован в $managedEskdConfig" -ForegroundColor Green
+    }
+
+    $stagedTemplates = Join-Path $staging 'templates'
+    if (Test-Path -LiteralPath $stagedTemplates -PathType Container) {
+        $managedTemplates = Join-Path $managedCustomDir 'templates'
+        Copy-DirectoryFiles $stagedTemplates $managedTemplates
+        Write-Host "  [+] Шаблоны ЕСКД скопированы в $managedTemplates" -ForegroundColor Green
+    }
+
+    [Environment]::SetEnvironmentVariable('NX_ESKD_ROOT', $managedCustomDir, 'User')
+    $env:NX_ESKD_ROOT = $managedCustomDir
 
     # Also copy Protocol.dll to managed root (runtime dependency of HotkeyStudio).
     Copy-Item -LiteralPath $stagedProtocol -Destination (Join-Path $managedRoot (Split-Path $stagedProtocol -Leaf)) -Force -ErrorAction SilentlyContinue

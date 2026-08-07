@@ -6749,6 +6749,138 @@
       }
     },
     {
+      "operation_id": "drafting.eskd_control_center",
+      "paths": {
+        "leader": [
+          "E",
+          "C"
+        ],
+        "secondary_aliases": []
+      },
+      "command_name": "ESKD Control Center",
+      "adapter": {
+        "kind": "button_id",
+        "value": "NX_ESKD_COMMAND_CENTER",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "drafting",
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.eskd_generate",
+      "paths": {
+        "leader": [
+          "E",
+          "G"
+        ],
+        "secondary_aliases": []
+      },
+      "command_name": "ESKD Generate Drawing",
+      "adapter": {
+        "kind": "button_id",
+        "value": "NX_ESKD_GENERATE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "drafting",
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.eskd_update",
+      "paths": {
+        "leader": [
+          "E",
+          "U"
+        ],
+        "secondary_aliases": []
+      },
+      "command_name": "ESKD Update Drawing",
+      "adapter": {
+        "kind": "button_id",
+        "value": "NX_ESKD_UPDATE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "drafting",
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.eskd_preview",
+      "paths": {
+        "leader": [
+          "E",
+          "P"
+        ],
+        "secondary_aliases": []
+      },
+      "command_name": "ESKD Layout Preview",
+      "adapter": {
+        "kind": "button_id",
+        "value": "NX_ESKD_PREVIEW",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "drafting",
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.eskd_validate",
+      "paths": {
+        "leader": [
+          "E",
+          "V"
+        ],
+        "secondary_aliases": []
+      },
+      "command_name": "ESKD Validate Compliance",
+      "adapter": {
+        "kind": "button_id",
+        "value": "NX_ESKD_VALIDATE",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "drafting",
+          "global"
+        ]
+      }
+    },
+    {
+      "operation_id": "drafting.eskd_inventory",
+      "paths": {
+        "leader": [
+          "E",
+          "I"
+        ],
+        "secondary_aliases": []
+      },
+      "command_name": "ESKD API Diagnostics",
+      "adapter": {
+        "kind": "button_id",
+        "value": "NX_ESKD_INVENTORY",
+        "status": "declared_v8"
+      },
+      "availability": {
+        "applications": [
+          "drafting",
+          "global"
+        ]
+      }
+    },
+    {
       "operation_id": "drafting.parts_list__legacy_alias",
       "paths": {
         "leader": [
