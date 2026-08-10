@@ -1,154 +1,162 @@
 # Документация NXKeys
 
-Этот каталог содержит пользовательскую, эксплуатационную, архитектурную и разработческую документацию NXKeys. Каноническая документация описывает текущую ветку `main`: profile schema 6, IPC schema 4, sequence policy v7 и отдельную семантическую грамматику Sketch.
+Документация ветки `main` описывает **NXKeys v8** для Siemens NX / Designcenter NX 2512.
 
-Стандартный **главный профиль K3–K5** охватывает **885** выбранных намерений; полный source catalog содержит 1169 намерений K1–K5. Подтверждённое ядро Sketch сохраняется в runtime как отдельная смысловая vocabulary без нарушения traceability выбранного scope.
+Текущий контракт:
+
+- profile schema **8**;
+- IPC schema **4**;
+- sequence policy **v8**;
+- основной runtime profile: `config/nx2512-v8-profile.json`;
+- fallback без JSON: hardcoded v8 profile;
+- активный модуль NX определяется автоматически;
+- частые Sketch-команды могут быть однотокенными;
+- Selection Intent `0…4` работает внутри активных NX collectors.
+
+Каноническое описание текущего runtime: [RUNTIME_V8.md](RUNTIME_V8.md).
 
 ## Начать отсюда
 
 | Задача | Документ |
 |---|---|
-| быстро освоить ввод команд, Sketch, установку и диагностику | [CHEATSHEET.md](CHEATSHEET.md) |
-| понять назначение проекта и запустить проверки | [корневой README](../README.md) |
-| подготовить среду разработки | [DEVELOPMENT.md](../DEVELOPMENT.md) |
-| установить или обновить NXKeys | [INSTALLATION.md](INSTALLATION.md) |
-| понять компоненты и потоки данных | [ARCHITECTURE.md](ARCHITECTURE.md) |
-| оценить хрупкость, целевую архитектуру NX-плагина и UI | [NX_PLUGIN_FRAGILITY_ARCHITECTURE_UI_AUDIT.md](NX_PLUGIN_FRAGILITY_ARCHITECTURE_UI_AUDIT.md) |
-| изучить текущую карту путей | [Интерактивная карта команд](command-tree.html) |
-| изменить профиль или мнемонический путь | [CONFIGURATION.md](CONFIGURATION.md), [MNEMONIC_COMMAND_LANGUAGE.md](MNEMONIC_COMMAND_LANGUAGE.md), [SKETCH_INTENT_LANGUAGE.md](SKETCH_INTENT_LANGUAGE.md) |
+| понять текущий v8-контракт | [RUNTIME_V8.md](RUNTIME_V8.md) |
+| быстро начать работать | [CHEATSHEET.md](CHEATSHEET.md) |
+| установить/обновить NXKeys | [INSTALLATION.md](INSTALLATION.md) |
+| понять `0…4` Selection Intent | [SELECTION_INTENT.md](SELECTION_INTENT.md) |
+| освоить Sketch v8 | [SKETCH_INTENT_LANGUAGE.md](SKETCH_INTENT_LANGUAGE.md) |
+| посмотреть архитектуру | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| настроить profile schema v8 | [CONFIGURATION.md](CONFIGURATION.md) |
 | использовать CLI | [CLI.md](CLI.md) |
-| интегрироваться с файловым IPC | [api.md](api.md) |
-| диагностировать установленную систему | [OPERATIONS.md](OPERATIONS.md), [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
-| понять ограничения безопасности | [SAFETY_MODEL.md](SAFETY_MODEL.md) |
-| внести изменение в репозиторий | [CONTRIBUTING.md](../CONTRIBUTING.md) |
-| проверить актуальность документации | [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md) |
+| интегрироваться с file IPC | [api.md](api.md) |
+| диагностировать систему | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
+| сопровождать установку | [OPERATIONS.md](OPERATIONS.md) |
+| понять security boundaries | [SAFETY_MODEL.md](SAFETY_MODEL.md) |
+| разрабатывать локально | [DEVELOPMENT.md](../DEVELOPMENT.md) |
+| вносить изменения | [CONTRIBUTING.md](../CONTRIBUTING.md) |
+| увидеть последнюю сверку | [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md) |
 
-## Документы по аудитории
+## Для пользователя NX
 
-### Пользователь NX
+Основная последовательность чтения:
 
-- [Подробная шпаргалка](CHEATSHEET.md)
-- [Мнемонический язык](MNEMONIC_COMMAND_LANGUAGE.md)
-- [Язык намерений Sketch](SKETCH_INTENT_LANGUAGE.md)
-- [Интерактивная карта команд](command-tree.html)
-- [Установка и обновление](INSTALLATION.md)
-- [Диагностика](TROUBLESHOOTING.md)
+1. [CHEATSHEET.md](CHEATSHEET.md) — ежедневные команды и сценарии;
+2. [RUNTIME_V8.md](RUNTIME_V8.md) — что именно считается текущим поведением;
+3. [SKETCH_INTENT_LANGUAGE.md](SKETCH_INTENT_LANGUAGE.md) — Sketch;
+4. [SELECTION_INTENT.md](SELECTION_INTENT.md) — `0…4` для collector selection;
+5. [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — если что-то не работает.
 
-### Администратор и техническая поддержка
+Ключевой принцип: пользователь **не вводит префикс активного модуля**. Runtime добавляет его сам.
 
-- [Установка и обновление](INSTALLATION.md)
-- [Эксплуатационный runbook](OPERATIONS.md)
-- [CLI HotkeyStudio](CLI.md)
-- [Модель безопасности](SAFETY_MODEL.md)
-- [IPC API и файловая очередь](api.md)
-- [Аудит хрупкости и целевой архитектуры](NX_PLUGIN_FRAGILITY_ARCHITECTURE_UI_AUDIT.md)
+Примеры в активном Sketch:
 
-### Разработчик и reviewer
+```text
+CapsLock → L            Line
+CapsLock → K → C        Coincident
+CapsLock → D → Q        Rapid Dimension
+```
 
-- [Локальная разработка](../DEVELOPMENT.md)
-- [Внесение изменений](../CONTRIBUTING.md)
-- [Архитектура](ARCHITECTURE.md)
-- [Аудит хрупкости, архитектуры NX-плагина и UI](NX_PLUGIN_FRAGILITY_ARCHITECTURE_UI_AUDIT.md)
-- [Конфигурация](CONFIGURATION.md)
-- [Архитектура DFA/HFSM](STATE_MACHINE_ARCHITECTURE.md)
-- [Спецификация профиля](NX_PRO_HYBRID_SOURCE_SPEC.md)
-- [ADR](adr/README.md)
-- [Аудит документации](DOCUMENTATION_AUDIT.md)
+Пример Manage в Modeling:
 
-## Канонические документы
+```text
+CapsLock → M → L → S    Layer Settings
+```
 
-Канонические документы должны соответствовать текущему коду и конфигурации:
+## Для администратора
 
-- `../README.md` — назначение, быстрый старт и навигация;
-- `CHEATSHEET.md` — подробная ежедневная шпаргалка;
-- `../DEVELOPMENT.md` — сборка и проверки;
-- `../CONTRIBUTING.md` — правила изменений;
-- `ARCHITECTURE.md` — компоненты и границы;
-- `NX_PLUGIN_FRAGILITY_ARCHITECTURE_UI_AUDIT.md` — текущие риски, целевая архитектура и план улучшения UI;
-- `INSTALLATION.md` — production compile/install/update;
-- `CONFIGURATION.md` — profile schema, поля и generation;
-- `CLI.md` — подтверждённые CLI-команды и flags;
-- `api.md` — файловый IPC-контракт;
-- `MNEMONIC_COMMAND_LANGUAGE.md` — sequence policy и карта runtime-команд;
-- `SKETCH_INTENT_LANGUAGE.md` — отдельная грамматика Sketch;
-- `STATE_MACHINE_ARCHITECTURE.md` — DFA/HFSM и guards;
-- `SAFETY_MODEL.md` — безопасность исполнения;
-- `OPERATIONS.md` — health, queue, backups и recovery;
-- `TROUBLESHOOTING.md` — диагностика типовых отказов;
-- `DOCUMENTATION_AUDIT.md` — дата и результат последней сверки.
+- [INSTALLATION.md](INSTALLATION.md) — installer, modes, NXOpen и staging;
+- [OPERATIONS.md](OPERATIONS.md) — health, queue, backup, restore;
+- [CLI.md](CLI.md) — операторские команды;
+- [SAFETY_MODEL.md](SAFETY_MODEL.md) — authenticated IPC и safety controls;
+- [api.md](api.md) — request/context/result schema 4.
 
-Документация компонентов:
+После обновления Bridge необходимо полностью закрыть NX: загруженная `NX2512_CommandBridge.dll` не обновляется в уже работающем процессе.
 
-- [HotkeyStudio](../NX2512_HotkeyStudio/README.md)
-- [Command Bridge](../NX2512_CommandBridge/README.md)
-- [Control Center](../NX2512_ControlCenter/README.md)
-- [Catalog Studio](../NX2512_Catalog_Studio/README.md)
-- [Экспортированные роли](../roles/README.md)
+## Для разработчика
 
-## Generated-документы
+- [DEVELOPMENT.md](../DEVELOPMENT.md);
+- [CONTRIBUTING.md](../CONTRIBUTING.md);
+- [ARCHITECTURE.md](ARCHITECTURE.md);
+- [CONFIGURATION.md](CONFIGURATION.md);
+- [STATE_MACHINE_ARCHITECTURE.md](STATE_MACHINE_ARCHITECTURE.md);
+- [NX_PRO_HYBRID_SOURCE_SPEC.md](NX_PRO_HYBRID_SOURCE_SPEC.md);
+- [ADR](adr/README.md).
 
-Следующие файлы создаются скриптами и не должны редактироваться вручную:
+Component documentation:
 
-- `generated/main-profile-resolution.md`;
+- [HotkeyStudio](../NX2512_HotkeyStudio/README.md);
+- [Command Bridge](../NX2512_CommandBridge/README.md);
+- [Control Center](../NX2512_ControlCenter/README.md);
+- [Catalog Studio](../NX2512_Catalog_Studio/README.md);
+- [roles](../roles/README.md).
+
+## Current, generated и historical
+
+### Canonical/current
+
+Описывает текущую ветку `main` и обязано совпадать с кодом. В первую очередь это:
+
+- `RUNTIME_V8.md`;
+- `README.md` и корневой `README.md`;
+- `CHEATSHEET.md`;
+- `INSTALLATION.md`;
+- `CONFIGURATION.md`;
+- `ARCHITECTURE.md`;
+- `api.md`;
+- `SAFETY_MODEL.md`;
+- `OPERATIONS.md`;
+- `TROUBLESHOOTING.md`;
+- component README.
+
+### Generated
+
+Не редактируются вручную, когда они создаются генератором:
+
+- `generated/*`;
 - `audit/command-sequence-audit.md`;
 - `audit/command-sequence-audit.json`;
-- `command-tree.html`, когда карта пересобирается генератором;
+- `command-tree.html`;
 - `../config/nx2512-pro-main.generated.json`.
 
-После изменения `scripts/sequence-policy.mjs`, компиляторов профиля, `MnemonicPathGenerator*` или каталога намерений generated-документы необходимо пересоздать и проверить в diff.
+K1–K5 / K3–K5 pipeline остаётся частью репозитория и полезен для coverage, catalog analysis и исторической трассировки. Он не должен описываться как default runtime installer path, пока `install-nxkeys.ps1` по умолчанию выбирает `nx2512-v8-profile.json`.
 
-## Исторические аудиты
+### Historical
 
-`docs/audit/00-*` … `docs/audit/12-*`, датированные evidence JSON и старые build reports фиксируют состояние проекта на момент конкретного анализа. Они полезны для трассировки решений, но не являются текущей инструкцией.
+`docs/audit/00-* … 12-*`, датированные evidence files, старые build reports и `docs/superpowers/plans/*` фиксируют состояние на дату создания. Они могут корректно содержать старые schema/policy и старые пути.
 
-При противоречии используйте такой приоритет:
+При конфликте приоритет такой:
 
-1. исполняемый код и валидаторы;
-2. канонические документы;
-3. generated-отчёты, созданные тем же commit;
-4. исторические аудиты.
+1. код и автоматические тесты;
+2. [RUNTIME_V8.md](RUNTIME_V8.md) и canonical docs;
+3. generated artifacts того же commit;
+4. historical snapshots.
 
 ## Источники истины
 
 | Область | Источник |
 |---|---|
-| profile schema и runtime migration | `NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs` |
-| поля команд | `NX2512_HotkeyStudio/Models/ModuleConfigTypesV5.cs` |
-| универсальная sequence policy | `scripts/sequence-policy.mjs` |
-| runtime-пути | `NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs` |
-| Sketch grammar | `NX2512_HotkeyStudio/Models/MnemonicPathGenerator.Sketch.cs` |
-| состав K1–K5 | `config/full-command-map/` |
-| bootstrap safety/deployment | `config/nx2512-pro-hybrid.json` |
-| IPC | `NXKeys.Protocol/NxProtocol.cs` |
-| guards и state machine | `config/nx2512-state-machines.json`, `NXKeys.StateMachines/` |
-| сборка и установка | `install-nxkeys.ps1`, component `build.ps1` |
-| CI | `.github/workflows/*.yml` |
-| фактические NX IDs | export Catalog Studio `06_ui_commands_buttons.csv` |
+| current profile schema/range | `NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs` |
+| v8 operation fields | `NX2512_HotkeyStudio/Models/V8Models.cs` |
+| v8 aliases/workspace normalization | `NX2512_HotkeyStudio/Models/V8SecondaryAliasExpander.cs` |
+| default runtime profile | `config/nx2512-v8-profile.json` |
+| installer profile selection | `install-nxkeys.ps1` |
+| desktop/CLI profile resolution | `NX2512_HotkeyStudio/Program.cs` |
+| sequence policy | `scripts/sequence-policy.mjs` |
+| IPC schema/security fields | `NXKeys.Protocol/NxProtocol.cs` |
+| IPC permissions/canonicalization | `NXKeys.Protocol/NxBridgeSecurity.cs` |
+| Selection Intent `0…4` | `NX2512_CommandBridge/SelectionIntentHotkeys.cs` |
+| state machines | `config/nx2512-state-machines.json`, `NXKeys.StateMachines/` |
+| actual NX UI IDs | target export `06_ui_commands_buttons.csv` |
 
-## Как поддерживать актуальность
+## Правило поддержки
 
-При изменении поведения обновляйте документацию в том же PR:
+Изменение поведения не считается завершённым, пока в том же change set не обновлены соответствующая документация и machine-checkable invariants.
 
-| Изменение | Документация |
-|---|---|
-| новый пользовательский путь | `CHEATSHEET.md` при частом сценарии, `MNEMONIC_COMMAND_LANGUAGE.md` |
-| изменение Sketch | `SKETCH_INTENT_LANGUAGE.md`, тесты и шпаргалка |
-| profile schema | `CONFIGURATION.md`, `NX_PRO_HYBRID_SOURCE_SPEC.md`, migration notes |
-| CLI или flags | `CLI.md`, при необходимости `CHEATSHEET.md` |
-| IPC | `api.md`, architecture, safety docs и аудит хрупкости |
-| architecture/UI boundary | `ARCHITECTURE.md`, аудит хрупкости и соответствующий ADR |
-| installation/deployment | `INSTALLATION.md`, `OPERATIONS.md`, `TROUBLESHOOTING.md` |
-| safety/confirmation | `SAFETY_MODEL.md`, runbook и changelog |
-| source/generated counts | generated reports и разделы, где число действительно необходимо |
+Минимальная документационная проверка:
 
-Не копируйте большие автоматически формируемые таблицы в несколько ручных документов. Для полного списка команд используйте generated mnemonic reference и интерактивную карту.
+```powershell
+node .\scripts\validate-documentation.mjs
+node .\scripts\validate-command-tree.mjs
+node .\scripts\audit-command-sequences.mjs
+```
 
-## Статусы утверждений
-
-В аудиторских документах используются метки:
-
-- **Подтверждено кодом** — утверждение непосредственно следует из исходного кода или конфигурации;
-- **Подтверждено тестом** — поведение зафиксировано автоматическим тестом;
-- **Подтверждено CI** — проверка успешно выполняется workflow;
-- **Предположение** — рабочая гипотеза, которую нельзя доказать доступными файлами;
-- **Требует проверки в NX 2512** — нужна целевая лицензированная workstation.
+Для runtime изменений дополнительно запускаются C# tests/builds из [DEVELOPMENT.md](../DEVELOPMENT.md).
