@@ -7,6 +7,18 @@ namespace NX2512_HotkeyStudio.Models
 {
     public sealed class LeaderKeyConfig
     {
+        private static readonly IReadOnlyDictionary<string, string> RuntimeCommandAliases =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["UG_SHEET_METAL_BASE_TAB"] = "UG_SBSM_TAB_FEATURE",
+                ["UG_SHEET_METAL_FLANGE"] = "UG_SBSM_FLANGE_FEATURE",
+                ["UG_SHEET_METAL_CONTOUR_FLANGE"] = "UG_SBSM_CONTOUR_FLANGE_FEATURE",
+                ["UG_SHEET_METAL_BEND"] = "UG_SBSM_BEND_FEATURE",
+                ["UG_SHEET_METAL_UNBEND"] = "UG_SBSM_UNBEND_FEATURE",
+                ["UG_SHEET_METAL_REBEND"] = "UG_SBSM_REBEND_FEATURE",
+                ["UG_SHEET_METAL_FLAT_PATTERN"] = "UG_SBSM_FLAT_PATTERN_FEATURE"
+            };
+
         [JsonPropertyName("enabled")] public bool Enabled { get; set; } = true;
         [JsonPropertyName("trigger_key")] public string TriggerKey { get; set; } = "CapsLock";
         [JsonPropertyName("adaptive_module_mode")] public bool AdaptiveModuleMode { get; set; } = true;
@@ -42,6 +54,7 @@ namespace NX2512_HotkeyStudio.Models
         {
             ApplyDefaults();
             RuntimeModules = (modules ?? Enumerable.Empty<ModuleConfig>()).Where(value => value != null).ToList();
+            NormalizeRuntimeCompatibility(RuntimeModules);
             var result = new List<LeaderSequenceItem>();
 
             foreach (ModuleConfig sourceModule in RuntimeModules.Where(value => value.Enabled))
@@ -88,6 +101,69 @@ namespace NX2512_HotkeyStudio.Models
                 }
             }
             Sequences = result;
+        }
+
+        /// <summary>
+        /// Normalizes compatibility aliases before sequences are frozen. Siemens NX
+        /// 2512 exposes Sheet Metal through UG_APP_SBSM and UG_SBSM_* BUTTON IDs.
+        /// Earlier v8 drafts used invented UG_SHEET_METAL_* identifiers and the
+        /// synthetic UG_APP_SHEETMETAL application id. Keep the synthetic app alias
+        /// for Bridge context compatibility, but make the real application first so
+        /// module switching and command dispatch use verified NX identifiers.
+        /// </summary>
+        private static void NormalizeRuntimeCompatibility(IEnumerable<ModuleConfig> modules)
+        {
+            foreach (ModuleConfig module in modules ?? Enumerable.Empty<ModuleConfig>())
+            {
+                if (module == null) continue;
+
+                bool sheetMetal = IsSheetMetalModule(module);
+                if (sheetMetal)
+                {
+                    module.NXApplicationIDs ??= new List<string>();
+                    if (!module.NXApplicationIDs.Contains("UG_APP_SBSM", StringComparer.OrdinalIgnoreCase))
+                        module.NXApplicationIDs.Insert(0, "UG_APP_SBSM");
+                    else
+                    {
+                        module.NXApplicationIDs.RemoveAll(id => string.Equals(id, "UG_APP_SBSM", StringComparison.OrdinalIgnoreCase));
+                        module.NXApplicationIDs.Insert(0, "UG_APP_SBSM");
+                    }
+                    if (!module.NXApplicationIDs.Contains("UG_APP_SHEETMETAL", StringComparer.OrdinalIgnoreCase))
+                        module.NXApplicationIDs.Add("UG_APP_SHEETMETAL");
+
+                    module.SwitchCommand ??= new CommandRef();
+                    if (string.IsNullOrWhiteSpace(module.SwitchCommand.ID) ||
+                        string.Equals(module.SwitchCommand.ID, "UG_APP_SHEETMETAL", StringComparison.OrdinalIgnoreCase))
+                        module.SwitchCommand.ID = "UG_APP_SBSM";
+                    if (string.IsNullOrWhiteSpace(module.SwitchCommand.Name))
+                        module.SwitchCommand.Name = "Switch to Sheet Metal";
+                }
+
+                IEnumerable<ModuleCommand> commands = module.CommandSets?
+                    .Where(set => set?.Commands != null)
+                    .SelectMany(set => set.Commands)
+                    .Where(command => command?.Command != null)
+                    ?? Enumerable.Empty<ModuleCommand>();
+
+                foreach (ModuleCommand command in commands)
+                {
+                    string id = command.Command.ID ?? string.Empty;
+                    if (RuntimeCommandAliases.TryGetValue(id, out string verified))
+                        command.Command.ID = verified;
+                }
+            }
+        }
+
+        private static bool IsSheetMetalModule(ModuleConfig module)
+        {
+            string id = NormalizeModuleId(module?.ID);
+            if (id == "sheet_metal" || id == "sheetmetal" || id == "v8_h" || id == "v8_sm" || id == "v8_sh")
+                return true;
+            if (string.Equals(NormalizeInputKey(module?.LeaderPrefix), "H", StringComparison.OrdinalIgnoreCase))
+                return true;
+            return module?.NXApplicationIDs != null && module.NXApplicationIDs.Any(app =>
+                string.Equals(app, "UG_APP_SBSM", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(app, "UG_APP_SHEETMETAL", StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
