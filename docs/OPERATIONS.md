@@ -1,52 +1,43 @@
-# Эксплуатационный runbook NXKeys
+# Эксплуатационный runbook NXKeys v8
 
-## Область
+Документ предназначен для поддержки managed NXKeys на Windows x64 с Siemens NX / Designcenter NX 2512.
 
-Документ предназначен для поддержки установленного managed package NXKeys на Windows x64 с Siemens NX / Designcenter NX 2512.
-
-Канонический managed root из bootstrap-профиля:
+Current installed profile:
 
 ```text
-%LOCALAPPDATA%\NXKeys\managed\NX2512.6000
+%LOCALAPPDATA%\NXKeys\managed\NX2512.6000\nx2512-v8-profile.json
 ```
-
-Фактическое значение берётся из `deployment.managed_root` установленного профиля.
-
-## Компоненты процесса
-
-| Процесс/компонент | Ожидаемое состояние |
-|---|---|
-| Siemens NX (`ugraf`, `run_nx` или NX launcher) | запущен пользователем через NXKeys launcher |
-| `NX2512_HotkeyStudio.exe` | один instance; desktop, tray или background |
-| `NX2512_CommandBridge.dll` | загружен NX через managed custom directory |
-| `NX2512_ControlCenter.exe` | запускается по необходимости |
 
 ## Быстрая проверка
 
 ```powershell
 $root = "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000"
 $studio = "$root\NX2512_HotkeyStudio.exe"
-$config = "$root\nx2512-pro-hybrid.json"
+$config = "$root\nx2512-v8-profile.json"
 
 & $studio validate --config $config
 & $studio health --config $config
+```
+
+После запуска NX через managed launcher:
+
+```powershell
 & $studio bridge-status --config $config
 ```
 
-Порядок интерпретации:
+Ожидаемый порядок:
 
-1. `validate` должен подтвердить корректность профиля;
-2. `health` должен подтвердить managed manifest и required files;
-3. при запущенном NX `bridge-status` должен показывать свежий context;
-4. при закрытом NX Bridge OFFLINE является нормальным состоянием.
+```text
+validate → health → managed launch NX → bridge-status → safe smoke test
+```
 
-## Файловая структура runtime
+## Runtime layout
 
 ```text
 %LOCALAPPDATA%\NXKeys\
 ├── managed\NX2512.6000\
 │   ├── NX2512_HotkeyStudio.exe
-│   ├── nx2512-pro-hybrid.json
+│   ├── nx2512-v8-profile.json
 │   ├── nx2512-state-machines.json
 │   ├── package-manifest.json
 │   ├── launch-nx2512-with-nxkeys.cmd
@@ -60,100 +51,167 @@ $config = "$root\nx2512-pro-hybrid.json"
 │   ├── context.json
 │   └── status.json
 ├── backups\
+├── conflict-backups\
 ├── logs\
 └── staging\
 ```
 
-Не редактируйте managed package и очередь вручную во время выполнения команды.
-
-## Состояние Bridge
-
-### ONLINE
-
-Признаки:
-
-- `status.json` существует;
-- `context.json` существует и обновляется;
-- `updated_utc` имеет допустимый возраст;
-- application/module соответствует открытому NX;
-- queue не накапливается без движения.
-
-### STALE
-
-Контекст существует, но давно не обновлялся.
-
-Действия:
-
-1. убедитесь, что NX не завис;
-2. проверьте Bridge log;
-3. проверьте, не загружена ли старая DLL после обновления;
-4. закройте NX полностью;
-5. запустите через managed launcher;
-6. повторите `bridge-status`.
+## Нормальные состояния Bridge
 
 ### OFFLINE
 
-При закрытом NX — нормально. При открытом NX:
+Нормально, если NX закрыт.
 
-1. проверьте launcher;
-2. проверьте `UGII_CUSTOM_DIRECTORY_FILE`;
-3. проверьте наличие DLL в `custom\application`;
-4. проверьте package manifest/hash;
-5. проверьте MenuScript version и custom directories;
-6. перезапустите NX.
+### ONLINE
 
-## Очередь запросов
+Ожидаются fresh `status.json`/`context.json`, правильный module/application, действующая authenticated session и отсутствие бесконтрольного роста queue.
+
+### STALE
+
+Context существует, но устарел. Не выполняйте новые commands до восстановления fresh context.
+
+### `authentication_required`
+
+NX/HotkeyStudio не разделяют valid schema-4 launch session. Полностью перезапустите их через:
+
+```text
+launch-nx2512-with-nxkeys.cmd
+```
+
+Не создавайте security fields вручную.
+
+## Queue lifecycle
 
 ```text
 pending → processing → completed | failed
 ```
 
-### Нормальное поведение
+Schema 4 добавляет HMAC/session/anti-replay/profile-permission admission. Queue file сам по себе не является разрешением.
 
-- HotkeyStudio атомарно создаёт request в `pending`;
-- Bridge перемещает request в `processing`;
-- результат сохраняется;
-- request архивируется в `completed` или `failed`;
-- повторный `request_id` не должен исполняться повторно.
+### `pending` растёт
 
-### Накопление `pending`
+Проверьте:
 
-Возможные причины:
+- Bridge online;
+- authenticated session;
+- queue limits;
+- file/ACL/antivirus issues;
+- process health;
+- profile digest agreement.
 
-- Bridge offline;
-- NX не запущен через managed launcher;
-- custom directory не подключён;
-- Bridge не может читать IPC root;
-- process NX завис.
+### `processing` остался после crash
 
-Не переносите request вручную в `completed`. Сначала сохраните копию queue для диагностики и восстановите Bridge.
+Результат считается неизвестным. Recovery не должен автоматически retry request.
 
-### Файл остаётся в `processing`
+Перед ручным повтором проверьте фактический NX state.
 
-Это означает, что request был захвачен и результат может быть неизвестен. После recovery такой запрос должен получить `interrupted_unknown`, а не автоматически выполняться повторно.
+### `failed` растёт
 
-Перед повтором действия:
+Смотрите reason categories:
 
-1. проверьте фактическое состояние детали в NX;
-2. изучите `last_result`, logs и request JSON;
-3. повторите команду только вручную и осознанно.
+- schema/expiry;
+- authentication/HMAC;
+- anti-replay;
+- permission/profile digest;
+- stale/wrong context;
+- selection fingerprint changed;
+- unavailable command;
+- destructive confirmation;
+- interactive invocation ambiguity.
 
-### Рост `failed`
+## Обновление
 
-Соберите последние request/result pairs. Типовые причины:
+Рекомендуемая чистая установка:
 
-- expired request;
-- stale context revision;
-- selection count changed;
-- wrong application/module;
-- modal dialog;
-- unavailable или insensitive `BUTTON ID`;
-- destructive request без confirmation;
-- invalid schema.
+```powershell
+.\install-nxkeys.ps1 `
+  -Mode CleanInstall `
+  -Yes `
+  -NxRoot "C:\Program Files\Siemens\NX2512" `
+  -Clean
+```
 
-## Логи и доказательства
+Перед обновлением:
 
-Основные места:
+1. сохраните production work;
+2. полностью закройте NX;
+3. сохраните предыдущий backup/manifest;
+4. выполните `-Mode Audit`, если подозреваются legacy conflicts.
+
+После обновления:
+
+1. `validate`;
+2. `health`;
+3. managed launch;
+4. `bridge-status`;
+5. safe v8 smoke test.
+
+## V8 smoke test
+
+На тестовой детали:
+
+```text
+CapsLock              один физический trigger
+Modeling M→L→S        Manage / Layer Settings
+Sketch L              Line
+Sketch K→C            Coincident
+Sketch D→Q            Rapid Dimension
+Sheet Metal           canonical UG_APP_SBSM / UG_SBSM_*
+0…4                   Selection Intent в collector
+```
+
+Дополнительно проверьте wrong-session/stale requests и destructive confirmation.
+
+## Bridge DLL lock
+
+Bridge загружена в NX process и не поддерживает hot reload.
+
+```powershell
+Get-Process ugraf,run_nx,nx -ErrorAction SilentlyContinue
+```
+
+Перед Bridge upgrade эти процессы должны быть завершены.
+
+`-AllowRunningNX` может ослабить installer guard, но не выгружает старую DLL из памяти.
+
+## Conflict maintenance
+
+Audit без изменений:
+
+```powershell
+.\install-nxkeys.ps1 -Mode Audit
+```
+
+Cleanup с резервированием:
+
+```powershell
+.\install-nxkeys.ps1 -Mode CleanConflicts -Yes
+```
+
+Repair custom dirs:
+
+```powershell
+.\install-nxkeys.ps1 -Mode RepairCustomDirs -Yes
+```
+
+Cleanup известных legacy/duplicate files архивирует их в `%LOCALAPPDATA%\NXKeys\conflict-backups`.
+
+## Backups / restore
+
+```powershell
+& $studio backups --config $config
+& $studio restore --config $config
+```
+
+Выбранный manifest:
+
+```powershell
+& $studio restore --config $config --manifest "C:\path\manifest.json"
+```
+
+После restore снова выполните health + managed launch + bridge-status.
+
+## Runtime logs/evidence
 
 ```text
 %LOCALAPPDATA%\NXKeys\logs\leader-key.log
@@ -165,144 +223,47 @@ pending → processing → completed | failed
 %LOCALAPPDATA%\NXKeys\bridge\failed\
 ```
 
-Health service также выводит путь Bridge log и последние строки, если они доступны.
+Перед передачей evidence удалите production names, персональные данные, закрытые пути и secrets. Session secret не должен попадать в repository/issues.
 
-Перед передачей logs удалите:
+## Инцидент: неверный command
 
-- имена пользователей;
-- абсолютные корпоративные пути;
-- названия деталей и проектов;
-- внутренние identifiers;
-- содержимое, защищённое NDA.
+1. остановите Leader;
+2. не повторяйте sequence;
+3. сохраните деталь безопасно;
+4. зафиксируйте active module, user path и time;
+5. сохраните request/result/context/log;
+6. проверьте фактический NX side effect;
+7. сравните canonical command ID и profile permission;
+8. отключите проблемную operation до расследования.
 
-## Обновление
+Если UI/dialog открылся, но result reported failure, не делайте automatic retry: interactive invocation мог иметь false-negative return.
 
-Рекомендуемая команда:
+## Инцидент: Selection Intent
 
-```powershell
-.\install-nxkeys.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
-  -NxRoot "C:\Program Files\Siemens\NX2512" `
-  -Clean
-```
+Если `0…4` не работает:
 
-Перед обновлением:
+- подтвердите active collector/seed;
+- убедитесь, что цифра не вводится в text control;
+- подтвердите текущую Bridge DLL после restart;
+- проверьте native selection toggles NX.
 
-1. закройте NX;
-2. завершите незаконченные команды;
-3. сохраните production data;
-4. сохраните последний успешный backup manifest;
-5. обновите Catalog Studio export, если изменились NX/роль/лицензия.
+Если цифры перехватываются в numeric fields, это guard defect; зафиксируйте focused control и active command.
 
-После обновления:
+## Изменение NX/роли/лицензии
 
-1. выполните `health`;
-2. запустите NX через новый launcher;
-3. проверьте context/module;
-4. выполните безопасные read-only команды;
-5. destructive-команды тестируйте на копии.
+После изменения окружения:
 
-## Bridge DLL заблокирована
+1. обновите Catalog Studio export;
+2. проверьте IDs текущих v8 operations;
+3. отдельно проверьте Sheet Metal/Sketch/Selection Intent;
+4. запустите current profile validators;
+5. legacy K3–K5 coverage pipeline используйте только как отдельный analytical report.
 
-Загруженная DLL остаётся заблокированной процессом NX.
+## Ограничения
 
-Правильное восстановление:
+- CI не подтверждает actual NX license/sensitivity;
+- contract stubs не подтверждают dialog semantics;
+- corporate roles/custom controls могут менять поведение;
+- managed health не заменяет functional acceptance test.
 
-1. закройте все процессы NX;
-2. убедитесь через Task Manager/PowerShell, что `ugraf`, `run_nx` и связанные процессы завершены;
-3. повторите установку;
-4. не используйте `-AllowRunningNX`, если требуется обновить Bridge;
-5. перезапустите NX через managed launcher.
-
-## Backups и restore
-
-Список:
-
-```powershell
-& $studio backups --config $config
-```
-
-Восстановление последнего backup:
-
-```powershell
-& $studio restore --config $config
-```
-
-Восстановление выбранного manifest:
-
-```powershell
-& $studio restore `
-  --config $config `
-  --manifest "C:\path\to\manifest.json"
-```
-
-После restore:
-
-1. выполните `health`;
-2. проверьте hashes;
-3. запустите NX;
-4. проверьте Bridge context;
-5. не удаляйте backup до подтверждения работоспособности.
-
-## Rollback после неудачной установки
-
-Deployment engine должен выполнить автоматический rollback при исключении. Если health-check после установки не проходит:
-
-1. не запускайте destructive-команды;
-2. сохраните staging/install logs;
-3. найдите последний backup manifest;
-4. выполните restore;
-5. повторите health-check;
-6. устраните первичную причину до новой установки.
-
-## Полная переустановка
-
-`-Clean` очищает управляемый package перед staging/install, но не должен удалять произвольные пользовательские файлы вне manifest boundaries.
-
-Не рекомендуется вручную удалять:
-
-- `%LOCALAPPDATA%\NXKeys\backups`;
-- queue с request в `processing` до анализа;
-- существующий `custom_dirs.dat`;
-- корпоративные `.mtx` роли.
-
-## Monitoring без отдельной системы
-
-Проект не подтверждает встроенный Prometheus/OTel/Windows service monitoring. Минимальный локальный мониторинг можно строить на:
-
-- exit code команды `health`;
-- возрасте `context.json`;
-- количестве `pending`, `processing`, `failed`;
-- hash status package manifest;
-- наличии NX/HotkeyStudio процессов.
-
-Любая внешняя автоматизация должна читать файлы без изменения и учитывать, что queue меняется конкурентно.
-
-## Инцидент: подозрение на неверную команду
-
-1. прекратите ввод через Leader;
-2. сохраните деталь под новым именем, если безопасно;
-3. зафиксируйте время, sequence и активный module;
-4. скопируйте request/result/context/status/log;
-5. не повторяйте sequence;
-6. сравните `command_id`, expected context и фактический NX action;
-7. проверьте profile resolution source;
-8. отключите проблемную command row до расследования;
-9. сообщите по процессу из `SECURITY.md`, если возможен safety/security impact.
-
-## Проверки после изменения NX, роли или лицензии
-
-- повторно экспортировать Catalog Studio;
-- пересобрать main profile;
-- изучить resolution report;
-- проверить ambiguous/unresolved deltas;
-- проверить все доступные модули;
-- проверить selection filters;
-- проверить destructive commands на тестовой детали.
-
-## Ограничения runbook
-
-- пути могут отличаться при пользовательском `deployment.managed_root`;
-- названия процессов NX могут различаться;
-- лицензия и corporate extensions нельзя подтвердить из репозитория;
-- автоматическое восстановление не отменяет резервное копирование производственных данных средствами организации.
+Подробная диагностика: [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
