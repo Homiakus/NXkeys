@@ -1,108 +1,95 @@
 # NXKeys Adaptive Control Center
 
-## Назначение
+`NX2512_ControlCenter` — WinForms observer/diagnostic UI для current v8 profile, Command Bridge, NX context, Catalog Studio outputs и legacy coverage artifacts.
 
-`NX2512_ControlCenter` — WinForms-приложение для просмотра main profile, состояния Command Bridge, активного NX context, resolution coverage и Catalog Studio outputs.
+Target: .NET 8, `net8.0-windows`, x64. Проект переиспользует HotkeyStudio models через `ProjectReference`.
 
-Target: .NET 8, `net8.0-windows`, x64. Проект имеет `ProjectReference` на HotkeyStudio и переиспользует его profile/runtime models.
+## Current profile
 
-Control Center не исполняет роль Catalog Studio, installer или Command Bridge.
-
-## Профиль
-
-Для source запуска используйте generated main profile:
+Для source запуска:
 
 ```text
-config/nx2512-pro-main.generated.json
+config/nx2512-v8-profile.json
 ```
 
-В managed package тот же профиль хранится под compatibility filename:
+Installed profile:
 
 ```text
-%LOCALAPPDATA%\NXKeys\managed\NX2512.6000\nx2512-pro-hybrid.json
+%LOCALAPPDATA%\NXKeys\managed\NX2512.6000\nx2512-v8-profile.json
 ```
 
-Main scope:
+Current schema — **8**.
 
-```text
-K5=69, K4=371, K3=445, selected intents=885
-```
-
-Не открывайте source bootstrap для оценки full runtime coverage.
+Generated `nx2512-pro-main.generated.json` / K3–K5 metadata всё ещё можно открывать для legacy catalog coverage analysis, но это не default runtime profile.
 
 ## Возможности
 
-- profile schema/load validation;
-- selected frequencies/intents;
-- 14 modules и Leader paths;
-- enabled commands с IDs;
-- `existing`, `resolved`, `ambiguous`, `unresolved`;
+- profile load/schema diagnostics;
+- normalized modules/Leader paths;
+- enabled operations/IDs;
 - Bridge ONLINE/STALE/OFFLINE;
 - active application/module;
-- selection, Work/Display Part, modal state и last result;
-- поиск по name, ID, path, aliases и catalog metadata;
+- selection/context/security state;
+- search by name/ID/path/aliases;
 - запуск HotkeyStudio/Leader;
 - локальная usage statistics;
-- NX API Explorer по Catalog Studio outputs.
+- NX API Explorer по Catalog Studio outputs;
+- legacy `existing/resolved/ambiguous/unresolved` coverage, когда открыт generated catalog profile.
 
 ## Запуск из репозитория
 
-Сначала создайте main profile:
-
-```powershell
-.\install-nxkeys.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
-  -CompileOnly
-```
-
-Затем:
-
 ```powershell
 dotnet run --project .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -- `
-  --config .\config\nx2512-pro-main.generated.json `
+  --config .\config\nx2512-v8-profile.json `
   --catalog "D:\NX2512_Catalog_Output"
 ```
 
-`--catalog` нужен для Explorer/дополнительных данных; profile view может работать без полного export.
+`--catalog` нужен для Explorer/дополнительных данных, но не обязателен для базового runtime view.
 
-## Запуск installed version
+## Installed version
 
 ```powershell
 $root = "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000"
 & "$root\control-center\NX2512_ControlCenter.exe" `
-  --config "$root\nx2512-pro-hybrid.json"
+  --config "$root\nx2512-v8-profile.json"
 ```
 
-## Метрики
+## Bridge/security context
 
-| Метрика | Значение |
-|---|---|
-| Source intents | 1169 K1–K5 |
-| Selected main intents | 885 unique K3–K5 `catalog_refs` |
-| Resolution coverage | existing + resolved среди selected intents/rows |
-| Executable rows | enabled module rows с exact ID |
-| Runtime verified | команды, проверенные в target NX |
-
-Serialized rows могут превышать 885 из-за global duplication. `ambiguous` и `unresolved` не считаются executable.
-
-## Bridge context
-
-Control Center читает local IPC:
+Control Center читает:
 
 ```text
 %LOCALAPPDATA%\NXKeys\bridge\status.json
 %LOCALAPPDATA%\NXKeys\bridge\context.json
 ```
 
+Current context schema 4 включает не только module/selection, но и security status/session/profile digest.
+
 - ONLINE — fresh context;
 - STALE — context существует, но старый;
-- OFFLINE — context/status отсутствует или NX закрыт.
+- OFFLINE — context/status отсутствует или NX закрыт;
+- `authentication_required` — нет valid managed launch session.
 
-`selection_count = -1` означает неизвестно, а не ноль.
+`selection_count = -1` означает unknown.
+
+## Legacy coverage metrics
+
+Если открыт generated K3–K5 profile, могут отображаться:
+
+```text
+source intents: 1169 K1–K5
+selected legacy main intents: 885 K3–K5
+resolution coverage
+serialized/executable rows
+```
+
+Эти числа описывают **catalog generation pipeline**, а не размер current v8 operations profile.
+
+Не смешивайте две метрики в одном отчёте.
 
 ## NX API Explorer
 
-Explorer использует, если доступны:
+При наличии Catalog Studio export используются файлы вроде:
 
 ```text
 04_nxopen_members.csv
@@ -112,7 +99,7 @@ Explorer использует, если доступны:
 08_ui_command_api_candidates.csv
 ```
 
-Candidate mapping не доказывает, что API call эквивалентен UI command. Не используйте его для автоматического включения ambiguous command.
+Candidate mapping не доказывает UI→API equivalence и не даёт права автоматически разрешать command.
 
 ## Сборка
 
@@ -129,25 +116,23 @@ dotnet publish .\NX2512_ControlCenter\NX2512_ControlCenter.csproj `
   -o .\NX2512_ControlCenter\dist
 ```
 
-HotkeyStudio должен собираться, поскольку Control Center ссылается на его project.
-
 ## Диагностика
 
-Если coverage выглядит неверно:
+Если current runtime metrics выглядят как legacy K3–K5:
 
-1. убедитесь, что открыт generated main profile;
-2. проверьте `full_command_catalog`;
-3. сравните selected intents/frequencies;
-4. проверьте stale generated policy metadata;
-5. изучите resolution report;
-6. пересоберите profile текущим compiler.
+1. проверьте фактический `--config`;
+2. откройте `nx2512-v8-profile.json`;
+3. выполните `NX2512_HotkeyStudio.exe validate`;
+4. проверьте Bridge context/security state.
 
-Если Bridge OFFLINE при открытом NX, используйте `NX2512_HotkeyStudio.exe bridge-status` и `health`.
+Если вы намеренно анализируете K3–K5 coverage, используйте generated profile и явно помечайте отчёт как legacy/catalog analysis.
 
 ## Ограничения
 
-- Control Center является observer/diagnostic UI;
-- он не доказывает runtime effect команды;
-- usage statistics локальны и не являются официальной частотой Siemens;
-- generated profile может устареть относительно source policy;
-- фактические modules/IDs зависят от NX role/license/localization.
+- Control Center — observer, а не execution authority;
+- live command effect он не подтверждает;
+- usage statistics локальны;
+- фактические IDs/modules зависят от NX role/license;
+- live Selection Intent/dialog semantics требуют проверки внутри NX.
+
+Current runtime contract: [`docs/RUNTIME_V8.md`](../docs/RUNTIME_V8.md).
