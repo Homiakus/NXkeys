@@ -1,62 +1,54 @@
-# Локальная разработка NXKeys
+# Локальная разработка NXKeys v8
 
-## Поддерживаемая среда
+## Среда
 
-| Инструмент | Требование | Где используется |
-|---|---|---|
-| .NET SDK | 8.x | C#-проекты и тесты |
-| Node.js | 20+ | profile compiler, validators, audits |
-| PowerShell | 5.1 или 7 | build/install scripts |
-| Windows x64 | обязательно для WinForms runtime и production deployment | HotkeyStudio, Control Center, NX integration |
-| Siemens NX / Designcenter NX | 2512 | production build и интеграционные проверки Bridge/Catalog Studio |
+| Инструмент | Требование |
+|---|---|
+| .NET SDK | 8.x |
+| Node.js | 20+ |
+| PowerShell | 5.1 или 7 |
+| Windows x64 | для WinForms/runtime/deployment |
+| Siemens NX / Designcenter NX | 2512 для production Bridge/Catalog tests |
 
-Node-скрипты не требуют `npm install`: в репозитории нет `package.json` и внешних npm-зависимостей.
+Node scripts используют стандартную библиотеку; обязательного `npm install` нет.
 
-## Подготовка
+Перед изменением runtime прочитайте:
 
-Рабочая директория — корень репозитория.
+- [docs/RUNTIME_V8.md](docs/RUNTIME_V8.md);
+- [docs/CHEATSHEET.md](docs/CHEATSHEET.md);
+- [docs/SELECTION_INTENT.md](docs/SELECTION_INTENT.md);
+- [docs/SKETCH_INTENT_LANGUAGE.md](docs/SKETCH_INTENT_LANGUAGE.md);
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-```powershell
-dotnet --info
-node --version
-$PSVersionTable.PSVersion
+## Current contracts
+
+```text
+profile schema 8
+minimum readable profile 3
+IPC schema 4
+sequence policy v8
+default runtime profile config/nx2512-v8-profile.json
 ```
 
-Ожидаются .NET 8 SDK и Node.js 20 или новее.
+## Что проверить без Siemens NX
 
-Перед изменением пользовательских путей прочитайте:
-
-- [подробную шпаргалку](docs/CHEATSHEET.md);
-- [мнемонический язык](docs/MNEMONIC_COMMAND_LANGUAGE.md);
-- [язык намерений Sketch](docs/SKETCH_INTENT_LANGUAGE.md).
-
-## Что можно проверить без Siemens NX
-
-### Profile validators
+### Documentation/profile validators
 
 ```powershell
+node .\scripts\validate-documentation.mjs
 node .\scripts\validate-main-command-map.mjs
 node .\scripts\validate-command-tree.mjs
 node .\scripts\validate-full-command-map.mjs
 node .\scripts\audit-command-sequences.mjs
 ```
 
-| Команда | Проверяет |
-|---|---|
-| `validate-main-command-map.mjs` | source intents, выбранный K3–K5 scope, generation contract, catalog traceability и документационные инварианты |
-| `validate-command-tree.mjs` | bootstrap, direct shortcuts, modules, paths, aliases, support-команды и runtime model |
-| `validate-full-command-map.mjs` | полный каталог K1–K5 и отсутствие конфликтов в source data |
-| `audit-command-sequences.mjs` | статистику путей и generated audit в `docs/audit/` |
+`audit-command-sequences.mjs` изменяет generated audit. Проверяйте semantic diff; timestamp-only churn не должен маскировать stale generation.
 
-`audit-command-sequences.mjs` изменяет generated-файлы. После запуска обязательно проверьте diff и не коммитьте один timestamp без содержательных изменений.
-
-### State-machine tests
+### State-machine/protocol tests
 
 ```powershell
 dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
 ```
-
-Это executable test runner, а не xUnit/NUnit-проект. Он включает protocol invariants, declarative policy tests, deterministic replay и randomized transitions.
 
 ### HotkeyStudio regression tests
 
@@ -64,36 +56,25 @@ dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csp
 dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release
 ```
 
-Набор проверяет профиль, нормализацию путей и регрессии Sketch-грамматики, включая:
+Current regression scope должен включать:
 
-- канонические пути `CGL`, `CGR`, `CGC`, `CGA`, `EGT`, `EGE`, `TGO`;
-- prefix-free ветвь вариантов `CGV…`;
-- сохранение user-locked пути;
-- удаление legacy positional aliases;
-- удержание неизвестных Sketch-намерений внутри смыслового семейства;
-- отсутствие prefix conflicts.
+- schema v8 load;
+- no-profile hardcoded v8 fallback;
+- `secondary_aliases` expansion;
+- Modeling Manage `M → L → S`;
+- отсутствие terminal root `M` от workspace-only operation;
+- Sketch `K → …` constraints;
+- Sheet Metal `UG_SBSM_*` canonicalization/security permissions;
+- IPC schema 4/security invariants.
 
-### HotkeyStudio build
-
-```powershell
-dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj `
-  -c Release -p:Platform=x64 --nologo
-```
-
-Проект условно подключает NXOpen references только когда задан `NXOpenDir`, поэтому базовая сборка возможна без установленного NX.
-
-### Control Center build
+### Desktop builds
 
 ```powershell
-dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj `
-  -c Release -p:Platform=x64 --nologo
+dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
+dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64 --nologo
 ```
-
-Control Center имеет `ProjectReference` на HotkeyStudio.
 
 ### Command Bridge contract build
-
-Production Bridge требует proprietary NXOpen DLL. Для проверки формы используемого API CI сначала собирает contract stubs:
 
 ```powershell
 New-Item -ItemType Directory -Force .\artifacts\nxopen-contract | Out-Null
@@ -107,11 +88,9 @@ dotnet build .\NX2512_CommandBridge\NX2512_CommandBridge.csproj `
   -c Release -p:Platform=x64 -p:NXOpenDir="$nxOpenDir" --nologo
 ```
 
-Contract build подтверждает компиляцию против используемой формы NXOpen API, но не заменяет загрузку DLL в реальный NX.
+Contract stubs подтверждают API shape, но не live NX behavior.
 
-## Сборка с Siemens NX 2512
-
-### Command Bridge
+## Production Bridge build
 
 ```powershell
 .\NX2512_CommandBridge\build.ps1 `
@@ -119,101 +98,119 @@ Contract build подтверждает компиляцию против исп
   -Clean
 ```
 
-Альтернатива с точным DLL:
+Либо используйте точный `-NxOpenDll`.
+
+После изменения Bridge обязательно полностью перезапускайте NX перед integration test.
+
+## Current v8 profile
+
+Запуск из source:
 
 ```powershell
-.\NX2512_CommandBridge\build.ps1 `
-  -NxOpenDll "C:\Program Files\Siemens\NX2512\NXBIN\managed\NXOpen.dll" `
-  -Clean
+dotnet run --project .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -- `
+  --config .\config\nx2512-v8-profile.json
 ```
 
-Скрипт требует `NXOpenUI.dll` рядом с `NXOpen.dll` и по умолчанию отклоняет путь, не подтверждающий версию `2512`.
+Если profile не передан и не найден, runtime строит hardcoded v8 fallback. Для production tests всегда предпочитайте explicit/versioned profile.
 
-`-AllowVersionMismatch` разрешён только после ручной проверки совместимости.
+## Legacy/catalog generation pipeline
 
-### Catalog Studio
-
-```powershell
-.\NX2512_Catalog_Studio\build.ps1 `
-  -NxRoot "C:\Program Files\Siemens\NX2512" `
-  -Clean
-```
-
-Для подписи, если это требуется организацией:
-
-```powershell
-.\NX2512_Catalog_Studio\build.ps1 `
-  -NxRoot "C:\Program Files\Siemens\NX2512" `
-  -Sign `
-  -Clean
-```
-
-`-Sign` требует найденных рядом `SignDotNet.exe` и `NXSigningResource.res`.
-
-### HotkeyStudio distribution
-
-Сначала соберите Command Bridge, затем:
-
-```powershell
-.\NX2512_HotkeyStudio\build.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
-  -Clean
-```
-
-Скрипт компилирует main K3–K5 profile и требует Bridge artifact в `NX2512_CommandBridge\dist`.
-
-## Генерация профиля
-
-Рекомендуемый вход:
-
-```powershell
-.\install-nxkeys.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
-  -CompileOnly
-```
-
-Прямой вызов компилятора:
+Репозиторий сохраняет полный K1–K5 intent catalog и generated K3–K5 profile pipeline:
 
 ```powershell
 node .\scripts\compile-main-command-map.mjs `
   --profile .\config\nx2512-pro-hybrid.json `
   --intents .\config\full-command-map `
   --probe .\docs\audit\runtime-command-probe-2026-07-28.json `
-  --catalog-dir "D:\NX2512_Catalog_Output" `
   --out .\config\nx2512-pro-main.generated.json `
   --report .\docs\generated\main-profile-resolution.md
 ```
 
-Не редактируйте generated profile и resolution report вручную.
+Этот pipeline нужен для coverage/resolution/compatibility исследований. Он не является default `install-nxkeys.ps1` profile source.
 
-Подтверждённое ядро Sketch сохраняется как runtime vocabulary независимо от частотной фильтрации K3–K5. Это не отменяет traceability выбранных source intents и не разрешает включать команды без точного ID.
+## `install-nxkeys.ps1`
 
-## Запуск desktop-приложений из исходников
+Default `Resolve-Config` выбирает:
 
-### HotkeyStudio
-
-```powershell
-dotnet run --project .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -- `
-  --config .\config\nx2512-pro-hybrid.json
+```text
+config\nx2512-v8-profile.json
 ```
 
-Это запускает bootstrap source profile. Для проверки main profile сначала скомпилируйте его и передайте:
+При schema < 8 installer сохраняет compatibility requirement generated K3–K5/885. Для schema 8 проверяется v8 operations profile.
 
-```powershell
---config .\config\nx2512-pro-main.generated.json
+`-CompileOnly` на default v8 profile только разрешает/проверяет profile и завершает работу; он не генерирует новый v8 JSON.
+
+## Selection Intent development
+
+Implementation:
+
+```text
+NX2512_CommandBridge/SelectionIntentHotkeys.cs
 ```
 
-### Control Center
+Modes:
 
-```powershell
-dotnet run --project .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -- `
-  --config .\config\nx2512-pro-main.generated.json `
-  --catalog "D:\NX2512_Catalog_Output"
+```text
+0 reset
+1 single
+2 connected/chain
+3 tangent
+4 inferred path/region boundary
 ```
 
-## Полный локальный pre-commit набор
+При изменении:
+
+1. не превращайте `0…4` в безусловные global hotkeys;
+2. сохраняйте foreground/modifier/text-input/collector guards;
+3. сохраняйте physical key latch;
+4. обновляйте NXOpen contract stubs при новых API calls;
+5. проверяйте native NX control IDs;
+6. выполняйте live NX test во всех пяти modes.
+
+## Sketch development
+
+Current user grammar:
+
+```text
+L/R/C/A/T...       frequent one-token commands
+K → …              constraints
+D → …              dimensions
+C → V → …          variants
+J → …              projection/derived
+U → …              utilities
+```
+
+Не восстанавливайте старые examples `CGL`, `C→L` как current user paths.
+
+## Modeling Manage/workspace
+
+`M` — Manage subtree. Regression example:
+
+```text
+M → L → S
+```
+
+Operation, имеющая только `workspace_key`, не должна появляться как root terminal без explicit workspace state.
+
+## Sheet Metal
+
+Используйте canonical NX2512 IDs `UG_APP_SBSM` / `UG_SBSM_*`. Compatibility mapping старых IDs должно быть одинаковым в runtime и security layer.
+
+## IPC/security changes
+
+При изменении `NxProtocol.cs`/`NxBridgeSecurity.cs` обновляйте согласованно:
+
+- schema/JSON models;
+- HMAC canonicalization;
+- source-process/session/anti-replay logic;
+- profile permission digest;
+- Bridge/HotkeyStudio tests;
+- `docs/api.md`, architecture и safety docs.
+
+## Full pre-commit
 
 ```powershell
+node .\scripts\validate-documentation.mjs
 node .\scripts\validate-main-command-map.mjs
 node .\scripts\validate-command-tree.mjs
 node .\scripts\validate-full-command-map.mjs
@@ -226,62 +223,17 @@ dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Plat
 dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64 --nologo
 ```
 
-При изменении Bridge дополнительно выполните contract build. При изменении NXOpen integration — production build и runtime-проверку внутри NX.
+Bridge changes additionally require contract build. NXOpen/interactive changes additionally require target NX 2512 integration test.
 
-## Матрица обязательных проверок
+## Live NX acceptance
 
-| Изменение | Минимальные проверки |
-|---|---|
-| source intent catalog | full/main validators, sequence audit |
-| sequence policy | main/tree validators, оба test runner, generated diff |
-| Sketch grammar | HotkeyStudio tests, main/tree validators, Sketch workflow |
-| profile schema | migration tests, HotkeyStudio и Control Center build |
-| IPC | protocol/state-machine tests, Bridge contract build |
-| deployment | installer dry-run, health, rollback |
-| документация | ссылки, команды, пути и соответствие источникам истины |
+CI не может подтвердить:
 
-## Generated-файлы
+- command sensitivity/license;
+- actual application mapping corporate role;
+- Selection Intent interaction with every collector;
+- interactive dialog semantics;
+- `DialogTester.InvokeMenuButtonAction` result semantics;
+- destructive side effects.
 
-После изменения profile compiler, sequence policy, Sketch allocator или full command map могут измениться:
-
-```text
-config/nx2512-pro-main.generated.json
-docs/generated/main-profile-resolution.md
-docs/audit/command-sequence-audit.md
-docs/audit/command-sequence-audit.json
-docs/command-tree.html
-```
-
-В commit должны попадать только результаты, созданные текущим кодом. Не обновляйте timestamps отдельно от содержимого.
-
-## Конфигурация разработки
-
-Подтверждённые необязательные переменные:
-
-```powershell
-$env:NXKEYS_CATALOG_DIR = "D:\NX2512_Catalog_Output"
-$env:UGII_BASE_DIR = "C:\Program Files\Siemens\NX2512"
-```
-
-`UGII_ROOT_DIR` и `UGOPEN` также используются как hints поиска NXOpen. Не добавляйте machine-specific absolute paths в versioned JSON.
-
-## Сброс локальных build artifacts
-
-Безопасно удалить только build outputs репозитория:
-
-```powershell
-Get-ChildItem -Recurse -Directory -Include bin,obj,dist | Remove-Item -Recurse -Force
-Remove-Item .\artifacts -Recurse -Force -ErrorAction SilentlyContinue
-```
-
-Команда не удаляет managed installation и backups в `%LOCALAPPDATA%\NXKeys`.
-
-Для сброса установленного пакета не удаляйте managed root вручную. Используйте backup/restore workflow либо повторную установку с `-Clean` после сохранения нужных backup manifests.
-
-## Известные ограничения
-
-- GUI и production deployment не тестируются полноценно на non-Windows системах.
-- Contract stubs не доказывают runtime-совместимость с конкретной NX build.
-- `BUTTON ID` и module availability необходимо проверять на целевой лицензии и роли.
-- Source sequence policy и checked-in generated artifacts могут расходиться до запуска генераторов; validators и diff должны обнаруживать такое состояние.
-- Документационные команды проверяются по коду и CI, но реальная чувствительность NX-команд требует workstation.
+Для таких изменений сохраняйте runtime evidence на тестовой детали.
