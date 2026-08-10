@@ -71,7 +71,7 @@ availability.applications/requires_work_part/blocked_in_text_input
 
 ### Legacy/catalog pipeline
 
-`config/full-command-map/`, `nx2512-pro-hybrid.json`, generated K3–K5 profile и Node compiler остаются для catalog coverage, resolution, audits и compatibility. Installer без `-ConfigPath` их не выбирает как основной runtime profile.
+`config/full-command-map/`, `nx2512-pro-hybrid.json`, generated K3–K5 profile и Node compiler остаются для catalog coverage, resolution, audits и compatibility. Исторический generated main profile выбирал **885** K3–K5 intents. Это analytical/compatibility architecture, а не current v8 runtime scope. Installer без `-ConfigPath` этот generated profile не выбирает как основной runtime profile.
 
 ## Adaptive module resolution
 
