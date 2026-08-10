@@ -1,224 +1,179 @@
-# Спецификация профилей NXKeys 2512
+# NX Pro Hybrid — legacy/catalog profile specification
 
-## Термины
+> **Статус: compatibility / catalog-generation specification.** Этот документ описывает K1–K5 intent catalog и generated K3–K5 pipeline. Он **не** определяет current NXKeys v8 runtime. Для текущего поведения используйте [RUNTIME_V8.md](RUNTIME_V8.md) и [CONFIGURATION.md](CONFIGURATION.md).
+
+## Почему документ сохраняется
+
+Репозиторий всё ещё использует этот слой для:
+
+- полного K1–K5 intent inventory;
+- frequency/coverage analysis;
+- resolution against NX UI catalog;
+- generated K3–K5 compatibility profile;
+- исторической трассировки command IDs и paths;
+- regression checks отдельных legacy contracts.
+
+Current installer без `-ConfigPath` выбирает `config/nx2512-v8-profile.json`, поэтому generated hybrid profile больше нельзя называть «основным runtime profile» без уточнения.
+
+## Термины legacy pipeline
 
 | Термин | Значение |
 |---|---|
 | intent catalog | 1169 source records K1–K5 в `config/full-command-map/` |
-| bootstrap profile | `config/nx2512-pro-hybrid.json`, schema 6, safety/deployment/known IDs |
-| generated main profile | K3–K5 output с 885 selected intents и resolution metadata |
-| installed profile | generated main profile под compatibility filename `nx2512-pro-hybrid.json` |
-| runtime profile | загруженный и мигрированный объект schema 6 |
+| bootstrap profile | `config/nx2512-pro-hybrid.json`, legacy schema 6 source |
+| generated main profile | legacy K3–K5 output с 885 selected intents |
+| generated compatibility profile | `config/nx2512-pro-main.generated.json` |
+| current runtime profile | **не этот pipeline**; `config/nx2512-v8-profile.json`, schema 8 |
 
-Слово `hybrid` в filename не означает, что source bootstrap является рекомендуемым полным runtime profile.
+## Исторические contracts этого слоя
 
-## Базовые контракты
-
-- 12 direct basic shortcuts;
-- один Leader key (`CapsLock` по умолчанию);
-- 14 context modules;
-- legacy primary aliases `W/E/D/C/X/Z/A/Q`;
-- canonical paths 2–5 tokens;
-- source/runtime profile schema 6;
-- minimum readable schema 3;
-- IPC schema 3;
-- source sequence policy 7;
-- main runtime scope K3/K4/K5 = 885 intents.
-
-## Модули
-
-| ID | Область | Internal prefix |
-|---|---|---|
-| `modeling` | Modeling | `M` |
-| `sketch` | Sketch | `S` |
-| `assembly` | Assembly | `A` |
-| `drafting` | Drafting | `D` |
-| `pmi` | PMI | `P` |
-| `surface` | Surface | `U` |
-| `sheet_metal` | Sheet Metal | `H` |
-| `manufacturing` | CAM / Manufacturing | `C` |
-| `simulation` | CAE / Simulation | `X` |
-| `routing` | Routing | `G` |
-| `mold` | Mold / Tooling | `O` |
-| `reuse` | Reuse / Templates | `R` |
-| `inspect_view` | Inspect / View | `V` |
-| `selection_object` | Selection / Object | `F` |
-
-Internal prefix нужен DFA и пользователем не вводится.
-
-## Legacy primary grid
-
-| Key | Slot | Роль |
-|---|---|---|
-| W | N | основная create/open command |
-| E | NE | следующий частый шаг |
-| D | E | добавить object/dependency |
-| C | SE | transform/replace |
-| X | S | process/remove |
-| Z | SW | remove/reduce |
-| A | W | structure/link/pattern |
-| Q | NW | inspect/service |
-
-Эти keys являются optional aliases. Они не ограничивают module восемью commands и сохраняются только без path conflicts.
-
-## Source sequence policy v7
-
-Частотные цели:
+Legacy generation использовал:
 
 ```text
-K5 <= 2
-K4 <= 3
-K3 <= 4
-K2/K1 <= 5
-support = 2
+profile schema 6
+K3/K4/K5 selected intents = 885
+frequency policy K5<=2, K4<=3, K3<=4
+full source intents = 1169 K1–K5
 ```
 
-Selection support:
+Current global contracts теперь:
 
 ```text
-SB SF SE ST SC SU SD SR SA SN
+profile schema 8
+minimum readable profile 3
+IPC schema 4
+sequence policy v8
 ```
 
-Module switches:
-
-```text
-GM GA GD GP GU GH GC GN GR GO GL GV
-```
-
-Switches не добавляются в Sketch и Selection/Object module.
-
-## Bootstrap requirements
-
-Bootstrap должен содержать:
-
-- valid profile name/version;
-- deployment managed/backup roots;
-- 12 exact basic bindings;
-- 14 enabled modules с unique IDs/prefixes;
-- known exact IDs;
-- curated paths/aliases;
-- workflow controls;
-- safety flags;
-- adaptive Leader enabled.
-
-Bootstrap может содержать неполное command coverage и не должен выдавать себя за generated main profile.
+Не переносите номера schema/policy из legacy pipeline в current runtime documentation.
 
 ## Full intent catalog
 
-Каждая source record должна иметь:
+Каждая source record должна сохранять:
 
 - stable `intent_id`;
-- source section/group;
+- section/group;
 - frequency K1–K5;
 - English/Russian names;
-- runtime module;
+- target module;
 - path hint;
 - traceability к source inventory.
 
-Количество records и frequencies являются машинно проверяемым contract:
+Historical checked contract:
 
 ```text
-K1=4, K2=280, K3=445, K4=371, K5=69, total=1169
+K1=4
+K2=280
+K3=445
+K4=371
+K5=69
+total=1169
 ```
+
+Эти counts относятся к full intent catalog, а не к числу v8 runtime operations.
+
+## Legacy generated K3–K5 scope
+
+Selected legacy scope:
+
+```text
+K3 + K4 + K5 = 885 unique intents
+```
+
+Global duplication может создавать больше serialized module rows. Coverage измеряется unique `catalog_refs`, а не row count.
 
 ## Generation
 
-Compiler объединяет intent catalog, bootstrap, target UI catalog и runtime probe.
+Explicit compiler invocation:
 
-Generated row получает:
+```powershell
+node .\scripts\compile-main-command-map.mjs `
+  --profile .\config\nx2512-pro-hybrid.json `
+  --intents .\config\full-command-map `
+  --probe .\docs\audit\runtime-command-probe-2026-07-28.json `
+  --out .\config\nx2512-pro-main.generated.json `
+  --report .\docs\generated\main-profile-resolution.md
+```
 
-- exact command ID либо disabled status;
-- canonical path и aliases;
-- frequency;
-- `catalog_refs`;
-- resolution status/candidates;
-- action/selection/module metadata;
-- safety fields.
-
-Global intents могут дублироваться в active modules. Coverage измеряется unique `catalog_refs`, не module row count.
+`install-nxkeys.ps1 -CompileOnly` на **default v8 profile** не запускает этот compiler; он только выбирает/проверяет v8 profile и завершает работу.
 
 ## Resolution rules
 
-| Status | Условие | Enabled |
+| Status | Смысл | Legacy generated row enabled |
 |---|---|---:|
-| existing | exact trusted bootstrap ID | да |
-| resolved | confident target catalog match | да |
-| ambiguous | несколько близких candidates | нет |
-| unresolved | ID отсутствует | нет |
+| `existing` | exact trusted ID | да |
+| `resolved` | достаточно уверенное target-catalog match | да |
+| `ambiguous` | несколько candidates | нет |
+| `unresolved` | exact ID не найден | нет |
 
-Command name или API candidate не заменяет exact UI ID.
+Similarity score/API candidate не заменяет exact UI command ID.
 
-## Path source и locking
+## Legacy module grid
 
-Schema 6 содержит `path_locked` и `path_source`. Они предназначены для provenance/locking metadata.
+Исторический pipeline использует 14 module IDs и hidden internal prefixes. User никогда не должен вводить hidden prefix вручную.
 
-Текущий source не подтверждает отдельный полностью завершённый user override file/UI pipeline. До его появления path customization выполняется через versioned source configuration/generator и validators.
+Эта часть остаётся полезной для command tree/coverage, но current v8 paths могут быть однотокенными и не обязаны следовать старой сетке 2–5 tokens.
 
-## Production-ready command
+## Что из legacy pipeline больше нельзя переносить в current v8 docs
 
-Command считается готовой после:
+Нельзя как current truth утверждать, что:
 
-1. source intent/known command существует;
-2. exact ID подтверждён target NX catalog;
-3. path и aliases prefix-free;
-4. action/selection semantics заданы;
-5. context guards соответствуют workflow;
-6. destructive classification/confirmation проверены;
-7. profile validators проходят;
-8. Bridge contract build проходит;
-9. runtime execution подтверждено в target NX;
-10. evidence не содержит production data/secrets.
+- default runtime profile — generated K3–K5;
+- installed profile называется `nx2512-pro-hybrid.json`;
+- profile schema current = 6;
+- IPC current = 3;
+- sequence policy current = 7;
+- все user paths имеют минимум два tokens;
+- старые Sketch paths `CGL`, `C→L`, `C→G→L` остаются current user grammar.
 
-Coverage или compilation без runtime test не достаточны.
+## Что остаётся полезным
 
-## Module change
+- source command inventory;
+- frequency metadata;
+- candidate resolution evidence;
+- historical IDs;
+- coverage reports;
+- audit reproducibility;
+- exact command catalog comparisons after NX role/version changes.
 
-Новый module требует:
+## Current v8 relation
 
-- unique `id` и prefix;
-- application IDs;
-- switch command при применимости;
-- command sets;
-- resolver mapping;
-- declarative guards;
-- support-command policy;
-- DFA/HFSM tests;
-- compiler validation;
-- docs и command tree update.
+V8 operation profile имеет другой source contract:
 
-## Profile schema change
+```text
+operation_id
+command_name
+paths.direct
+paths.workspace_key
+paths.leader
+paths.secondary_aliases
+adapter.*
+availability.*
+```
 
-При изменении schema:
+`secondary_aliases` участвуют в runtime routing. Workspace-only keys не должны становиться root terminals без explicit workspace state.
 
-- обновить current/minimum versions;
-- реализовать defaults/migration;
-- обновить installer range;
-- обновить CI checks;
-- добавить compatibility tests;
-- обновить examples/config docs;
-- исправить runtime error messages;
-- описать migration/rollback в changelog/ADR при breaking change.
+Sheet Metal current canonical IDs: `UG_APP_SBSM` / `UG_SBSM_*`.
 
-## Validation
+Sketch current grammar: one-token frequent commands + `K→…` constraints + `D→…` dimensions.
+
+## Validation legacy artifacts
 
 ```powershell
 node .\scripts\validate-full-command-map.mjs
 node .\scripts\validate-main-command-map.mjs
 node .\scripts\validate-command-tree.mjs
 node .\scripts\audit-command-sequences.mjs
-
-dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
 ```
 
-Generated profile/report/audit должны быть созданы тем же source commit, который их публикует.
+Generated profile/report/audit должны быть воспроизводимы из того же commit.
 
-## Требует проверки на workstation
+## Приоритет при конфликте
 
-- application IDs конкретной role;
-- licensing каждого module;
-- sensitivity command IDs;
-- selection behavior;
-- modal workflows;
-- destructive classification;
-- code-signing policy;
-- custom directory interaction.
+1. current executable code/tests;
+2. [RUNTIME_V8.md](RUNTIME_V8.md) / [CONFIGURATION.md](CONFIGURATION.md);
+3. current generated artifacts;
+4. этот legacy specification;
+5. historical dated audits.
+
+Этот файл сохраняется, чтобы старый K3–K5 analytical pipeline оставался понятным, но не вводил пользователя в заблуждение относительно current runtime.
