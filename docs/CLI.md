@@ -1,266 +1,266 @@
-# CLI NX2512_HotkeyStudio
+# CLI NX2512_HotkeyStudio v8
 
-## Назначение
-
-`NX2512_HotkeyStudio.exe` совмещает desktop-приложение и набор CLI-команд для проверки профиля, сканирования NX, deployment и диагностики Bridge.
+`NX2512_HotkeyStudio.exe` совмещает desktop/tray runtime и CLI для validation, diagnostics, deployment и Bridge operations.
 
 Источник истины: `NX2512_HotkeyStudio/Program.cs`.
 
-> В текущем коде не подтверждена отдельная команда `--help`. Используйте этот документ и сообщения об ошибках CLI.
+## Profile resolution
 
-## Общий синтаксис
-
-```powershell
-NX2512_HotkeyStudio.exe <command> [options]
-```
-
-Параметр конфигурации можно передать до или после команды:
+Явный profile:
 
 ```powershell
-NX2512_HotkeyStudio.exe validate --config .\config\nx2512-pro-hybrid.json
-NX2512_HotkeyStudio.exe --config .\config\nx2512-pro-hybrid.json validate
+NX2512_HotkeyStudio.exe validate --config .\config\nx2512-v8-profile.json
 ```
 
-Если `--config` не задан, приложение ищет `nx2512-pro-hybrid.json` рядом с executable и в соседних `config`-каталогах.
+`--config` можно поставить до или после команды.
+
+Если `--config` не задан, runtime ищет в таком порядке имён:
+
+```text
+nx2512-v8-profile.json
+nx2512-pro-hybrid.json
+```
+
+в каталоге executable и соседних `config` locations. Если ни один файл не найден, `Config.Load` создаёт hardcoded v8 fallback.
+
+Для production используйте installed `nx2512-v8-profile.json`, а fallback — как resilience/test path.
 
 ## Команды
 
-### `validate`
+```text
+validate
+scan
+catalog
+plan
+apply
+launch
+leader
+backups
+restore
+bridge-status
+health
+icons
+export-icons
+```
 
-Загружает профиль, применяет defaults/migration и выполняет model validation.
+Отдельная подтверждённая команда `--help` в текущем switch отсутствует.
+
+## `validate`
 
 ```powershell
 .\NX2512_HotkeyStudio.exe validate `
-  --config .\nx2512-pro-hybrid.json
+  --config .\nx2512-v8-profile.json
 ```
 
-Успешный результат содержит имя профиля, число включённых basic shortcuts, модулей и Leader-команд.
+Загружает profile, применяет defaults/normalization и model validation. Проверка не доказывает доступность `BUTTON ID` в живой NX.
 
-Проверка не доказывает доступность `BUTTON ID` в запущенной NX.
+Current schema — 8; source range — 3…8.
 
-### `scan`
-
-Сканирует configured roots, MenuScript/role/launcher files и доступный command catalog.
+## `scan`
 
 ```powershell
 .\NX2512_HotkeyStudio.exe scan `
-  --config .\nx2512-pro-hybrid.json `
+  --config .\nx2512-v8-profile.json `
   --catalog "D:\NX2512_Catalog_Output"
 ```
 
-JSON-вывод:
+JSON:
 
 ```powershell
 .\NX2512_HotkeyStudio.exe scan `
-  --config .\nx2512-pro-hybrid.json `
+  --config .\nx2512-v8-profile.json `
   --catalog "D:\NX2512_Catalog_Output" `
   --json
 ```
 
-Подтверждённые поля JSON: `roots`, `menu_files`, `role_files`, `launcher_files`, `commands`, `api_catalog`, `warnings`.
+Вывод содержит discovered roots, MenuScript/role/launcher counts, commands, API catalog location и warnings.
 
-### `catalog`
-
-Ищет команды в обнаруженном каталоге по строке запроса.
+## `catalog`
 
 ```powershell
 .\NX2512_HotkeyStudio.exe catalog `
-  --config .\nx2512-pro-hybrid.json `
+  --config .\nx2512-v8-profile.json `
   --catalog "D:\NX2512_Catalog_Output" `
   --query "extrude"
 ```
 
-CLI выводит до 30 совпадений с score, `BUTTON ID`, display label и первым API candidate. Score не доказывает эквивалентность UI-команды и NXOpen API.
+До 30 candidates. Similarity score помогает искать, но не является доказательством UI→API equivalence.
 
-### `plan`
-
-Строит deployment plan без обязательного применения.
+## `plan`
 
 ```powershell
 .\NX2512_HotkeyStudio.exe plan `
-  --config .\nx2512-pro-hybrid.json `
+  --config .\nx2512-v8-profile.json `
   --catalog "D:\NX2512_Catalog_Output"
 ```
 
-Вывод включает action summary и resolution report.
+Строит deployment plan и resolution summary без обязательного применения.
 
-### `apply`
+## `apply`
 
-Применяет deployment plan.
-
-Dry-run определяется профилем либо принудительно:
+Dry-run:
 
 ```powershell
 .\NX2512_HotkeyStudio.exe apply `
-  --config .\nx2512-pro-hybrid.json `
+  --config .\nx2512-v8-profile.json `
   --dry-run
 ```
 
-Фактическое применение:
+Применение:
 
 ```powershell
 .\NX2512_HotkeyStudio.exe apply `
-  --config .\nx2512-pro-hybrid.json `
+  --config .\nx2512-v8-profile.json `
   --yes
 ```
 
-Короткий эквивалент: `-y`.
+`-y` — короткий эквивалент `--yes`.
 
-Разрешить применение при запущенной NX:
+Override running-NX guard:
 
 ```powershell
 .\NX2512_HotkeyStudio.exe apply `
-  --config .\nx2512-pro-hybrid.json `
+  --config .\nx2512-v8-profile.json `
   --yes `
   --allow-running-nx
 ```
 
-`--allow-running-nx` не обновляет уже загруженную Bridge DLL в памяти. Новая версия начнёт работать только после перезапуска NX.
+Это **не** обновляет уже загруженную Bridge DLL. Для полноценного update закройте NX.
 
-Для production рекомендуется использовать `install-nxkeys.ps1`, который формирует чистый staging-набор и выполняет post-install health-check.
+Для production deployment предпочтителен `install-nxkeys.ps1`.
 
-### `launch`
-
-Запускает Siemens NX через `NxRuntimeService`.
+## `launch`
 
 ```powershell
 .\NX2512_HotkeyStudio.exe launch `
-  --config .\nx2512-pro-hybrid.json
+  --config .\nx2512-v8-profile.json
 ```
 
-Аргументы после `--` передаются запускаемому процессу NX:
+Это особенно важно при IPC schema 4: managed launch path создаёт authenticated session capability.
+
+Аргументы после `--` передаются NX:
 
 ```powershell
 .\NX2512_HotkeyStudio.exe launch `
-  --config .\nx2512-pro-hybrid.json `
-  -- <аргументы NX>
+  --config .\nx2512-v8-profile.json `
+  -- <NX arguments>
 ```
 
-Используйте только аргументы, подтверждённые документацией вашей установки NX.
+Используйте только подтверждённые вашей NX installation flags.
 
-### `leader`
+## `leader`
 
-Запускает Leader Engine в foreground до `Ctrl+C`.
+Foreground Leader:
 
 ```powershell
 .\NX2512_HotkeyStudio.exe leader `
-  --config .\nx2512-pro-hybrid.json
+  --config .\nx2512-v8-profile.json
 ```
 
-### `backups`
+Остановка — `Ctrl+C`.
 
-Показывает backup manifests из `deployment.backup_root`.
+## `backups`
 
 ```powershell
 .\NX2512_HotkeyStudio.exe backups `
-  --config .\nx2512-pro-hybrid.json
+  --config .\nx2512-v8-profile.json
 ```
 
-Строка содержит timestamp, profile name и количество файлов.
+Показывает backup manifests.
 
-### `restore`
+## `restore`
 
-Восстанавливает последнюю резервную копию:
+Последний backup:
 
 ```powershell
 .\NX2512_HotkeyStudio.exe restore `
-  --config .\nx2512-pro-hybrid.json
+  --config .\nx2512-v8-profile.json
 ```
 
-Восстановление указанного manifest:
+Конкретный manifest:
 
 ```powershell
 .\NX2512_HotkeyStudio.exe restore `
-  --config .\nx2512-pro-hybrid.json `
+  --config .\nx2512-v8-profile.json `
   --manifest "C:\path\to\manifest.json"
 ```
 
-Принудительное восстановление:
+`--force` используйте только после ручной проверки причины отказа обычного restore.
 
-```powershell
-.\NX2512_HotkeyStudio.exe restore `
-  --config .\nx2512-pro-hybrid.json `
-  --manifest "C:\path\to\manifest.json" `
-  --force
-```
-
-Перед `--force` закройте NX и сохраните текущий managed package. Этот флаг ослабляет защиту восстановления и требует ручной проверки результата.
-
-### `bridge-status`
-
-Показывает IPC root, наличие `context.json`, возраст/модуль контекста и число файлов очереди.
+## `bridge-status`
 
 ```powershell
 .\NX2512_HotkeyStudio.exe bridge-status `
-  --config .\nx2512-pro-hybrid.json
+  --config .\nx2512-v8-profile.json
 ```
 
-Когда NX закрыт, отсутствие свежего context является ожидаемым.
+Показывает Bridge root, context path/age/module/status и queue counts.
 
-### `health`
+При закрытом NX отсутствие свежего context нормально.
 
-Проверяет managed package, manifest/hash, custom dirs, NX processes, Bridge status/context/log и queue counters.
+## `health`
 
 ```powershell
 .\NX2512_HotkeyStudio.exe health `
-  --config .\nx2512-pro-hybrid.json
+  --config .\nx2512-v8-profile.json
 ```
 
-Health-check может завершиться ошибкой при повреждённом package или отсутствующих required files. OFFLINE Bridge при закрытой NX сам по себе не означает повреждение установки.
+Проверяет managed package, manifest/hash, custom dirs, NX processes, Bridge status/context/log и queue counters.
 
-### `icons` / `export-icons`
+`Bridge OFFLINE` при закрытом NX само по себе не означает повреждённую установку.
 
-Обе команды вызывают один и тот же обработчик icon cache/export.
+## `icons` / `export-icons`
 
 ```powershell
 .\NX2512_HotkeyStudio.exe icons `
-  --config .\nx2512-pro-hybrid.json
+  --config .\nx2512-v8-profile.json
 ```
 
-Текущая реализация очищает cache и использует внешние изображения из `assets/nx-operation-icons`.
+Обе команды используют один handler operation thumbnail export/cache.
 
 ## Desktop flags
 
-При отсутствии CLI-команды запускается desktop mode.
-
-Подтверждённые flags:
-
 | Flag | Назначение |
 |---|---|
-| `--config <path>` | профиль |
-| `--background` | запуск без обязательного main window |
-| `--tray` | background/tray mode |
-| `--daemon` | alias background mode |
+| `--config <path>` | выбрать profile |
+| `--background` | background mode |
+| `--tray` | tray/background alias |
+| `--daemon` | background alias |
 | `--ensure-background` | запустить или сигнализировать существующему instance |
-| `--start` | обеспечить запуск Leader Engine |
-| `--toggle` | переключить состояние Leader в существующем instance |
+| `--start` | обеспечить запуск Leader |
+| `--toggle` | переключить Leader существующего instance |
 | `--gui` | открыть UI вместе с background mode |
 
-HotkeyStudio использует single-instance mutex и named events. Второй процесс обычно сигнализирует уже работающему instance вместо запуска второго keyboard hook.
+HotkeyStudio использует single-instance mutex + named events. Второй instance сигнализирует первому вместо создания второго keyboard hook.
 
-## Exit codes
-
-- `0` — команда завершилась без необработанной ошибки;
-- `1` — validation, IO, deployment или argument error.
-
-Точный текст ошибки выводится в stderr как `[ERROR] ...`.
-
-## Примеры установленного пакета
+## Installed package
 
 ```powershell
 $root = "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000"
 $studio = "$root\NX2512_HotkeyStudio.exe"
-$config = "$root\nx2512-pro-hybrid.json"
+$config = "$root\nx2512-v8-profile.json"
 
 & $studio validate --config $config
 & $studio health --config $config
+```
+
+После запуска NX через managed launcher:
+
+```powershell
 & $studio bridge-status --config $config
 ```
 
+## Exit codes
+
+- `0` — CLI command завершилась без обработанной failure;
+- `1` — argument/validation/IO/deployment error.
+
+Error text выводится как `[ERROR] ...`.
+
 ## Ограничения
 
-- CLI не заменяет integration test внутри NX.
-- `catalog` возвращает candidates, а не доказанный UI→API mapping.
-- `validate` проверяет profile contract, но не чувствительность кнопки.
-- `apply --allow-running-nx` не делает hot reload Bridge DLL.
-- Параметры без подтверждения в `Program.cs` не считаются поддерживаемыми.
+- CLI validation не заменяет live NX integration test;
+- `catalog` выдаёт candidates;
+- `apply --allow-running-nx` не делает hot reload;
+- Selection Intent `0…4` — не CLI feature, а in-process Bridge behavior;
+- параметры, отсутствующие в `Program.cs`, не считаются поддерживаемыми.
