@@ -281,8 +281,9 @@ namespace NXKeys.Protocol
                         if (string.Equals(action, NxProtocolActions.SwitchModule, StringComparison.OrdinalIgnoreCase))
                         {
                             string targetModule = ReadString(command, "target_module_id");
-                            if (applications.TryGetValue(targetModule, out string resolvedApplication))
-                                targetApplication = resolvedApplication ?? string.Empty;
+                            if (applications.TryGetValue(targetModule, out string? resolvedApplication) &&
+                                !string.IsNullOrWhiteSpace(resolvedApplication))
+                                targetApplication = resolvedApplication;
                         }
 
                         string selectionFilter = ReadString(command, "selection_type");
@@ -314,14 +315,18 @@ namespace NXKeys.Protocol
 
         public bool TryGetPermission(NxCommandRequest request, out NxCommandPermission permission)
         {
-            permission = null;
+            permission = null!;
             if (request == null) return false;
-            return permissions.TryGetValue(PermissionKey(
+            string key = PermissionKey(
                 request.Action,
                 request.CommandId,
                 request.ModuleId,
                 request.TargetApplicationId,
-                request.SelectionFilter), out permission);
+                request.SelectionFilter);
+            if (!permissions.TryGetValue(key, out NxCommandPermission? resolved) || resolved == null)
+                return false;
+            permission = resolved;
+            return true;
         }
 
         public static string PermissionKey(
@@ -344,7 +349,10 @@ namespace NXKeys.Protocol
         public static string CanonicalCommandId(string value)
         {
             string id = (value ?? string.Empty).Trim();
-            return CommandIdAliases.TryGetValue(id, out string canonical) ? canonical : id;
+            return CommandIdAliases.TryGetValue(id, out string? canonical) &&
+                   !string.IsNullOrWhiteSpace(canonical)
+                ? canonical
+                : id;
         }
 
         public static string CanonicalApplicationId(string value)
@@ -421,7 +429,7 @@ namespace NXKeys.Protocol
                 return string.Empty;
             foreach (JsonElement item in array.EnumerateArray())
             {
-                string value = item.ValueKind == JsonValueKind.String ? item.GetString() : null;
+                string? value = item.ValueKind == JsonValueKind.String ? item.GetString() : null;
                 if (!string.IsNullOrWhiteSpace(value)) return value.Trim();
             }
             return string.Empty;
@@ -433,7 +441,7 @@ namespace NXKeys.Protocol
                 return string.Empty;
             foreach (JsonElement item in array.EnumerateArray())
             {
-                string value = item.ValueKind == JsonValueKind.String ? item.GetString() : null;
+                string? value = item.ValueKind == JsonValueKind.String ? item.GetString() : null;
                 if (!string.IsNullOrWhiteSpace(value)) return value.Trim();
             }
             return string.Empty;
