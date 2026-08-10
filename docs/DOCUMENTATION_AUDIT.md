@@ -1,171 +1,221 @@
 # Аудит актуальности документации NXKeys
 
-Дата сверки: **3 августа 2026 года**.  
-Базовая реализация: `main` после объединения Sketch intent taxonomy.  
-Область: пользовательская документация, developer guides, generated reference, component boundaries и GitHub Actions.
+Дата сверки: **10 августа 2026 года**.  
+Область: ветка `main`, current user/developer/operations docs, component READMEs, generated references и historical evidence.
 
 ## Итог
 
-Каноническая документация приведена к текущей архитектуре:
+Документация переведена на фактический current runtime:
 
-- profile schema 6;
-- IPC schema 4;
-- sequence policy v7;
-- main scope K3–K5;
-- полный source catalog K1–K5;
-- 14 контекстных модулей;
-- отдельная смысловая грамматика Sketch;
-- два исполняемых C# test runner: StateMachines и HotkeyStudio;
-- постоянный workflow `Sketch intent grammar`;
-- managed deployment с backup, manifest, health-check и rollback.
+```text
+profile schema 8
+minimum readable profile 3
+IPC schema 4
+sequence policy v8
+default profile config/nx2512-v8-profile.json
+```
 
-Добавлена единая [подробная шпаргалка](CHEATSHEET.md), которая связывает пользовательские пути, Sketch, установку, CLI, диагностику и developer workflow.
+Главная архитектурная коррекция: K1–K5 / generated K3–K5 pipeline больше не описывается как default runtime installer path. Он сохранён как legacy/catalog analysis и compatibility layer.
 
-## Метод сверки
+Добавлены два новых current documents:
 
-Документация сопоставлена с:
+- [RUNTIME_V8.md](RUNTIME_V8.md) — единый runtime contract;
+- [SELECTION_INTENT.md](SELECTION_INTENT.md) — `0…4` collector selection semantics.
 
-- `.csproj` и component `build.ps1`;
-- `install-nxkeys.ps1`;
-- `ConfigRuntimeV5.cs` и `ModuleConfigTypesV5.cs`;
-- `MnemonicPathGenerator.cs` и `MnemonicPathGenerator.Sketch.cs`;
-- `NxProtocol.cs`;
-- `NXKeys.StateMachines/` и декларативной policy;
-- Node.js-компиляторами и валидаторами;
-- `NX2512_HotkeyStudio.Tests`;
-- `.github/workflows/*.yml`;
-- bootstrap, generated profile и full intent catalog.
+## Почему понадобилась полная переработка
 
-Название файла само по себе не считается доказательством поведения. При конфликте приоритет имеют исполняемый код и валидаторы.
+До этой сверки одновременно существовали противоречащие друг другу утверждения:
 
-## Текущая карта документов
+- schema 6 против runtime `CurrentSchemaVersion = 8`;
+- IPC schema 3 против protocol schema 4;
+- policy v7 против source policy v8;
+- generated K3–K5 как «main runtime» против default installer `nx2512-v8-profile.json`;
+- Sketch `C→L` / `CGL` против current one-token `L`;
+- отсутствие документации Selection Intent `0…4`;
+- старые Sheet Metal `UG_SHEET_METAL_*` против current canonical `UG_SBSM_*`;
+- security text «file IPC не аутентифицирован» против уже реализованного schema-4 HMAC/session layer.
 
-| Документ | Аудитория | Статус | Основной источник истины |
-|---|---|---|---|
-| `README.md` | все | актуализирован | installer, workflows, project structure |
-| `docs/CHEATSHEET.md` | пользователь, support, разработчик | создан | mnemonic policy, CLI, installation, Sketch tests |
-| `DEVELOPMENT.md` | разработчик | актуализирован | `.csproj`, CI, build scripts |
-| `CONTRIBUTING.md` | contributor, reviewer | актуализирован | validators, tests, architecture boundaries |
-| `docs/README.md` | все | актуализирован | структура документации |
-| `docs/ARCHITECTURE.md` | разработчик, reviewer | канонический | component code и data flow |
-| `docs/INSTALLATION.md` | пользователь, интегратор | канонический | `install-nxkeys.ps1`, deployment engine |
-| `docs/CONFIGURATION.md` | разработчик профиля | канонический | config models и compiler |
-| `docs/CLI.md` | оператор, разработчик | канонический | `NX2512_HotkeyStudio/Program.cs` |
-| `docs/api.md` | интегратор | канонический | `NXKeys.Protocol/NxProtocol.cs` |
-| `docs/MNEMONIC_COMMAND_LANGUAGE.md` | пользователь, разработчик | generated/reference | sequence policy и runtime profile |
-| `docs/SKETCH_INTENT_LANGUAGE.md` | пользователь, разработчик | актуальный | Sketch allocator и regression tests |
-| `docs/STATE_MACHINE_ARCHITECTURE.md` | разработчик | канонический | state-machine code/config |
-| `docs/SAFETY_MODEL.md` | reviewer, support | канонический | guards, confirmation и Bridge lifecycle |
-| `docs/OPERATIONS.md` | support, administrator | канонический | health, queue, backups, deployment |
-| `docs/TROUBLESHOOTING.md` | пользователь, support | канонический | runtime diagnostics |
-| `docs/audit/command-sequence-audit.*` | maintainer | generated | `audit-command-sequences.mjs` |
-| `docs/audit/00-*` … `12-*` | maintainer | historical | снимки старых состояний |
+## Источники истины
 
-## Подтверждённые технические факты
-
-| Факт | Статус |
+| Область | Source |
 |---|---|
-| проект ориентирован на Windows x64 и .NET 8 | подтверждено project files |
-| Node.js 20+ используется для profile compiler и validators | подтверждено scripts и installer |
-| обязательного `npm install` нет | подтверждено структурой репозитория |
-| runtime profile schema равна 6 | подтверждено config runtime |
-| IPC schema равна 3 | подтверждено protocol source |
-| source sequence policy равна v7 | подтверждено `sequence-policy.mjs` |
-| основной installer использует K3/K4/K5 scope | подтверждено compiler/installer validators |
-| Command Bridge production build требует NXOpen DLL | подтверждено build scripts |
-| CI выполняет contract build Bridge без proprietary DLL | подтверждено workflow |
-| Sketch использует отдельную семантическую грамматику | подтверждено кодом и HotkeyStudio tests |
-| Sketch допускает пути до пяти токенов | подтверждено policy и tests |
-| неоднозначные/неразрешённые команды не должны исполняться | подтверждено compiler и safety model |
-| фактическая доступность каждого ID требует NX 2512 | требует workstation |
+| profile schema/range | `NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs` |
+| v8 operation shape | `NX2512_HotkeyStudio/Models/V8Models.cs` |
+| alias/workspace expansion | `V8SecondaryAliasExpander.cs` |
+| default profile | `config/nx2512-v8-profile.json` |
+| installer profile resolution | `install-nxkeys.ps1` |
+| CLI profile resolution | `NX2512_HotkeyStudio/Program.cs` |
+| sequence policy | `scripts/sequence-policy.mjs` |
+| IPC schema | `NXKeys.Protocol/NxProtocol.cs` |
+| security permissions | `NXKeys.Protocol/NxBridgeSecurity.cs` |
+| Selection Intent | `NX2512_CommandBridge/SelectionIntentHotkeys.cs` |
+| live command catalog | target `06_ui_commands_buttons.csv` |
 
-## Изменения Sketch, отражённые в документации
+## Current user documentation
 
-Каноническая документация теперь фиксирует:
+| Документ | Роль | Статус после аудита |
+|---|---|---|
+| `README.md` | главный вход | v8 current |
+| `docs/README.md` | оглавление | v8 current |
+| `docs/RUNTIME_V8.md` | canonical runtime | добавлен |
+| `docs/CHEATSHEET.md` | ежедневная работа | полностью перестроен под v8 |
+| `docs/SKETCH_INTENT_LANGUAGE.md` | Sketch | current paths + диагностика |
+| `docs/SELECTION_INTENT.md` | selection collectors | добавлен |
+| `docs/INSTALLATION.md` | install/update | default v8 profile |
+| `docs/CLI.md` | CLI | v8 resolution/fallback |
+| `docs/TROUBLESHOOTING.md` | диагностика | v8/security/Selection Intent |
 
-- базовые пути `CGL`, `CGR`, `CGC`, `CGA`, `EGT`, `EGE`, `TGO`;
-- ветвь вариантов `CGV…`;
-- семейства `CG`, `EG`, `TG`, `CK`, `AD`, `IS`, `XG`, `MS`;
-- исключение Sketch из механического сокращения K5/K4/K3;
-- удаление legacy positional aliases;
-- сохранение user-locked paths;
-- запрет попадания файловых, сборочных, материальных и других чужих команд в Sketch;
-- запрет включения строки без точного ID;
-- обязательный HotkeyStudio regression test runner.
+## Current engineering documentation
 
-## Классы документации
+| Документ | Статус |
+|---|---|
+| `docs/ARCHITECTURE.md` | v8 + authenticated bridge |
+| `docs/CONFIGURATION.md` | schema 8 operation contract |
+| `docs/api.md` | schema 4 authoritative |
+| `docs/STATE_MACHINE_ARCHITECTURE.md` | one-token paths + signed request lifecycle |
+| `docs/SAFETY_MODEL.md` | HMAC/session/permission current model |
+| `docs/OPERATIONS.md` | installed `nx2512-v8-profile.json` |
+| `DEVELOPMENT.md` | v8 tests/build/current profile |
+| `CONTRIBUTING.md` | v8 change matrix/invariants |
+| `NX2512_HotkeyStudio/README.md` | schema 8 / fallback / aliases |
+| `NX2512_CommandBridge/README.md` | schema 4 + Selection Intent |
+| `NX2512_ControlCenter/README.md` | current v8 metrics vs legacy coverage |
 
-### Каноническая
+## Reclassified documentation
 
-Описывает текущее поведение и редактируется вручную. При изменении кода обновляется в том же PR.
+### `docs/NX_PRO_HYBRID_SOURCE_SPEC.md`
+
+Переклассифицирован как **legacy/catalog profile specification**. Он сохраняет K1–K5/K3–K5 contracts, но явно говорит, что current runtime source — v8 profile.
+
+### `docs/MNEMONIC_COMMAND_LANGUAGE.md`
+
+Это большой target-design/reference document v8.x. Он содержит идеи леворукой эргономики, workspaces и более широкий целевой UI language. Его нельзя использовать как доказательство уже реализованной команды без сверки с `RUNTIME_V8.md`, current profile и tests.
 
 ### Generated
 
-Создаётся скриптами. Не редактируется вручную. Generated-файл считается актуальным только если:
-
-1. создан текущей версией генератора;
-2. соответствует тому же commit;
-3. прошёл валидаторы;
-4. его diff проверен человеком.
+`docs/generated/*`, command-sequence audit, generated profile и command tree считаются актуальными только после воспроизводимой регенерации тем же commit.
 
 ### Historical
 
-Фиксирует прошлое состояние. Такой файл может содержать старые schema, counts и выводы. Он обязан быть явно отделён от текущих инструкций.
+Датированные audit snapshots, build reports и планы могут содержать старые schema/policy/paths. Их старые значения не исправляются задним числом.
 
-## Исправленные несоответствия
+## Исправленные пользовательские сценарии
 
-| Проблема | Решение |
-|---|---|
-| документация не выделяла единую точку входа | создана `CHEATSHEET.md`, обновлены README и docs index |
-| contributor guide применял K-длину к Sketch без явного исключения | добавлено отдельное правило Sketch до пяти токенов |
-| developer quick start не запускал HotkeyStudio regression tests | test runner добавлен в README, DEVELOPMENT и CONTRIBUTING |
-| структура Sketch была описана только в одном специализированном файле | основные пути добавлены в README и шпаргалку |
-| generated sequence audit оставался на policy v6 | добавлена автоматическая регенерация и проверка v7 |
-| источники путей были описаны неполно | добавлен `MnemonicPathGenerator.Sketch.cs` |
-| пользовательская и developer информация были смешаны | документы сгруппированы по аудитории |
-| исторические аудиты выглядели равнозначными текущим инструкциям | закреплён приоритет canonical/generated/historical |
+### Sketch
 
-## Проверки документационного изменения
+Current:
 
-Обязательный минимум:
+```text
+CapsLock → L
+CapsLock → K → C
+CapsLock → D → Q
+CapsLock → C → V → …
+```
 
-- относительные Markdown-ссылки разрешаются;
-- README указывает на шпаргалку;
-- docs index указывает на все канонические документы;
-- команды копируются без исправления путей;
-- `validate-command-tree.mjs` проходит;
-- `validate-main-command-map.mjs` проходит;
-- `NXKeys.StateMachines.Tests` проходит;
-- `NX2512_HotkeyStudio.Tests` проходит;
-- HotkeyStudio собирается Release/x64;
-- generated sequence audit сообщает policy v7;
-- workflow Sketch проверяет базовое ядро и отсутствие загрязнения контекста.
+Старые `CapsLock→C→L`, `CapsLock→C→G→L`, `CGL` не используются в current README/cheatsheet.
 
-## Что нельзя подтвердить только репозиторием
+### Modeling Manage
 
-Следующие проверки остаются обязательными на целевой workstation:
+```text
+CapsLock → M → L → S
+```
 
-1. чувствительность каждого `BUTTON ID` в установленной роли;
-2. наличие команды при конкретной лицензии;
-3. application/module mapping корпоративной конфигурации;
-4. загрузка подписанного или неподписанного Bridge согласно политике организации;
-5. работа destructive-команд на реальных данных;
-6. совместимость с конкретным maintenance release NX 2512.
+Документация объясняет скрытый Modeling prefix и запрет root projection workspace-only key.
 
-Такие утверждения в документации помечаются как **требующие проверки в NX 2512**.
+### Selection Intent
+
+```text
+0 reset
+1 single
+2 connected/chain
+3 tangent
+4 inferred path/region boundary
+```
+
+Отдельно объяснено отличие от Leader type filters `S→…`.
+
+### Sheet Metal
+
+Current canonical namespace:
+
+```text
+UG_APP_SBSM
+UG_SBSM_*
+```
+
+Legacy names помечены только как compatibility mapping.
+
+## Security corrections
+
+Current docs теперь согласованы с IPC schema 4:
+
+- managed launch session;
+- HMAC-SHA-256;
+- `client_instance_id`;
+- nonce/sequence anti-replay;
+- profile digest/permission;
+- source process validation;
+- selection fingerprint/context checks.
+
+Устаревшее утверждение «отдельной cryptographic authentication нет» удалено из current API/safety docs.
+
+## Documentation validator
+
+`scripts/validate-documentation.mjs` обновлён так, чтобы:
+
+- извлекать `CurrentSchemaVersion` из C# source;
+- извлекать IPC `SchemaVersion` из `NxProtocol.cs`;
+- извлекать `SEQUENCE_POLICY_VERSION` из JS source;
+- проверять current docs против полученных версий;
+- проверять default `nx2512-v8-profile.json` в installer и CLI;
+- проверять `CapsLock→L`, `K→C`, `M→L→S`;
+- проверять Selection Intent doc/Bridge responsibility;
+- запрещать старые Sketch line examples в current README/cheatsheet;
+- продолжать сверять generated sequence audit с source policy.
+
+Это снижает вероятность повторной рассинхронизации после следующего schema/policy bump.
+
+## Что остаётся live-NX only
+
+Репозиторий/CI не может окончательно доказать:
+
+1. sensitivity всех `BUTTON ID`;
+2. наличие commands при конкретной лицензии/role;
+3. фактическое поведение `0…4` во всех collectors;
+4. module mapping корпоративной конфигурации;
+5. interactive dialog/collector semantics;
+6. destructive side effects.
+
+Особенно отмечено, что `DialogTester.InvokeMenuButtonAction(...)` для интерактивных commands требует live-NX interpretation: return value нельзя считать абсолютным доказательством фактического UI effect.
 
 ## Правило дальнейшей поддержки
 
-Документация считается частью реализации. PR не завершён, если изменение пользовательского поведения не отражено в соответствующем документе и не имеет проверяемого примера.
+Любое изменение:
 
-| Изменение | Обновить |
-|---|---|
-| пользовательский путь | mnemonic reference; шпаргалка для частых команд |
-| Sketch grammar | Sketch doc, tests, шпаргалка |
-| profile schema | configuration/spec/migration docs |
-| CLI | CLI reference и шпаргалка при операционном сценарии |
-| IPC | API, architecture, safety |
-| deployment | installation, operations, troubleshooting |
-| generated counts | только generated reference и действительно необходимые сводки |
+- schema;
+- sequence policy;
+- current profile path;
+- user mnemonic path;
+- Sketch grammar;
+- Selection Intent;
+- protocol/security;
+- Sheet Metal canonicalization;
+- installer/deployment;
 
-Последняя проверка документации должна обновлять дату этого файла и перечислять фактически выполненные автоматические проверки.
+должно обновлять соответствующий current doc и machine-checkable documentation invariant в том же change set.
+
+## Проверки документационного change
+
+Минимум:
+
+```powershell
+node .\scripts\validate-documentation.mjs
+node .\scripts\validate-command-tree.mjs
+node .\scripts\validate-main-command-map.mjs
+node .\scripts\audit-command-sequences.mjs
+
+dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
+dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release
+```
+
+Для Bridge изменений дополнительно выполняется NXOpen contract build, а фактический UI behavior проверяется на target NX 2512.
