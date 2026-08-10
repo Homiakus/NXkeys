@@ -81,9 +81,19 @@ namespace NX2512_HotkeyStudio.Models
 
         private static bool IsSketchIntentCommand(ModuleConfig module, ModuleCommand command)
         {
-            if (!string.Equals(module?.ID, "sketch", StringComparison.OrdinalIgnoreCase)) return false;
-            if (command == null || IsSupport(command)) return false;
-            return true;
+            if (module == null || command == null || IsSupport(command)) return false;
+
+            // Schema v8 translates the Sketch workspace to module "v8_s".  The old
+            // equality check against literal "sketch" disabled the entire curated
+            // Sketch grammar after loading nx2512-v8-profile.json, including all
+            // C -> K -> constraint routes.  Application identity is also accepted
+            // so legacy/hardcoded Sketch modules keep the same behaviour.
+            bool sketchModuleId = string.Equals(module.ID, "sketch", StringComparison.OrdinalIgnoreCase) ||
+                                  string.Equals(module.ID, "v8_s", StringComparison.OrdinalIgnoreCase);
+            bool sketchApplication = module.NXApplicationIDs != null &&
+                                     module.NXApplicationIDs.Any(id =>
+                                         string.Equals(id, "UG_APP_SKETCH", StringComparison.OrdinalIgnoreCase));
+            return sketchModuleId || sketchApplication;
         }
 
         private static IReadOnlyList<string> GenerateSketchCandidate(ModuleCommand command)
