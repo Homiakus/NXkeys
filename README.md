@@ -7,218 +7,229 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/)
 
-NXKeys — сторонний контекстный клавиатурный слой для Siemens NX / Designcenter NX 2512 под Windows x64. Пользователь вызывает команды через мнемонические последовательности вместо большого числа глобальных сочетаний:
+NXKeys — контекстный клавиатурный слой для Siemens NX / Designcenter NX 2512 под Windows x64. Текущий runtime — **v8**: активное приложение NX определяется автоматически, а пользователь вводит только смысловой путь внутри текущего контекста.
+
+> NXKeys не является продуктом Siemens. Доступность конкретной команды зависит от установленной сборки NX, лицензий, роли, локализации и MenuScript-расширений.
+
+## Текущий контракт
+
+| Область | Значение |
+|---|---|
+| profile schema | **8** |
+| IPC schema | **4** |
+| sequence policy | **v8** |
+| default profile | `config/nx2512-v8-profile.json` |
+| no-profile fallback | hardcoded v8 configuration |
+| target | Siemens NX / Designcenter NX 2512, Windows x64, .NET 8 |
+
+Подробности и правила приоритета: **[docs/RUNTIME_V8.md](docs/RUNTIME_V8.md)**.
+
+## Как выглядит работа
+
+Пользователь не вводит module prefix — он добавляется runtime автоматически.
+
+### Sketch v8
+
+В активном Sketch частые команды максимально короткие:
 
 ```text
-CapsLock → действие → объект/область → команда → вариант
+CapsLock → L            Line
+CapsLock → R            Rectangle
+CapsLock → C            Circle
+CapsLock → T            Trim
+CapsLock → K → C        Coincident
+CapsLock → D → Q        Rapid Dimension
+CapsLock → C → V → …    варианты построения
 ```
 
-Примеры:
+Полная грамматика: [docs/SKETCH_INTENT_LANGUAGE.md](docs/SKETCH_INTENT_LANGUAGE.md).
+
+### Modeling: `M = Manage`
 
 ```text
-CapsLock → C → E        Create → Extrude
-CapsLock → S → F        Select → Face
-CapsLock → S → A        Select All
-CapsLock → G → D        Go → Drafting
-CapsLock → C → G → L    Sketch → Create Geometry → Line
+CapsLock → M → L → S    Layer Settings
 ```
 
-**Начните с [подробной шпаргалки](docs/CHEATSHEET.md)**: в ней собраны все основные клавиши, выбор, переходы, Sketch, установка, CLI, диагностика и восстановление.
+`M` — смысловой корень Manage. Внутренний префикс Modeling скрыт от пользователя.
 
-Интерактивная карта команд публикуется через GitHub Pages: <https://homiakus.github.io/NXkeys/>.
+### Быстрый Selection Intent
 
-> NXKeys не является продуктом Siemens. Доступность конкретной команды зависит от установленной сборки NX, лицензий, роли, локализации и корпоративных MenuScript-расширений.
-
-## Возможности
-
-- главный профиль из **885 команд-намерений K3–K5**;
-- исходный каталог из **1169 намерений K1–K5** в 32 разделах;
-- 14 контекстных модулей NX;
-- prefix-free мнемонические пути длиной 2–5 токенов;
-- отдельная смысловая грамматика Sketch `действие → область → операция → вариант`;
-- универсальные фильтры выбора `SB`, `SF`, `SE`, `ST`, `SC`, `SU`, `SD`, `SR`, `SA`, `SN`;
-- явные переходы между приложениями через `G*`;
-- HUD, поиск, WinForms-редактор профиля и системный tray;
-- файловый IPC между HotkeyStudio и NXOpen Command Bridge;
-- проверка контекста, подтверждение опасных операций и at-most-once обработка запросов;
-- транзакционная установка, резервные копии, manifest, health-check и rollback;
-- Catalog Studio для экспорта фактических `BUTTON ID` целевой установки NX;
-- Control Center для диагностики профиля и Bridge.
-
-## Sketch без случайных сокращений
-
-В контексте Sketch команды распределяются по смысловым семействам, а не по позиции клавиш:
+Во время активного NX collector цифры работают как способ распространения выбора:
 
 ```text
-C → G → L    линия
-C → G → R    прямоугольник
-C → G → C    окружность
-C → G → A    дуга
-E → G → T    обрезать
-E → G → E    удлинить
-T → G → O    смещение
+0  Reset
+1  Single
+2  Connected / Chain
+3  Tangent
+4  Inferred Path / Region Boundary
 ```
 
-Варианты построения находятся в prefix-free ветви `C → G → V → …`. Sketch допускает пути длиной до пяти токенов, чтобы не разрушать смысловую структуру. Подробности: [SKETCH_INTENT_LANGUAGE.md](docs/SKETCH_INTENT_LANGUAGE.md).
+Цифры не являются безусловными глобальными hotkeys: handler активируется только в NX и только когда есть подходящий collector или seed selection. Подробности: [docs/SELECTION_INTENT.md](docs/SELECTION_INTENT.md).
+
+## Что изменилось в v8 runtime
+
+- физический CapsLock защёлкивается до отпускания клавиши, поэтому autorepeat не должен создавать несколько Leader-событий;
+- `secondary_aliases` реально участвуют в runtime routing;
+- workspace-local keys не превращаются автоматически в root commands;
+- Modeling использует `M` как Manage subtree;
+- Sketch constraints доступны через `K → …` в активном Sketch;
+- Sheet Metal нормализован на реальные NX2512 IDs `UG_APP_SBSM` и `UG_SBSM_*`;
+- Selection Intent `0…4` работает внутри процесса NX;
+- IPC schema 4 использует authenticated request envelope, profile permissions и anti-replay checks;
+- при отсутствии JSON HotkeyStudio способен построить и проверить hardcoded v8 fallback.
 
 ## Состав репозитория
 
 | Компонент | Назначение |
 |---|---|
-| `NX2512_HotkeyStudio/` | desktop UI, HUD, Leader runtime, CLI, генерация MenuScript и deployment |
-| `NX2512_HotkeyStudio.Tests/` | регрессионные тесты профиля, путей и Sketch-грамматики |
-| `NX2512_CommandBridge/` | NXOpen-библиотека, выполняемая внутри процесса NX |
-| `NX2512_ControlCenter/` | диагностика профиля, Bridge и покрытия команд |
-| `NX2512_Catalog_Studio/` | экспорт UI-команд и NXOpen-каталога целевой установки |
-| `NXKeys.Protocol/` | общий JSON-контракт IPC schema 4 |
-| `NXKeys.StateMachines/` | DFA/HFSM и контекстные guards |
-| `NXKeys.StateMachines.Tests/` | исполняемый набор инвариантных и randomized-тестов |
-| `config/full-command-map/` | версионируемый каталог 1169 намерений |
-| `config/nx2512-pro-hybrid.json` | bootstrap-профиль и источник safety/deployment-настроек |
-| `scripts/` | компиляция, валидация и аудит профилей |
-| `install-nxkeys.ps1` | поддерживаемая точка компиляции и установки |
+| `NX2512_HotkeyStudio/` | desktop/tray runtime, Leader, HUD, profile loading, CLI, deployment client |
+| `NX2512_CommandBridge/` | NXOpen runtime внутри NX, context, authenticated queue, command dispatch, Selection Intent |
+| `NXKeys.Protocol/` | IPC schema 4, security envelope и permission model |
+| `NXKeys.StateMachines/` | DFA/HFSM, guards и lifecycle |
+| `NX2512_ControlCenter/` | диагностика runtime/profile/Bridge |
+| `NX2512_Catalog_Studio/` | экспорт фактических NX UI commands/API candidates |
+| `config/nx2512-v8-profile.json` | основной versioned v8 runtime profile |
+| `config/full-command-map/` | полный K1–K5 intent catalog для анализа/coverage/generation |
+| `scripts/` | validators, audit и legacy/main-profile generation pipeline |
+| `install-nxkeys.ps1` | установка, диагностика, очистка конфликтов и recovery custom dirs |
+| `docs/` | canonical, generated и historical documentation |
 
-Подробная карта компонентов находится в [архитектурной документации](docs/ARCHITECTURE.md).
+K1–K5 / generated K3–K5 pipeline сохраняется для трассировки, coverage и экспериментов с распределением команд. **Installer по умолчанию выбирает v8 profile**, а не generated K3–K5 profile.
 
 ## Требования
 
-Для проверки кода без установленного NX:
+Для разработки без установленного NX:
 
-- Windows, Linux или macOS для Node-валидаторов;
 - .NET SDK 8;
-- Node.js 20 или новее;
-- PowerShell 5.1 или PowerShell 7 для Windows-скриптов.
+- Node.js 20+;
+- PowerShell 5.1 или 7;
+- Windows для WinForms/runtime-сценариев; Node/C# validators частично запускаются и в других ОС.
 
-Для сборки и установки полного пакета:
+Для production build/install:
 
 - Windows 10/11 x64;
-- Siemens NX или Designcenter NX 2512;
-- `NXOpen.dll` и `NXOpenUI.dll` из целевой установки;
+- Siemens NX / Designcenter NX 2512;
+- `NXOpen.dll` и `NXOpenUI.dll` целевой установки;
 - права записи в `%LOCALAPPDATA%\NXKeys`;
-- экспорт Catalog Studio с `06_ui_commands_buttons.csv` — рекомендуется для production-профиля.
+- актуальный Catalog Studio export рекомендуется для проверки реальных IDs.
 
-В проекте нет `package.json` и обязательного шага `npm install`: Node-скрипты используют стандартную библиотеку Node.js.
+Node-скрипты используют стандартную библиотеку: обязательного `npm install` нет.
 
-## Быстрый старт для разработчика
+## Быстрый старт разработчика
 
-Рабочая директория для следующих команд — корень репозитория.
+Из корня репозитория:
 
 ```powershell
+node .\scripts\validate-documentation.mjs
 node .\scripts\validate-main-command-map.mjs
 node .\scripts\validate-command-tree.mjs
 node .\scripts\validate-full-command-map.mjs
-node .\scripts\audit-command-sequences.mjs
 
 dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
 dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release
 
-dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64
-dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64
+dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
+dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64 --nologo
 ```
 
-Command Bridge не собирается обычной командой без `NXOpenDir`. Используйте его `build.ps1` либо контрактные stubs, как это делает CI. Подробности: [DEVELOPMENT.md](DEVELOPMENT.md).
+Command Bridge production build требует NXOpen. CI дополнительно компилирует его против contract stubs.
 
-## Компиляция профиля
-
-Рекомендуемый способ:
-
-```powershell
-.\install-nxkeys.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
-  -CompileOnly
-```
-
-Результаты:
-
-```text
-config/nx2512-pro-main.generated.json
-docs/generated/main-profile-resolution.md
-```
-
-`install-nxkeys.ps1` принимает только главный scope `K3|K4|K5` с 885 уникальными намерениями. Подтверждённое ядро Sketch сохраняется как runtime vocabulary независимо от частотной фильтрации, при этом traceability выбранных намерений остаётся проверяемой валидаторами.
-
-### Источники истины
-
-| Данные | Источник истины |
-|---|---|
-| состав и частоты K1–K5 | `config/full-command-map/` |
-| safety, deployment и bootstrap IDs | `config/nx2512-pro-hybrid.json` |
-| правила универсальных путей | `scripts/sequence-policy.mjs` |
-| runtime-нормализация путей | `NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs` и `MnemonicPathGenerator.Sketch.cs` |
-| IPC-поля и таймауты | `NXKeys.Protocol/NxProtocol.cs` |
-| контекстные guards | `config/nx2512-state-machines.json` и `NXKeys.StateMachines/` |
-| фактические NX IDs | `06_ui_commands_buttons.csv` целевой установки |
-
-Checked-in generated-файлы и `docs/audit/*` являются результатами конкретного запуска. После изменения компилятора или sequence policy их нужно пересоздать; они не имеют приоритета над исходным кодом.
+Полный developer guide: [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Установка
 
-Закройте NX и запустите из корня репозитория:
+Без параметров installer открывает интерактивное меню:
+
+```powershell
+.\install-nxkeys.ps1
+```
+
+Типичная чистая установка:
 
 ```powershell
 .\install-nxkeys.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
+  -Mode CleanInstall `
+  -Yes `
   -NxRoot "C:\Program Files\Siemens\NX2512" `
   -Clean
 ```
 
-Для Designcenter NX:
-
-```powershell
-.\install-nxkeys.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
-  -NxRoot "C:\Program Files\Siemens\DesigncenterNX2512" `
-  -Clean
-```
-
-Установщик компилирует профиль, собирает компоненты, формирует staging-набор, выполняет транзакционное развёртывание и health-check. Полная инструкция: [docs/INSTALLATION.md](docs/INSTALLATION.md).
-
-## Запуск установленного пакета
+Если `-ConfigPath` не задан, используется:
 
 ```text
-%LOCALAPPDATA%\NXKeys\managed\NX2512.6000\launch-nx2512-with-nxkeys.cmd
+config\nx2512-v8-profile.json
 ```
 
-Проверка установки:
+Доступны maintenance modes `Audit`, `CleanConflicts`, `RepairCustomDirs`, `CleanInstall` и обычный `Install`.
+
+Полная инструкция: [docs/INSTALLATION.md](docs/INSTALLATION.md).
+
+## Проверка установленной системы
+
+Актуальный installer устанавливает profile под именем:
+
+```text
+%LOCALAPPDATA%\NXKeys\managed\NX2512.6000\nx2512-v8-profile.json
+```
+
+Проверка:
 
 ```powershell
 $root = "$env:LOCALAPPDATA\NXKeys\managed\NX2512.6000"
-& "$root\NX2512_HotkeyStudio.exe" validate --config "$root\nx2512-pro-hybrid.json"
-& "$root\NX2512_HotkeyStudio.exe" health --config "$root\nx2512-pro-hybrid.json"
-& "$root\NX2512_HotkeyStudio.exe" bridge-status --config "$root\nx2512-pro-hybrid.json"
+$studio = "$root\NX2512_HotkeyStudio.exe"
+$config = "$root\nx2512-v8-profile.json"
+
+& $studio validate --config $config
+& $studio health --config $config
 ```
 
-## Безопасность выполнения
+Затем **запустите NX через managed launcher** и проверьте:
 
-Перед отправкой команды проверяются свежесть контекста, приложение и модуль, Work/Display Part, modal state, selection, точный `BUTTON ID` и confirmation policy. `ambiguous` и `unresolved` команды остаются видимыми, но отключаются. Запрос, прерванный после захвата Bridge, получает `interrupted_unknown` и автоматически не повторяется.
+```powershell
+& $studio bridge-status --config $config
+```
 
-NXKeys не должен использоваться как единственная мера защиты производственных данных. Новые и destructive-команды необходимо проверять на копии детали в целевой лицензированной NX.
+Authenticated IPC session создаётся managed launch workflow. Независимый запуск NX и HotkeyStudio не эквивалентен штатному launcher-сценарию.
+
+## Безопасность
+
+Перед dispatch Bridge повторно проверяет authenticated session, HMAC, anti-replay state, profile permission, fresh NX context, application/module, selection fingerprint и destructive confirmation policy.
+
+Файловая очередь — транспорт, а не источник полномочий. Unknown/stale/unsigned requests должны отклоняться.
+
+NXKeys не заменяет резервное копирование и инженерную проверку. Новые/destructive команды тестируйте на копии детали в целевой лицензированной NX.
+
+Подробнее: [docs/SAFETY_MODEL.md](docs/SAFETY_MODEL.md) и [docs/api.md](docs/api.md).
 
 ## Документация
 
+- [Канонический v8 runtime](docs/RUNTIME_V8.md)
 - [Подробная шпаргалка](docs/CHEATSHEET.md)
-- [Оглавление документации](docs/README.md)
-- [Актуальность и аудит документации](docs/DOCUMENTATION_AUDIT.md)
-- [Локальная разработка](DEVELOPMENT.md)
-- [Внесение изменений](CONTRIBUTING.md)
-- [Архитектура](docs/ARCHITECTURE.md)
-- [Установка и обновление](docs/INSTALLATION.md)
+- [Selection Intent 0…4](docs/SELECTION_INTENT.md)
+- [Sketch v8](docs/SKETCH_INTENT_LANGUAGE.md)
+- [Оглавление](docs/README.md)
+- [Установка](docs/INSTALLATION.md)
 - [Конфигурация](docs/CONFIGURATION.md)
+- [Архитектура](docs/ARCHITECTURE.md)
 - [CLI](docs/CLI.md)
 - [IPC API](docs/api.md)
-- [Мнемонический язык](docs/MNEMONIC_COMMAND_LANGUAGE.md)
-- [Язык намерений Sketch](docs/SKETCH_INTENT_LANGUAGE.md)
-- [Конечные автоматы](docs/STATE_MACHINE_ARCHITECTURE.md)
-- [Модель безопасности](docs/SAFETY_MODEL.md)
+- [State machines](docs/STATE_MACHINE_ARCHITECTURE.md)
+- [Безопасность](docs/SAFETY_MODEL.md)
 - [Эксплуатация](docs/OPERATIONS.md)
 - [Диагностика](docs/TROUBLESHOOTING.md)
-- [Архитектурные решения](docs/adr/README.md)
+- [Аудит актуальности](docs/DOCUMENTATION_AUDIT.md)
+- [Разработка](DEVELOPMENT.md)
+- [Внесение изменений](CONTRIBUTING.md)
 - [История изменений](CHANGELOG.md)
-- [Сообщение об уязвимостях](SECURITY.md)
+- [Security reporting](SECURITY.md)
 
-## Участие в разработке
+Интерактивная карта команд публикуется через GitHub Pages: <https://homiakus.github.io/NXkeys/>.
 
-Изменения profile schema, sequence policy, IPC, Sketch grammar или deployment должны сопровождаться обновлением документации и соответствующих валидаторов. Порядок работы и обязательные проверки описаны в [CONTRIBUTING.md](CONTRIBUTING.md).
+## Важное ограничение живой NX
+
+CI проверяет contract/API shape, но не может доказать интерактивное поведение конкретной NX 2512 workstation. После обновления Bridge **полностью закройте NX**, запустите заново через NXKeys launcher и проверьте реальные collectors/dialogs.
+
+В частности, результат `DialogTester.InvokeMenuButtonAction(...)` для некоторых интерактивных команд требует живого NX-теста и не должен считаться доказанным только по contract build.
 
 ## Лицензия
 
