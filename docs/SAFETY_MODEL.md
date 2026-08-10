@@ -146,6 +146,12 @@ Leader trigger имеет physical-key latch: повторные key-down из a
 - Sketch constraints используют точные `UG_SKETCH_*_CONSTRAINT` IDs;
 - compatibility mapping допустим только в специально проверенном normalization layer.
 
+## Legacy K3–K5 resolution safety
+
+Старый generated K3–K5 pipeline сохраняет статусы `existing`, `resolved`, `ambiguous`, `unresolved`. Эти статусы относятся к catalog-resolution evidence, а не к current v8 admission model.
+
+Безопасное правило остаётся полезным: `ambiguous` и `unresolved` mapping нельзя автоматически превращать в enabled command только ради coverage. Точный `BUTTON ID` и target-NX evidence важнее процента разрешения старого K3–K5 каталога.
+
 ## Interactive NX commands
 
 Особый риск — различие между фактическим открытием интерактивного NX dialog/collector и return value API invocation.
