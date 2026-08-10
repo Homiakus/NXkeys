@@ -181,8 +181,18 @@ requireText('docs/api.md', 'Authenticated', 'authenticated IPC description');
 requireText('docs/SAFETY_MODEL.md', 'payload_hmac', 'HMAC security field');
 requireText('NX2512_CommandBridge/README.md', 'Selection Intent', 'Bridge Selection Intent responsibility');
 requireText('NX2512_ControlCenter/README.md', 'nx2512-v8-profile.json', 'Control Center current profile');
+requireText('NX2512_Catalog_Studio/README.md', 'nx2512-v8-profile.json', 'Catalog Studio current v8 verification workflow');
+requireText('docs/adr/README.md', '0003-v8-runtime-profile-and-legacy-catalog-separation.md', 'current v8 profile ADR');
 
 if (profileSchema !== null) {
+  const profileSchemaTokens = [
+    `schema **${profileSchema}**`,
+    `schema — **${profileSchema}**`,
+    `schema | **${profileSchema}**`,
+    `schema: **${profileSchema}**`,
+    `schema ${profileSchema}`,
+    `schema_version: ${profileSchema}`,
+  ];
   for (const file of [
     'README.md',
     'docs/RUNTIME_V8.md',
@@ -191,11 +201,18 @@ if (profileSchema !== null) {
     'docs/INSTALLATION.md',
     'NX2512_HotkeyStudio/README.md',
   ]) {
-    requireAnyText(file, [`schema **${profileSchema}**`, `schema — **${profileSchema}**`, `schema | **${profileSchema}**`], `profile schema ${profileSchema}`);
+    requireAnyText(file, profileSchemaTokens, `profile schema ${profileSchema}`);
   }
 }
 
 if (protocolSchema !== null) {
+  const protocolSchemaTokens = [
+    `schema **${protocolSchema}**`,
+    `schema — **${protocolSchema}**`,
+    `schema | **${protocolSchema}**`,
+    `schema: **${protocolSchema}**`,
+    `schema ${protocolSchema}`,
+  ];
   for (const file of [
     'README.md',
     'docs/RUNTIME_V8.md',
@@ -204,7 +221,7 @@ if (protocolSchema !== null) {
     'docs/SAFETY_MODEL.md',
     'NX2512_CommandBridge/README.md',
   ]) {
-    requireAnyText(file, [`schema **${protocolSchema}**`, `schema — **${protocolSchema}**`, `schema | **${protocolSchema}**`, `schema ${protocolSchema}`], `IPC schema ${protocolSchema}`);
+    requireAnyText(file, protocolSchemaTokens, `IPC schema ${protocolSchema}`);
   }
 }
 
@@ -217,8 +234,16 @@ if (policyVersion !== null) {
     errors.push(`Generated sequence audit is stale: source policy v${policyVersion}, audit v${auditMatch[1]}`);
   }
 
+  const policyTokens = [
+    `policy **v${policyVersion}**`,
+    `policy | **v${policyVersion}**`,
+    `policy v${policyVersion}`,
+    `policy **${policyVersion}**`,
+    `policy | **${policyVersion}**`,
+    `policy ${policyVersion}`,
+  ];
   for (const file of ['README.md', 'docs/RUNTIME_V8.md', 'docs/CONFIGURATION.md', 'docs/ARCHITECTURE.md']) {
-    requireAnyText(file, [`policy **v${policyVersion}**`, `policy | **v${policyVersion}**`, `policy v${policyVersion}`], `sequence policy v${policyVersion}`);
+    requireAnyText(file, policyTokens, `sequence policy v${policyVersion}`);
   }
 }
 
