@@ -126,6 +126,7 @@ namespace NX2512_HotkeyStudio.Services
         private uint triggerVk = VK_CAPITAL;
         private bool running;
         private int captureFlag;
+        private int triggerPhysicalDown;
         private DateTime lastQueuedTriggerUtc = DateTime.MinValue;
         private DateTime lastTriggerUtc = DateTime.MinValue;
         private DateTime timeoutStartUtc;
@@ -198,6 +199,7 @@ namespace NX2512_HotkeyStudio.Services
             contextWatch.Stop();
             hudDelay.Stop();
             progress.Stop();
+            Interlocked.Exchange(ref triggerPhysicalDown, 0);
             if (registeredTriggerHotkey && hotkeyWindow != null) UnregisterHotKey(hotkeyWindow.Handle, HOTKEY_TRIGGER_ID);
             registeredTriggerHotkey = false;
             if (hotkeyWindow != null) { hotkeyWindow.DestroyHandle(); hotkeyWindow = null; }
@@ -222,7 +224,13 @@ namespace NX2512_HotkeyStudio.Services
             bool capturing = Volatile.Read(ref captureFlag) == 1;
             if (up)
             {
-                if (data.vkCode == triggerVk || capturing) return (IntPtr)1;
+                if (data.vkCode == triggerVk)
+                {
+                    bool ownedTrigger = Interlocked.Exchange(ref triggerPhysicalDown, 0) == 1;
+                    if (ownedTrigger) return (IntPtr)1;
+                    return CallNextHookEx(hookId, code, message, dataPointer);
+                }
+                if (capturing) return (IntPtr)1;
                 return CallNextHookEx(hookId, code, message, dataPointer);
             }
 
@@ -235,6 +243,13 @@ namespace NX2512_HotkeyStudio.Services
             if (data.vkCode == triggerVk)
             {
                 if (IsFocusedInTextInput()) return CallNextHookEx(hookId, code, message, dataPointer);
+
+                // Low-level keyboard hooks receive WM_KEYDOWN repeatedly while a key
+                // is held. Treat the leader trigger as a physical edge: exactly one
+                // trigger is admitted until the matching KEYUP resets the latch.
+                if (Interlocked.Exchange(ref triggerPhysicalDown, 1) == 1)
+                    return (IntPtr)1;
+
                 Interlocked.Exchange(ref captureFlag, 1);
                 ScheduleCapsLockRestore();
                 QueueTrigger(data.vkCode);
@@ -271,6 +286,10 @@ namespace NX2512_HotkeyStudio.Services
 
         private void OnTriggerHotkey()
         {
+            // RegisterHotKey is only a fallback. When the low-level hook has already
+            // owned this physical press, do not enqueue a second trigger from WM_HOTKEY.
+            if (Volatile.Read(ref triggerPhysicalDown) == 1) return;
+
             bool capturing = Volatile.Read(ref captureFlag) == 1;
             if (config.HookOnlyWhenNXActive && GetActiveNxWindow() == IntPtr.Zero)
             {
