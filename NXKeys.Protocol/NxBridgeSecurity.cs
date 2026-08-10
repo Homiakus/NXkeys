@@ -86,6 +86,18 @@ namespace NXKeys.Protocol
 
     public sealed class NxBridgePermissionSet
     {
+        private static readonly IReadOnlyDictionary<string, string> CommandIdAliases =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["UG_SHEET_METAL_BASE_TAB"] = "UG_SBSM_TAB_FEATURE",
+                ["UG_SHEET_METAL_FLANGE"] = "UG_SBSM_FLANGE_FEATURE",
+                ["UG_SHEET_METAL_CONTOUR_FLANGE"] = "UG_SBSM_CONTOUR_FLANGE_FEATURE",
+                ["UG_SHEET_METAL_BEND"] = "UG_SBSM_BEND_FEATURE",
+                ["UG_SHEET_METAL_UNBEND"] = "UG_SBSM_UNBEND_FEATURE",
+                ["UG_SHEET_METAL_REBEND"] = "UG_SBSM_REBEND_FEATURE",
+                ["UG_SHEET_METAL_FLAT_PATTERN"] = "UG_SBSM_FLAT_PATTERN_FEATURE"
+            };
+
         private readonly Dictionary<string, NxCommandPermission> permissions;
 
         public string ProfileDigest { get; }
@@ -97,6 +109,8 @@ namespace NXKeys.Protocol
             foreach (NxCommandPermission permission in source ?? Enumerable.Empty<NxCommandPermission>())
             {
                 if (permission == null || string.IsNullOrWhiteSpace(permission.Action)) continue;
+                permission.CommandId = CanonicalCommandId(permission.CommandId);
+                permission.TargetApplicationId = CanonicalApplicationId(permission.TargetApplicationId);
                 permissions[permission.Key] = permission;
             }
             Permissions = permissions.Values.OrderBy(item => item.PolicyLine, StringComparer.Ordinal).ToList();
@@ -123,152 +137,182 @@ namespace NXKeys.Protocol
                 if (document.RootElement.ValueKind != JsonValueKind.Object)
                     throw new InvalidOperationException("NXKeys profile must be a JSON object.");
 
-                if (!document.RootElement.TryGetProperty("modules", out JsonElement modulesElement) || modulesElement.ValueKind != JsonValueKind.Array)
+                if (!document.RootElement.TryGetProperty("modules", out JsonElement modulesElement) ||
+                    modulesElement.ValueKind != JsonValueKind.Array)
                 {
-                    if (document.RootElement.TryGetProperty("operations", out JsonElement opsElement) && opsElement.ValueKind == JsonValueKind.Array)
-                    {
-                        var v8Result = new List<NxCommandPermission>();
-                        foreach (JsonElement op in opsElement.EnumerateArray())
-                        {
-                            if (op.ValueKind != JsonValueKind.Object) continue;
-                            string opId = ReadString(op, "operation_id");
-                            string adapterKind = ReadNestedString(op, "adapter", "kind");
-                            string adapterVal = ReadNestedString(op, "adapter", "value");
-                            string commandId = string.Equals(adapterKind, "button_id", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(adapterVal)
-                                ? adapterVal
-                                : opId;
+                    if (document.RootElement.TryGetProperty("operations", out JsonElement opsElement) &&
+                        opsElement.ValueKind == JsonValueKind.Array)
+                        return FromV8Operations(opsElement);
 
-                            // Determine v8 module ID: prefer availability.applications[0] for
-                            // application-specific operations; fall back to first leader token
-                            // for global operations.
-                            string appId = ReadFirstNestedArrayElement(op, "availability", "applications");
-                            string firstLeaderToken = ReadFirstNestedArrayElement(op, "paths", "leader");
-                            string v8ModuleId;
-
-                            bool hasSpecificApp = !string.IsNullOrWhiteSpace(appId) &&
-                                !string.Equals(appId, "global", StringComparison.OrdinalIgnoreCase);
-
-                            if (hasSpecificApp)
-                            {
-                                // Modeling, Sketch, Drafting, etc. → mapped to v8_m, v8_s, v8_d, ...
-                                v8ModuleId = "v8_" + NxAppToV8Prefix(appId);
-                            }
-                            else if (!string.IsNullOrWhiteSpace(firstLeaderToken))
-                            {
-                                // Global operations: first leader token IS the module prefix
-                                // (e.g. leader ["M","L"] → module v8_m)
-                                v8ModuleId = "v8_" + firstLeaderToken.Trim().ToLowerInvariant();
-                            }
-                            else
-                            {
-                                v8ModuleId = "v8_m"; // fallback: modeling
-                            }
-
-                            if (!string.IsNullOrWhiteSpace(commandId))
-                            {
-                                v8Result.Add(new NxCommandPermission
-                                {
-                                    Action = NxProtocolActions.ExecuteCommand,
-                                    CommandId = commandId,
-                                    ModuleId = v8ModuleId,
-                                    TargetApplicationId = string.Empty,
-                                    SelectionFilter = string.Empty,
-                                    Destructive = false,
-                                    ConfirmationRequired = false
-                                });
-                            }
-                        }
-                        if (v8Result.Count == 0)
-                            throw new InvalidOperationException("NXKeys v8 profile produced an empty Bridge permission set.");
-                        return new NxBridgePermissionSet(v8Result);
-                    }
                     throw new InvalidOperationException("NXKeys profile does not contain a modules or operations array.");
                 }
 
-                List<JsonElement> modules = modulesElement.EnumerateArray()
-                    .Where(item => item.ValueKind == JsonValueKind.Object && ReadEnabled(item))
-                    .ToList();
-                var applications = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                foreach (JsonElement module in modules)
-                {
-                    string moduleId = ReadString(module, "id");
-                    string applicationId = ReadFirstString(module, "nx_application_ids");
-                    if (!string.IsNullOrWhiteSpace(moduleId) && !string.IsNullOrWhiteSpace(applicationId))
-                        applications[moduleId] = applicationId;
-                }
-
-                var result = new List<NxCommandPermission>();
-                foreach (JsonElement module in modules)
-                {
-                    string moduleId = ReadString(module, "id");
-                    string moduleApplication = ReadFirstString(module, "nx_application_ids");
-                    string switchCommandId = ReadNestedString(module, "switch_command", "id");
-                    if (!string.IsNullOrWhiteSpace(moduleApplication))
-                    {
-                        result.Add(new NxCommandPermission
-                        {
-                            Action = NxProtocolActions.SwitchModule,
-                            CommandId = switchCommandId,
-                            ModuleId = moduleId,
-                            TargetApplicationId = moduleApplication
-                        });
-                    }
-
-                    if (!module.TryGetProperty("command_sets", out JsonElement sets) || sets.ValueKind != JsonValueKind.Array)
-                        continue;
-                    foreach (JsonElement set in sets.EnumerateArray())
-                    {
-                        if (set.ValueKind != JsonValueKind.Object ||
-                            !set.TryGetProperty("commands", out JsonElement commands) ||
-                            commands.ValueKind != JsonValueKind.Array) continue;
-                        foreach (JsonElement command in commands.EnumerateArray())
-                        {
-                            if (command.ValueKind != JsonValueKind.Object || !ReadEnabled(command)) continue;
-                            string commandId = ReadNestedString(command, "command", "id");
-                            string commandName = ReadNestedString(command, "command", "name");
-                            string action = ReadString(command, "action");
-                            if (string.IsNullOrWhiteSpace(action))
-                                action = commandId.StartsWith("UG_SEL_", StringComparison.OrdinalIgnoreCase)
-                                    ? NxProtocolActions.SetSelectionFilter
-                                    : NxProtocolActions.ExecuteCommand;
-                            if (!NxProtocolActions.IsSupported(action))
-                                throw new InvalidOperationException("Unsupported action in NXKeys profile: " + action);
-
-                            string targetApplication = string.Empty;
-                            if (string.Equals(action, NxProtocolActions.SwitchModule, StringComparison.OrdinalIgnoreCase))
-                            {
-                                string targetModule = ReadString(command, "target_module_id");
-                                if (applications.TryGetValue(targetModule, out string? resolvedApplication))
-                                    targetApplication = resolvedApplication ?? string.Empty;
-                            }
-                            string selectionFilter = ReadString(command, "selection_type");
-                            if (string.IsNullOrWhiteSpace(selectionFilter) &&
-                                string.Equals(action, NxProtocolActions.SetSelectionFilter, StringComparison.OrdinalIgnoreCase))
-                            {
-                                selectionFilter = InferSelectionType(commandId, commandName, ReadString(command, "notes"));
-                            }
-
-                            result.Add(new NxCommandPermission
-                            {
-                                Action = action,
-                                CommandId = commandId,
-                                ModuleId = moduleId,
-                                TargetApplicationId = targetApplication ?? string.Empty,
-                                SelectionFilter = selectionFilter,
-                                Destructive = ReadBoolean(command, "destructive"),
-                                ConfirmationRequired = ReadBoolean(command, "confirm_before_execute") ||
-                                                       ReadBoolean(command, "destructive")
-                            });
-                        }
-                    }
-                }
-                if (result.Count == 0)
-                    throw new InvalidOperationException("NXKeys profile produced an empty Bridge permission set.");
-                return new NxBridgePermissionSet(result);
+                return FromLegacyModules(modulesElement);
             }
         }
 
-        public bool TryGetPermission(NxCommandRequest request, out NxCommandPermission? permission)
+        private static NxBridgePermissionSet FromV8Operations(JsonElement opsElement)
+        {
+            var result = new List<NxCommandPermission>();
+            var switchModules = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (JsonElement op in opsElement.EnumerateArray())
+            {
+                if (op.ValueKind != JsonValueKind.Object) continue;
+                string opId = ReadString(op, "operation_id");
+                string adapterKind = ReadNestedString(op, "adapter", "kind");
+                string adapterVal = ReadNestedString(op, "adapter", "value");
+                string commandId = string.Equals(adapterKind, "button_id", StringComparison.OrdinalIgnoreCase) &&
+                                   !string.IsNullOrWhiteSpace(adapterVal)
+                    ? adapterVal
+                    : opId;
+                commandId = CanonicalCommandId(commandId);
+
+                string appId = ReadFirstNestedArrayElement(op, "availability", "applications");
+                string firstLeaderToken = ReadFirstNestedArrayElement(op, "paths", "leader");
+                bool hasSpecificApp = !string.IsNullOrWhiteSpace(appId) &&
+                                      !string.Equals(appId, "global", StringComparison.OrdinalIgnoreCase);
+
+                string v8ModuleId;
+                if (hasSpecificApp)
+                    v8ModuleId = "v8_" + NxAppToV8Prefix(appId);
+                else if (!string.IsNullOrWhiteSpace(firstLeaderToken))
+                    v8ModuleId = "v8_" + firstLeaderToken.Trim().ToLowerInvariant();
+                else
+                    v8ModuleId = "v8_m";
+
+                if (!string.IsNullOrWhiteSpace(commandId))
+                {
+                    result.Add(new NxCommandPermission
+                    {
+                        Action = NxProtocolActions.ExecuteCommand,
+                        CommandId = commandId,
+                        ModuleId = v8ModuleId,
+                        TargetApplicationId = string.Empty,
+                        SelectionFilter = string.Empty,
+                        Destructive = false,
+                        ConfirmationRequired = false
+                    });
+                }
+
+                if (hasSpecificApp)
+                {
+                    string targetApplication = ApplicationIdFromProfileLabel(appId);
+                    if (!string.IsNullOrWhiteSpace(targetApplication))
+                        switchModules[v8ModuleId] = targetApplication;
+                }
+            }
+
+            // v8 profiles are operation-centric and do not contain an explicit modules
+            // array, but the runtime still supports Tab/manual module switching. Build
+            // the corresponding allowlist entries from availability.applications so
+            // the security gate cannot reject legitimate runtime switch requests.
+            foreach (KeyValuePair<string, string> pair in switchModules)
+            {
+                result.Add(new NxCommandPermission
+                {
+                    Action = NxProtocolActions.SwitchModule,
+                    CommandId = pair.Value,
+                    ModuleId = pair.Key,
+                    TargetApplicationId = pair.Value,
+                    SelectionFilter = string.Empty,
+                    Destructive = false,
+                    ConfirmationRequired = false
+                });
+            }
+
+            if (result.Count == 0)
+                throw new InvalidOperationException("NXKeys v8 profile produced an empty Bridge permission set.");
+            return new NxBridgePermissionSet(result);
+        }
+
+        private static NxBridgePermissionSet FromLegacyModules(JsonElement modulesElement)
+        {
+            List<JsonElement> modules = modulesElement.EnumerateArray()
+                .Where(item => item.ValueKind == JsonValueKind.Object && ReadEnabled(item))
+                .ToList();
+            var applications = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (JsonElement module in modules)
+            {
+                string moduleId = ReadString(module, "id");
+                string applicationId = CanonicalApplicationId(ReadFirstString(module, "nx_application_ids"));
+                if (!string.IsNullOrWhiteSpace(moduleId) && !string.IsNullOrWhiteSpace(applicationId))
+                    applications[moduleId] = applicationId;
+            }
+
+            var result = new List<NxCommandPermission>();
+            foreach (JsonElement module in modules)
+            {
+                string moduleId = ReadString(module, "id");
+                string moduleApplication = CanonicalApplicationId(ReadFirstString(module, "nx_application_ids"));
+                string switchCommandId = CanonicalApplicationId(ReadNestedString(module, "switch_command", "id"));
+                if (!string.IsNullOrWhiteSpace(moduleApplication))
+                {
+                    result.Add(new NxCommandPermission
+                    {
+                        Action = NxProtocolActions.SwitchModule,
+                        CommandId = string.IsNullOrWhiteSpace(switchCommandId) ? moduleApplication : switchCommandId,
+                        ModuleId = moduleId,
+                        TargetApplicationId = moduleApplication
+                    });
+                }
+
+                if (!module.TryGetProperty("command_sets", out JsonElement sets) || sets.ValueKind != JsonValueKind.Array)
+                    continue;
+                foreach (JsonElement set in sets.EnumerateArray())
+                {
+                    if (set.ValueKind != JsonValueKind.Object ||
+                        !set.TryGetProperty("commands", out JsonElement commands) ||
+                        commands.ValueKind != JsonValueKind.Array) continue;
+                    foreach (JsonElement command in commands.EnumerateArray())
+                    {
+                        if (command.ValueKind != JsonValueKind.Object || !ReadEnabled(command)) continue;
+                        string commandId = CanonicalCommandId(ReadNestedString(command, "command", "id"));
+                        string commandName = ReadNestedString(command, "command", "name");
+                        string action = ReadString(command, "action");
+                        if (string.IsNullOrWhiteSpace(action))
+                            action = commandId.StartsWith("UG_SEL_", StringComparison.OrdinalIgnoreCase)
+                                ? NxProtocolActions.SetSelectionFilter
+                                : NxProtocolActions.ExecuteCommand;
+                        if (!NxProtocolActions.IsSupported(action))
+                            throw new InvalidOperationException("Unsupported action in NXKeys profile: " + action);
+
+                        string targetApplication = string.Empty;
+                        if (string.Equals(action, NxProtocolActions.SwitchModule, StringComparison.OrdinalIgnoreCase))
+                        {
+                            string targetModule = ReadString(command, "target_module_id");
+                            if (applications.TryGetValue(targetModule, out string resolvedApplication))
+                                targetApplication = resolvedApplication ?? string.Empty;
+                        }
+
+                        string selectionFilter = ReadString(command, "selection_type");
+                        if (string.IsNullOrWhiteSpace(selectionFilter) &&
+                            string.Equals(action, NxProtocolActions.SetSelectionFilter, StringComparison.OrdinalIgnoreCase))
+                        {
+                            selectionFilter = InferSelectionType(commandId, commandName, ReadString(command, "notes"));
+                        }
+
+                        result.Add(new NxCommandPermission
+                        {
+                            Action = action,
+                            CommandId = commandId,
+                            ModuleId = moduleId,
+                            TargetApplicationId = CanonicalApplicationId(targetApplication),
+                            SelectionFilter = selectionFilter,
+                            Destructive = ReadBoolean(command, "destructive"),
+                            ConfirmationRequired = ReadBoolean(command, "confirm_before_execute") ||
+                                                   ReadBoolean(command, "destructive")
+                        });
+                    }
+                }
+            }
+
+            if (result.Count == 0)
+                throw new InvalidOperationException("NXKeys profile produced an empty Bridge permission set.");
+            return new NxBridgePermissionSet(result);
+        }
+
+        public bool TryGetPermission(NxCommandRequest request, out NxCommandPermission permission)
         {
             permission = null;
             if (request == null) return false;
@@ -290,18 +334,67 @@ namespace NXKeys.Protocol
             return string.Join("|", new[]
             {
                 Normalize(action),
-                Normalize(commandId),
+                Normalize(CanonicalCommandId(commandId)),
                 Normalize(moduleId),
-                Normalize(targetApplicationId),
+                Normalize(CanonicalApplicationId(targetApplicationId)),
                 Normalize(selectionFilter)
             });
+        }
+
+        public static string CanonicalCommandId(string value)
+        {
+            string id = (value ?? string.Empty).Trim();
+            return CommandIdAliases.TryGetValue(id, out string canonical) ? canonical : id;
+        }
+
+        public static string CanonicalApplicationId(string value)
+        {
+            string id = (value ?? string.Empty).Trim();
+            return string.Equals(id, "UG_APP_SHEETMETAL", StringComparison.OrdinalIgnoreCase)
+                ? "UG_APP_SBSM"
+                : id;
+        }
+
+        private static string ApplicationIdFromProfileLabel(string value)
+        {
+            switch ((value ?? string.Empty).Trim().ToUpperInvariant())
+            {
+                case "MODELING":
+                case "UG_APP_MODELING": return "UG_APP_MODELING";
+                case "SKETCH":
+                case "UG_APP_SKETCH": return "UG_APP_SKETCH";
+                case "ASSEMBLY":
+                case "ASSEMBLIES":
+                case "UG_APP_ASSEMBLIES": return "UG_APP_ASSEMBLIES";
+                case "DRAFTING":
+                case "UG_APP_DRAFTING": return "UG_APP_DRAFTING";
+                case "PMI":
+                case "UG_APP_PMI": return "UG_APP_PMI";
+                case "SURFACE":
+                case "UG_APP_STUDIO": return "UG_APP_STUDIO";
+                case "SHEETMETAL":
+                case "SHEET_METAL":
+                case "UG_APP_SHEETMETAL":
+                case "UG_APP_SBSM": return "UG_APP_SBSM";
+                case "MANUFACTURING":
+                case "UG_APP_MANUFACTURING": return "UG_APP_MANUFACTURING";
+                case "SIMULATION":
+                case "UG_APP_SFEM": return "UG_APP_SFEM";
+                case "UG_APP_DESFEM": return "UG_APP_DESFEM";
+                case "ROUTING":
+                case "UG_APP_ROUTING": return "UG_APP_ROUTING";
+                case "MOLD":
+                case "UG_APP_MOLDWIZARD": return "UG_APP_MOLDWIZARD";
+                case "GATEWAY":
+                case "UG_APP_GATEWAY": return "UG_APP_GATEWAY";
+                default: return string.Empty;
+            }
         }
 
         private static string Normalize(string value) => (value ?? string.Empty).Trim().ToUpperInvariant();
 
         private static bool ReadEnabled(JsonElement element) =>
-            !element.TryGetProperty("enabled", out JsonElement value) ||
-            value.ValueKind != JsonValueKind.False;
+            !element.TryGetProperty("enabled", out JsonElement value) || value.ValueKind != JsonValueKind.False;
 
         private static bool ReadBoolean(JsonElement element, string property) =>
             element.TryGetProperty(property, out JsonElement value) && value.ValueKind == JsonValueKind.True;
@@ -328,7 +421,7 @@ namespace NXKeys.Protocol
                 return string.Empty;
             foreach (JsonElement item in array.EnumerateArray())
             {
-                string? value = item.ValueKind == JsonValueKind.String ? item.GetString() : null;
+                string value = item.ValueKind == JsonValueKind.String ? item.GetString() : null;
                 if (!string.IsNullOrWhiteSpace(value)) return value.Trim();
             }
             return string.Empty;
@@ -340,14 +433,14 @@ namespace NXKeys.Protocol
                 return string.Empty;
             foreach (JsonElement item in array.EnumerateArray())
             {
-                string? value = item.ValueKind == JsonValueKind.String ? item.GetString() : null;
+                string value = item.ValueKind == JsonValueKind.String ? item.GetString() : null;
                 if (!string.IsNullOrWhiteSpace(value)) return value.Trim();
             }
             return string.Empty;
         }
 
-        // Mirrors ConfigRuntimeV5.NxAppIdToModulePrefix — maps NX application IDs
-        // to single-letter v8 module prefixes so allowlist keys match runtime requests.
+        // Mirrors runtime module mapping and includes the real NX2512 Sheet Metal
+        // application id UG_APP_SBSM in addition to the historic synthetic alias.
         private static string NxAppToV8Prefix(string appId)
         {
             switch ((appId ?? string.Empty).Trim().ToUpperInvariant())
@@ -358,30 +451,28 @@ namespace NXKeys.Protocol
                 case "UG_APP_DRAFTING": return "d";
                 case "UG_APP_PMI": return "p";
                 case "UG_APP_STUDIO": return "u";
-                case "UG_APP_SHEETMETAL": return "h";
+                case "UG_APP_SHEETMETAL":
+                case "UG_APP_SBSM": return "h";
                 case "UG_APP_MANUFACTURING": return "n";
                 case "UG_APP_SFEM":
                 case "UG_APP_DESFEM": return "i";
                 case "UG_APP_ROUTING": return "r";
                 case "UG_APP_MOLDWIZARD": return "l";
                 case "UG_APP_GATEWAY": return "g";
-
-                // V8 profile availability.applications uses short app names
-                // (e.g. "modeling"), not UG_APP_* IDs.  Alias them to the same
-                // prefixes so FromProfileJson can honor availability for
-                // application-specific operations (modeling.revolve → v8_m).
-                // Labels are UPPERCASE because the switch input is ToUpperInvariant().
                 case "MODELING": return "m";
                 case "SKETCH": return "s";
+                case "ASSEMBLY":
                 case "ASSEMBLIES": return "a";
                 case "DRAFTING": return "d";
                 case "PMI": return "p";
                 case "SURFACE": return "u";
-                case "SHEETMETAL": return "h";
+                case "SHEETMETAL":
+                case "SHEET_METAL": return "h";
                 case "MANUFACTURING": return "n";
                 case "SIMULATION": return "i";
                 case "ROUTING": return "r";
-                default: return "m"; // fallback: modeling
+                case "MOLD": return "l";
+                default: return "m";
             }
         }
 
@@ -425,7 +516,7 @@ namespace NXKeys.Protocol
         }
 
         public static bool Verify(
-            NxCommandRequest? request,
+            NxCommandRequest request,
             string expectedSessionId,
             byte[] secret,
             string expectedProfileDigest,
