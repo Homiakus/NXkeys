@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using NXOpen;
+using NXOpen.Features;
 using NXOpen.MenuBar;
 
 namespace NX2512_CommandBridge
