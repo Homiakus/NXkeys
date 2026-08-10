@@ -1,322 +1,306 @@
-# NXKeys File IPC API
+# NXKeys File IPC API — schema 4
 
-## Область
+NXKeys использует локальный файловый IPC между HotkeyStudio и Command Bridge. Это не HTTP API и не remote service.
 
-NXKeys использует локальный файловый IPC между HotkeyStudio и Command Bridge. Это **не HTTP API**, не сетевой service и не публичный remote endpoint.
+Текущий protocol contract:
 
-- protocol schema: `3`;
-- encoding: JSON UTF-8;
-- IPC root: `%LOCALAPPDATA%\NXKeys\bridge`;
-- источник истины: `NXKeys.Protocol/NxProtocol.cs`;
-- execution/recovery semantics: `NX2512_CommandBridge/Program.cs`.
+- schema: **4**;
+- JSON UTF-8;
+- root: `%LOCALAPPDATA%\NXKeys\bridge`;
+- max request payload: 64 KiB;
+- max pending files: 256;
+- max admitted per Bridge poll: 8;
+- max text field length: 1024 characters;
+- default context freshness: 3 seconds;
+- default request lifetime: 15 seconds.
 
-## Модель доверия
+Источник истины: `NXKeys.Protocol/NxProtocol.cs`. Security admission: `NXKeys.Protocol/NxBridgeSecurity.cs` и Command Bridge.
 
-Отдельная application-level authentication в protocol schema не подтверждена. Доступ ограничивается локальной учётной записью и файловыми permissions ОС. Поэтому Bridge не доверяет содержимому request только потому, что файл появился в `pending`: request проходит schema, expiry, context и confirmation validation.
-
-Не размещайте IPC root в сетевой папке или каталоге синхронизации.
-
-## Каталоги и ownership
+## Каталоги
 
 ```text
 %LOCALAPPDATA%\NXKeys\bridge\
-├── pending\       опубликованные запросы HotkeyStudio
-├── processing\    запросы, атомарно захваченные Bridge
-├── completed\     успешно завершённые запросы и результаты
-├── failed\        reject/error/interrupted_unknown
-├── context.json   последний контекст NX
-└── status.json    heartbeat и статус Bridge
+├── pending\
+├── processing\
+├── completed\
+├── failed\
+├── context.json
+└── status.json
 ```
 
-Ownership:
+Lifecycle:
 
-- writer HotkeyStudio формирует request и публикует его в `pending` после завершения записи;
-- Bridge получает ownership атомарным переходом в `processing`;
-- после claim внешний writer не должен изменять request;
-- Bridge пишет result и архивирует request;
-- диагностические consumers читают файлы без изменения.
-
-## Жизненный цикл
-
-```mermaid
-stateDiagram-v2
-    [*] --> Pending: atomic publish
-    Pending --> Processing: Bridge claim
-    Processing --> Completed: executed/completed
-    Processing --> Failed: rejected/error
-    Processing --> Failed: interrupted_unknown after recovery
+```text
+pending → processing → completed | failed
 ```
 
-Гарантия — at-most-once recovery. Exactly-once не заявляется: при аварии после начала исполнения результат может остаться неизвестным.
+Queue file — транспорт, а не authority.
+
+## Supported actions
+
+```text
+execute_command
+switch_module
+set_selection_filter
+probe_command
+```
+
+Неизвестный action отклоняется fail-closed.
 
 ## `NxCommandRequest`
 
-### Минимальный пример обычной команды
+Schema 4 добавляет authenticated envelope и anti-replay data.
+
+Пример структуры:
 
 ```json
 {
-  "schema_version": 3,
-  "request_id": "20260730-001",
+  "schema_version": 4,
+  "request_id": "20260810-001",
   "action": "execute_command",
   "command_id": "UG_MODELING_EXTRUDED_FEATURE",
   "command_name": "Extrude",
-  "sequence": "M C F E",
+  "sequence": "M C E",
   "module_id": "modeling",
   "target_application_id": "",
   "selection_filter": "",
-  "created_utc": "2026-07-30T17:30:00Z",
-  "expires_utc": "2026-07-30T17:30:15Z",
+  "created_utc": "2026-08-10T14:00:00Z",
+  "expires_utc": "2026-08-10T14:00:15Z",
   "source_process_id": 1234,
   "expected_context_revision": 42,
-  "expected_selection_count": -1,
+  "expected_selection_count": 1,
+  "expected_selection_fingerprint": "...",
   "expected_application_id": "UG_APP_MODELING",
+  "session_id": "...",
+  "client_instance_id": "...",
+  "nonce": "...",
+  "sequence_number": 101,
+  "profile_digest": "...",
+  "payload_hmac": "...",
   "destructive": false,
   "confirmation_accepted": false
 }
 ```
 
-### Поля
+Значение `sequence` — диагностическая/внутренняя последовательность. Пользовательский ввод может быть короче, потому что runtime module prefix добавляется автоматически.
 
-| Поле | Тип | Обязательно | Контракт |
-|---|---|---:|---|
-| `schema_version` | integer | да | строго `3` |
-| `request_id` | string | да | уникальный ID запроса |
-| `action` | string | да | тип действия |
-| `command_id` | string | зависит | обязателен для обычного действия; для switch допустим target application |
-| `command_name` | string | нет | человекочитаемое имя/трассировка |
-| `sequence` | string | нет | нормализованная внутренняя последовательность с module prefix |
-| `module_id` | string | нет в protocol model | ожидаемый runtime module для guards/trace |
-| `target_application_id` | string | для switch | целевое приложение, если нет подходящего command ID |
-| `selection_filter` | string | для filter без ID | selection action |
-| `created_utc` | ISO-8601 string | operationally | время создания |
-| `expires_utc` | ISO-8601 string | да | request считается invalid, если дата не распознана или истекла |
-| `source_process_id` | integer | нет | PID writer |
-| `expected_context_revision` | integer | нет | optimistic context expectation |
-| `expected_selection_count` | integer | нет | `-1` означает «не проверять/неизвестно» |
-| `expected_application_id` | string | нет | expected NX application |
-| `destructive` | boolean | нет | включает обязательное confirmation правило |
-| `confirmation_accepted` | boolean | для destructive | должно быть `true`, если `destructive=true` |
+## Поля security envelope
 
-Default request lifetime в shared protocol — 15 секунд.
+| Поле | Назначение |
+|---|---|
+| `session_id` | идентификатор shared launch session |
+| `client_instance_id` | конкретный HotkeyStudio instance |
+| `nonce` | защита от повторного request |
+| `sequence_number` | монотонный anti-replay counter |
+| `profile_digest` | связывает request с permission set активного profile |
+| `payload_hmac` | HMAC-SHA-256 canonical payload |
 
-## Действия
+Managed launcher создаёт случайный session secret и передаёт его только дочерним доверенным процессам через environment. Secret не записывается в queue.
 
-### `execute_command`
+## Validation shared model
 
-Требует непустой `command_id`. Bridge повторно проверяет context и вызывает точную NX UI-команду. Наличие ID в JSON не означает, что команда доступна или чувствительна в текущей NX.
+`NxCommandRequest.Validate()` проверяет:
 
-### `set_selection_filter`
+- exact schema 4;
+- непустые `request_id` и `action`;
+- supported action;
+- field length limits;
+- `command_id` для non-switch actions, кроме допустимой формы selection filter;
+- target application/command для `switch_module`;
+- filter/command для `set_selection_filter`;
+- expiry;
+- explicit confirmation для destructive request.
+
+Bridge выполняет дополнительные security/runtime checks перед NX invocation.
+
+## Bridge admission
+
+Перед dispatch Bridge проверяет как минимум:
+
+1. schema и expiry;
+2. session id;
+3. HMAC constant-time comparison;
+4. source process/executable;
+5. nonce/sequence anti-replay;
+6. `profile_digest`;
+7. profile permission для action + canonical command/module/application/filter;
+8. destructive/confirmation policy;
+9. fresh NX context;
+10. expected application/revision/selection fingerprint.
+
+Наличие правильно сформированного JSON без действующей session capability не является разрешением.
+
+## Permission canonicalization
+
+Permission layer должен использовать те же canonical IDs, что runtime.
+
+Для Sheet Metal:
+
+```text
+UG_APP_SHEETMETAL → UG_APP_SBSM
+UG_SHEET_METAL_*  → UG_SBSM_*
+```
+
+V8 availability applications также используются для создания switch permissions, чтобы profile runtime и Bridge allowlist не расходились.
+
+## `execute_command`
+
+Обычный action требует `command_id`. Bridge проверяет availability/sensitivity/context и вызывает точную NX UI command.
+
+Важно: для интерактивных UI commands return value `DialogTester.InvokeMenuButtonAction(...)` не заменяет live-NX verification. Contract build подтверждает API shape, но не семантику конкретного dialog/collector.
+
+## `switch_module`
+
+Требует `target_application_id` либо подходящий `command_id`.
+
+Успех module switch подтверждается **новым свежим context**, а не только записью request.
+
+Для Sheet Metal canonical target — `UG_APP_SBSM`.
+
+## `set_selection_filter`
+
+Это type selection layer, например:
+
+```text
+body
+face
+edge
+feature
+component
+curve
+datum
+reset
+all
+none
+operation
+```
+
+Leader paths `S → …` относятся к фильтру типа объекта. Они не заменяют Selection Intent `0…4`, который работает отдельно внутри Bridge/NX process.
+
+## `probe_command`
+
+Используется для безопасной проверки/диагностики command availability согласно runtime policy. Это supported action и проходит тот же authenticated admission path.
+
+## `NxContextSnapshot`
+
+Schema 4 context содержит:
+
+```text
+revision
+status
+application_id
+module_id/module_label
+selection_count/state/types/fingerprint
+work_part_available
+display_part_available
+modal_dialog_active
+active_command_id
+context_confidence
+updated_utc
+last_request_id/last_result/last_message
+security_status
+security_session_id
+security_profile_digest
+```
+
+`selection_count = -1` означает unknown, а не zero.
+
+`revision` меняется по semantic fingerprint, включающему selection fingerprint и security state. Обычный heartbeat без semantic change не должен искусственно менять revision.
+
+## `NxCommandResult`
 
 Пример:
 
 ```json
 {
-  "schema_version": 3,
-  "request_id": "20260730-filter-edge",
-  "action": "set_selection_filter",
-  "command_id": "UG_SEL_EDGE_PRIORITY",
-  "command_name": "Edge Selection Priority",
-  "sequence": "M S E",
-  "module_id": "modeling",
-  "selection_filter": "edge",
-  "created_utc": "2026-07-30T17:30:00Z",
-  "expires_utc": "2026-07-30T17:30:15Z",
-  "expected_context_revision": 42,
-  "expected_selection_count": -1,
-  "destructive": false,
-  "confirmation_accepted": false
+  "schema_version": 4,
+  "request_id": "20260810-001",
+  "status": "executed",
+  "message": "OK",
+  "context_revision": 43,
+  "completed_utc": "2026-08-10T14:00:01Z"
 }
 ```
 
-Поддерживаемые значения по текущей Bridge/profile модели:
+Shared model считает успешными только statuses:
 
 ```text
-none, all, reset, edge, face, body, component,
-curve, datum, feature, operation
+executed
+completed
 ```
 
-Source policy v7 использует десять универсальных путей: `SB`, `SF`, `SE`, `ST`, `SC`, `SU`, `SD`, `SR`, `SA`, `SN`.
+`interrupted_unknown` не является успехом и запрещает автоматический retry без проверки фактического NX state.
 
-Bridge применяет selection behavior через NXOpen, а не обязан вызывать `UG_SEL_*` как обычную menu button. `command_id` сохраняется для трассировки и validation fallback.
-
-### `switch_module`
-
-Требует `target_application_id` либо непустой `command_id`.
-
-HFSM не считает switch завершённым сразу после записи request. Успех подтверждается новым свежим context с ожидаемым application/module и revision.
-
-## Validation запроса
-
-`NxCommandRequest.Validate()` подтверждённо проверяет:
-
-- schema version;
-- `request_id`;
-- `action`;
-- command ID для non-switch action;
-- target application или command ID для switch;
-- filter или command ID для selection action;
-- expiry;
-- confirmation для destructive request.
-
-Bridge добавляет runtime checks, включая expected context/application/selection и modal state.
-
-## Безопасная публикация request
+## Atomic publication
 
 Writer должен:
 
-1. сформировать полный JSON во временном файле в том же filesystem;
-2. закрыть/flush файл;
-3. атомарно переименовать или переместить его в `pending`;
-4. не изменять файл после публикации;
-5. использовать новый уникальный `request_id` для нового пользовательского действия;
-6. не создавать автоматический retry с новым ID после `interrupted_unknown`.
+1. сериализовать полный request во временный файл;
+2. flush/close;
+3. атомарно переместить его в `pending`;
+4. не изменять после публикации;
+5. использовать новый request id/nonce для нового пользовательского действия.
 
-Не записывайте request постепенно под финальным именем в `pending`: Bridge может увидеть неполный JSON.
+Partial write под final filename недопустим.
 
-## `NxContextSnapshot`
+## Managed launch requirement
 
-```json
-{
-  "schema_version": 3,
-  "revision": 42,
-  "status": "running",
-  "application_id": "UG_APP_MODELING",
-  "module_id": "modeling",
-  "module_label": "Modeling",
-  "selection_count": 2,
-  "selection_state": "known",
-  "selected_types": ["Edge"],
-  "work_part_available": true,
-  "display_part_available": true,
-  "modal_dialog_active": false,
-  "active_command_id": "",
-  "context_confidence": 100,
-  "updated_utc": "2026-07-30T17:30:00Z",
-  "last_request_id": "20260730-001",
-  "last_result": "executed",
-  "last_message": "OK"
-}
+Authenticated schema 4 предполагает shared session. Штатный путь:
+
+```text
+launch-nx2512-with-nxkeys.cmd
 ```
 
-### Семантика
+Независимый запуск NX и HotkeyStudio может оставить Bridge в `authentication_required`; commands в такой session должны отклоняться.
 
-- `selection_count = -1` — неизвестно, а не ноль;
-- `selection_state` описывает достоверность;
-- `revision` меняется при семантическом изменении context;
-- `updated_utc` используется для freshness;
-- default protocol freshness — 3 секунды;
-- `context_confidence` не заменяет конкретные guards;
-- modal state должен блокировать неподходящий обычный dispatch.
+## Recovery semantics
 
-Consumer должен читать `context.json` с учётом конкурентной замены файла и отклонять malformed/stale snapshot.
+Bridge атомарно claims request в `processing`. Если процесс завершился после claim, невозможно гарантировать, произошёл ли side effect в NX.
 
-## `NxCommandResult`
+Поэтому recovery использует at-most-once policy:
 
-```json
-{
-  "schema_version": 3,
-  "request_id": "20260730-001",
-  "status": "executed",
-  "message": "OK",
-  "context_revision": 42,
-  "completed_utc": "2026-07-30T17:30:01Z"
-}
+```text
+processing after interruption → failed/interrupted_unknown
 ```
 
-Поля:
+Автоматический повтор неизвестного результата запрещён.
 
-| Поле | Назначение |
-|---|---|
-| `schema_version` | protocol schema |
-| `request_id` | корреляция с request |
-| `status` | результат |
-| `message` | diagnostic text |
-| `context_revision` | revision результата |
-| `completed_utc` | время завершения |
+## JSON format
 
-Shared model считает успешными `executed` и `completed`. Остальные statuses не следует трактовать как успех без явного contract change.
+Protocol JSON reader:
 
-`interrupted_unknown` означает: request был в обработке, окончательный эффект неизвестен, автоматический повтор запрещён.
+- case-insensitive properties;
+- trailing commas запрещены;
+- comments запрещены.
+
+Это строже, чем profile JSON reader HotkeyStudio.
 
 ## Ошибки интегратора
 
-| Ошибка | Последствие |
+| Ошибка | Результат |
 |---|---|
-| старый schema | request rejected |
-| пустой request ID/action | validation failure |
-| отсутствующий command ID | validation failure для обычной команды |
-| invalid/expired timestamp | request rejected |
-| destructive без confirmation | request rejected |
-| stale revision | runtime rejection |
-| selection changed | runtime rejection |
-| wrong application/module | runtime rejection или switch workflow |
-| запись неполного JSON в pending | parse failure/failed request |
-| повтор ID | не должен исполняться повторно |
-
-## Profile-only metadata
-
-Следующие поля profile layer не передаются в IPC без отдельной необходимости:
-
-- `frequency`;
-- `catalog_refs`;
-- `resolution_status`;
-- `resolution_candidates`;
-- `path_locked`;
-- `path_source`.
-
-Bridge получает resolved execution request, а не исходное intent record.
+| schema 3 request в current Bridge | reject |
+| unknown action | reject |
+| expired request | reject |
+| HMAC/session mismatch | reject |
+| повтор nonce/sequence | reject |
+| profile digest/permission mismatch | reject |
+| stale context/revision | reject |
+| changed selection fingerprint | reject |
+| wrong app/module | reject |
+| destructive без confirmation | reject |
+| ручной retry `interrupted_unknown` без проверки | риск duplicate side effect |
 
 ## Совместимость
 
-Изменение имени, типа или обязательности JSON-поля требует:
+Изменение protocol поля требует согласованного изменения:
 
-1. изменения shared `NxProtocol.cs`;
-2. решения о protocol schema;
-3. обновления HotkeyStudio и Bridge;
-4. round-trip/validation tests;
-5. recovery compatibility;
-6. обновления этого документа.
+1. `NxProtocol.cs`;
+2. HotkeyStudio writer;
+3. Bridge reader/admission;
+4. HMAC canonicalization;
+5. tests;
+6. recovery semantics;
+7. этого документа и [SAFETY_MODEL.md](SAFETY_MODEL.md).
 
-Не создавайте сторонний writer только по примеру JSON: сначала реализуйте atomic publication, expiry, context expectations и обработку неопределённого результата.
-
-## Runtime hardening limits
-
-Protocol schema 3 now rejects unknown `action` values fail-closed. Supported actions are
-`execute_command`, `switch_module`, `set_selection_filter`, and `probe_command`.
-
-The transport enforces:
-
-- request payload up to 64 KiB;
-- at most 256 pending request files;
-- at most 8 requests admitted per Bridge poll;
-- text fields up to 1024 characters;
-- exact schema checks for context and result reads;
-- typed read states: `NotFound`, `Corrupt`, `SchemaMismatch`, `AccessDenied`, and `IoError`;
-- `expected_selection_fingerprint` verification immediately before NX invocation.
-
-These controls reduce accidental and malformed input. They do not authenticate the local sender;
-session capability/HMAC or a protected named pipe remains the next security phase.
-
-## Authenticated request envelope (schema 4)
-
-Every command request now carries `session_id`, `client_instance_id`, `nonce`,
-`sequence_number`, `profile_digest`, and `payload_hmac`.
-
-The managed launcher creates a random 256-bit secret and passes it only through the inherited
-environment of the trusted HotkeyStudio and Siemens NX processes. The secret is never written to
-the bridge queue. HotkeyStudio signs a length-prefixed canonical representation of all
-security-relevant request fields with HMAC-SHA-256.
-
-Before invoking NX, Command Bridge independently verifies:
-
-1. protocol schema and request expiry;
-2. active session id and HMAC using constant-time comparison;
-3. exact path of `source_process_id` against the managed HotkeyStudio executable;
-4. monotonic sequence and previously unseen nonce;
-5. `profile_digest` against a permission set rebuilt from the active profile;
-6. exact action, command id, module, target application and selection filter;
-7. destructive and confirmation policy from the profile;
-8. the current NX context and selected-object fingerprint.
-
-Unsigned schema-3 requests and requests produced outside the managed launch session are rejected.
-Changing the profile causes both sides to rebuild the permission digest before the next command.
+Не создавайте сторонний writer, копируя только JSON example: без session secret, canonical signing, anti-replay и profile permission такой writer не является совместимым client.
