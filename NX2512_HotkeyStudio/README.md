@@ -1,163 +1,153 @@
 # NX2512_HotkeyStudio
 
-## Назначение
-
-HotkeyStudio — основной desktop/runtime-компонент NXKeys. Он загружает profile schema 3–6, мигрирует его к schema 6, строит Leader index из модулей, показывает HUD, обрабатывает keyboard input, формирует IPC requests и предоставляет CLI/deployment функции.
-
-Target: `.NET 8`, `net8.0-windows`, Windows Forms, x64.
+HotkeyStudio — основной desktop/tray runtime NXKeys. Current runtime использует profile schema **8**, adaptive module resolution и authenticated IPC schema **4**.
 
 ## Ответственность
 
-- single-instance desktop/tray process;
-- keyboard hook и UI event queue;
-- adaptive module resolution;
-- prefix-free sequence automaton;
-- state-machine orchestration и confirmation;
-- command search;
-- IPC client;
-- profile validation/migration;
-- MenuScript/overlay generation;
-- scan, deployment, backup, restore и health CLI;
-- launcher integration.
+- single-instance desktop/tray lifecycle;
+- physical CapsLock latch и global Leader hook;
+- adaptive NX module resolution;
+- v8 profile loading/normalization;
+- `secondary_aliases` expansion;
+- prefix-free Leader DFA + HFSM;
+- HUD/search;
+- signed IPC client;
+- CLI, scan, deployment, backup/restore и health;
+- managed launch integration.
 
-HotkeyStudio не доказывает, что command ID доступен в текущей лицензии NX. Последнюю runtime-проверку выполняет Command Bridge/NX.
+HotkeyStudio не доказывает фактическую sensitivity/effect NX command — последняя граница находится в Command Bridge/NX.
 
-## Основные каталоги
+## Profile loading
 
-| Путь | Назначение |
-|---|---|
-| `Program.cs` | desktop/CLI entry point и single-instance lifecycle |
-| `Models/` | profile schema, defaults, validation и mnemonic generator |
-| `Services/` | runtime, scanner, resolver, deployment, backup, IPC client |
-| `UI/` | WinForms editors, HUD и окна |
-| `build.ps1` | generation/validation/publish distribution |
-| `.csproj` | net8.0-windows/x64 и shared source links |
+`Config.Load`:
 
-Shared files `NXKeys.Protocol/NxProtocol.cs` и `NXKeys.StateMachines/*.cs` подключаются как linked compile items.
+1. если profile отсутствует — создаёт hardcoded v8 configuration;
+2. если JSON есть — проверяет source schema **3…8**;
+3. десериализует v8/legacy fields;
+4. разворачивает environment paths;
+5. разворачивает `secondary_aliases`;
+6. исключает workspace-only keys из root DFA без workspace-state;
+7. применяет defaults/compatibility normalization;
+8. строит runtime modules/sequences;
+9. валидирует config.
 
-## Сборка без NX
+`Config.CurrentSchemaVersion = 8`.
 
-Из корня репозитория:
+Default profile resolution в `Program.cs` ищет сначала:
+
+```text
+nx2512-v8-profile.json
+```
+
+затем compatibility filename:
+
+```text
+nx2512-pro-hybrid.json
+```
+
+## CapsLock
+
+Leader trigger использует physical key latch: первый real key-down захватывается, autorepeat игнорируется до real key-up. `WM_HOTKEY` не должен дублировать уже захваченный physical trigger.
+
+## V8 aliases/workspace keys
+
+`paths.secondary_aliases` — реальные routing aliases.
+
+Modeling example:
+
+```text
+M → L → S    Layer Settings
+```
+
+`workspace_key` не становится root command автоматически. Это предотвращает terminal/prefix conflict вроде `M` против `M → …`.
+
+## Sketch routing
+
+В active Sketch:
+
+```text
+L             Line
+R             Rectangle
+K → C         Coincident
+D → Q         Rapid Dimension
+C → V → …     variants
+```
+
+Hardcoded/no-profile fallback проецирует constraint overlay в Sketch, поэтому пользователь вводит `K → …`, а не отдельный модуль constraints.
+
+## Сборка
+
+Без NX:
 
 ```powershell
 dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj `
   -c Release -p:Platform=x64 --nologo
 ```
 
-NXOpen references подключаются условно, если задан `NXOpenDir` и DLL существуют.
-
-## Distribution build
-
-Перед вызовом `build.ps1` должен существовать Bridge artifact:
-
-```text
-NX2512_CommandBridge\dist\NX2512_CommandBridge.dll
-```
-
-Затем:
+Distribution build с готовым Bridge artifact:
 
 ```powershell
 .\NX2512_HotkeyStudio\build.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
+  -ProfilePath .\config\nx2512-v8-profile.json `
   -Clean
 ```
 
-Скрипт:
+Если нужен Catalog Studio export, передайте `-CatalogDir`.
 
-1. компилирует main K3–K5 profile, если `-ProfilePath` не задан;
-2. запускает profile validators;
-3. публикует framework-dependent `win-x64`;
-4. копирует runtime profile и state-machine policy;
-5. добавляет external operation icons;
-6. добавляет Bridge в `custom\application`;
-7. проверяет required artifacts.
-
-Output:
-
-```text
-NX2512_HotkeyStudio\dist
-```
+Current installer всегда передаёт выбранный profile в HotkeyStudio `build.ps1` через `-ProfilePath`.
 
 ## Запуск из исходников
 
-Bootstrap profile:
-
 ```powershell
 dotnet run --project .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -- `
-  --config .\config\nx2512-pro-hybrid.json
+  --config .\config\nx2512-v8-profile.json
 ```
 
-Main generated profile:
-
-```powershell
-dotnet run --project .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -- `
-  --config .\config\nx2512-pro-main.generated.json
-```
-
-## Desktop lifecycle
-
-- используется global single-instance mutex;
-- второй запуск сигнализирует существующему process через named events;
-- background/tray flags не создают второй keyboard hook;
-- Leader запускается, если `leader_key.enabled=true`;
-- runtime log пишется в `%LOCALAPPDATA%\NXKeys\logs\leader-key.log`.
+Без `--config` runtime попробует auto-resolution, затем hardcoded fallback.
 
 ## CLI
-
-Поддерживаются:
 
 ```text
 validate, scan, catalog, plan, apply, launch, leader,
 backups, restore, bridge-status, health, icons, export-icons
 ```
 
-Полный справочник: [`docs/CLI.md`](../docs/CLI.md).
+Документация: [`docs/CLI.md`](../docs/CLI.md).
 
-## Profile loading
+## Authenticated launch
 
-`Config.Load`:
+`launch`/managed launcher создаёт shared security session для HotkeyStudio и NX/Bridge. Request signing использует session fields из `NXKeys.Protocol`.
 
-1. читает UTF-8 JSON;
-2. допускает comments и trailing commas;
-3. разворачивает environment paths;
-4. применяет defaults/migration;
-5. нормализует command fields;
-6. запускает `MnemonicPathGenerator.Apply`;
-7. перестраивает Leader sequences;
-8. валидирует profile.
-
-Current schema — 6, minimum supported — 3.
-
-## Изменение модели
-
-При изменении schema обновите:
-
-- `ConfigRuntimeV5.cs`;
-- соответствующий `*TypesV5.cs`;
-- defaults и validation;
-- installer accepted range;
-- CI source checks;
-- configuration docs и examples;
-- tests migration/round-trip.
-
-Не оставляйте error messages со старым номером schema.
+Независимый запуск HotkeyStudio и NX не эквивалентен authenticated managed launch.
 
 ## Tests
 
 ```powershell
+node .\scripts\validate-documentation.mjs
 node .\scripts\validate-command-tree.mjs
 node .\scripts\validate-main-command-map.mjs
 
+dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release
 dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
-dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64
+
+dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Platform=x64 --nologo
 ```
 
-UI и global keyboard hook дополнительно требуют ручной проверки на Windows.
+Regression scope должен включать:
 
-## Known limitations
+- hardcoded/no-profile v8 fallback;
+- Modeling Manage aliases;
+- отсутствие terminal root `M` из workspace-only key;
+- Sketch `K → …` routing;
+- Sheet Metal canonicalization/security;
+- protocol schema 4 tests.
 
-- WinForms UI не является cross-platform;
-- текущие runtime strings в `Program.cs` местами всё ещё упоминают schema v4 — это технический долг;
-- model fields `path_locked/path_source` присутствуют, но отдельный end-to-end user override workflow не подтверждён;
-- HotkeyStudio build без NX не подтверждает Bridge runtime;
-- автоматическая команда `--help` не реализована в подтверждённом CLI switch.
+## Ограничения
+
+- WinForms/global hook требуют Windows;
+- build без NX не подтверждает live Bridge semantics;
+- фактическая команда зависит от NX role/license;
+- интерактивный NX dialog result требует live test;
+- старый K3–K5 compiler остаётся отдельным catalog/compatibility pipeline и не определяет default v8 runtime.
+
+Канонический runtime: [`docs/RUNTIME_V8.md`](../docs/RUNTIME_V8.md).
