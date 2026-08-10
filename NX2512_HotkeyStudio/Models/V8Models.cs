@@ -17,7 +17,14 @@ namespace NX2512_HotkeyStudio.Models
     {
         [JsonPropertyName("direct")] public string Direct { get; set; }
         [JsonPropertyName("workspace_key")] public string WorkspaceKey { get; set; }
-        [JsonPropertyName("leader")] public List<string> Leader { get; set; }
+        [JsonPropertyName("leader")] public List<string> Leader { get; set; } = new List<string>();
+
+        // v8 profiles use aliases such as "M->L" and "M->W" for fast access
+        // from the current Modeling workspace.  Older runtime models silently
+        // discarded this field during JSON deserialization, making those routes
+        // impossible to compile or validate.
+        [JsonPropertyName("secondary_aliases")]
+        public List<string> SecondaryAliases { get; set; } = new List<string>();
     }
 
     public sealed class OperationAdapter
