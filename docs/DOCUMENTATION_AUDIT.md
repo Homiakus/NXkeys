@@ -1,7 +1,7 @@
 # Аудит актуальности документации NXKeys
 
 Дата сверки: **10 августа 2026 года**.  
-Область: ветка `main`, current user/developer/operations docs, component READMEs, generated references и historical evidence.
+Область: ветка `main`, current user/developer/operations docs, component READMEs, ADR, generated references и historical evidence.
 
 ## Итог
 
@@ -33,7 +33,9 @@ default profile config/nx2512-v8-profile.json
 - Sketch `C→L` / `CGL` против current one-token `L`;
 - отсутствие документации Selection Intent `0…4`;
 - старые Sheet Metal `UG_SHEET_METAL_*` против current canonical `UG_SBSM_*`;
-- security text «file IPC не аутентифицирован» против уже реализованного schema-4 HMAC/session layer.
+- security text «file IPC не аутентифицирован» против уже реализованного schema-4 HMAC/session layer;
+- ADR-0001 всё ещё называл generated K3–K5 текущим installed runtime;
+- большая v8.3 Left-Hand target-spec была оформлена так, будто вся целевая эргономика уже является исполняемым контрактом.
 
 ## Источники истины
 
@@ -58,6 +60,7 @@ default profile config/nx2512-v8-profile.json
 | `README.md` | главный вход | v8 current |
 | `docs/README.md` | оглавление | v8 current |
 | `docs/RUNTIME_V8.md` | canonical runtime | добавлен |
+| `docs/MNEMONIC_COMMAND_LANGUAGE.md` | реализованный mnemonic contract | переписан под current runtime |
 | `docs/CHEATSHEET.md` | ежедневная работа | полностью перестроен под v8 |
 | `docs/SKETCH_INTENT_LANGUAGE.md` | Sketch | current paths + диагностика |
 | `docs/SELECTION_INTENT.md` | selection collectors | добавлен |
@@ -77,9 +80,26 @@ default profile config/nx2512-v8-profile.json
 | `docs/OPERATIONS.md` | installed `nx2512-v8-profile.json` |
 | `DEVELOPMENT.md` | v8 tests/build/current profile |
 | `CONTRIBUTING.md` | v8 change matrix/invariants |
+| `SECURITY.md` | current security reporting/boundaries |
 | `NX2512_HotkeyStudio/README.md` | schema 8 / fallback / aliases |
 | `NX2512_CommandBridge/README.md` | schema 4 + Selection Intent |
 | `NX2512_ControlCenter/README.md` | current v8 metrics vs legacy coverage |
+| `NX2512_Catalog_Studio/README.md` | v8 ID-verification workflow vs legacy compiler |
+| `roles/README.md` | role change → v8 adapter/context revalidation |
+
+## ADR status
+
+### ADR-0001
+
+`docs/adr/0001-profile-layers.md` теперь имеет статус **Superseded**. Историческое решение K3–K5/885 сохранено, но больше не считается current installed-runtime contract.
+
+### ADR-0002
+
+At-most-once file queue остаётся **Accepted**. ADR дополнен schema-4 authentication: queue transport не является authority, admission требует session/HMAC/source-process/anti-replay/profile permission.
+
+### ADR-0003
+
+Добавлен и принят `docs/adr/0003-v8-runtime-profile-and-legacy-catalog-separation.md`: default runtime — `nx2512-v8-profile.json`, K1–K5/K3–K5 — catalog/compatibility layer.
 
 ## Reclassified documentation
 
@@ -87,9 +107,17 @@ default profile config/nx2512-v8-profile.json
 
 Переклассифицирован как **legacy/catalog profile specification**. Он сохраняет K1–K5/K3–K5 contracts, но явно говорит, что current runtime source — v8 profile.
 
-### `docs/MNEMONIC_COMMAND_LANGUAGE.md`
+### Mnemonic v8.3 Left-Hand target specification
 
-Это большой target-design/reference document v8.x. Он содержит идеи леворукой эргономики, workspaces и более широкий целевой UI language. Его нельзя использовать как доказательство уже реализованной команды без сверки с `RUNTIME_V8.md`, current profile и tests.
+Старая большая target-design specification не удалена. Она сохранена как historical/reference artifact:
+
+```text
+docs/historical/MNEMONIC_COMMAND_LANGUAGE_v8.3_LEFT_HAND_TARGET_SPEC.md
+```
+
+Current `docs/MNEMONIC_COMMAND_LANGUAGE.md` теперь описывает только реализованное поведение: hidden module prefix, one-token Sketch, `K→…`, `D→…`, `M→L→S`, `secondary_aliases`, workspace-root rule, `S→…` filters и Selection Intent `0…4`.
+
+Это устраняет ключевую проблему: future ergonomic design больше не выглядит как runtime-verified feature.
 
 ### Generated
 
@@ -97,7 +125,7 @@ default profile config/nx2512-v8-profile.json
 
 ### Historical
 
-Датированные audit snapshots, build reports и планы могут содержать старые schema/policy/paths. Их старые значения не исправляются задним числом.
+Датированные audit snapshots, build reports, старый Left-Hand target design и планы могут содержать старые schema/policy/paths. Их старые значения не исправляются задним числом.
 
 ## Исправленные пользовательские сценарии
 
@@ -120,7 +148,7 @@ CapsLock → C → V → …
 CapsLock → M → L → S
 ```
 
-Документация объясняет скрытый Modeling prefix и запрет root projection workspace-only key.
+Документация объясняет hidden Modeling prefix и запрет root projection workspace-only key.
 
 ### Selection Intent
 
@@ -159,6 +187,15 @@ Current docs теперь согласованы с IPC schema 4:
 
 Устаревшее утверждение «отдельной cryptographic authentication нет» удалено из current API/safety docs.
 
+## Catalog Studio correction
+
+Старый пример предлагал `install-nxkeys.ps1 -CompileOnly` как способ «собрать main profile». Для default schema-8 v8 profile это неверно: `-CompileOnly` только разрешает/проверяет выбранный profile и завершается до build/install.
+
+Current Catalog Studio guide теперь разделяет:
+
+- v8 workflow — проверка `adapter.value` против target `06_ui_commands_buttons.csv`;
+- legacy K3–K5 generation — явный вызов `scripts/compile-main-command-map.mjs`.
+
 ## Documentation validator
 
 `scripts/validate-documentation.mjs` обновлён так, чтобы:
@@ -166,10 +203,11 @@ Current docs теперь согласованы с IPC schema 4:
 - извлекать `CurrentSchemaVersion` из C# source;
 - извлекать IPC `SchemaVersion` из `NxProtocol.cs`;
 - извлекать `SEQUENCE_POLICY_VERSION` из JS source;
-- проверять current docs против полученных версий;
+- проверять current docs против полученных версий независимо от небольших различий Markdown formatting;
 - проверять default `nx2512-v8-profile.json` в installer и CLI;
 - проверять `CapsLock→L`, `K→C`, `M→L→S`;
 - проверять Selection Intent doc/Bridge responsibility;
+- проверять current Catalog Studio v8 workflow и ADR-0003;
 - запрещать старые Sketch line examples в current README/cheatsheet;
 - продолжать сверять generated sequence audit с source policy.
 
@@ -186,7 +224,7 @@ Current docs теперь согласованы с IPC schema 4:
 5. interactive dialog/collector semantics;
 6. destructive side effects.
 
-Особенно отмечено, что `DialogTester.InvokeMenuButtonAction(...)` для интерактивных commands требует live-NX interpretation: return value нельзя считать абсолютным доказательством фактического UI effect.
+Особенно отмечено, что `DialogTester.InvokeMenuButtonAction(...)` для interactive commands требует live-NX interpretation: return value нельзя считать абсолютным доказательством фактического UI effect.
 
 ## Правило дальнейшей поддержки
 
