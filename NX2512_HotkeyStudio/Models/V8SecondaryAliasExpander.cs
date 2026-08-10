@@ -47,15 +47,31 @@ namespace NX2512_HotkeyStudio.Models
                     // path *inside* the already selected NX application. Therefore an
                     // alias such as M->L->S in Modeling means Manage -> Layer -> Settings;
                     // the first M is semantic input and must not be mistaken for the
-                    // automatically resolved Modeling module prefix. The translator
-                    // adds that module prefix separately when it builds the runtime DFA.
+                    // automatically resolved Modeling module prefix.
+                    string effectiveApplication = application;
+                    bool globalManageAlias =
+                        string.Equals(application, "global", StringComparison.OrdinalIgnoreCase) &&
+                        tokens.Count > 1 &&
+                        string.Equals(tokens[0], "M", StringComparison.OrdinalIgnoreCase);
+                    if (globalManageAlias)
+                    {
+                        // A global M->... alias is the legacy mnemonic for the Manage
+                        // root, not a request to manufacture a separate "v8_m" module
+                        // and strip M as a module prefix. Scope it explicitly to
+                        // Modeling so the runtime path stays M->... . This also keeps
+                        // M as a submenu root instead of creating a terminal M command
+                        // that would collide with M->M / M->L / M->W descendants.
+                        effectiveApplication = "modeling";
+                    }
+
                     string aliasKey = string.Join("", tokens);
                     if (!string.IsNullOrWhiteSpace(canonicalKey) &&
-                        string.Equals(aliasKey, canonicalKey, StringComparison.OrdinalIgnoreCase))
+                        string.Equals(aliasKey, canonicalKey, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(effectiveApplication, application, StringComparison.OrdinalIgnoreCase))
                         continue;
 
                     string dedupeKey = (operation.Adapter?.Value ?? operation.OperationID ?? string.Empty) + "|" +
-                                       application + "|" + aliasKey;
+                                       effectiveApplication + "|" + aliasKey;
                     if (!seen.Add(dedupeKey)) continue;
 
                     OperationContract alias = CloneOperation(operation);
@@ -64,6 +80,8 @@ namespace NX2512_HotkeyStudio.Models
                     alias.Paths.Direct = null;
                     alias.Paths.WorkspaceKey = null;
                     alias.Paths.Leader = new List<string>();
+                    if (globalManageAlias)
+                        alias.Availability.Applications = new List<string> { "modeling" };
 
                     if (tokens.Count == 1)
                         alias.Paths.Direct = tokens[0];
