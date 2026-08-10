@@ -1,346 +1,250 @@
-# Конфигурация NXKeys
+# Конфигурация NXKeys v8
 
-## Уровни конфигурации
+Канонический runtime profile:
 
-NXKeys использует четыре уровня:
+```text
+config/nx2512-v8-profile.json
+```
 
-1. `config/full-command-map/` — каталог 1169 намерений K1–K5;
-2. `config/nx2512-pro-hybrid.json` — bootstrap-профиль;
-3. `config/nx2512-pro-main.generated.json` — generated main profile K3–K5;
-4. установленный `nx2512-pro-hybrid.json` — compatibility filename generated profile.
+Текущая profile schema — **8**. `Config.Load` принимает schemas **3…8**, применяет compatibility/default normalization и валидирует итоговый объект. Если JSON отсутствует, создаётся hardcoded v8 configuration.
 
-Не редактируйте generated и installed profile как источник конфигурации.
+Общий runtime contract: [RUNTIME_V8.md](RUNTIME_V8.md).
 
-## Версии контрактов
+## Версии
 
 | Контракт | Версия | Источник истины |
 |---|---:|---|
-| profile schema | 6 | `ConfigRuntimeV5.cs` |
-| minimum readable profile | 3 | `ConfigRuntimeV5.cs` |
-| IPC | 3 | `NxProtocol.cs` |
-| `full_command_catalog` | 2 | compiler output |
-| source sequence policy | 7 | `scripts/sequence-policy.mjs` |
+| profile schema | **8** | `ConfigRuntimeV5.cs` |
+| minimum readable profile | **3** | `ConfigRuntimeV5.cs` |
+| IPC | **4** | `NXKeys.Protocol/NxProtocol.cs` |
+| sequence policy | **8** | `scripts/sequence-policy.mjs` |
+| v8 operation contract | v8 | `V8Models.cs` |
 
-Runtime принимает schema 3–6, применяет defaults и migration, затем нормализует объект к schema 6.
+Не используйте старые документы со schema 6 / IPC 3 / policy 7 как current configuration reference.
 
-## Bootstrap
+## Два слоя конфигурации
 
-```text
-config/nx2512-pro-hybrid.json
-```
+### 1. v8 operation profile — current runtime source
 
-Bootstrap содержит:
+`config/nx2512-v8-profile.json` содержит `schema_version`, `profile` и `operations`.
 
-- `profile`, `scan`, `deployment`;
-- ровно 12 enabled basic shortcuts;
-- 14 адаптивных модулей;
-- `workflow_controls`, `performance`, `role_deployment`, `leader_key`;
-- известные command IDs и curated commands.
-
-Bootstrap служит входом compiler, а не полным daily runtime profile.
-
-## Generated main profile
-
-```text
-config/nx2512-pro-main.generated.json
-```
-
-Ожидаемая metadata после generation текущим compiler:
+Упрощённый пример:
 
 ```json
 {
-  "schema_version": 6,
-  "full_command_catalog": {
-    "schema_version": 2,
-    "source_intents": 1169,
-    "selected_intents": 885,
-    "selected_frequencies": ["K3", "K4", "K5"],
-    "sequence_policy_version": 7,
-    "frequency_counts": {
-      "K1": 4,
-      "K2": 280,
-      "K3": 445,
-      "K4": 371,
-      "K5": 69
+  "schema_version": 8,
+  "profile": {
+    "name": "NX Adaptive Modules 2512.6000 v8",
+    "nx_version": "2512.6000"
+  },
+  "operations": [
+    {
+      "operation_id": "modeling.example",
+      "command_name": "Example",
+      "paths": {
+        "direct": null,
+        "workspace_key": null,
+        "leader": ["M", "X"],
+        "secondary_aliases": ["M->Y"]
+      },
+      "adapter": {
+        "kind": "button",
+        "value": "UG_EXAMPLE_BUTTON",
+        "status": "verified"
+      },
+      "availability": {
+        "applications": ["modeling"],
+        "requires_work_part": true,
+        "blocked_in_text_input": true
+      }
     }
-  }
+  ]
 }
 ```
 
-Если checked-in generated file или sequence audit содержит policy 6, artifact устарел относительно source policy и должен быть пересоздан.
+Фактические operation fields определены в `NX2512_HotkeyStudio/Models/V8Models.cs`.
 
-## Верхнеуровневые разделы
+### 2. normalized/legacy runtime model
 
-### `profile`
+Внутренне v8 operations переводятся в существующие `ModuleConfig`, `CommandSet`, `LeaderSequence` и security permission structures. Старые schemas 3…7 поддерживаются только через migration/compatibility path.
 
-Содержит имя, целевую версию NX и описание. `nx_version` используется defaults, но не заменяет проверку фактического NXOpen DLL.
+Не проектируйте новые v8 функции вокруг устаревшей serialized schema 6 только потому, что такие поля ещё существуют во внутренних моделях.
 
-### `scan`
+## `paths`
 
-Определяет:
+### `direct`
 
-- roots и install/profile hints;
-- расширения MenuScript, role и launcher;
-- `max_depth`, `max_files`, `follow_symlinks`.
+Опциональная прямая клавиша без открытия Leader. Используйте только там, где контекст достаточно строгий и конфликт с обычным вводом исключён.
 
-Environment placeholders вида `%LOCALAPPDATA%` разворачиваются runtime.
+### `leader`
 
-### `deployment`
+Основной mnemonic path после `CapsLock`.
 
-Основные поля:
-
-```json
-{
-  "mode": "managed-wrapper",
-  "managed_root": "%LOCALAPPDATA%\\NXKeys\\managed\\NX2512.6000",
-  "backup_root": "%LOCALAPPDATA%\\NXKeys\\backups",
-  "overlay_filename": "nxkeys_generated.men",
-  "menuscript_version": 139,
-  "main_menubar_id": "UG_GATEWAY_MAIN_MENUBAR",
-  "nx_executable": "",
-  "existing_custom_dirs_file": "",
-  "patch_existing_custom_dirs": false,
-  "require_nx_stopped": true,
-  "clear_detected_conflicts": false,
-  "atomic_writes": true,
-  "dry_run": true
-}
-```
-
-Допустимые modes: `managed-wrapper` и `existing-custom-dirs`.
-
-### `keyboard`
-
-`BasicShortcutPolicy` разрешает только:
+В v8 path может быть **однотокенным**. Например в активном Sketch:
 
 ```text
-Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+Shift+S,
-Ctrl+Z, Ctrl+Y, Ctrl+X, Ctrl+C, Ctrl+V,
-Delete, Ctrl+F, F5
+L    Line
+R    Rectangle
+T    Trim
 ```
 
-Validator требует точные IDs и ровно 12 enabled bindings. Остальные команды должны использовать Leader paths.
+Поэтому старое универсальное правило «canonical path содержит 2–5 токенов» больше не является current runtime contract.
 
-## Модуль
+### `secondary_aliases`
+
+Реальные runtime routing aliases. Формат в JSON:
 
 ```json
-{
-  "id": "modeling",
-  "label": "Modeling",
-  "enabled": true,
-  "nx_application_ids": ["UG_APP_MODELING"],
-  "switch_command": {
-    "id": "UG_APP_MODELING",
-    "name": "Modeling"
-  },
-  "leader_prefix": "M",
-  "selection_priorities": [],
-  "command_sets": []
-}
+"secondary_aliases": ["M->L->S", "W->L->S"]
 ```
 
-Для enabled module требуются уникальные `id` и внутренний `leader_prefix`, команды и подтверждённые application mappings. Пользователь не вводит module prefix.
+На десериализации aliases разворачиваются в операции до построения Leader DFA. Alias должен удовлетворять тем же prefix-free ограничениям, что и primary path.
 
-## Команда
+### `workspace_key`
 
-Пример сокращённой command row:
+Клавиша, имеющая смысл **только внутри отдельного workspace state**.
 
-```json
-{
-  "path": ["C", "F", "E"],
-  "path_labels": ["Create", "Feature", "Extrude"],
-  "aliases": [["C", "E"]],
-  "search_aliases": ["Extrude", "Выдавливание"],
-  "command": {
-    "id": "UG_MODELING_EXTRUDED_FEATURE",
-    "name": "Extrude"
-  },
-  "action": "execute_command",
-  "target_module_id": "",
-  "support_kind": "",
-  "selection_type": "feature",
-  "enabled": true,
-  "requires_selection": false,
-  "destructive": false,
-  "confirm_before_execute": false,
-  "frequency": "K5",
-  "catalog_backed_support": false,
-  "path_locked": false,
-  "path_source": "curated"
-}
-```
+Текущий runtime не проецирует operation, имеющую только `workspace_key`, в корень Leader. Это намеренное правило: иначе terminal root вроде `M` конфликтует с subtree `M → L → S`.
 
-Подтверждённые поля модели:
+Пока workspace-state boundary не реализован явно, `workspace_key` нельзя документировать как обычный root shortcut.
 
-| Группа | Поля |
+## `adapter`
+
+| Поле | Смысл |
 |---|---|
-| legacy/UI | `slot`, `submenu_key`, `submenu_label`, `input_key`, `icon_hint`, `display_order` |
-| routing | `path`, `path_labels`, `aliases`, `search_aliases`, `action`, `target_module_id`, `support_kind`, `selection_type` |
-| command | `command.id`, `command.name` |
-| safety | `enabled`, `requires_selection`, `destructive`, `confirm_before_execute` |
-| traceability | `fallback`, `notes`, `frequency`, `catalog_backed_support`, generated resolution metadata |
-| path metadata | `path_locked`, `path_source` |
+| `kind` | тип адаптера (`button`, `internal` и т. п.) |
+| `value` | точный NX command ID либо internal adapter payload |
+| `status` | статус разрешения/реализации |
 
-### Paths
+Не подменяйте точный NX `BUTTON ID` похожим именем.
 
-- canonical path содержит 2–5 токенов;
-- aliases проходят ту же prefix-free проверку;
-- `search_aliases` используются для текста поиска и не являются routing paths;
-- K5 должен укладываться в 2 токена, K4 — в 3, K3 — в 4 при текущей policy;
-- support paths резервируются раньше обычных команд.
-
-### Resolution
-
-Generated rows получают `catalog_refs`, `resolution_status` и `resolution_candidates`.
-
-| Статус | Исполнение |
-|---|---|
-| `existing` | разрешено при валидном ID |
-| `resolved` | разрешено при надёжном ID |
-| `ambiguous` | disabled |
-| `unresolved` | disabled |
-
-Не меняйте status вручную без evidence target catalog.
-
-### `catalog_backed_support`
-
-Большинство universal support rows являются чистой runtime-инфраструктурой: у них `frequency: support` и нет `catalog_refs`. Исключение возникает, когда та же функция уже входит в выбранные 885 catalog intents. Подтверждённый пример — `Select All`, нормализованный к пути `SA`.
-
-Для такой строки compiler задаёт:
-
-```json
-{
-  "support_kind": "selection_filter",
-  "frequency": "support",
-  "catalog_backed_support": true,
-  "catalog_refs": ["nx2512-00-L0060"]
-}
-```
-
-Семантика:
-
-- путь и execution action остаются universal support;
-- `frequency` остаётся `support`, поэтому к пути применяется support policy;
-- `catalog_refs` сохраняют coverage и трассировку исходного K3–K5 intent;
-- validator разрешает catalog coverage только при явном `catalog_backed_support: true`;
-- чистая support row не должна получать этот флаг или catalog reference.
-
-Поле не передаётся в IPC: оно относится к profile/coverage layer.
-
-### `path_locked` и `path_source`
-
-Поля уже присутствуют в schema 6:
-
-- `path_locked` — metadata для закрепления явно выбранного пути;
-- `path_source` — происхождение пути, например curated или generated.
-
-**Ограничение:** наличие этих полей не означает, что отдельный user override file и полный UI-workflow кастомизации уже реализованы end-to-end. До появления такого механизма source paths меняются через versioned profile/policy и проходят validators.
-
-## Workflow controls
-
-Schema содержит:
-
-```json
-{
-  "workflow_controls": {
-    "accept_ok": { "id": "", "name": "OK" },
-    "apply": { "id": "", "name": "Apply" },
-    "cancel": { "id": "", "name": "Cancel" },
-    "back_previous_step": { "id": "", "name": "Back" },
-    "confirm_dangerous": true
-  }
-}
-```
-
-Default names не являются подтверждёнными исполняемыми IDs. Конкретное modal behavior необходимо подтверждать Bridge/runtime кодом и целевой NX.
-
-## Универсальные selection actions
-
-Source policy v7 добавляет во все enabled modules:
+Для новых Sheet Metal operations используйте canonical IDs NX 2512:
 
 ```text
-SB body       SF face       SE edge       ST feature
-SC component  SU curve      SD datum      SR reset
-SA all        SN none
+UG_APP_SBSM
+UG_SBSM_*
 ```
 
-Они используют `action: set_selection_filter` и `support_kind: selection_filter`. Если universal action одновременно представляет selected catalog intent, compiler сохраняет его coverage через `catalog_backed_support`.
+Runtime нормализует старые `UG_APP_SHEETMETAL` и `UG_SHEET_METAL_*` для совместимости, но новые профили должны использовать canonical names.
 
-## Module switches
+## `availability`
 
-Резервируются:
+Текущая v8 model содержит:
 
 ```text
-GM modeling       GA assembly      GD drafting
-GP pmi            GU surface       GH sheet metal
-GC manufacturing  GN simulation    GR routing
-GO mold           GL reuse         GV inspect/view
+applications
+requires_work_part
+blocked_in_text_input
 ```
 
-Switch rows не добавляются в `sketch` и `selection_object`. Модуль не получает switch на самого себя.
+`applications` участвует не только в UI routing, но и в построении permission set для authenticated Bridge. Для switch operations security layer синтезирует разрешения по application mapping.
 
-Source policy также экспортирует default cycle `modeling → assembly → drafting → manufacturing`. Фактическое использование списка UI/runtime должно подтверждаться Leader engine; наличие constant само по себе не является доказательством поведения.
+## Активный модуль
 
-## Environment expansion
+`AdaptiveModuleResolver` должен сначала учитывать exact NX application/module mapping, а уже потом label/heuristic aliases. Это важно для контекстов с одинаковыми первыми буквами, например Sketch / Sheet Metal / Surface / Simulation.
 
-`Config.ExpandPath` поддерживает `%VAR%`, стандартное expansion environment variables и `~` в начале пути. Не храните секреты в profile: JSON попадает в managed package и backups.
+Пользовательский path не включает runtime module prefix.
 
-## Компиляция
+## Modeling `M = Manage`
 
-Рекомендуемый вход:
+Пример v8 alias:
 
-```powershell
-.\install-nxkeys.ps1 `
-  -CatalogDir "D:\NX2512_Catalog_Output" `
-  -CompileOnly
+```text
+M → L → S    Layer Settings
 ```
 
-Прямой compiler:
+Если смотреть внутреннюю DFA sequence в Modeling, там может быть два `M`: первое — скрытый module prefix, второе — пользовательский Manage root. В пользовательской документации показывается только вводимый `M → L → S`.
 
-```powershell
-node .\scripts\compile-main-command-map.mjs `
-  --profile .\config\nx2512-pro-hybrid.json `
-  --intents .\config\full-command-map `
-  --probe .\docs\audit\runtime-command-probe-2026-07-28.json `
-  --catalog-dir "D:\NX2512_Catalog_Output" `
-  --out .\config\nx2512-pro-main.generated.json `
-  --report .\docs\generated\main-profile-resolution.md
+## Sketch v8
+
+Current Sketch model:
+
+```text
+L                 Line
+R                 Rectangle
+K → C             Coincident
+D → Q             Rapid Dimension
+C → V → …         variants
+J → …             projection/derived
+U → …             utilities
 ```
 
-Без global duplication:
+Полная таблица: [SKETCH_INTENT_LANGUAGE.md](SKETCH_INTENT_LANGUAGE.md).
 
-```powershell
-node .\scripts\compile-main-command-map.mjs --no-global-duplication
+## Selection Intent `0…4`
+
+Selection Intent не хранится как обычные Leader operation rows. Это in-process Bridge behavior (`SelectionIntentHotkeys.cs`). Не пытайтесь моделировать `0…4` как глобальные `direct` shortcuts в profile: guard-логика специально привязана к active NX collector/seed.
+
+Подробнее: [SELECTION_INTENT.md](SELECTION_INTENT.md).
+
+## Legacy K1–K5 / K3–K5 generation pipeline
+
+Репозиторий сохраняет:
+
+```text
+config/full-command-map/
+config/nx2512-pro-hybrid.json
+config/nx2512-pro-main.generated.json
+scripts/compile-main-command-map.mjs
+scripts/validate-main-command-map.mjs
 ```
+
+Этот слой полезен для:
+
+- intent catalog;
+- frequency/coverage analysis;
+- command resolution against Catalog Studio export;
+- generated reports;
+- regression/compatibility studies.
+
+Он **не является default installer profile path**. `install-nxkeys.ps1` без `-ConfigPath` выбирает `config/nx2512-v8-profile.json`.
+
+Generated K3–K5 artifacts не редактируются вручную.
+
+## Basic shortcuts и normalized defaults
+
+Runtime сохраняет базовый allowlisted набор привычных shortcuts (`Ctrl+N`, `Ctrl+O`, `Ctrl+S`, Undo/Redo, clipboard, Delete, Fit, Refresh) через `BasicShortcutPolicy`/defaults.
+
+Точный normalized object после `Config.Load` является источником истины для runtime, а не наличие/отсутствие каждого legacy поля в v8 source JSON.
+
+## Environment paths
+
+`Config.ExpandPath` поддерживает environment expansion и `~` в начале пути. Не храните secrets в profile: JSON попадает в managed deployment/backups и участвует в profile digest.
 
 ## Валидация
 
-```powershell
-node .\scripts\validate-main-command-map.mjs
-node .\scripts\validate-command-tree.mjs
-node .\scripts\validate-full-command-map.mjs
-node .\scripts\audit-command-sequences.mjs
+Основной набор:
 
-dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release
+```powershell
+node .\scripts\validate-documentation.mjs
+node .\scripts\validate-command-tree.mjs
+node .\scripts\validate-main-command-map.mjs
+node .\scripts\validate-full-command-map.mjs
+
+dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release
 ```
 
-Основные инварианты:
+Для current v8 особенно проверяйте:
 
-- current schema 6;
-- main scope K3/K4/K5, 885 intents;
-- 12 basic shortcuts и 14 modules;
-- enabled command имеет exact ID;
-- paths и aliases prefix-free;
-- destructive command требует confirmation;
-- support paths не используются обычными командами;
-- catalog-backed support сохраняет intent coverage только при явном флаге.
+- schema 8 читается и нормализуется;
+- missing profile даёт валидный hardcoded v8 fallback;
+- `secondary_aliases` реально появляются в runtime paths;
+- workspace-local key не становится terminal root;
+- Modeling Manage subtree остаётся prefix-free;
+- Sketch `K → …` routes остаются в Sketch context;
+- Sheet Metal IDs canonicalized к `UG_SBSM_*`;
+- security permission set совпадает с runtime command canonicalization.
 
-## Порядок изменения
+## Изменение schema
 
-1. Изменяйте bootstrap, intent catalog, sequence policy или curated generator.
-2. Запустите validators.
-3. Пересоздайте generated profile, resolution report и sequence audit.
-4. Проверьте diff paths, support counts и resolution statuses.
-5. Соберите HotkeyStudio и Control Center.
-6. Для Bridge/command changes выполните test на target NX.
-7. Обновите документацию и changelog при изменении contract.
+При следующем schema bump одновременно обновите:
+
+1. `Config.CurrentSchemaVersion` и supported range;
+2. v8/vNext model classes;
+3. migration/default normalization;
+4. tests и CI source invariants;
+5. installer/runtime acceptance;
+6. `RUNTIME_V8.md`, этот документ и examples;
+7. protocol/security docs, если меняется permission digest semantics.
+
+Не оставляйте validator, который продолжает требовать старый номер schema.
