@@ -34,7 +34,14 @@
     <Compile Include="..\NXKeys.StateMachines\LeaderStateMachines.cs" Link="StateMachines\LeaderStateMachines.cs" />
   </ItemGroup>
 
-  <!-- JSON profile no longer required — hardcoded in ConfigRuntimeV5.BuildHardcodedModules() -->
+  <!-- Command routing can be hardcoded, but LeaderBehaviorProfile still loads the
+       declarative state-machine timeouts/guards at runtime. Publish it beside the exe. -->
+  <ItemGroup>
+    <None Include="..\config\nx2512-state-machines.json" Link="nx2512-state-machines.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
 
   <ItemGroup Condition="'$(NXOpenDir)' != '' and Exists('$(NXOpenDir)\NXOpen.dll')">
     <Reference Include="NXOpen">
