@@ -43,36 +43,46 @@ namespace NX2512_HotkeyStudio.Models
             ApplyDefaults();
             RuntimeModules = (modules ?? Enumerable.Empty<ModuleConfig>()).Where(value => value != null).ToList();
             var result = new List<LeaderSequenceItem>();
-            foreach (ModuleConfig module in RuntimeModules.Where(value => value.Enabled))
+
+            foreach (ModuleConfig sourceModule in RuntimeModules.Where(value => value.Enabled))
             {
-                string prefix = NormalizeInputKey(module.LeaderPrefix);
-                IEnumerable<ModuleCommand> commands = module.CommandSets?
+                ModuleConfig sequenceModule = ResolveSequenceModule(sourceModule, out string overlayToken);
+                string prefix = NormalizeInputKey(sequenceModule.LeaderPrefix);
+                IEnumerable<ModuleCommand> commands = sourceModule.CommandSets?
                     .Where(set => set?.Commands != null).SelectMany(set => set.Commands).Where(value => value != null)
                     ?? Enumerable.Empty<ModuleCommand>();
                 int fallbackOrder = 1;
+
                 foreach (ModuleCommand moduleCommand in commands.OrderBy(command => command.DisplayOrder <= 0 ? int.MaxValue : command.DisplayOrder))
                 {
                     if (!moduleCommand.Enabled) continue;
                     string slot = ModuleDefaults.NormalizeSlot(moduleCommand.Slot);
-                    IReadOnlyList<string> canonicalPath = MnemonicPathGenerator.NormalizePath(moduleCommand.Path);
-                    if (canonicalPath.Count == 0)
+                    IReadOnlyList<string> baseCanonicalPath = MnemonicPathGenerator.NormalizePath(moduleCommand.Path);
+                    if (baseCanonicalPath.Count == 0)
                     {
                         string submenuKey = NormalizeInputKey(moduleCommand.SubmenuKey);
                         string inputKey = NormalizeInputKey(moduleCommand.InputKey);
                         if (string.IsNullOrWhiteSpace(inputKey)) inputKey = ResolveInputKey(slot, fallbackOrder);
-                        canonicalPath = string.IsNullOrWhiteSpace(submenuKey)
+                        baseCanonicalPath = string.IsNullOrWhiteSpace(submenuKey)
                             ? new[] { inputKey }
                             : new[] { submenuKey, inputKey };
                     }
+
+                    IReadOnlyList<string> canonicalPath = ApplyOverlay(baseCanonicalPath, overlayToken);
                     if (string.IsNullOrWhiteSpace(prefix) || canonicalPath.Count == 0 || moduleCommand.Command == null) continue;
 
-                    LeaderSequenceItem canonical = CreateSequenceItem(module, moduleCommand, slot, prefix, canonicalPath, false, fallbackOrder);
+                    LeaderSequenceItem canonical = CreateSequenceItem(
+                        sequenceModule, moduleCommand, slot, prefix, canonicalPath, canonicalPath, false, fallbackOrder, overlayToken);
                     result.Add(canonical);
+
                     foreach (List<string> rawAlias in moduleCommand.Aliases ?? new List<List<string>>())
                     {
-                        IReadOnlyList<string> alias = MnemonicPathGenerator.NormalizePath(rawAlias);
-                        if (alias.Count == 0 || alias.SequenceEqual(canonicalPath, StringComparer.OrdinalIgnoreCase)) continue;
-                        result.Add(CreateSequenceItem(module, moduleCommand, slot, prefix, alias, true, fallbackOrder));
+                        IReadOnlyList<string> baseAlias = MnemonicPathGenerator.NormalizePath(rawAlias);
+                        if (baseAlias.Count == 0) continue;
+                        IReadOnlyList<string> alias = ApplyOverlay(baseAlias, overlayToken);
+                        if (alias.SequenceEqual(canonicalPath, StringComparer.OrdinalIgnoreCase)) continue;
+                        result.Add(CreateSequenceItem(
+                            sequenceModule, moduleCommand, slot, prefix, alias, canonicalPath, true, fallbackOrder, overlayToken));
                     }
                     fallbackOrder++;
                 }
@@ -80,30 +90,81 @@ namespace NX2512_HotkeyStudio.Models
             Sequences = result;
         }
 
+        /// <summary>
+        /// The no-JSON fallback historically created Sketch constraints as a separate
+        /// v8_k module even though NX exposes both geometry and constraints through
+        /// UG_APP_SKETCH. Adaptive resolution correctly selects v8_s, which made v8_k
+        /// unreachable. Project that legacy companion module into v8_s as K -> ... so
+        /// the same physical contract works with and without an external profile.
+        /// </summary>
+        private ModuleConfig ResolveSequenceModule(ModuleConfig source, out string overlayToken)
+        {
+            overlayToken = string.Empty;
+            if (source == null) return source;
+
+            string sourceId = NormalizeModuleId(source.ID);
+            bool sketchConstraintOverlay = string.Equals(sourceId, "v8_k", StringComparison.OrdinalIgnoreCase) &&
+                HasApplication(source, "UG_APP_SKETCH");
+            if (!sketchConstraintOverlay) return source;
+
+            ModuleConfig sketch = RuntimeModules.FirstOrDefault(module =>
+                module != null && module.Enabled &&
+                string.Equals(NormalizeModuleId(module.ID), "v8_s", StringComparison.OrdinalIgnoreCase) &&
+                HasApplication(module, "UG_APP_SKETCH"));
+            if (sketch == null) return source;
+
+            overlayToken = "K";
+            return sketch;
+        }
+
+        private static IReadOnlyList<string> ApplyOverlay(IReadOnlyList<string> path, string overlayToken)
+        {
+            IReadOnlyList<string> normalized = path ?? Array.Empty<string>();
+            string overlay = NormalizeInputKey(overlayToken);
+            if (string.IsNullOrWhiteSpace(overlay)) return normalized;
+            if (normalized.Count > 0 && string.Equals(normalized[0], overlay, StringComparison.OrdinalIgnoreCase))
+                return normalized;
+            return new[] { overlay }.Concat(normalized).ToArray();
+        }
+
+        private static bool HasApplication(ModuleConfig module, string applicationId) =>
+            module?.NXApplicationIDs != null &&
+            module.NXApplicationIDs.Any(id => string.Equals(id, applicationId, StringComparison.OrdinalIgnoreCase));
+
+        private static string NormalizeModuleId(string value) => (value ?? string.Empty).Trim().ToLowerInvariant();
+
         private static LeaderSequenceItem CreateSequenceItem(
             ModuleConfig module,
             ModuleCommand moduleCommand,
             string slot,
             string prefix,
             IReadOnlyList<string> path,
+            IReadOnlyList<string> canonicalPath,
             bool isAlias,
-            int fallbackOrder)
+            int fallbackOrder,
+            string overlayToken)
         {
             string sequence = prefix + " " + string.Join(" ", path);
             string inputKey = path.LastOrDefault() ?? string.Empty;
             string submenuKey = path.Count > 1 ? path[0] : string.Empty;
+            List<string> labels = moduleCommand.PathLabels?.ToList() ?? new List<string>();
+            if (!string.IsNullOrWhiteSpace(overlayToken) && path.Count > 0 &&
+                string.Equals(path[0], NormalizeInputKey(overlayToken), StringComparison.OrdinalIgnoreCase) &&
+                labels.Count < path.Count)
+                labels.Insert(0, "Constraints");
+
             return new LeaderSequenceItem
             {
                 Sequence = sequence,
-                CanonicalSequence = prefix + " " + string.Join(" ", MnemonicPathGenerator.NormalizePath(moduleCommand.Path)),
+                CanonicalSequence = prefix + " " + string.Join(" ", canonicalPath ?? path),
                 Category = module.Label,
                 ModuleID = module.ID,
                 Slot = slot,
                 SubmenuKey = submenuKey,
-                SubmenuLabel = moduleCommand.PathLabels?.FirstOrDefault() ?? moduleCommand.SubmenuLabel ?? string.Empty,
+                SubmenuLabel = labels.FirstOrDefault() ?? moduleCommand.SubmenuLabel ?? string.Empty,
                 InputKey = inputKey,
                 Path = path.ToList(),
-                PathLabels = moduleCommand.PathLabels?.ToList() ?? new List<string>(),
+                PathLabels = labels,
                 SearchAliases = moduleCommand.SearchAliases?.ToList() ?? new List<string>(),
                 IsAlias = isAlias,
                 IconHint = string.IsNullOrWhiteSpace(moduleCommand.IconHint)
