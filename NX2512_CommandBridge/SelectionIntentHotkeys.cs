@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using NXOpen;
-using NXOpen.Features;
 using NXOpen.MenuBar;
 
 namespace NX2512_CommandBridge
@@ -20,9 +20,10 @@ namespace NX2512_CommandBridge
     /// 4 = inferred path / region boundary
     /// 0 = reset to normal NX selection
     ///
-    /// This runs inside ugraf together with CommandBridge, so the intent can be
-    /// changed through the real NX selection UI and NXOpen ScRuleFactory instead
-    /// of trying to emulate collector behavior from the external hotkey process.
+    /// The stable UI surface is called directly. Advanced ScRuleFactory APIs are
+    /// late-bound because NXKeys also compiles the bridge against a deliberately
+    /// minimal NXOpen contract in CI. On the real NX2512 runtime the reflected
+    /// method names/signatures are verified by the repository's NX2512 API catalog.
     /// </summary>
     internal static class SelectionIntentHotkeys
     {
@@ -173,7 +174,7 @@ namespace NX2512_CommandBridge
                 PhysicalDown[intent] = true;
             }
 
-            bool handled = false;
+            bool handled;
             try { handled = TryApplyIntent(intent); }
             catch { handled = false; }
 
@@ -183,9 +184,7 @@ namespace NX2512_CommandBridge
 
         private static bool TryApplyIntent(int intent)
         {
-            if (!IsCurrentNxForeground()) return false;
-            if (HasSystemModifier()) return false;
-            if (IsFocusedInTextInput()) return false;
+            if (!IsCurrentNxForeground() || HasSystemModifier() || IsFocusedInTextInput()) return false;
 
             UI ui;
             Session session;
@@ -199,11 +198,9 @@ namespace NX2512_CommandBridge
                 return false;
             }
 
-            if (ui == null || session?.Parts?.Work == null) return false;
+            Part workPart = session?.Parts?.Work;
+            if (ui == null || workPart == null) return false;
 
-            // These are real NX2512 controls from definitions_main.btn. Their
-            // availability/sensitivity is our strongest indication that the active
-            // dialog is currently accepting Selection Intent changes.
             MenuButton chaining = TryGetButton(ui, "UG_SEL_CHAINING");
             MenuButton inferredPath = TryGetButton(ui, "UG_SC_INFERRED_CURVE_SELECTION");
             MenuButton chainWithinFeature = TryGetButton(ui, "UG_SC_CHAIN_WITHIN_FEATURE");
@@ -213,29 +210,18 @@ namespace NX2512_CommandBridge
                                          IsUsable(chainWithinFeature) || IsUsable(boundaryEdges);
             int selectionCount = SafeSelectionCount(ui);
 
-            // Never steal a numeric key just because NX has focus. We only own it
-            // when a selection-intent control is active or there is an explicit seed
-            // selection that can be expanded by NXOpen rules.
+            // Do not consume normal numeric input merely because NX is foreground.
             if (!nativeCollectorActive && selectionCount <= 0) return false;
 
             switch (intent)
             {
                 case 0:
-                    bool reset = false;
-                    reset |= SetToggle(ui, chaining, false);
-                    reset |= SetToggle(ui, inferredPath, false);
-                    reset |= SetToggle(ui, chainWithinFeature, false);
-                    reset |= SetToggle(ui, boundaryEdges, false);
-                    return reset;
+                    return SetAllNativeToggles(ui, chaining, inferredPath, chainWithinFeature, boundaryEdges, false);
 
                 case 1:
-                    bool singleChanged = false;
-                    singleChanged |= SetToggle(ui, chaining, false);
-                    singleChanged |= SetToggle(ui, inferredPath, false);
-                    singleChanged |= SetToggle(ui, chainWithinFeature, false);
-                    singleChanged |= SetToggle(ui, boundaryEdges, false);
-                    if (selectionCount > 1)
-                        singleChanged |= KeepOnlyLastSelected(ui);
+                    bool singleChanged = SetAllNativeToggles(
+                        ui, chaining, inferredPath, chainWithinFeature, boundaryEdges, false);
+                    if (selectionCount > 1) singleChanged |= KeepOnlyLastSelected(ui);
                     return singleChanged || nativeCollectorActive;
 
                 case 2:
@@ -244,14 +230,14 @@ namespace NX2512_CommandBridge
                     chainChanged |= SetToggle(ui, boundaryEdges, false);
                     chainChanged |= SetToggle(ui, chaining, true);
                     if (selectionCount > 0)
-                        chainChanged |= TryExpandSelectedSeed(session.Parts.Work, ui, 2);
+                        chainChanged |= TryExpandSelectedSeed(workPart, ui, 2);
                     return chainChanged || IsUsable(chaining);
 
                 case 3:
-                    // Tangent propagation has no stable global UG_SEL_* toggle in the
-                    // NX2512 inventory. Build the native ScRule directly from the last
-                    // selected curve/edge/face and request the resulting entities.
-                    return selectionCount > 0 && TryExpandSelectedSeed(session.Parts.Work, ui, 3);
+                    // NX2512 does not expose one stable global tangent toggle for all
+                    // collectors, so tangent propagation is evaluated from the current
+                    // seed with ScRuleFactory.
+                    return selectionCount > 0 && TryExpandSelectedSeed(workPart, ui, 3);
 
                 case 4:
                     bool regionChanged = false;
@@ -259,7 +245,7 @@ namespace NX2512_CommandBridge
                     regionChanged |= SetToggle(ui, inferredPath, true);
                     regionChanged |= SetToggle(ui, boundaryEdges, true);
                     if (selectionCount > 0)
-                        regionChanged |= TryExpandSelectedSeed(session.Parts.Work, ui, 4);
+                        regionChanged |= TryExpandSelectedSeed(workPart, ui, 4);
                     return regionChanged || IsUsable(inferredPath) || IsUsable(boundaryEdges);
 
                 default:
@@ -267,61 +253,39 @@ namespace NX2512_CommandBridge
             }
         }
 
+        private static bool SetAllNativeToggles(
+            UI ui,
+            MenuButton chaining,
+            MenuButton inferredPath,
+            MenuButton chainWithinFeature,
+            MenuButton boundaryEdges,
+            bool desired)
+        {
+            bool changed = false;
+            changed |= SetToggle(ui, chaining, desired);
+            changed |= SetToggle(ui, inferredPath, desired);
+            changed |= SetToggle(ui, chainWithinFeature, desired);
+            changed |= SetToggle(ui, boundaryEdges, desired);
+            return changed;
+        }
+
         private static bool TryExpandSelectedSeed(Part workPart, UI ui, int intent)
         {
             int count = SafeSelectionCount(ui);
-            if (count <= 0 || workPart == null) return false;
+            if (count <= 0) return false;
 
             TaggedObject seed;
             try { seed = ui.SelectionManager.GetSelectedTaggedObject(count - 1); }
             catch { return false; }
             if (seed == null) return false;
 
-            SelectionIntentRule rule = null;
             try
             {
-                ScRuleFactory factory = workPart.ScRuleFactory;
+                object factory = GetProperty(workPart, "ScRuleFactory");
                 if (factory == null) return false;
 
-                if (seed is Edge edge)
-                {
-                    if (intent == 2)
-                        rule = factory.CreateRuleEdgeChain(edge, null, false);
-                    else if (intent == 3)
-                        rule = factory.CreateRuleEdgeTangent(edge, null, false, AngleTolerance, false);
-                    else if (intent == 4)
-                    {
-                        Face[] faces = edge.GetFaces();
-                        if (faces != null && faces.Length > 0)
-                            rule = factory.CreateRuleEdgeBoundary(faces);
-                    }
-                }
-                else if (seed is Face face)
-                {
-                    if (intent == 2)
-                        rule = factory.CreateRuleFaceAndAdjacentFaces(face);
-                    else if (intent == 3)
-                        rule = factory.CreateRuleFaceTangent(face, Array.Empty<Face>(), AngleTolerance);
-                    else if (intent == 4)
-                    {
-                        Feature[] features = workPart.Features.GetAssociatedFeaturesOfFace(face);
-                        if (features != null && features.Length > 0)
-                            rule = factory.CreateRuleFaceFeature(features);
-                    }
-                }
-                else if (seed is ICurve curve)
-                {
-                    if (intent == 2)
-                        rule = factory.CreateRuleCurveChain(curve, null, false, GapTolerance);
-                    else if (intent == 3)
-                        rule = factory.CreateRuleCurveTangent(curve, null, false, AngleTolerance, GapTolerance);
-                    // Region/closed-boundary selection is handled by the native
-                    // UG_SC_INFERRED_CURVE_SELECTION toggle above. Creating a
-                    // RegionBoundaryRule without a cursor seed point would be unsafe.
-                }
-
-                if (rule == null) return false;
-                return SelectRuleObjects(workPart, ui, rule);
+                object rule = BuildRule(factory, workPart, seed, intent);
+                return rule != null && SelectRuleObjects(workPart, ui, rule);
             }
             catch
             {
@@ -329,24 +293,88 @@ namespace NX2512_CommandBridge
             }
         }
 
-        private static bool SelectRuleObjects(Part workPart, UI ui, SelectionIntentRule rule)
+        private static object BuildRule(object factory, Part workPart, TaggedObject seed, int intent)
         {
-            ScCollector collector = null;
+            string runtimeType = seed.GetType().Name;
+
+            if (string.Equals(runtimeType, "Edge", StringComparison.OrdinalIgnoreCase))
+            {
+                if (intent == 2)
+                    return InvokeCompatible(factory, "CreateRuleEdgeChain", seed, null, false);
+                if (intent == 3)
+                    return InvokeCompatible(factory, "CreateRuleEdgeTangent", seed, null, false, AngleTolerance, false);
+                if (intent == 4)
+                {
+                    object faces = InvokeCompatible(seed, "GetFaces");
+                    if (ArrayLength(faces) > 0)
+                        return InvokeCompatible(factory, "CreateRuleEdgeBoundary", faces);
+                }
+                return null;
+            }
+
+            if (string.Equals(runtimeType, "Face", StringComparison.OrdinalIgnoreCase))
+            {
+                if (intent == 2)
+                    return InvokeCompatible(factory, "CreateRuleFaceAndAdjacentFaces", seed);
+                if (intent == 3)
+                {
+                    object emptyFaces = CreateNxArray(workPart, "NXOpen.Face", 0);
+                    return emptyFaces == null
+                        ? null
+                        : InvokeCompatible(factory, "CreateRuleFaceTangent", seed, emptyFaces, AngleTolerance);
+                }
+                if (intent == 4)
+                {
+                    object features = InvokeCompatible(GetProperty(workPart, "Features"),
+                        "GetAssociatedFeaturesOfFace", seed);
+                    if (ArrayLength(features) > 0)
+                        return InvokeCompatible(factory, "CreateRuleFaceFeature", features);
+                }
+                return null;
+            }
+
+            if (ImplementsInterface(seed, "NXOpen.ICurve"))
+            {
+                if (intent == 2)
+                    return InvokeCompatible(factory, "CreateRuleCurveChain", seed, null, false, GapTolerance);
+                if (intent == 3)
+                    return InvokeCompatible(factory, "CreateRuleCurveTangent", seed, null, false,
+                        AngleTolerance, GapTolerance);
+            }
+
+            return null;
+        }
+
+        private static bool SelectRuleObjects(Part workPart, UI ui, object rule)
+        {
+            object collector = null;
             try
             {
-                collector = workPart.ScCollectors.CreateCollector();
-                collector.ReplaceRules(new[] { rule }, false);
-                TaggedObject[] objects = collector.GetObjects();
-                if (objects == null || objects.Length == 0) return false;
+                object collectors = GetProperty(workPart, "ScCollectors");
+                collector = InvokeCompatible(collectors, "CreateCollector");
+                if (collector == null) return false;
 
-                TaggedObject[] unique = objects.Where(value => value != null)
-                    .GroupBy(value => value.Tag)
-                    .Select(group => group.First())
-                    .ToArray();
-                if (unique.Length == 0) return false;
+                Type selectionIntentRuleType = FindType(workPart, "NXOpen.SelectionIntentRule");
+                if (selectionIntentRuleType == null || !selectionIntentRuleType.IsInstanceOfType(rule)) return false;
 
-                ui.SelectionManager.RequestSelections(unique);
-                return true;
+                Array rules = Array.CreateInstance(selectionIntentRuleType, 1);
+                rules.SetValue(rule, 0);
+                if (!TryInvokeCompatible(collector, "ReplaceRules", out _, rules, false)) return false;
+
+                object result = InvokeCompatible(collector, "GetObjects");
+                if (!(result is Array array) || array.Length == 0) return false;
+
+                var selected = new List<TaggedObject>();
+                var seen = new HashSet<string>(StringComparer.Ordinal);
+                foreach (object item in array)
+                {
+                    if (!(item is TaggedObject tagged)) continue;
+                    string key = StableObjectKey(tagged);
+                    if (seen.Add(key)) selected.Add(tagged);
+                }
+                if (selected.Count == 0) return false;
+
+                return TryInvokeCompatible(ui.SelectionManager, "RequestSelections", out _, (object)selected.ToArray());
             }
             catch
             {
@@ -354,7 +382,10 @@ namespace NX2512_CommandBridge
             }
             finally
             {
-                try { collector?.Destroy(); } catch { }
+                if (collector != null)
+                {
+                    try { TryInvokeCompatible(collector, "Destroy", out _); } catch { }
+                }
             }
         }
 
@@ -371,9 +402,8 @@ namespace NX2512_CommandBridge
                     TaggedObject item = ui.SelectionManager.GetSelectedTaggedObject(index);
                     if (item != null) remove.Add(item);
                 }
-                if (remove.Count == 0) return false;
-                ui.SelectionManager.RequestDeselections(remove.ToArray());
-                return true;
+                return remove.Count > 0 &&
+                       TryInvokeCompatible(ui.SelectionManager, "RequestDeselections", out _, (object)remove.ToArray());
             }
             catch
             {
@@ -396,14 +426,21 @@ namespace NX2512_CommandBridge
 
         private static bool SetToggle(UI ui, MenuButton button, bool desired)
         {
-            if (!IsUsable(button) || button.ButtonType != MenuButton.Type.ToggleButton) return false;
-            MenuButton.Toggle target = desired ? MenuButton.Toggle.On : MenuButton.Toggle.Off;
-            if (button.ToggleStatus == target) return false;
+            if (!IsUsable(button)) return false;
 
             try
             {
-                // Invoke the actual NX action rather than writing ToggleStatus directly;
-                // this keeps the active collector and its UI state synchronized.
+                PropertyInfo toggle = button.GetType().GetProperty("ToggleStatus", BindingFlags.Instance | BindingFlags.Public);
+                if (toggle == null || !toggle.CanRead) return false;
+
+                object current = toggle.GetValue(button);
+                string currentName = current?.ToString() ?? string.Empty;
+                string desiredName = desired ? "On" : "Off";
+                if (string.Equals(currentName, desiredName, StringComparison.OrdinalIgnoreCase)) return false;
+
+                // Invoke the real NX action. Some interactive NX actions report false
+                // even after changing UI state, therefore a non-exceptional invocation
+                // counts as handled and the next context tick will reflect the state.
                 ui.DialogTester.InvokeMenuButtonAction(button);
                 return true;
             }
@@ -417,6 +454,111 @@ namespace NX2512_CommandBridge
         {
             try { return ui.SelectionManager.GetNumSelectedObjects(); }
             catch { return -1; }
+        }
+
+        private static object GetProperty(object target, string name)
+        {
+            if (target == null || string.IsNullOrWhiteSpace(name)) return null;
+            try
+            {
+                return target.GetType().GetProperty(name, BindingFlags.Instance | BindingFlags.Public)?.GetValue(target);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static object InvokeCompatible(object target, string methodName, params object[] arguments)
+        {
+            return TryInvokeCompatible(target, methodName, out object result, arguments) ? result : null;
+        }
+
+        private static bool TryInvokeCompatible(object target, string methodName, out object result, params object[] arguments)
+        {
+            result = null;
+            if (target == null || string.IsNullOrWhiteSpace(methodName)) return false;
+            object[] args = arguments ?? Array.Empty<object>();
+
+            IEnumerable<MethodInfo> candidates = target.GetType()
+                .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                .Where(method => string.Equals(method.Name, methodName, StringComparison.Ordinal) &&
+                                 method.GetParameters().Length == args.Length);
+
+            foreach (MethodInfo method in candidates)
+            {
+                ParameterInfo[] parameters = method.GetParameters();
+                bool compatible = true;
+                for (int index = 0; index < parameters.Length; index++)
+                {
+                    object argument = args[index];
+                    Type parameterType = parameters[index].ParameterType;
+                    if (argument == null)
+                    {
+                        if (parameterType.IsValueType && Nullable.GetUnderlyingType(parameterType) == null)
+                        {
+                            compatible = false;
+                            break;
+                        }
+                        continue;
+                    }
+                    if (!parameterType.IsInstanceOfType(argument) &&
+                        !(parameterType.IsPrimitive && argument.GetType().IsPrimitive))
+                    {
+                        compatible = false;
+                        break;
+                    }
+                }
+                if (!compatible) continue;
+
+                try
+                {
+                    result = method.Invoke(target, args);
+                    return true;
+                }
+                catch (TargetInvocationException)
+                {
+                    return false;
+                }
+                catch (ArgumentException)
+                {
+                    continue;
+                }
+            }
+
+            return false;
+        }
+
+        private static Type FindType(Part part, string fullName)
+        {
+            if (part == null) return null;
+            Type type = part.GetType().Assembly.GetType(fullName, false, false);
+            if (type != null) return type;
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .Select(assembly => assembly.GetType(fullName, false, false))
+                .FirstOrDefault(value => value != null);
+        }
+
+        private static object CreateNxArray(Part part, string elementTypeName, int length)
+        {
+            Type elementType = FindType(part, elementTypeName);
+            return elementType == null ? null : Array.CreateInstance(elementType, Math.Max(0, length));
+        }
+
+        private static int ArrayLength(object value) => value is Array array ? array.Length : 0;
+
+        private static bool ImplementsInterface(object value, string interfaceFullName)
+        {
+            return value != null && value.GetType().GetInterfaces()
+                .Any(type => string.Equals(type.FullName, interfaceFullName, StringComparison.Ordinal));
+        }
+
+        private static string StableObjectKey(TaggedObject value)
+        {
+            object tag = GetProperty(value, "Tag");
+            return tag != null
+                ? tag.ToString()
+                : value.GetType().FullName + ":" + RuntimeHelpers.GetHashCode(value);
         }
 
         private static bool IsCurrentNxForeground()
