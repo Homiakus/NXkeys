@@ -205,9 +205,12 @@ namespace NX2512_CommandBridge
             MenuButton inferredPath = TryGetButton(ui, "UG_SC_INFERRED_CURVE_SELECTION");
             MenuButton chainWithinFeature = TryGetButton(ui, "UG_SC_CHAIN_WITHIN_FEATURE");
             MenuButton boundaryEdges = TryGetButton(ui, "UG_SC_BOUNDARY_EDGES");
+            MenuButton tangentCurve = TryGetButton(ui, "UI_CURVE_FINDER_TANGENT");
+            MenuButton tangentFace = TryGetButton(ui, "UI_FACE_FINDER_TANGENT");
 
             bool nativeCollectorActive = IsUsable(chaining) || IsUsable(inferredPath) ||
-                                         IsUsable(chainWithinFeature) || IsUsable(boundaryEdges);
+                                         IsUsable(chainWithinFeature) || IsUsable(boundaryEdges) ||
+                                         IsUsable(tangentCurve) || IsUsable(tangentFace);
             int selectionCount = SafeSelectionCount(ui);
 
             // Do not consume normal numeric input merely because NX is foreground.
@@ -216,16 +219,21 @@ namespace NX2512_CommandBridge
             switch (intent)
             {
                 case 0:
-                    return SetAllNativeToggles(ui, chaining, inferredPath, chainWithinFeature, boundaryEdges, false);
+                    return SetAllNativeToggles(
+                        ui, chaining, inferredPath, chainWithinFeature, boundaryEdges,
+                        tangentCurve, tangentFace, false);
 
                 case 1:
                     bool singleChanged = SetAllNativeToggles(
-                        ui, chaining, inferredPath, chainWithinFeature, boundaryEdges, false);
+                        ui, chaining, inferredPath, chainWithinFeature, boundaryEdges,
+                        tangentCurve, tangentFace, false);
                     if (selectionCount > 1) singleChanged |= KeepOnlyLastSelected(ui);
                     return singleChanged || nativeCollectorActive;
 
                 case 2:
                     bool chainChanged = false;
+                    chainChanged |= SetToggle(ui, tangentCurve, false);
+                    chainChanged |= SetToggle(ui, tangentFace, false);
                     chainChanged |= SetToggle(ui, inferredPath, false);
                     chainChanged |= SetToggle(ui, boundaryEdges, false);
                     chainChanged |= SetToggle(ui, chaining, true);
@@ -234,13 +242,25 @@ namespace NX2512_CommandBridge
                     return chainChanged || IsUsable(chaining);
 
                 case 3:
-                    // NX2512 does not expose one stable global tangent toggle for all
-                    // collectors, so tangent propagation is evaluated from the current
-                    // seed with ScRuleFactory.
-                    return selectionCount > 0 && TryExpandSelectedSeed(workPart, ui, 3);
+                    // NX2512 exposes the same Tangent selectors used by Curve Finder
+                    // and Face Finder. Enabling them makes "3" a real mode that can
+                    // be selected before the first geometry click. ScRuleFactory is
+                    // retained as a seed-based fallback/expansion path for collectors
+                    // where the UI toggle is unavailable.
+                    bool tangentChanged = false;
+                    tangentChanged |= SetToggle(ui, chaining, false);
+                    tangentChanged |= SetToggle(ui, inferredPath, false);
+                    tangentChanged |= SetToggle(ui, boundaryEdges, false);
+                    tangentChanged |= SetToggle(ui, tangentCurve, true);
+                    tangentChanged |= SetToggle(ui, tangentFace, true);
+                    if (selectionCount > 0)
+                        tangentChanged |= TryExpandSelectedSeed(workPart, ui, 3);
+                    return tangentChanged || IsUsable(tangentCurve) || IsUsable(tangentFace);
 
                 case 4:
                     bool regionChanged = false;
+                    regionChanged |= SetToggle(ui, tangentCurve, false);
+                    regionChanged |= SetToggle(ui, tangentFace, false);
                     regionChanged |= SetToggle(ui, chaining, true);
                     regionChanged |= SetToggle(ui, inferredPath, true);
                     regionChanged |= SetToggle(ui, boundaryEdges, true);
@@ -259,6 +279,8 @@ namespace NX2512_CommandBridge
             MenuButton inferredPath,
             MenuButton chainWithinFeature,
             MenuButton boundaryEdges,
+            MenuButton tangentCurve,
+            MenuButton tangentFace,
             bool desired)
         {
             bool changed = false;
@@ -266,6 +288,8 @@ namespace NX2512_CommandBridge
             changed |= SetToggle(ui, inferredPath, desired);
             changed |= SetToggle(ui, chainWithinFeature, desired);
             changed |= SetToggle(ui, boundaryEdges, desired);
+            changed |= SetToggle(ui, tangentCurve, desired);
+            changed |= SetToggle(ui, tangentFace, desired);
             return changed;
         }
 
