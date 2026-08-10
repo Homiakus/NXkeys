@@ -73,6 +73,16 @@ Installed source:
 
 Generated `nx2512-pro-main.generated.json` остаётся отдельным compatibility/catalog artifact.
 
+### Если вы намеренно диагностируете legacy K3–K5 compiler
+
+Используйте generated resolution report:
+
+```text
+docs/generated/main-profile-resolution.md
+```
+
+`main-profile-resolution.md` относится к legacy K3–K5 catalog-resolution pipeline и не является журналом current v8 runtime. Не используйте его для объяснения отсутствующего v8 alias/workspace/Selection Intent behavior.
+
 ## Sequence policy / generated audits
 
 Source policy — **v8**.
