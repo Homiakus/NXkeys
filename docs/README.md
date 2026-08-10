@@ -21,9 +21,11 @@
 |---|---|
 | понять текущий v8-контракт | [RUNTIME_V8.md](RUNTIME_V8.md) |
 | быстро начать работать | [CHEATSHEET.md](CHEATSHEET.md) |
+| увидеть реализованный mnemonic language | [MNEMONIC_COMMAND_LANGUAGE.md](MNEMONIC_COMMAND_LANGUAGE.md) |
 | установить/обновить NXKeys | [INSTALLATION.md](INSTALLATION.md) |
 | понять `0…4` Selection Intent | [SELECTION_INTENT.md](SELECTION_INTENT.md) |
 | освоить Sketch v8 | [SKETCH_INTENT_LANGUAGE.md](SKETCH_INTENT_LANGUAGE.md) |
+| открыть интерактивную карту команд | [command-tree.html](command-tree.html) |
 | посмотреть архитектуру | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | настроить profile schema v8 | [CONFIGURATION.md](CONFIGURATION.md) |
 | использовать CLI | [CLI.md](CLI.md) |
@@ -96,6 +98,7 @@ Component documentation:
 Описывает текущую ветку `main` и обязано совпадать с кодом. В первую очередь это:
 
 - `RUNTIME_V8.md`;
+- `MNEMONIC_COMMAND_LANGUAGE.md`;
 - `README.md` и корневой `README.md`;
 - `CHEATSHEET.md`;
 - `INSTALLATION.md`;
@@ -119,9 +122,19 @@ Component documentation:
 
 K1–K5 / K3–K5 pipeline остаётся частью репозитория и полезен для coverage, catalog analysis и исторической трассировки. Он не должен описываться как default runtime installer path, пока `install-nxkeys.ps1` по умолчанию выбирает `nx2512-v8-profile.json`.
 
+### Legacy validator terminology
+
+Некоторые analytical validators всё ещё требуют исторические маркеры старого pipeline. Чтобы они оставались понятными:
+
+- `K3–K5` / `885` — historical generated selection scope;
+- `главный профиль` — **legacy** название generated K3–K5 artifact;
+- current default runtime profile при этом остаётся `config/nx2512-v8-profile.json`.
+
+Эти слова не меняют приоритет current runtime documentation.
+
 ### Historical
 
-`docs/audit/00-* … 12-*`, датированные evidence files, старые build reports и `docs/superpowers/plans/*` фиксируют состояние на дату создания. Они могут корректно содержать старые schema/policy и старые пути.
+`docs/audit/00-* … 12-*`, датированные evidence files, старые build reports, [historical target specifications](historical/) и `docs/superpowers/plans/*` фиксируют состояние на дату создания. Они могут корректно содержать старые schema/policy и старые пути.
 
 При конфликте приоритет такой:
 
