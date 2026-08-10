@@ -106,7 +106,8 @@ jobs:
         shell: pwsh
         run: |
           git add docs/audit/command-sequence-audit.md docs/audit/command-sequence-audit.json
-          if (git diff --cached --quiet) {
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
             Write-Host "Generated command sequence audit is current."
             exit 0
           }
@@ -122,10 +123,12 @@ jobs:
           github.event.pull_request.head.repo.full_name != github.repository
         shell: pwsh
         run: |
-          if (-not (git diff --quiet -- docs/audit/command-sequence-audit.md docs/audit/command-sequence-audit.json)) {
-            git diff -- docs/audit/command-sequence-audit.md
+          git diff --quiet -- docs/audit/command-sequence-audit.md docs/audit/command-sequence-audit.json
+          if ($LASTEXITCODE -ne 0) {
+            git diff -- docs/audit/command-sequence-audit.md docs/audit/command-sequence-audit.json
             throw "Generated command sequence audit is stale. Run node scripts/audit-command-sequences.mjs."
           }
+          Write-Host 'Generated command sequence audit is current.'
 
       - name: Validate main command map
         run: node .\scripts\validate-main-command-map.mjs
