@@ -13,36 +13,6 @@ namespace NX2512_HotkeyStudio.Models
     /// </summary>
     public sealed partial class Config : IJsonOnDeserialized
     {
-        private static readonly IReadOnlyDictionary<string, string> AliasApplicationPrefixes =
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["modeling"] = "M",
-                ["UG_APP_MODELING"] = "M",
-                ["sketch"] = "S",
-                ["UG_APP_SKETCH"] = "S",
-                ["assemblies"] = "A",
-                ["assembly"] = "A",
-                ["UG_APP_ASSEMBLIES"] = "A",
-                ["drafting"] = "D",
-                ["UG_APP_DRAFTING"] = "D",
-                ["pmi"] = "P",
-                ["UG_APP_PMI"] = "P",
-                ["surface"] = "U",
-                ["UG_APP_STUDIO"] = "U",
-                ["sheetmetal"] = "H",
-                ["sheet_metal"] = "H",
-                ["UG_APP_SHEETMETAL"] = "H",
-                ["manufacturing"] = "N",
-                ["UG_APP_MANUFACTURING"] = "N",
-                ["simulation"] = "I",
-                ["UG_APP_SFEM"] = "I",
-                ["UG_APP_DESFEM"] = "I",
-                ["routing"] = "R",
-                ["UG_APP_ROUTING"] = "R",
-                ["mold"] = "L",
-                ["UG_APP_MOLDWIZARD"] = "L"
-            };
-
         void IJsonOnDeserialized.OnDeserialized()
         {
             ExpandSecondaryAliasesForLegacyRuntime();
@@ -63,10 +33,6 @@ namespace NX2512_HotkeyStudio.Models
                     continue;
 
                 string application = operation.Availability?.Applications?.FirstOrDefault() ?? string.Empty;
-                bool applicationSpecific = !string.IsNullOrWhiteSpace(application) &&
-                                           !string.Equals(application, "global", StringComparison.OrdinalIgnoreCase);
-                AliasApplicationPrefixes.TryGetValue(application, out string applicationPrefix);
-
                 IReadOnlyList<string> canonical = NormalizeAliasTokens(operation.Paths.Leader);
                 string canonicalKey = string.Join("", canonical);
 
@@ -77,15 +43,12 @@ namespace NX2512_HotkeyStudio.Models
                     List<string> tokens = ParseAlias(rawAlias);
                     if (tokens.Count == 0) continue;
 
-                    // App-specific v8 operations already get their module prefix from
-                    // availability.applications. If a human-readable alias contains
-                    // that prefix (M->..., S->..., H->...), strip it before translation
-                    // so the runtime path does not become M->M->... .
-                    if (applicationSpecific && !string.IsNullOrWhiteSpace(applicationPrefix) &&
-                        tokens.Count > 1 && string.Equals(tokens[0], applicationPrefix, StringComparison.OrdinalIgnoreCase))
-                        tokens.RemoveAt(0);
-
-                    if (tokens.Count == 0) continue;
+                    // In an application-specific v8 operation the Leader path is the
+                    // path *inside* the already selected NX application. Therefore an
+                    // alias such as M->L->S in Modeling means Manage -> Layer -> Settings;
+                    // the first M is semantic input and must not be mistaken for the
+                    // automatically resolved Modeling module prefix. The translator
+                    // adds that module prefix separately when it builds the runtime DFA.
                     string aliasKey = string.Join("", tokens);
                     if (!string.IsNullOrWhiteSpace(canonicalKey) &&
                         string.Equals(aliasKey, canonicalKey, StringComparison.OrdinalIgnoreCase))
