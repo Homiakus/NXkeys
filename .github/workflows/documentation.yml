@@ -81,6 +81,24 @@ jobs:
             Write-Host 'Restored committed JSON audit because only generated_utc changed.'
           }
 
+      - name: Ignore line-ending-only Markdown changes
+        shell: pwsh
+        run: |
+          $path = 'docs/audit/command-sequence-audit.md'
+          $previousRaw = (git show "HEAD:$path" | Out-String)
+          if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($previousRaw)) {
+            Write-Host 'No previous Markdown audit is available for EOL comparison.'
+            exit 0
+          }
+
+          $currentRaw = Get-Content $path -Raw
+          $previousNormalized = (($previousRaw -replace "`r`n", "`n") -replace "`r", "`n").TrimEnd("`n")
+          $currentNormalized = (($currentRaw -replace "`r`n", "`n") -replace "`r", "`n").TrimEnd("`n")
+          if ($previousNormalized -eq $currentNormalized) {
+            git checkout -- $path
+            Write-Host 'Restored committed Markdown audit because only line endings changed.'
+          }
+
       - name: Commit regenerated audit to same-repository PR
         if: >-
           github.event_name == 'pull_request' &&
