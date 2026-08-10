@@ -29,6 +29,17 @@ internal static class V8AliasRegression
             throw new InvalidOperationException(
                 "Expected runtime DFA sequence 'M M L S' (automatic Modeling prefix + Manage path), got: " +
                 layerSettings.Sequence);
+
+        // workspace_key belongs to an already-open Workspace. It must never become
+        // a terminal module-root action, otherwise M cannot also be the Manage root
+        // for M->L, M->M, M->N and other nested operations.
+        bool terminalManage = config.LeaderKey.Sequences.Any(item =>
+            string.Equals(item.ModuleID, "v8_m", StringComparison.OrdinalIgnoreCase) &&
+            item.Path != null && item.Path.Count == 1 &&
+            string.Equals(item.Path[0], "M", StringComparison.OrdinalIgnoreCase));
+        if (terminalManage)
+            throw new InvalidOperationException(
+                "Modeling Manage key M must be a submenu root, not a terminal workspace-local command.");
     }
 
     private static string FindRepositoryFile(string relativePath)
