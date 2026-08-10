@@ -96,6 +96,18 @@ CapsLock → M → L → S    Layer Settings
 
 K1–K5 / generated K3–K5 pipeline сохраняется для трассировки, coverage и экспериментов с распределением команд. **Installer по умолчанию выбирает v8 profile**, а не generated K3–K5 profile.
 
+### Термины legacy validators
+
+Несколько legacy/catalog validators всё ещё проверяют текстовые маркеры прежней архитектуры. Они сохранены здесь **только для однозначной исторической трассировки**, а не как описание current runtime:
+
+- `14 контекстных модулей` — legacy normalized module grid;
+- `CapsLock → действие → объект` — прежняя концептуальная формула adaptive input, **не буквальная грамматика v8**;
+- `K3–K5` / `885` — scope старого generated main profile;
+- `config/nx2512-pro-main.generated.json` — generated compatibility artifact;
+- термин `главный профиль` в старом pipeline означает generated K3–K5 profile, а **не** текущий default `config/nx2512-v8-profile.json`.
+
+Эти маркеры существуют, чтобы старый analytical pipeline оставался проверяемым, не подменяя current v8 contract.
+
 ## Требования
 
 Для разработки без установленного NX:
