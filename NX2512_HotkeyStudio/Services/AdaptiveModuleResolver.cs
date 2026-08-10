@@ -34,22 +34,28 @@ namespace NX2512_HotkeyStudio.Services
                 ["UG_APP_MOLDWIZARD"] = "mold"
             };
 
-        // Maps v8 single-letter module suffixes to NX context module IDs.
-        // v8 modules have IDs like "v8_m", "v8_s", "v8_a" whose suffix is the
-        // leader-key mnemonic; this table resolves them to the NX workspace name
-        // that Bridge context reports.
+        // Maps v8 module suffixes to normalized NX context module IDs.
+        // The important invariant here is that a one-letter HUD label must never
+        // win over an exact application/workspace match.  Doing so made e.g.
+        // Sheet Metal resolve to unrelated modules such as Annotate.
         private static readonly Dictionary<string, string> V8SuffixToNxModule =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["m"] = "modeling",
+                ["q"] = "modeling",
                 ["s"] = "sketch",
                 ["a"] = "assembly",
                 ["d"] = "drafting",
+                ["p"] = "pmi",
+                ["u"] = "surface",
+                ["h"] = "sheet_metal",
                 ["sm"] = "sheet_metal",
                 ["sh"] = "sheet_metal",
                 ["n"] = "manufacturing",
-                ["u"] = "surface",
                 ["i"] = "inspect_view",
+                ["g"] = "inspect_view",
+                ["r"] = "routing",
+                ["l"] = "mold"
             };
 
         public static AdaptiveModuleResolution Resolve(IEnumerable<ModuleConfig> source, NxBridgeContext context)
@@ -61,6 +67,7 @@ namespace NX2512_HotkeyStudio.Services
             if (context == null || !context.IsFresh) return new AdaptiveModuleResolution { Reason = "Контекст NX отсутствует или устарел." };
 
             string contextModule = ContextGuardEvaluator.NormalizeModule(context.ModuleId);
+            string application = (context.ApplicationId ?? string.Empty).Trim();
 
             // 1. Exact module ID match after normalization.
             ModuleConfig exact = modules.FirstOrDefault(module => string.Equals(
@@ -68,30 +75,8 @@ namespace NX2512_HotkeyStudio.Services
             if (exact != null)
                 return new AdaptiveModuleResolution { Module = exact, ExactModuleMatch = true, Reason = "Модуль определён по module_id." };
 
-            string label = NormalizeWords(context.ModuleLabel);
-
-            // 2. First-letter match: context "Modeling" → first letter "M" → module with LeaderPrefix "M".
-            if (!string.IsNullOrWhiteSpace(label))
-            {
-                string firstLetter = label.Substring(0, 1);
-                ModuleConfig byFirstLetter = modules.FirstOrDefault(module =>
-                    string.Equals(NormalizeWords(module.Label), firstLetter, StringComparison.OrdinalIgnoreCase));
-                if (byFirstLetter != null)
-                    return new AdaptiveModuleResolution { Module = byFirstLetter, Reason = "Модуль определён по первой букве контекста." };
-            }
-
-            // 3. Substring label match (fallback for multi-letter labels).
-            if (!string.IsNullOrWhiteSpace(label))
-            {
-                ModuleConfig byLabel = modules.FirstOrDefault(module =>
-                    NormalizeWords(module.Label).Contains(label, StringComparison.OrdinalIgnoreCase) ||
-                    label.Contains(NormalizeWords(module.Label), StringComparison.OrdinalIgnoreCase));
-                if (byLabel != null)
-                    return new AdaptiveModuleResolution { Module = byLabel, Reason = "Модуль определён по подписи контекста." };
-            }
-
-            // 4. v8 suffix mapping: extract the suffix from module IDs like "v8_m" → "m"
-            //    and match against the known NX context module.
+            // 2. v8 suffix mapping.  Resolve this before any label heuristics:
+            // v8_h must deterministically mean Sheet Metal, v8_s Sketch, etc.
             ModuleConfig byV8Suffix = modules.FirstOrDefault(module =>
             {
                 string id = ContextGuardEvaluator.NormalizeModule(module.ID);
@@ -103,8 +88,13 @@ namespace NX2512_HotkeyStudio.Services
             if (byV8Suffix != null)
                 return new AdaptiveModuleResolution { Module = byV8Suffix, Reason = "Модуль v8 сопоставлен с контекстом NX по таблице." };
 
-            // 5. Application fallback mapping.
-            string application = (context.ApplicationId ?? string.Empty).Trim();
+            // 3. Exact NX application match is stronger than labels and fallback names.
+            ModuleConfig byApplication = modules.FirstOrDefault(module => module.NXApplicationIDs != null &&
+                module.NXApplicationIDs.Any(id => string.Equals(id, application, StringComparison.OrdinalIgnoreCase)));
+            if (byApplication != null)
+                return new AdaptiveModuleResolution { Module = byApplication, Reason = "Модуль определён по nx_application_ids." };
+
+            // 4. Legacy/non-v8 application fallback mapping.
             if (ApplicationFallbacks.TryGetValue(application, out string preferredId))
             {
                 ModuleConfig preferred = modules.FirstOrDefault(module => string.Equals(
@@ -113,11 +103,21 @@ namespace NX2512_HotkeyStudio.Services
                     return new AdaptiveModuleResolution { Module = preferred, Reason = "Модуль определён по application_id." };
             }
 
-            // 6. Direct nx_application_ids match.
-            ModuleConfig byApplication = modules.FirstOrDefault(module => module.NXApplicationIDs != null &&
-                module.NXApplicationIDs.Any(id => string.Equals(id, application, StringComparison.OrdinalIgnoreCase)));
-            if (byApplication != null)
-                return new AdaptiveModuleResolution { Module = byApplication, Reason = "Модуль определён по nx_application_ids." };
+            // 5. Conservative label fallback.  Never substring-match one-letter
+            // module labels: that was non-deterministic for contexts such as
+            // "Sheet Metal", "Sketch" and "Modeling".
+            string label = NormalizeWords(context.ModuleLabel);
+            if (!string.IsNullOrWhiteSpace(label))
+            {
+                ModuleConfig byLabel = modules.FirstOrDefault(module =>
+                {
+                    string moduleLabel = NormalizeWords(module.Label);
+                    if (moduleLabel.Length < 2) return false;
+                    return string.Equals(moduleLabel, label, StringComparison.OrdinalIgnoreCase);
+                });
+                if (byLabel != null)
+                    return new AdaptiveModuleResolution { Module = byLabel, Reason = "Модуль определён по точной подписи контекста." };
+            }
 
             return new AdaptiveModuleResolution
             {
