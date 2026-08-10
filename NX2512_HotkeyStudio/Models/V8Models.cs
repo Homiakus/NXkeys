@@ -18,6 +18,7 @@ namespace NX2512_HotkeyStudio.Models
         [JsonPropertyName("direct")] public string Direct { get; set; }
         [JsonPropertyName("workspace_key")] public string WorkspaceKey { get; set; }
         [JsonPropertyName("leader")] public List<string> Leader { get; set; }
+        [JsonPropertyName("secondary_aliases")] public List<string> SecondaryAliases { get; set; } = new List<string>();
     }
 
     public sealed class OperationAdapter
