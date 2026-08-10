@@ -1,177 +1,200 @@
-# Внесение изменений в NXKeys
+# Внесение изменений в NXKeys v8
 
-## Общие правила
+## Основные правила
 
-- Код, конфигурационные модели и валидаторы являются источником истины.
+- Исполняемый код, tests и validators являются источником истины.
+- Current contracts: profile schema **8**, IPC schema **4**, sequence policy **v8**.
+- Default runtime profile: `config/nx2512-v8-profile.json`.
 - Не добавляйте выдуманные `BUTTON ID`, application IDs или NXOpen contracts.
-- Не включайте `ambiguous` или `unresolved` команду только ради формального покрытия.
-- Не редактируйте generated profile, resolution report, sequence audit или command tree без запуска соответствующего генератора.
-- Не добавляйте machine-specific paths, лицензии, токены, персональные данные и внутренние каталоги заказчика.
-- Изменение поведения должно сопровождаться тестом или машинно проверяемым инвариантом, когда это возможно.
-- Изменение пользовательского языка команд должно сопровождаться обновлением документации в том же PR.
+- Не ослабляйте authenticated IPC/context/confirmation guards ради удобства.
+- Не редактируйте generated artifacts вручную.
+- Historical audits не переписываются под current state; они должны быть явно отделены от current instructions.
+- Изменение пользовательского поведения требует документации и regression check в том же change set.
 
-## Ветки и commits
-
-Рекомендуемый формат ветки:
-
-```text
-agent/<краткое-описание>
-```
-
-Commit должен описывать одно логическое изменение. Generated-результаты допустимо включать в тот же commit, если они непосредственно получены изменённым генератором.
-
-## Перед началом
-
-1. Прочитайте [README.md](README.md), [подробную шпаргалку](docs/CHEATSHEET.md), [DEVELOPMENT.md](DEVELOPMENT.md) и [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-2. Определите источник истины для изменяемой области.
-3. Проверьте, не является ли файл generated или historical snapshot.
-4. Зафиксируйте, требует ли изменение реальной NX 2512.
-5. Для Sketch отдельно прочитайте [SKETCH_INTENT_LANGUAGE.md](docs/SKETCH_INTENT_LANGUAGE.md).
+Перед началом прочитайте [README.md](README.md), [docs/RUNTIME_V8.md](docs/RUNTIME_V8.md), [DEVELOPMENT.md](DEVELOPMENT.md) и [docs/CHEATSHEET.md](docs/CHEATSHEET.md).
 
 ## Матрица изменений
 
-| Изменяется | Обязательно проверить | Обязательно обновить |
+| Изменяется | Проверить | Обновить |
 |---|---|---|
-| `config/full-command-map/` | full/main validators, coverage и traceability | generated profile, resolution report, command map при изменении путей |
-| `scripts/sequence-policy.mjs` | main/tree validators, sequence audit, prefix-free paths, оба test runner | mnemonic/config docs и generated sequence audit |
-| `MnemonicPathGenerator.cs` | state-machine tests, HotkeyStudio tests, tree/main validators, HotkeyStudio build | mnemonic language и architecture docs |
-| `MnemonicPathGenerator.Sketch.cs` | Sketch regression tests, main/tree validators, pollution checks | Sketch language, шпаргалка и changelog |
-| profile schema/models | config migration tests, HotkeyStudio/Control Center build | `CONFIGURATION.md`, schema references, examples |
-| `NxProtocol.cs` | protocol invariant tests, Bridge contract build | `docs/api.md`, architecture и safety docs |
-| Bridge execution/context | Bridge contract build и runtime test в NX | component README, API/operations/troubleshooting |
-| deployment | CI deployment invariants, dry-run, health, rollback | INSTALLATION, OPERATIONS, SECURITY при необходимости |
-| keyboard/HUD | state-machine tests, HotkeyStudio tests и ручной UX test | README, CLI, шпаргалка или mnemonic docs |
-| документация only | ссылки, команды, пути и соответствие текущему коду | `docs/DOCUMENTATION_AUDIT.md` и changelog при существенном изменении |
+| `config/nx2512-v8-profile.json` | HotkeyStudio tests, v8 runtime/path/security invariants | runtime/config/mnemonic docs |
+| `V8Models.cs` | schema/load tests | `CONFIGURATION.md`, runtime contract |
+| `V8SecondaryAliasExpander.cs` | aliases/prefix/workspace regressions | config/runtime docs |
+| `LeaderKeyEngine.cs` | hook/latch tests + manual Windows UX | cheatsheet/runtime docs |
+| `AdaptiveModuleResolver.cs` | context resolution regressions | architecture/troubleshooting |
+| Sketch routing | HotkeyStudio tests + live NX | Sketch doc, cheatsheet |
+| `SelectionIntentHotkeys.cs` | Bridge contract + live NX modes 0…4 | `SELECTION_INTENT.md`, cheatsheet |
+| `NxProtocol.cs` | protocol/state-machine tests + Bridge build | `api.md`, safety/architecture |
+| `NxBridgeSecurity.cs` | security regressions + strict build | `api.md`, safety |
+| Bridge invocation | contract build + live NX | Bridge README, troubleshooting |
+| installer/deployment | dry-run/install/health/rollback | installation/operations |
+| legacy K1–K5 compiler | Node validators/generated diff | generated/catalog docs only |
+| documentation | `validate-documentation.mjs` | `DOCUMENTATION_AUDIT.md` |
 
-## Добавление команды в полный каталог
+## V8 paths
 
-Новая запись должна иметь:
+### Active module prefix
 
-- стабильный `intent_id`;
-- исходный раздел и группу;
-- частоту K1–K5;
-- английское и русское название;
-- подтверждённый target module;
-- path hint, не нарушающий смысл корневого алфавита;
-- доказательство `BUTTON ID` либо статус, при котором команда останется disabled.
+Пользователь не вводит module prefix. Runtime добавляет его автоматически.
 
-После изменения:
+### One-token paths допустимы
 
-```powershell
-node .\scripts\validate-full-command-map.mjs
-node .\scripts\validate-main-command-map.mjs
-node .\scripts\audit-command-sequences.mjs
-```
-
-## Изменение мнемонического пути
-
-1. Сначала определите, является путь user override, curated source или generated fallback.
-2. Сохраняйте стабильное значение action root между модулями.
-3. Проверяйте canonical path и все aliases на prefix conflicts.
-4. Для обычных команд учитывайте частотную цель: K5 ≤ 2, K4 ≤ 3, K3 ≤ 4, если policy не изменена явно.
-5. Универсальные `S*` и `G*` резервируются policy и не должны использоваться обычными командами.
-6. Изменение curated mapping отражайте в `MNEMONIC_COMMAND_LANGUAGE.md`.
-7. Часто используемый новый путь добавляйте в `docs/CHEATSHEET.md`.
-
-### Исключение Sketch
-
-Sketch не подчиняется механическому сокращению пути по K-частоте. Для него действует отдельная грамматика:
+Current Sketch использует frequent direct Leader paths:
 
 ```text
-действие → объект/область → операция → вариант
+L
+R
+C
+A
+T
 ```
 
-Обязательные правила:
+Не применяйте старое универсальное правило «path минимум 2 токена» к schema v8.
 
-- сохраняйте семейства `CG`, `EG`, `TG`, `CK`, `AD`, `IS`, `XG`, `MS`;
-- варианты размещайте в prefix-free ветви `CGV…`;
-- путь может содержать до пяти токенов;
-- не переносите команду в случайный корень при коллизии;
-- не восстанавливайте legacy positional aliases;
-- сохраняйте `path_locked: true` и `path_source: user`;
-- не добавляйте файловые, сборочные, материальные и другие чужие команды в Sketch;
-- не включайте строку без точного ID.
+### `secondary_aliases`
 
-После изменения Sketch выполните:
+Aliases являются исполняемыми routing paths, а не только search metadata. Они должны быть prefix-free после нормализации.
 
-```powershell
-node .\scripts\validate-main-command-map.mjs
-node .\scripts\validate-command-tree.mjs
+### `workspace_key`
 
-dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release
+Workspace-only key не должен автоматически появляться в root DFA. Пока нет explicit workspace state, такой key подавляется на root layer.
 
-dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj `
-  -c Release -p:Platform=x64 --nologo
+### Modeling `M = Manage`
+
+Регрессионный path:
+
+```text
+M → L → S    Layer Settings
 ```
 
-## Изменение profile schema
+Не создавайте terminal root `M`, конфликтующий с Manage subtree.
 
-- Увеличивайте schema только при несовместимом или требующем migration изменении.
-- Обновляйте `CurrentSchemaVersion`, supported range, installer acceptance и CI checks согласованно.
-- Добавляйте defaults/migration до validation.
-- Обновляйте JSON examples и список fields.
-- Проверяйте загрузку minimum supported schema и сохранение current schema.
+## Sketch
 
-Не оставляйте runtime-сообщения со старым номером schema.
+Current grammar:
 
-## Изменение IPC
+```text
+L/R/C/A/T...     frequent commands
+K → …            constraints
+D → …            dimensions
+C → V → …        variants
+J → …            projection/derived
+U → …            utilities
+```
 
-`NXKeys.Protocol/NxProtocol.cs` является общим source-файлом для HotkeyStudio, Bridge и tests.
+Regression examples:
 
-При добавлении поля:
+```text
+CapsLock → L
+CapsLock → K → C
+CapsLock → D → Q
+```
 
-1. используйте явный `JsonPropertyName`;
-2. задайте безопасное default-поведение;
-3. обновите validation и round-trip tests;
-4. определите совместимость со старым reader/writer;
-5. обновите `docs/api.md`;
-6. не передавайте profile-only metadata в Bridge без необходимости.
+Старые `CGL`, `C→L`, `C→G→L` не должны возвращаться как current user examples.
 
-Повышение protocol schema требует согласованного обновления обеих сторон IPC.
+При добавлении constraint проверяйте реальный `UG_SKETCH_*_CONSTRAINT` ID в NX2512 catalog.
 
-## Изменение deployment
+## Selection Intent
 
-Deployment не должен:
+`0…4` реализованы внутри Command Bridge, а не обычными v8 operations:
 
-- писать в системные файлы Siemens;
-- массово изменять найденные user profiles;
-- переопределять глобальный `PATH` или `UGII_USER_DIR`;
-- удалять файлы вне package manifest;
-- обновлять загруженную Bridge DLL без явного предупреждения;
-- выполнять destructive cleanup без backup.
+```text
+0 reset
+1 single
+2 connected/chain
+3 tangent
+4 inferred path/region boundary
+```
 
-Для изменений deployment обязательны dry-run, повторная установка, health-check и rollback test.
+Не убирайте:
+
+- NX foreground guard;
+- Ctrl/Alt/Win guard;
+- injected-event guard;
+- text-input guard;
+- collector/seed requirement;
+- physical key latch.
+
+Любое изменение Selection Intent требует live test в NX collectors. Contract stubs этого не доказывают.
+
+## Sheet Metal
+
+Новые commands должны использовать:
+
+```text
+UG_APP_SBSM
+UG_SBSM_*
+```
+
+Compatibility old→canonical mapping допустим в normalization layer. Runtime и security mapping должны меняться вместе.
+
+## Profile schema
+
+При schema bump обновите:
+
+1. `Config.CurrentSchemaVersion`;
+2. supported range/migration;
+3. vNext models;
+4. tests/CI;
+5. installer acceptance;
+6. documentation validator;
+7. `RUNTIME_V8.md`, `CONFIGURATION.md`, examples.
+
+Не оставляйте CI validator, который требует предыдущий номер schema.
+
+## IPC/security
+
+Protocol schema 4 включает authenticated request envelope. При добавлении поля/изменении signing semantics обновляйте вместе:
+
+- shared model;
+- canonical HMAC payload;
+- writer;
+- Bridge verifier;
+- anti-replay state;
+- permission digest;
+- tests;
+- API/safety docs.
+
+Новый action должен быть explicit allowlisted; unknown actions должны оставаться fail-closed.
+
+## Interactive NX commands
+
+Не делайте вывод «command точно не запустилась» только из `InvokeMenuButtonAction=false` без понимания конкретной NX API semantics.
+
+Если меняется invocation policy:
+
+- сохраните availability/sensitivity checks;
+- не создавайте blind retry;
+- добавьте testable policy;
+- проверьте target NX dialog/collector;
+- обновите Bridge README и troubleshooting.
+
+## Legacy K1–K5 pipeline
+
+`config/full-command-map/`, K3–K5 compiler и generated profile остаются поддерживаемыми analytical/compatibility artifacts.
+
+Не выдавайте их за default runtime profile, пока `install-nxkeys.ps1` по умолчанию выбирает `nx2512-v8-profile.json`.
+
+Generated files обновляйте только соответствующими scripts.
 
 ## Документация
 
-Используйте следующие статусы, когда доказательность ограничена:
+Canonical current docs должны использовать текущие версии и current profile path.
 
-- `Подтверждено кодом`;
-- `Подтверждено тестом`;
-- `Подтверждено CI`;
-- `Предположение`;
-- `Требует проверки в NX 2512`.
+Generated/historical docs могут содержать старые значения, если это явно история.
 
-Команды должны быть готовы к копированию. Указывайте рабочую директорию, если она отличается от корня репозитория. Не описывайте API или flags, отсутствующие в коде.
-
-Generated и historical docs должны иметь явную маркировку. Не копируйте большие generated-таблицы вручную в несколько документов.
-
-### Обязательная проверка документации
-
-- все ссылки ведут на существующие файлы;
-- примеры используют текущие имена проектов и скриптов;
-- версии schema/policy не противоречат коду;
-- Sketch описан как отдельная грамматика, а не обычное K-сокращение;
-- CLI flags подтверждены `Program.cs`;
-- installer flags подтверждены `install-nxkeys.ps1`;
-- generated counts не выдаются за вечные константы;
-- ограничения, требующие NX workstation, отмечены явно.
-
-## Обязательные локальные проверки
-
-Минимальный набор для большинства изменений:
+Обязательная проверка:
 
 ```powershell
+node .\scripts\validate-documentation.mjs
+```
+
+Validator должен получать schema/policy facts из source code, а не закреплять устаревшие числа вручную.
+
+## Минимальные проверки
+
+```powershell
+node .\scripts\validate-documentation.mjs
 node .\scripts\validate-main-command-map.mjs
 node .\scripts\validate-command-tree.mjs
 node .\scripts\validate-full-command-map.mjs
@@ -183,37 +206,20 @@ dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj -c Release -p:Plat
 dotnet build .\NX2512_ControlCenter\NX2512_ControlCenter.csproj -c Release -p:Platform=x64 --nologo
 ```
 
-При изменении путей дополнительно:
-
-```powershell
-node .\scripts\audit-command-sequences.mjs
-```
-
-При изменении Bridge — contract build из [DEVELOPMENT.md](DEVELOPMENT.md).
-
-## Pull request
-
-Описание PR должно содержать:
-
-- что изменено;
-- почему;
-- пользовательское или developer влияние;
-- источники истины;
-- выполненные проверки;
-- какие проверки требуют NX workstation;
-- generated-файлы, если они изменены;
-- известные ограничения и rollback для рискованных изменений.
+Bridge change → contract build. NXOpen/interactive change → live target-NX test.
 
 ## Review checklist
 
-- [ ] нет выдуманных IDs и неподтверждённых API;
-- [ ] enabled-команды имеют точный ID;
-- [ ] paths и aliases prefix-free;
-- [ ] Sketch-команды остаются в смысловых семействах;
-- [ ] user-locked пути не перезаписаны;
-- [ ] destructive workflow не обходит confirmation;
-- [ ] protocol/profile schema согласованы;
-- [ ] документация соответствует коду;
+- [ ] current profile path v8;
+- [ ] schema 8 / IPC 4 / policy v8 не рассинхронизированы;
+- [ ] no invented IDs/API;
+- [ ] aliases prefix-free;
+- [ ] workspace-only keys не загрязняют root;
+- [ ] Sketch routing контекстный;
+- [ ] Selection Intent guards сохранены;
+- [ ] Sheet Metal canonicalization согласована с security;
+- [ ] authenticated IPC не ослаблен;
+- [ ] destructive confirmation сохранена;
 - [ ] generated diff воспроизводим;
-- [ ] secrets и персональные данные отсутствуют;
-- [ ] указаны проверки, невозможные без NX.
+- [ ] docs обновлены;
+- [ ] ограничения live NX указаны явно.
