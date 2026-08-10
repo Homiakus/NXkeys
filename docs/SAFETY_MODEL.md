@@ -1,228 +1,223 @@
-# Модель безопасности NXKeys
+# Модель безопасности NXKeys v8
 
-## Цель
+NXKeys снижает риск случайного, контекстно неверного, подменённого или повторного command dispatch в Siemens NX. Система не заменяет резервное копирование, права ОС, безопасность NX и инженерную проверку production data.
 
-NXKeys должен предотвращать случайное выполнение неподтверждённой, контекстно неверной или повторной команды. Модель снижает риск, но не заменяет безопасность Siemens NX, права ОС, резервное копирование и инженерную проверку производственных данных.
-
-## Активы
-
-- открытая деталь и производственные данные;
-- выбранная команда и mnemonic sequence;
-- command profile и resolved IDs;
-- NX context/selection;
-- Bridge DLL и managed package;
-- IPC requests/results;
-- backups и package manifest;
-- corporate role/custom directories.
+Current contracts: profile schema **8**, IPC schema **4**, sequence policy **v8**.
 
 ## Границы доверия
 
 ```mermaid
 flowchart LR
-    Input[Keyboard input] --> Client[HotkeyStudio]
-    Profile[Profile/config] --> Client
-    Client --> FS[(Local file IPC)]
-    FS --> Bridge[Command Bridge]
-    Bridge --> NX[Siemens NX]
-    NX --> Data[Part / session state]
+    K[Keyboard intent] --> H[HotkeyStudio]
+    P[v8 profile] --> H
+    H -->|signed request| Q[(File queue)]
+    Q --> B[Command Bridge]
+    B --> N[Siemens NX]
+    N --> D[Part/session state]
 ```
 
-- keyboard input не содержит command ID;
-- profile должен пройти validation;
-- file system transport не считается доверенным;
-- Bridge повторно валидирует request;
-- NX является фактическим источником availability/sensitivity;
-- operator принимает решение после `interrupted_unknown`.
+- keyboard input — намерение, а не разрешение на произвольный `command_id`;
+- profile проходит validation и формирует permission model;
+- queue file — недоверенный transport artifact;
+- authenticated session/HMAC — admission control;
+- Bridge повторно проверяет permission и fresh NX context;
+- NX остаётся фактическим источником availability/sensitivity/effect.
 
-## Scope главного профиля
+## Что защищается
 
-Main runtime включает 885 намерений K3–K5. K1/K2 исключены из стандартного runtime для снижения перегрузки, но это не security boundary само по себе.
+- открытые детали и session state;
+- выбранная команда и sequence;
+- v8 profile и profile digest;
+- NX context/selection fingerprint;
+- managed binaries/manifest;
+- IPC requests/results;
+- session secret, nonce и anti-replay state;
+- backups/custom directories.
 
-Реальная safety boundary — exact ID, enabled status, guards и confirmation.
+## Authenticated IPC schema 4
 
-## Запрет выдуманных IDs
+Managed launcher создаёт случайный session secret и передаёт его доверенным дочерним процессам. Secret не записывается в file queue.
 
-- `existing` — exact known ID;
-- `resolved` — надёжно разрешённый ID;
-- `ambiguous` — disabled;
-- `unresolved` — disabled.
+Request содержит:
 
-Command name, similarity score и API candidate не дают права на dispatch.
+```text
+session_id
+client_instance_id
+nonce
+sequence_number
+profile_digest
+payload_hmac
+```
 
-## Контекстные проверки
+Bridge до NX invocation проверяет:
 
-Перед dispatch учитываются:
+1. schema/expiry;
+2. shared session id;
+3. HMAC-SHA-256;
+4. trusted source process/executable;
+5. anti-replay nonce/sequence;
+6. profile digest;
+7. action/command/module/application/filter permission;
+8. destructive/confirmation policy;
+9. fresh context и selection fingerprint.
 
-- freshness и confidence;
+Unsigned schema-3 requests и requests вне managed launch session не являются совместимыми current clients.
+
+## Profile permission model
+
+Permission строится из активного validated profile. Request не может получить больше прав только потому, что знает существующий NX `BUTTON ID`.
+
+Canonicalization должна совпадать с runtime execution. Для Sheet Metal:
+
+```text
+UG_APP_SHEETMETAL → UG_APP_SBSM
+UG_SHEET_METAL_*  → UG_SBSM_*
+```
+
+V8 `availability.applications` участвует в построении switch permissions.
+
+## Context guards
+
+Перед dispatch повторно проверяются:
+
 - application/module;
-- Work Part и Display Part;
-- modal dialog и active command;
-- selection count/state/types;
-- exact command ID;
-- action/selection filter;
-- destructive/confirmation policy.
+- context revision/freshness;
+- Work/Display Part;
+- modal state/active command;
+- selection count/state/fingerprint;
+- exact canonical command/action;
+- destructive/confirmation semantics.
 
-Bridge повторяет критичные checks после claim request, потому что context мог измениться.
+Context snapshot сам по себе не является полномочием: Bridge проверяет актуальное состояние непосредственно перед invocation.
 
 ## Confirmation
 
-`destructive=true` или `confirm_before_execute=true` требует explicit Enter в состоянии `AwaitingConfirmation`.
+Destructive command требует explicit confirmation. Подтверждение должно относиться к конкретной resolved operation/request и не может переиспользоваться для другого action.
 
-Confirmation должна быть связана с конкретной resolved command. Нельзя повторно использовать старое подтверждение для другого request.
+Нельзя исправлять ложные срабатывания safety guard отключением confirmation.
 
-## Selection actions
-
-`UG_SEL_*` используют `action: set_selection_filter`. Source policy v7 закрепляет:
-
-```text
-SB SF SE ST SC SU SD SR SA SN
-```
-
-Selection action не должна молча выполнять обычную command с похожим ID.
-
-## Module switches
-
-Switch считается завершённым после fresh context, подтверждающего target application/module. Client не должен оптимистически менять active module до ответа NX.
-
-## IPC и повторное выполнение
+## Queue и duplicate execution
 
 ```text
 pending → processing → completed | failed
 ```
 
-Гарантии:
+Controls:
 
-- atomic publication и claim;
-- уникальный request ID;
+- atomic publish;
+- bounded payload/queue/work-per-poll;
+- unique request id;
 - expiry;
-- duplicate protection;
-- отдельный result;
-- `interrupted_unknown` после recovery processing request;
-- отсутствие автоматического retry неизвестного результата.
+- HMAC session;
+- nonce + monotonic sequence;
+- claim ownership;
+- `interrupted_unknown` recovery;
+- отсутствие automatic retry неизвестного результата.
 
-Это at-most-once recovery. Exactly-once выполнение не заявляется.
+Это at-most-once recovery, а не exactly-once guarantee.
+
+## Selection mechanisms
+
+### Leader type filters
+
+`S → …` меняют type-selection intent (`body`, `face`, `edge`, …) через разрешённые selection actions.
+
+### Selection Intent `0…4`
+
+In-process keyboard hook Command Bridge меняет chain/tangent/path semantics только когда NX foreground и обнаружен active collector либо seed selection.
+
+Guard-логика специально не должна перехватывать обычный ввод цифр в text-like controls.
+
+Подробнее: [SELECTION_INTENT.md](SELECTION_INTENT.md).
+
+## CapsLock safety
+
+Leader trigger имеет physical-key latch: повторные key-down из autorepeat игнорируются до реального key-up. Это защищает от случайного множественного dispatch из одного удержания CapsLock.
+
+## Workspace-local keys
+
+`workspace_key` не проецируется в root Leader без явного workspace-state. Это предотвращает неоднозначность terminal root/subtree, например конфликт одиночного `M` с Modeling Manage `M → …`.
+
+## Command ID integrity
+
+- новый runtime command должен использовать точный подтверждённый ID;
+- similarity/name совпадение не является authority;
+- Sheet Metal uses canonical `UG_SBSM_*`;
+- Sketch constraints используют точные `UG_SKETCH_*_CONSTRAINT` IDs;
+- compatibility mapping допустим только в специально проверенном normalization layer.
+
+## Interactive NX commands
+
+Особый риск — различие между фактическим открытием интерактивного NX dialog/collector и return value API invocation.
+
+`DialogTester.InvokeMenuButtonAction(...)` нельзя считать абсолютным доказательством результата для всех interactive commands без target-NX test. Если UI открылся, но Bridge трактовал `false` как failure, сохраняйте logs/request/context и проверяйте живую NX семантику вместо повторного запуска команды вслепую.
 
 ## Deployment safety
 
-NXKeys должен:
-
-- устанавливать files только в managed ownership boundaries;
-- размещать Bridge в `custom/application`;
-- не изменять системные файлы Siemens;
-- не подменять глобальные `PATH`/`UGII_USER_DIR`;
-- сохранять backup внешнего custom dirs file перед patch;
-- проверять staging и installed SHA-256;
-- вести `package-manifest.json`;
-- удалять только ранее управляемые files;
-- выполнять rollback при ошибке;
-- блокировать обычное обновление при запущенной NX.
-
-`-AllowRunningNX` ослабляет operational guard и не обновляет уже загруженную Bridge DLL.
+- managed ownership под `%LOCALAPPDATA%\NXKeys`;
+- Bridge только в `custom\application`;
+- backup перед cleanup/patch;
+- package manifest/hash health checks;
+- controlled `UGII_CUSTOM_DIRECTORY_FILE` normalization;
+- conflict cleanup архивирует известные legacy items;
+- full NX restart перед заменой Bridge DLL;
+- `-AllowRunningNX` не является hot reload.
 
 ## Threats и controls
 
-| Риск | Control | Остаточное ограничение |
+| Риск | Control | Остаток |
 |---|---|---|
-| неверный ID | exact ID + resolution status | target catalog может устареть |
-| context изменился | expected revision/application/selection + Bridge recheck | NX state может быть сложно классифицировать |
-| duplicate execution | unique ID + processing ownership | результат после crash может быть unknown |
-| обход destructive confirmation | HFSM state + protocol validation | неверная classification command остаётся риском |
-| повреждение managed files | manifest/hash/health | локальный пользователь может изменять files между checks |
-| подмена request | schema/context/expiry validation | отдельной cryptographic authentication нет |
-| обновление locked DLL | require NX stopped | operator может использовать override flag |
-| утечка данных через logs/export | local storage + documentation rules | требуется организационная очистка artifacts |
+| forged queue JSON | session HMAC + source process + permission digest | не защищает от code injection в trusted process |
+| replay | nonce + monotonic sequence | trusted process compromise остаётся вне модели |
+| wrong command ID | profile permission + canonical ID | target catalog/role может измениться |
+| wrong context | revision/application/selection fingerprint recheck | сложный NX state требует live tests |
+| duplicate after crash | claim + `interrupted_unknown` + no retry | финальный NX side effect может остаться unknown |
+| CapsLock autorepeat | physical latch | hardware/driver edge cases требуют UX test |
+| numeric hotkey stealing input | foreground/modifier/text/collector guards | необычные custom NX controls могут потребовать guard update |
+| locked Bridge update | require NX stopped | operator override остаётся operational risk |
+| profile/runtime mismatch | schema validation + profile digest | incorrect profile semantics всё ещё возможны |
 
 ## Что не является гарантией
 
 - успешный C# build;
-- contract build против NXOpen stubs;
-- наличие command ID в CSV;
+- NXOpen contract stub build;
+- наличие ID в CSV;
 - высокий similarity score;
-- отсутствие exception в generator;
-- profile coverage 885;
-- наличие backup без проверки restore;
-- `dry_run=false` как доказательство production readiness.
+- green generated-profile coverage;
+- отсутствие exception в compiler;
+- `health` без live NX command test.
 
-## Проверка на target NX
+## Target NX acceptance
 
-Перед production:
+На копии детали проверьте:
 
-1. использовать копию детали;
-2. подтвердить application/module mapping;
-3. проверить selection filters;
-4. проверить command availability/sensitivity;
-5. проверить confirmation;
-6. проверить wrong context rejection;
-7. проверить modal dialog behavior;
-8. симулировать Bridge interruption на безопасной command;
-9. проверить health/rollback;
-10. зафиксировать runtime-verified evidence.
+1. managed launch создаёт authenticated session;
+2. unsigned/wrong-session request rejected;
+3. module mapping корректен;
+4. CapsLock не autorepeat-ится;
+5. Modeling Manage работает;
+6. Sketch constraints/dimensions работают;
+7. Sheet Metal uses canonical commands;
+8. Selection Intent `0…4` не перехватывает обычные numeric fields;
+9. interactive dialogs/collectors трактуются корректно;
+10. destructive confirmation нельзя обойти;
+11. rollback восстанавливает package.
 
-## Secrets и proprietary data
-
-Запрещено добавлять в repository/log examples:
-
-- proprietary NX DLL;
-- license files;
-- credentials/tokens;
-- production parts/drawings;
-- закрытые roles/extensions;
-- персональные данные;
-- внутренние network paths без необходимости.
-
-## Incident handling
+## Incident response
 
 При подозрении на неверный dispatch:
 
 1. остановите Leader;
 2. не повторяйте sequence;
-3. сохраните current part безопасным способом;
-4. соберите request/result/context/status/log;
-5. зафиксируйте commit/profile hash;
-6. отключите command row;
-7. проверьте actual ID и module;
-8. используйте процесс из `SECURITY.md` при возможном security impact.
+3. сохраните production data безопасным способом;
+4. зафиксируйте commit/profile digest/session id и время;
+5. сохраните request/result/context/status/log;
+6. проверьте фактический NX side effect;
+7. отключите проблемный operation/permission до расследования;
+8. при security impact используйте процесс из `SECURITY.md`.
 
-## CI boundaries
+## Ограничения модели
 
-CI подтверждает структуру, schemas, paths, state machines, C# builds, Bridge contract и deployment invariants. CI не подтверждает фактическую лицензию, чувствительность кнопки и эффект command в Siemens NX.
+Authenticated local IPC защищает от обычного same-user процесса, который просто пишет forged JSON в queue. Модель не защищает от атакующего, способного внедрить код в NX/HotkeyStudio, читать память trusted processes с эквивалентными правами или незаметно заменить managed binaries с обходом integrity controls.
 
-## Требует ручной проверки
-
-- полнота destructive classification всех 885 intents;
-- корректность selection type mapping для target objects;
-- corporate code-signing policy;
-- ACL IPC root;
-- правильность IDs после NX/role/license change;
-- отсутствие конфликтов с corporate custom directories.
-
-## Phase-zero runtime hardening
-
-The first remediation phase closes the immediate fail-open paths:
-
-- unsupported protocol actions are rejected rather than dispatched as NX commands;
-- profile schemas outside the known migration range are rejected before defaults are applied;
-- profile saves use the existing atomic writer;
-- queue depth, payload size, field length, and work per poll are bounded;
-- the selected-object fingerprint participates in context revision and dispatch validation;
-- transport read failures are classified instead of being collapsed into `null`.
-
-The file queue is still a same-user local trust boundary, not authenticated IPC. Command allowlisting,
-session capabilities and anti-replay protection remain mandatory before the bridge is treated as a
-hardened production boundary.
-
-## Authenticated local IPC
-
-IPC schema 4 closes the former same-user file-injection path. Queue files are transport artifacts,
-not authorities: a request is admitted only when its HMAC, session, source executable, anti-replay
-state and profile permission all agree.
-
-The secure session is created by `NX2512_HotkeyStudio.exe launch`. Starting NX and HotkeyStudio
-independently does not create a shared capability and therefore leaves Bridge in
-`authentication_required`; commands are rejected until NX is restarted through the managed
-launcher.
-
-This protects against ordinary local processes writing forged JSON into `%LOCALAPPDATA%\NXKeys\bridge`.
-It is not a defence against an attacker who can inject code into Siemens NX or the trusted
-HotkeyStudio process, replace managed binaries while bypassing package integrity, or read their
-memory with equivalent/higher privileges.
+Полный transport contract: [api.md](api.md). Runtime contract: [RUNTIME_V8.md](RUNTIME_V8.md).
