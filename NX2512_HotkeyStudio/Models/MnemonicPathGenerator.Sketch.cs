@@ -23,41 +23,41 @@ namespace NX2512_HotkeyStudio.Models
                 ["V"] = "Variant"
             };
 
+        private static bool UseSketchSemanticGeneration(ModuleConfig module, ModuleCommand command)
+        {
+            if (!IsSketchIntentCommand(module, command)) return false;
+
+            // v8 is already an authored, validated command language.  Recognising
+            // v8_s as the active Sketch module must not also feed its paths through
+            // the legacy semantic allocator: that allocator is intentionally
+            // opinionated and can exhaust/rewrite valid authored routes.
+            return !string.Equals(module?.ID, "v8_s", StringComparison.OrdinalIgnoreCase);
+        }
+
         private static MnemonicDefinition ResolveDefinitionForModule(ModuleConfig module, ModuleCommand command)
         {
             string id = command?.Command?.ID ?? string.Empty;
-            if (IsSketchIntentCommand(module, command) && SketchKnown.TryGetValue(id, out MnemonicDefinition sketch))
+            if (UseSketchSemanticGeneration(module, command) && SketchKnown.TryGetValue(id, out MnemonicDefinition sketch))
                 return sketch;
             return ResolveDefinition(command);
         }
 
         private static bool ShouldRegenerateSketchPath(ModuleConfig module, ModuleCommand command)
         {
-            if (!IsSketchIntentCommand(module, command)) return false;
+            if (!UseSketchSemanticGeneration(module, command)) return false;
             if (command?.PathLocked == true) return false;
-            if (string.Equals(command?.PathSource, "user", StringComparison.OrdinalIgnoreCase)) return false;
-
-            // Schema-v8 is an authored contract.  Its paths must not be globally
-            // rewritten simply because the module is now correctly recognised as
-            // Sketch.  Doing that turned unlocked fallback commands into curated
-            // paths such as C->C before the profile's locked C->C command was seen,
-            // producing a terminal/prefix collision and breaking startup.  Keep v8
-            // paths as the source of truth; ReserveSketchPath still resolves actual
-            // duplicate paths safely when a v8 entry was intentionally left unlocked.
-            if (string.Equals(module?.ID, "v8_s", StringComparison.OrdinalIgnoreCase)) return false;
-
-            return true;
+            return !string.Equals(command?.PathSource, "user", StringComparison.OrdinalIgnoreCase);
         }
 
         private static IReadOnlyList<string> GenerateCandidateForModule(ModuleConfig module, ModuleCommand command) =>
-            IsSketchIntentCommand(module, command) ? GenerateSketchCandidate(command) : GenerateCandidate(module, command);
+            UseSketchSemanticGeneration(module, command) ? GenerateSketchCandidate(command) : GenerateCandidate(module, command);
 
         private static List<string> ReserveUniqueForModule(
             ModuleConfig module,
             IReadOnlyList<string> requested,
             ModuleCommand command,
             IDictionary<string, ModuleCommand> used) =>
-            IsSketchIntentCommand(module, command)
+            UseSketchSemanticGeneration(module, command)
                 ? ReserveSketchPath(requested, command, used)
                 : ReserveUnique(requested, command, used);
 
@@ -83,8 +83,8 @@ namespace NX2512_HotkeyStudio.Models
 
         private static void NormalizeSketchAliases(ModuleConfig module, ModuleCommand command, bool locked)
         {
-            if (!IsSketchIntentCommand(module, command) || locked) return;
-            // Positional W/E/D/C/X/Z/A/Q aliases were the main source of ambiguity in Sketch.
+            if (!UseSketchSemanticGeneration(module, command) || locked) return;
+            // Positional W/E/D/C/X/Z/A/Q aliases were the main source of ambiguity in legacy Sketch profiles.
             command.Aliases = new List<List<string>>();
             string id = command?.Command?.ID ?? string.Empty;
             command.PathSource = SketchKnown.ContainsKey(id) ? "sketch_curated" : "sketch_generated";
@@ -95,10 +95,9 @@ namespace NX2512_HotkeyStudio.Models
             if (module == null || command == null || IsSupport(command)) return false;
 
             // Schema v8 translates the Sketch workspace to module "v8_s".  The old
-            // equality check against literal "sketch" disabled Sketch-specific
-            // conflict handling after loading nx2512-v8-profile.json.  Application
-            // identity is also accepted so legacy/hardcoded Sketch modules keep the
-            // same behaviour.
+            // equality check against literal "sketch" made context-dependent labels
+            // and command classification inconsistent.  Recognition is deliberately
+            // broader than generation; v8_s remains profile-driven (see above).
             bool sketchModuleId = string.Equals(module.ID, "sketch", StringComparison.OrdinalIgnoreCase) ||
                                   string.Equals(module.ID, "v8_s", StringComparison.OrdinalIgnoreCase);
             bool sketchApplication = module.NXApplicationIDs != null &&
