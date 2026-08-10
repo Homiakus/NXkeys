@@ -35,7 +35,18 @@ namespace NX2512_HotkeyStudio.Models
         {
             if (!IsSketchIntentCommand(module, command)) return false;
             if (command?.PathLocked == true) return false;
-            return !string.Equals(command?.PathSource, "user", StringComparison.OrdinalIgnoreCase);
+            if (string.Equals(command?.PathSource, "user", StringComparison.OrdinalIgnoreCase)) return false;
+
+            // Schema-v8 is an authored contract.  Its paths must not be globally
+            // rewritten simply because the module is now correctly recognised as
+            // Sketch.  Doing that turned unlocked fallback commands into curated
+            // paths such as C->C before the profile's locked C->C command was seen,
+            // producing a terminal/prefix collision and breaking startup.  Keep v8
+            // paths as the source of truth; ReserveSketchPath still resolves actual
+            // duplicate paths safely when a v8 entry was intentionally left unlocked.
+            if (string.Equals(module?.ID, "v8_s", StringComparison.OrdinalIgnoreCase)) return false;
+
+            return true;
         }
 
         private static IReadOnlyList<string> GenerateCandidateForModule(ModuleConfig module, ModuleCommand command) =>
@@ -84,10 +95,10 @@ namespace NX2512_HotkeyStudio.Models
             if (module == null || command == null || IsSupport(command)) return false;
 
             // Schema v8 translates the Sketch workspace to module "v8_s".  The old
-            // equality check against literal "sketch" disabled the entire curated
-            // Sketch grammar after loading nx2512-v8-profile.json, including all
-            // C -> K -> constraint routes.  Application identity is also accepted
-            // so legacy/hardcoded Sketch modules keep the same behaviour.
+            // equality check against literal "sketch" disabled Sketch-specific
+            // conflict handling after loading nx2512-v8-profile.json.  Application
+            // identity is also accepted so legacy/hardcoded Sketch modules keep the
+            // same behaviour.
             bool sketchModuleId = string.Equals(module.ID, "sketch", StringComparison.OrdinalIgnoreCase) ||
                                   string.Equals(module.ID, "v8_s", StringComparison.OrdinalIgnoreCase);
             bool sketchApplication = module.NXApplicationIDs != null &&
