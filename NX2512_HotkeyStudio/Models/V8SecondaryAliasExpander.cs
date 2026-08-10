@@ -16,6 +16,7 @@ namespace NX2512_HotkeyStudio.Models
         void IJsonOnDeserialized.OnDeserialized()
         {
             ExpandSecondaryAliasesForLegacyRuntime();
+            SuppressWorkspaceLocalKeysAtRoot();
         }
 
         private void ExpandSecondaryAliasesForLegacyRuntime()
@@ -58,9 +59,7 @@ namespace NX2512_HotkeyStudio.Models
                         // A global M->... alias is the legacy mnemonic for the Manage
                         // root, not a request to manufacture a separate "v8_m" module
                         // and strip M as a module prefix. Scope it explicitly to
-                        // Modeling so the runtime path stays M->... . This also keeps
-                        // M as a submenu root instead of creating a terminal M command
-                        // that would collide with M->M / M->L / M->W descendants.
+                        // Modeling so the runtime path stays M->... .
                         effectiveApplication = "modeling";
                     }
 
@@ -94,6 +93,30 @@ namespace NX2512_HotkeyStudio.Models
 
             if (expanded.Count > 0)
                 Operations.AddRange(expanded);
+        }
+
+        /// <summary>
+        /// workspace_key is a key inside an already-open v8 Workspace. The current
+        /// legacy runtime translator has no Workspace state and previously promoted
+        /// those local keys to module-root commands. That made roots such as M both a
+        /// terminal action and the Manage submenu, violating the prefix-free DFA and
+        /// causing unrelated workspace actions to fire at top level. Until a dedicated
+        /// Workspace state machine owns these keys, remove workspace-only paths from
+        /// root translation. Operations that also have a real direct or leader path
+        /// keep those paths unchanged.
+        /// </summary>
+        private void SuppressWorkspaceLocalKeysAtRoot()
+        {
+            foreach (OperationContract operation in Operations ?? new List<OperationContract>())
+            {
+                OperationPaths paths = operation?.Paths;
+                if (paths == null || string.IsNullOrWhiteSpace(paths.WorkspaceKey)) continue;
+
+                bool hasLeader = paths.Leader != null && paths.Leader.Count > 0;
+                bool hasDirect = !string.IsNullOrWhiteSpace(paths.Direct);
+                if (!hasLeader && !hasDirect)
+                    paths.WorkspaceKey = null;
+            }
         }
 
         private static OperationContract CloneOperation(OperationContract source)
