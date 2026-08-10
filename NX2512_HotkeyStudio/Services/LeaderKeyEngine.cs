@@ -126,6 +126,7 @@ namespace NX2512_HotkeyStudio.Services
         private uint triggerVk = VK_CAPITAL;
         private bool running;
         private int captureFlag;
+        private int triggerPhysicalDown;
         private DateTime lastQueuedTriggerUtc = DateTime.MinValue;
         private DateTime lastTriggerUtc = DateTime.MinValue;
         private DateTime timeoutStartUtc;
@@ -182,13 +183,17 @@ namespace NX2512_HotkeyStudio.Services
             hookId = SetWindowsHookEx(WH_KEYBOARD_LL, hookDelegate, module, 0);
             if (hookId == IntPtr.Zero)
                 throw new InvalidOperationException("Не удалось установить keyboard hook. Win32=" + Marshal.GetLastWin32Error());
-            TryRegisterTriggerHotkey();
+
+            // The low-level hook is the single source of truth for the Leader trigger.
+            // RegisterHotKey used to run in parallel with the hook, producing two
+            // independent notifications for one physical CapsLock press.  Together
+            // with keyboard auto-repeat that looked like a burst of virtual presses.
+            registeredTriggerHotkey = false;
             RefreshContext();
             eventPump.Start();
             contextWatch.Start();
             running = true;
-            string triggerBackend = registeredTriggerHotkey ? "hook+hotkey" : "hook";
-            StatusChanged?.Invoke("Адаптивный Leader активен: CapsLock → команда текущего модуля NX (" + triggerBackend + ")");
+            StatusChanged?.Invoke("Адаптивный Leader активен: CapsLock → команда текущего модуля NX (hook)");
         }
 
         public void Stop()
@@ -200,6 +205,7 @@ namespace NX2512_HotkeyStudio.Services
             progress.Stop();
             if (registeredTriggerHotkey && hotkeyWindow != null) UnregisterHotKey(hotkeyWindow.Handle, HOTKEY_TRIGGER_ID);
             registeredTriggerHotkey = false;
+            Interlocked.Exchange(ref triggerPhysicalDown, 0);
             if (hotkeyWindow != null) { hotkeyWindow.DestroyHandle(); hotkeyWindow = null; }
             if (hookId != IntPtr.Zero) { UnhookWindowsHookEx(hookId); hookId = IntPtr.Zero; }
             Apply(stateMachine.Cancel("Движок остановлен."));
@@ -222,7 +228,12 @@ namespace NX2512_HotkeyStudio.Services
             bool capturing = Volatile.Read(ref captureFlag) == 1;
             if (up)
             {
-                if (data.vkCode == triggerVk || capturing) return (IntPtr)1;
+                if (data.vkCode == triggerVk)
+                {
+                    bool consumedTrigger = Interlocked.Exchange(ref triggerPhysicalDown, 0) == 1;
+                    return consumedTrigger ? (IntPtr)1 : CallNextHookEx(hookId, code, message, dataPointer);
+                }
+                if (capturing) return (IntPtr)1;
                 return CallNextHookEx(hookId, code, message, dataPointer);
             }
 
@@ -235,6 +246,13 @@ namespace NX2512_HotkeyStudio.Services
             if (data.vkCode == triggerVk)
             {
                 if (IsFocusedInTextInput()) return CallNextHookEx(hookId, code, message, dataPointer);
+
+                // A physical key generates repeated WM_KEYDOWN messages while held.
+                // Only the first down transition may activate/toggle the Leader;
+                // all repeats are swallowed until the matching key-up arrives.
+                if (Interlocked.Exchange(ref triggerPhysicalDown, 1) == 1)
+                    return (IntPtr)1;
+
                 Interlocked.Exchange(ref captureFlag, 1);
                 ScheduleCapsLockRestore();
                 QueueTrigger(data.vkCode);
