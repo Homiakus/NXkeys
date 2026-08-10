@@ -1,10 +1,13 @@
 # Язык намерений Sketch (v8)
 
-Sketch использует однотокенную модель мнемонического языка NXKeys. Активный Sketch уже является однозначным внутренним префиксом, поэтому команды эскиза вызываются **одной клавишей** после `CapsLock`. Многотокенные пути保留 для размеров, ограничений, проекции, диагностики и вариантов построения.
+Sketch v8 использует **короткую контекстную грамматику**. Активный Sketch уже является однозначным внутренним префиксом, поэтому самые частые операции вызываются **одной клавишей** после `CapsLock`, а многотокенные пути зарезервированы для размеров, ограничений, проекции, диагностики и вариантов построения.
 
 ```text
-CapsLock → одиночная клавиша → команда эскиза
+CapsLock → одиночная клавиша → частая команда эскиза
+CapsLock → смысловой префикс → уточнение → составная команда
 ```
+
+Пользователь не вводит внутренний module prefix Sketch.
 
 ## Три уровня ввода
 
@@ -62,7 +65,7 @@ CapsLock → одиночная клавиша → команда эскиза
 | `N` | Sketch Navigator | `UG_SKETCH_CONSTRAINT_NAVIGATOR` | `declared_v8` |
 | `Z` | Sketch Checker | `UG_SKETCH_CHECKER` | `declared_v8` |
 
-### Уровень C — Двухтокенные пути (CapsLock + префикс + клавиша)
+### Уровень C — Двух- и многотокенные пути
 
 #### Размеры (префикс `D`)
 
@@ -94,6 +97,8 @@ CapsLock → одиночная клавиша → команда эскиза
 | `K → F` | Fixed | `UG_SKETCH_FIXED_CONSTRAINT` |
 | `K → A` | Auto Constrain | `UG_SKETCH_AUTO_CREATE_CONSTRAINTS` |
 
+Constraint IDs выше проверяются как точные NX command IDs. Фактическая sensitivity зависит от active Sketch, selection, роли и сборки NX.
+
 #### Проекция и производные (префикс `J`)
 
 | Путь | Команда | BUTTON ID |
@@ -113,7 +118,7 @@ CapsLock → одиночная клавиша → команда эскиза
 | `U → I` | Issues | `UG_SKETCH_CHECKING` |
 | `U → A` | Alternate Solution | `UG_SKETCH_ALTERNATE_SOLUTION` |
 
-#### Удаление ограничений (префикс `K`)
+#### Удаление ограничений
 
 | Путь | Команда | BUTTON ID |
 |------|---------|-----------|
@@ -121,7 +126,7 @@ CapsLock → одиночная клавиша → команда эскиза
 
 ## Варианты построения (ветвь `C → V`)
 
-Варианты не продолжают путь базовой команды — терминальная команда не может быть префиксом другой. Для вариантов выделена ветвь `C → V`:
+Варианты не продолжают terminal path базовой команды: terminal не может одновременно быть префиксом другой terminal sequence. Для вариантов выделена отдельная prefix-free ветвь:
 
 | Путь | Вариант | BUTTON ID |
 |------|---------|-----------|
@@ -135,21 +140,25 @@ CapsLock → одиночная клавиша → команда эскиза
 | `C → V → A → 3` | Arc by Three Points | `UG_SKETCH_ARC_BY_THREE_POINTS` |
 | `C → V → A → C` | Arc from Center | `UG_SKETCH_ARC_FROM_CENTER` |
 
-## Переход в эскиз из других модулей
+## Переход в Sketch из других модулей
 
-- `G → S` — Switch to Sketch / Create Sketch из Modeling, Assembly, Surface и др.
+```text
+G → S    Switch/Create Sketch
+```
+
+После подтверждённого перехода active module определяется новым Bridge context; пользователь не должен вручную сохранять старый module prefix.
 
 ## Границы контекста
 
-Sketch-компилятор добавляет только намерения с `runtime_module: sketch`, подтверждённое ядро Sketch и универсальные фильтры выбора. Глобальные файловые команды, навигатор сборки, материалы, сшивка поверхностей и переходы между приложениями не дублируются в дерево Sketch.
+Sketch routing должен содержать только Sketch operations, подтверждённое ядро и применимые universal selection actions. Файловые, assembly, material, surface и чужие application commands не должны загрязнять Sketch tree.
 
-Подтверждённое ядро Sketch сохраняется как runtime vocabulary независимо от частотной фильтрации K3–K5. Команда без точного `BUTTON ID` остаётся видимой, но отключённой.
+Current v8 runtime не зависит от legacy K3–K5 frequency filtering как от источника Sketch grammar.
 
-## Алиасы и пользовательские пути
+## Алиасы и compatibility
 
-Старые позиционные алиасы `W/E/D/C/X/Z/A/Q` для Sketch автоматически удаляются. Пользовательский путь с `path_locked: true` или `path_source: user` сохраняется без изменений.
+Current v8 source использует `paths.secondary_aliases`. Они десериализуются и реально участвуют в routing. Legacy positional aliases из старых K3–K5 grammar не должны возвращаться как current user paths.
 
-Новая команда `UG_SKETCH_*`, найденная в каталоге целевой установки NX, получает семейство по назначению и остаётся внутри него при разрешении коллизий. Неоднозначный или неразрешённый `BUTTON ID` остаётся видимым, но отключённым.
+Если operation остаётся только `tbd_adapter`, её нельзя выдавать за runtime-verified command.
 
 ## Типовые сценарии
 
@@ -174,13 +183,13 @@ CapsLock → T
 ### Быстрый размер
 
 ```text
-CapsLock → D → Q   (или прямой Q в Sketch)
+CapsLock → D → Q
 ```
 
-### Закончить эскиз
+### Совпадение
 
 ```text
-CapsLock → S   (или прямой S в активном Sketch)
+CapsLock → K → C
 ```
 
 ### Вариант линии по двум точкам
@@ -189,23 +198,26 @@ CapsLock → S   (или прямой S в активном Sketch)
 CapsLock → C → V → L → 2
 ```
 
-### Совпадение (ограничение)
-
-```text
-CapsLock → K → C
-```
-
 ### Make Corner
 
 ```text
 CapsLock → J → K
 ```
 
-## Обязательные регрессионные проверки
+## Если constraint не запускается
 
-После изменения Sketch allocator, curated paths или compiler выполните:
+1. убедитесь, что active Bridge context — Sketch;
+2. после обновления Bridge полностью перезапустите NX;
+3. проверьте availability/sensitivity точного `UG_SKETCH_*_CONSTRAINT` ID;
+4. сохраните request/result/log;
+5. проверьте фактический dialog/collector в NX, особенно если invocation API вернул `false`.
+
+Не делайте blind retry интерактивной команды, если UI мог уже открыться.
+
+## Обязательные регрессии
 
 ```powershell
+node .\scripts\validate-documentation.mjs
 node .\scripts\validate-main-command-map.mjs
 node .\scripts\validate-command-tree.mjs
 
@@ -217,12 +229,13 @@ dotnet build .\NX2512_HotkeyStudio\NX2512_HotkeyStudio.csproj `
 
 Проверьте:
 
-- однотокенные пути (L, R, C, A, T, E, O, F, H, M, V, Y, N, Z);
-- двухтокенные пути (D→*, K→*, J→*, U→*);
-- ветвь `C → V → …`;
-- prefix-free инвариант;
-- сохранение user-locked paths;
-- удаление legacy aliases;
-- отсутствие чужих команд в Sketch;
-- отсутствие enabled-команд без точного BUTTON ID;
-- удержание новых Sketch-команд внутри смыслового семейства.
+- one-token paths `L/R/C/A/T/...`;
+- `D→*`, `K→*`, `J→*`, `U→*`;
+- `C → V → …`;
+- prefix-free invariant;
+- `K → C` и остальные constraint routes;
+- отсутствие legacy line paths `C→L`/`C→G→L` в current guides;
+- отсутствие чужих commands в Sketch;
+- отсутствие enabled command без подтверждённого adapter/ID.
+
+Канонический общий контракт: [RUNTIME_V8.md](RUNTIME_V8.md).
