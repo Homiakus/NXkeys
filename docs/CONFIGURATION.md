@@ -201,6 +201,21 @@ scripts/validate-main-command-map.mjs
 
 Generated K3–K5 artifacts не редактируются вручную.
 
+### Legacy generated metadata
+
+Старый generated profile сохраняет machine-readable поля, которые продолжают проверяться отдельным catalog validator:
+
+```json
+{
+  "full_command_catalog": {
+    "selected_frequencies": ["K3", "K4", "K5"],
+    "selected_intents": 885
+  }
+}
+```
+
+`selected_frequencies`, `selected_intents`, а также уровни `K3`, `K4`, `K5` относятся **только к legacy generated profile**. Эти metadata не являются обязательной формой schema-8 `operations` profile и не определяют current runtime scope.
+
 ## Basic shortcuts и normalized defaults
 
 Runtime сохраняет базовый allowlisted набор привычных shortcuts (`Ctrl+N`, `Ctrl+O`, `Ctrl+S`, Undo/Redo, clipboard, Delete, Fit, Refresh) через `BasicShortcutPolicy`/defaults.
