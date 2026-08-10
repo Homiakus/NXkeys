@@ -67,6 +67,18 @@ jobs:
             throw 'Declarative state-machine profile was not included in publish output.'
           }
 
+      - name: Validate no-profile hardcoded fallback
+        shell: pwsh
+        run: |
+          Push-Location .\artifacts\hotkey-studio
+          try {
+            & .\NX2512_HotkeyStudio.exe validate
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          finally {
+            Pop-Location
+          }
+
       - name: Validate canonical profile through C# CLI
         shell: pwsh
         run: |
@@ -135,7 +147,7 @@ jobs:
           $v8Profile = Get-Content .\config\nx2512-v8-profile.json -Raw
           $legacyProfile = Get-Content .\config\nx2512-pro-hybrid.json -Raw
 
-          foreach ($required in @('BasicShortcutPolicy','CurrentSchemaVersion = 8','MnemonicPathGenerator.Apply','PathLabels','SearchAliases','CatalogBackedSupport','RebuildFromModules','JsonIgnore','SecondaryAliases','ExpandSecondaryAliasesForLegacyRuntime')) {
+          foreach ($required in @('BasicShortcutPolicy','CurrentSchemaVersion = 8','MnemonicPathGenerator.Apply','PathLabels','SearchAliases','CatalogBackedSupport','RebuildFromModules','JsonIgnore','SecondaryAliases','ExpandSecondaryAliasesForLegacyRuntime','ResolveSequenceModule')) {
             if ($models -notmatch [regex]::Escape($required)) { throw "Missing mnemonic config element: $required" }
           }
           if ($project -notmatch 'Compile Remove="Models\\ConfigModels\.cs"') { throw 'Legacy ConfigModels.cs must be excluded from HotkeyStudio compilation.' }
