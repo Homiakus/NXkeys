@@ -1,369 +1,263 @@
-# Архитектура NXKeys
+# Архитектура NXKeys v8
 
-## Назначение системы
+NXKeys преобразует контекстный клавиатурный ввод в проверенный запрос к Siemens NX 2512. Current runtime строится вокруг profile schema **8**, adaptive module resolution, authenticated file IPC schema **4** и Command Bridge внутри процесса NX.
 
-NXKeys преобразует контекстную мнемоническую последовательность пользователя в проверенный запрос к точной UI-команде Siemens NX.
+Канонический runtime contract: [RUNTIME_V8.md](RUNTIME_V8.md).
 
-Главный runtime scope содержит 885 уникальных намерений K3–K5. Полный source catalog содержит 1169 намерений K1–K5. Команда исполняется только при наличии подтверждённого `BUTTON ID` и прохождении контекстных guards.
-
-## Контекст и границы
-
-NXKeys состоит из desktop-приложений, генераторов профиля и NXOpen-библиотеки, загружаемой в процесс NX. Сетевого API или центрального сервера в текущей архитектуре нет.
+## Компоненты
 
 ```mermaid
 flowchart LR
-    User[Пользователь] --> HK[HotkeyStudio / HUD]
-    HK --> Queue[(File IPC queue)]
-    Queue --> Bridge[Command Bridge внутри NX]
-    Bridge --> NX[Siemens NX UI / NXOpen]
-    NX --> Bridge
-    Bridge --> Context[context.json / results]
-    Context --> HK
-    Context --> CC[Control Center]
+    U[Пользователь] --> H[HotkeyStudio / Leader HUD]
+    P[v8 profile] --> H
+    H --> Q[(Authenticated file queue)]
+    Q --> B[Command Bridge in NX]
+    B --> N[Siemens NX / NXOpen]
+    N --> B
+    B --> C[context/status/results]
+    C --> H
+    C --> CC[Control Center]
 ```
 
-Границы доверия:
-
-1. **Пользовательский ввод** — намерение, но не разрешение на произвольный command ID.
-2. **Профиль** — конфигурация, которую необходимо валидировать.
-3. **Файловая очередь** — транспорт, содержимое которого Bridge повторно проверяет.
-4. **Command Bridge** — последняя защитная граница перед NX.
-5. **Siemens NX** — фактический источник availability, sensitivity, лицензии и результата команды.
-
-## Карта компонентов
-
-| Компонент | Ответственность | Не отвечает за |
-|---|---|---|
-| `NX2512_HotkeyStudio` | UI, tray, keyboard hook, HUD, поиск, CLI, profile loading, state-machine orchestration, deployment client | доказательство наличия команды в конкретной лицензии NX |
-| `NX2512_CommandBridge` | context snapshot, queue claim, validation, selection actions, module switch, точный UI command invocation | проектирование mnemonic path и каталог намерений |
-| `NX2512_ControlCenter` | диагностика profile coverage, Bridge, context и локальной статистики | изменение NXOpen integration |
-| `NX2512_Catalog_Studio` | экспорт фактических UI commands и NXOpen candidates | доказательство семантической эквивалентности UI→API |
-| `NXKeys.Protocol` | общий JSON contract schema 3 | business guards и deployment |
-| `NXKeys.StateMachines` | DFA/HFSM, confirmation, timeout и guard evaluation | discovery NX installations |
-| Node.js compilers | выбор K3–K5, ID resolution, path allocation и reports | runtime execution |
-| `DeploymentEngine` | staging, backup, manifest, atomic commit, health и rollback | обновление загруженной DLL без restart NX |
-
-## Слои профиля
-
-```mermaid
-flowchart TD
-    Catalog[config/full-command-map<br/>1169 K1-K5 intents]
-    Bootstrap[config/nx2512-pro-hybrid.json<br/>bootstrap schema 6]
-    NxCatalog[06_ui_commands_buttons.csv<br/>target workstation]
-    Probe[runtime command probe]
-    Compiler[compile-main-command-map.mjs]
-    Generated[main generated profile<br/>885 K3-K5 intents]
-    Installed[installed compatibility file<br/>nx2512-pro-hybrid.json]
-
-    Catalog --> Compiler
-    Bootstrap --> Compiler
-    NxCatalog --> Compiler
-    Probe --> Compiler
-    Compiler --> Generated
-    Generated --> Installed
-```
-
-### Intent catalog
-
-`config/full-command-map/` содержит функцию, частоту, source section/group, языковые имена, target module и path hint. Он не является напрямую исполняемым.
-
-### Bootstrap
-
-`config/nx2512-pro-hybrid.json` задаёт:
-
-- profile/scan/deployment settings;
-- 12 basic shortcuts;
-- 14 modules;
-- known IDs и curated commands;
-- workflow controls;
-- Leader settings;
-- safety defaults.
-
-### Generated main profile
-
-`config/nx2512-pro-main.generated.json` создаётся для K3/K4/K5 и включает resolution metadata. Статусы:
-
-- `existing` — exact ID из bootstrap;
-- `resolved` — надёжное соответствие из target catalog;
-- `ambiguous` — несколько кандидатов, команда disabled;
-- `unresolved` — ID не найден, команда disabled.
-
-### Installed profile
-
-Installer копирует generated main profile в managed package под compatibility filename `nx2512-pro-hybrid.json`. Поэтому одинаковое имя в source tree и managed root обозначает разные стадии жизненного цикла.
-
-Подробное решение: [ADR-0001](adr/0001-profile-layers.md).
+| Компонент | Ответственность |
+|---|---|
+| `NX2512_HotkeyStudio` | profile loading, adaptive module, Leader/HUD, keyboard hook, DFA/HFSM, CLI, deployment client |
+| `NX2512_CommandBridge` | context, authenticated request admission, command dispatch, module switch, selection actions, Selection Intent `0…4` |
+| `NXKeys.Protocol` | IPC schema 4, request/context/result models, HMAC/session/permission contract |
+| `NXKeys.StateMachines` | sequence DFA, Leader lifecycle, guards/confirmation/timeouts |
+| `NX2512_ControlCenter` | диагностика profile/runtime/Bridge |
+| `NX2512_Catalog_Studio` | экспорт фактических NX UI commands и API candidates |
+| `install-nxkeys.ps1` / deployment services | build, staging, managed install, backup, health, conflict cleanup |
 
 ## Версии контрактов
 
-| Контракт | Версия | Источник истины |
-|---|---:|---|
-| source/runtime profile schema | 6 | `ConfigRuntimeV5.cs` |
-| minimum accepted profile schema | 3 | `ConfigRuntimeV5.cs` и installer |
-| IPC schema | 4 | `NxProtocol.cs` |
-| `full_command_catalog` schema | 2 | profile compiler/output |
-| source sequence policy | 7 | `scripts/sequence-policy.mjs` |
-| MenuScript | 139 | `MenuScriptDefaults` |
-| toolbar MenuScript | 170 | `MenuScriptDefaults` |
+| Контракт | Версия |
+|---|---:|
+| profile | **8** |
+| minimum readable profile | **3** |
+| IPC | **4** |
+| sequence policy | **8** |
+| MenuScript | 139 |
+| toolbar MenuScript | 170 |
 
-Checked-in generated reports могут отражать предыдущую sequence policy до regeneration. Source policy имеет приоритет.
+Источники истины: `ConfigRuntimeV5.cs`, `NxProtocol.cs`, `sequence-policy.mjs`.
 
-## Мнемонический ввод
+## Profile architecture
 
-Пользователь вводит 2–5 токенов после `CapsLock`. Внутренний module prefix добавляется runtime автоматически.
+### Current source
+
+```text
+config/nx2512-v8-profile.json
+```
+
+V8 operation row состоит из:
+
+```text
+operation_id
+command_name
+paths.direct
+paths.workspace_key
+paths.leader
+paths.secondary_aliases
+adapter.kind/value/status
+availability.applications/requires_work_part/blocked_in_text_input
+```
+
+После загрузки v8 operations переводятся в normalized runtime modules/sequences и permission model.
+
+### Fallback
+
+Если profile JSON не найден, `Config.Load` создаёт hardcoded v8 configuration, применяет defaults и validation. CI проверяет этот no-profile path отдельно.
+
+### Legacy/catalog pipeline
+
+`config/full-command-map/`, `nx2512-pro-hybrid.json`, generated K3–K5 profile и Node compiler остаются для catalog coverage, resolution, audits и compatibility. Installer без `-ConfigPath` их не выбирает как основной runtime profile.
+
+## Adaptive module resolution
+
+HotkeyStudio получает текущий NX application/context от Bridge. Resolver сначала использует exact module/application mappings и только затем эвристики label/initial.
+
+Это защищает от коллизий вроде:
+
+```text
+Sketch
+Sheet Metal
+Surface
+Simulation
+```
+
+Внутренний module prefix добавляется автоматически. Пользователь его не вводит.
+
+## Leader и sequence DFA
 
 ```mermaid
 flowchart LR
-    Key[Keyboard event] --> UIQ[WinForms event queue]
-    UIQ --> Resolver[AdaptiveModuleResolver]
-    Resolver --> DFA[SequenceAutomaton]
-    DFA --> HFSM[LeaderStateMachine]
-    HFSM --> Guard[ContextGuardEvaluator]
-    Guard -->|allowed| Request[Create IPC request]
-    Guard -->|denied| Reason[Show reason / fallback]
+    K[Keyboard event] --> L[Physical-key latch]
+    L --> R[AdaptiveModuleResolver]
+    R --> D[SequenceAutomaton]
+    D --> S[LeaderStateMachine]
+    S --> G[Context guards]
+    G -->|allowed| I[Signed IPC request]
+    G -->|denied| X[Reason / cancel]
 ```
 
-Пути и aliases должны быть prefix-free внутри модуля. Одинаковый пользовательский путь допустим в разных модулях, поскольку внутренние prefixes различаются.
+Ключевые v8 свойства:
 
-Частотные цели текущей policy:
+- path может быть однотокенным;
+- aliases участвуют в реальном routing;
+- paths должны оставаться prefix-free внутри runtime module;
+- `workspace_key` не проецируется в root без workspace-state;
+- CapsLock autorepeat блокируется physical latch до `key-up`.
 
-- K5 — не более 2 токенов;
-- K4 — не более 3;
-- K3 — не более 4;
-- K2/K1 — до 5;
-- support commands — 2.
+### Modeling Manage
 
-Универсальные selection paths:
+Пользовательский путь:
 
 ```text
-SB Body       SF Face       SE Edge       ST Feature
-SC Component  SU Curve      SD Datum      SR Reset
-SA Select All SN Deselect All
+M → L → S
 ```
 
-Module switches используют `G*` и не добавляются в Sketch.
+Внутренняя sequence включает скрытый Modeling prefix, поэтому diagnostic DFA может показывать дополнительный `M`.
 
-## State machines
+### Sketch
 
-`SequenceAutomaton` реализует trie/DFA путей. `LeaderStateMachine` управляет interaction lifecycle:
+Frequent Sketch operations однотокенные (`L`, `R`, `C`, `A`, `T`), constraints используют `K → …`, dimensions — `D → …`, variants — `C → V → …`.
+
+## Selection: два независимых уровня
+
+### Type filter через Leader
 
 ```text
-Idle → Root → Prefix/Search
-              ↓
-     AwaitingConfirmation
-              ↓
-         Dispatching
-              ↓
-         AwaitingResult
-              ↓
-        Idle или Root
+S→B body  S→F face  S→E edge  S→T feature
+S→C component  S→U curve  S→D datum
+S→R reset  S→A all  S→N none
 ```
 
-Смена приложения использует отдельное состояние `SwitchingModule` и считается успешной после нового подтверждённого context revision.
+### Selection Intent `0…4`
 
-Подробности: [STATE_MACHINE_ARCHITECTURE.md](STATE_MACHINE_ARCHITECTURE.md).
+In-process Bridge hook задаёт распространение выбора:
 
-## Исполнение команды
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant H as HotkeyStudio
-    participant F as File queue
-    participant B as Command Bridge
-    participant N as Siemens NX
-
-    U->>H: mnemonic sequence
-    H->>H: resolve module, path and guards
-    H->>F: atomic request in pending
-    B->>F: claim pending → processing
-    B->>B: validate schema, expiry, context, selection, confirmation
-    B->>N: invoke exact command / selection action / module switch
-    N-->>B: result or exception
-    B->>F: result + completed/failed
-    H->>F: observe result/context
-    H-->>U: status
+```text
+0 reset
+1 single
+2 connected/chain
+3 tangent
+4 inferred path/region boundary
 ```
 
-Обычная command row не исполняется, если точный ID отсутствует. Selection filters используют `set_selection_filter`; module switches используют `switch_module`.
+Handler активируется только при NX foreground и подходящем collector/seed. Детали: [SELECTION_INTENT.md](SELECTION_INTENT.md).
 
-## IPC и надёжность
+## Sheet Metal canonicalization
 
-IPC root:
+Current NX2512 command namespace:
+
+```text
+UG_APP_SBSM
+UG_SBSM_*
+```
+
+Runtime/security нормализуют старые `UG_APP_SHEETMETAL` и `UG_SHEET_METAL_*` для compatibility. Permission key строится уже по canonical command/application IDs.
+
+## Authenticated IPC
+
+Root:
 
 ```text
 %LOCALAPPDATA%\NXKeys\bridge
 ```
 
-Очередь:
+Lifecycle:
 
 ```text
 pending → processing → completed | failed
 ```
 
-Request имеет уникальный ID, created/expiry timestamps и expected context fields. Bridge атомарно получает ownership через переход в `processing`.
+Schema 4 request включает session/security fields и context expectations. Managed launcher создаёт ephemeral session secret; HotkeyStudio подписывает requests HMAC-SHA-256, Bridge проверяет подпись, source process, anti-replay state, profile digest/permission и runtime context.
 
-Если NX завершился после claim, невозможно доказать, была ли команда выполнена. Такой request получает `interrupted_unknown` и не повторяется автоматически. Это at-most-once recovery, а не exactly-once guarantee.
+Файл queue сам по себе **не даёт права** на command execution.
 
-Подробное решение: [ADR-0002](adr/0002-file-queue-at-most-once.md).
+At-most-once recovery сохраняется: request, оставшийся в `processing`, не retry-ится автоматически и переходит в `interrupted_unknown`.
 
-## Контекст NX
+## Dispatch pipeline
 
-Bridge публикует:
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant H as HotkeyStudio
+    participant Q as File queue
+    participant B as Command Bridge
+    participant N as NX
 
-- application и module;
-- selection count/state/types;
-- Work Part и Display Part availability;
-- modal dialog и active command;
-- confidence;
-- semantic revision;
-- last request/result/message;
-- update timestamp.
+    U->>H: mnemonic
+    H->>H: resolve module/path/guards
+    H->>H: sign request
+    H->>Q: atomic publish
+    B->>Q: claim
+    B->>B: schema + HMAC + permission + context
+    B->>N: execute/switch/filter
+    N-->>B: UI/NXOpen response
+    B->>Q: result
+    B->>H: context revision / status
+```
 
-Heartbeat без семантического изменения не должен создавать новую revision. Dispatch сравнивает expected revision и другие expectations повторно внутри Bridge.
+## Interactive command caveat
 
-## Разрешение UI-команд
+Bridge invokes UI commands through NX APIs including `DialogTester.InvokeMenuButtonAction`. Для части интерактивных commands `false` может требовать дополнительной live-NX интерпретации; contract build не доказывает, что диалог не открылся.
 
-Compiler объединяет:
+Поэтому фактический UI result подтверждается integration test на target NX, а не только return value/stub build.
 
-1. exact IDs bootstrap;
-2. target `06_ui_commands_buttons.csv`;
-3. runtime probe;
-4. имена, aliases и synonyms;
-5. module-aware scoring.
-
-Similarity score используется только для поиска кандидатов. Он не является достаточным основанием для включения неоднозначной команды.
-
-## Deployment
+## Deployment architecture
 
 ```mermaid
 flowchart TD
-    Compile[Compile main profile] --> Validate[Validate scope and tree]
-    Validate --> Build[Build HotkeyStudio, Bridge, Control Center]
-    Build --> Stage[Create clean staging set]
-    Stage --> Hash[Calculate SHA-256]
-    Hash --> Backup[Create backup manifest]
-    Backup --> Apply[Atomic managed deployment]
-    Apply --> Manifest[Write package-manifest.json]
-    Manifest --> Health[Post-install health-check]
-    Health -->|failure| Rollback[Rollback]
+    V[Resolve v8 profile] --> B[Build components]
+    B --> S[Clean staging]
+    S --> D[Deploy managed package]
+    D --> H[Health + manifest/hash]
+    H --> C[Conflict/custom_dirs normalization]
+    C --> L[Managed launcher]
 ```
 
-Основные границы:
+Current installed profile:
 
-- managed files устанавливаются в `%LOCALAPPDATA%\NXKeys`;
-- Bridge размещается в `custom/application`, не в `custom/startup`;
-- launcher не переопределяет глобальные `PATH` и `UGII_USER_DIR`;
-- existing `UGII_CUSTOM_DIRECTORY_FILE` изменяется только ограниченным способом и с backup;
-- удаляются только ранее управляемые files;
-- загруженная Bridge DLL требует restart NX.
-
-## Build architecture
-
-- HotkeyStudio и Control Center собираются на GitHub-hosted Windows runner.
-- State-machine tests не требуют NX.
-- Command Bridge компилируется в CI против NXOpen contract stubs.
-- Production Bridge и Catalog Studio собираются против реальных NXOpen DLL целевой установки.
-- Contract build подтверждает форму API, но не runtime compatibility.
-
-## Расширение
-
-### Новая command row
-
-Необходимо определить intent, frequency, module, path, resolution source, selection/confirmation semantics и tests.
-
-### Новый модуль
-
-Требуются уникальные `id` и internal prefix, application IDs, switch command, command sets, resolver mapping, policy guards, tests, support-command generation и docs.
-
-### Новое IPC действие
-
-Требуется согласованное изменение shared protocol, validation обеих сторон, schema decision, tests, API docs и recovery semantics.
-
-### Новая deployment target
-
-Требуется явная trust boundary, package manifest behavior, backup/rollback strategy и отсутствие записи вне managed ownership.
-
-## Известные ограничения
-
-- runtime integration зависит от proprietary NXOpen и конкретной лицензии;
-- checked-in target catalog не может доказать доступность на другой workstation;
-- UI automation чувствительна к application/modal state;
-- generated profile может быть большим из-за global duplication;
-- coverage 885 измеряется уникальными `catalog_refs`, а не количеством module rows;
-- current source содержит отдельные устаревшие schema v4 strings в error messages — это технический долг, не контракт;
-- telemetry централизованно не собирается; диагностика локальная.
-
-## Инварианты
-
-CI и validators должны подтверждать:
-
-- 1169 source intents и точное K1–K5 распределение;
-- main scope ровно 885 K3–K5;
-- отсутствие K1/K2 references в main;
-- 12 basic shortcuts и 14 modules;
-- prefix-free canonical paths и aliases;
-- enabled command имеет ID;
-- destructive request требует confirmation;
-- IPC schema 4 round-trip;
-- state-machine transitions и expiry;
-- contract build HotkeyStudio, Control Center и Bridge;
-- deployment не выходит за managed boundaries.
-
-Фактическое выполнение критичных команд подтверждается только runtime-тестом в целевой NX.
-
-### Authenticated admission pipeline
-
-```mermaid
-flowchart LR
-    L[Managed launcher] -->|ephemeral secret in child environment| H[HotkeyStudio]
-    L -->|same session secret| N[Siemens NX / Bridge]
-    H -->|schema 4 + HMAC + nonce + sequence| Q[(file queue)]
-    Q --> V[Bridge authentication]
-    V --> P[Profile allowlist]
-    P --> C[Context and selection guards]
-    C --> X[NX command invocation]
+```text
+%LOCALAPPDATA%\NXKeys\managed\NX2512.6000\nx2512-v8-profile.json
 ```
 
-The profile permission digest is derived from enabled command/action/module/selection rows and
-confirmation policy. Bridge does not trust the digest supplied by the request; it rebuilds the same
-permission set from the configured profile and compares it before dispatch.
+Bridge размещается в `custom/application`. Обновление загруженной DLL требует полного restart NX.
 
-## BridgeCore and bounded NX UI thread
+## Trust boundaries
 
-`NXKeys.Protocol` is now a real class library rather than linked source. `NXKeys.BridgeCore` owns
-transport admission that does not require NXOpen:
+1. keyboard intent — не command authority;
+2. profile — валидируемая policy/configuration;
+3. queue — недоверенный transport;
+4. HMAC/session/profile permission — admission controls;
+5. Bridge — последняя NXKeys boundary;
+6. Siemens NX — фактический источник availability/sensitivity/effect.
 
-- authenticated session and profile permission validation;
-- source process verification and replay protection;
-- background enumeration, atomic claim, payload parsing and rejection;
-- bounded ready/rejected queues.
+## Что проверяется без NX
 
-The NX-loaded assembly is now the UI-thread adapter. Its WinForms timer dequeues at most one
-admitted request per tick and performs only current-context validation plus the actual NX call.
-Directory enumeration, JSON parsing, HMAC verification and process inspection no longer execute on
-the NX UI thread.
+CI подтверждает:
 
-```mermaid
-flowchart LR
-    Files[(pending files)] --> Inbox[BridgeRequestInbox background thread]
-    Inbox --> Security[BridgeSecurityGate]
-    Security --> Ready[(bounded admitted queue)]
-    Ready -->|one request per tick| Adapter[NX CommandBridge UI thread]
-    Adapter --> NX[Siemens NX]
-```
+- v8 profile/schema invariants;
+- aliases/workspace-root behavior;
+- state machines/protocol/security tests;
+- hardcoded fallback;
+- Sheet Metal canonicalization permissions;
+- desktop builds;
+- Bridge compile against NXOpen contract stubs;
+- documentation/generated invariants.
 
-## Unified desktop shell
+## Что требует target NX
 
-HotkeyStudio is the canonical desktop shell for runtime control, command editing, live NX context,
-deployment, backups, diagnostics and Leader/HUD settings. The former Control Center executable is
-kept only as a compatibility launcher that opens the same shell; it no longer contains a second
-mutable profile model or duplicate diagnostics UI.
+- загрузка production Bridge;
+- точная чувствительность `BUTTON ID`;
+- лицензии и roles;
+- module mapping конкретной workstation;
+- Selection Intent behavior в реальных collectors;
+- interactive dialog invocation;
+- destructive command effect.
 
-Profile editing uses `ProfileDraftSession`: changes are made against a cloned draft, recorded as
-bounded immutable snapshots, support undo/redo and a digest-backed diff, and reach disk only through
-the existing atomic `Config.Save` path.
+## Исторические документы
 
-The UI design system is centralized in `NxKeysTheme`, including high-contrast-aware colors,
-consistent spacing and accessible button/input styling. HUD root views show at most ten immediate
-choices and direct the user to module search for the remainder.
+Старые audit/build snapshots могут содержать schema 6, IPC 3, policy 7 и модель generated K3–K5 как main runtime. Они сохраняются как historical evidence, но не определяют current architecture.
