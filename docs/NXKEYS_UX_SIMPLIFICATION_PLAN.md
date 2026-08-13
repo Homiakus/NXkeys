@@ -4,6 +4,7 @@
 **Дата аудита:** 13 августа 2026 года  
 **Проверенная ветка:** `main`  
 **Базовый commit:** `13fc9c11ecb0722605a14f9cc9cf1facba3dbe0f`  
+**Дополнительный аудит mnemonic runtime:** `1aac694ced3a6ec238453559f4b9537d3dd66212`
 **Целевая среда:** Siemens NX / Designcenter NX 2512.6000, Windows x64
 
 ## 1. Итог аудита
@@ -20,6 +21,8 @@
 При этом сохраняются:
 
 - все реально исполняемые команды текущего v8-профиля;
+- фактические пользовательские маршруты: однотокенный Sketch, смысловые ветви `D/K/J/U`, aliases, `G → …` и `S → …`;
+- три разных канала ввода: контекстные Direct Keys, CapsLock Leader и Selection Intent `0…4`;
 - поиск по полному каталогу;
 - ручная настройка путей для опытного пользователя;
 - authenticated IPC, allowlist, anti-replay и повторная проверка контекста в Bridge;
@@ -140,6 +143,37 @@ Desktop-транслятор в `ConfigRuntimeV5.cs` отключает таки
 
 C#-тесты локально не запускались: в среде аудита отсутствовал .NET SDK. Статический вывод необходимо подтвердить на Windows и на лицензированной станции NX 2512.6000.
 
+### 2.11. Заявленный mnemonic language шире фактически достижимого runtime
+
+Дополнительно сопоставлены `docs/MNEMONIC_COMMAND_LANGUAGE.md`, `docs/RUNTIME_V8.md`,
+`docs/SKETCH_INTENT_LANGUAGE.md`, `docs/SELECTION_INTENT.md`, v8-профиль, C# runtime и tests.
+Документы правильно задают полезную трёхуровневую модель ввода, но часть описанного как
+«фактически реализованное» сейчас является только profile intent или target design.
+
+| Контракт языка | Что заявлено пользователю | Что делает текущий код | Решение для плана |
+|---|---|---|---|
+| Скрытый module prefix | приложение NX определяется автоматически | `LeaderKeyEngine` действительно вводит prefix активного модуля внутри DFA | сохранить; никогда не показывать и не редактировать prefix как пользовательский токен |
+| CapsLock | одно физическое нажатие открывает Leader без autorepeat и смены регистра | latch реализован в `LeaderKeyEngine`, но Win32 edge/restore не покрыт отдельной автоматизированной регрессией | вынести admission-логику в тестируемую функцию; добавить hook integration test на Windows |
+| Однотокенный Sketch | `CapsLock → L/R/C/A/T/…` | 94 operation используют только `workspace_key`, из них 20 имеют BUTTON ID; `SuppressWorkspaceLocalKeysAtRoot()` удаляет такие пути. Единственный `leader` длиной 1 также пропускается, потому что translator принимает только `Count >= 2` | обычные однотокенные Sketch-команды мигрировать в `leader:[key]`; `workspace_key` оставить только для явно открытого Workspace state |
+| Direct Keys | частые команды работают без CapsLock при строгих guards | 58 operation имеют только `paths.direct`, из них 18 с BUTTON ID, но отдельного direct dispatch нет: translator превращает поле в однотокенный Leader route | либо реализовать отдельный guarded Direct state, либо маркировать route недоступным; не называть Leader route прямой клавишей |
+| `secondary_aliases` | дополнительные Leader-маршруты | 84 aliases разворачиваются клонированием operation; однотокенный alias код переводит в `paths.direct`, смешивая разные семантики | компилировать aliases как Leader routes того же operation, без клонирования capability и без превращения в Direct Key |
+| `G → …` | переход между приложениями из текущего контекста с ожиданием fresh context | 11 global operation транслируются в модуль `v8_g` как `execute_command`; явный `switch_module` и универсальный overlay из v8 profile не строятся | компилировать `action=switch_module`, `target_application_id` и общий route overlay; завершать только после нового Bridge context |
+| `S → …` | универсальный фильтр типа объекта | 43 global `S` operation в v8 profile являются `internal`/не mapped; рабочие canonical filters добавляет `scripts/sequence-policy.mjs` только в compatibility/generated modules | описать проверенные фильтры в каноническом v8 operation contract как `set_selection_filter`; не импортировать весь target-каталог как готовый |
+| Selection Intent `0…4` | отдельный in-process механизм «как распространять выбор» | реальный hook находится в `SelectionIntentHotkeys.cs`; есть foreground/modifier/focus/collector guards и physical latch, но код P/Invoke, admission и NX actions слит в одном static class; в режиме `1` дважды вызывается `KeepOnlyLastSelected()` | сохранить механизм отдельно от `S → …`; выделить чистое решение admission/intent transition внутри существующего Bridge-проекта и покрыть таблицей guards |
+| Prefix-free DFA | primary path, alias и workspace scope не конфликтуют | prefix-проверка работает после legacy translation, но CI не фиксирует весь фактический v8 route set; Sketch test проверяет старые `C→L`/`E→T`, тогда как user docs требуют `L`/`T` | создать compiled route lock по scope и route kind; тестировать профиль, а не параллельную тестовую грамматику |
+| BUTTON ID | только точное, подтверждённое сопоставление | правило в документации правильное, но Bridge permission parser всё ещё превращает non-button operation ID в command ID | применить fail-closed правило в едином compiler и permission snapshot |
+| Sheet Metal | `UG_APP_SBSM` и `UG_SBSM_*` являются canonical | runtime нормализует старые IDs, но v8 profile всё ещё содержит `UG_APP_SHEETMETAL` для route | мигрировать canonical profile; compatibility mapping оставить только на входе legacy migration |
+| Current против target | v8.3 Left-Hand First хранится как historical design | разделение формально есть, однако current guides описывают Direct/Workspace/global routes как уже работающие | ввести статусы `implemented`, `ci_verified`, `nx_verified`, `target_only`; current guide генерировать только из compiled snapshot |
+
+Полезная идея документа — не «показать все команды», а дать три согласованных уровня:
+
+1. Direct Key только там, где перехват доказанно безопасен;
+2. `0…4` только внутри подходящего NX collector;
+3. CapsLock Leader как полный, детерминированный и доступный для поиска язык.
+
+Упрощение HUD не должно менять эту грамматику по статистике. Ranking выбирает подсказки, но уже
+выученный путь всегда ведёт к той же operation, пока пользователь сам не подтвердил переназначение.
+
 ## 3. Целевой пользовательский путь
 
 | Сценарий | Сейчас | Должно стать |
@@ -147,6 +181,8 @@ C#-тесты локально не запускались: в среде ауд
 | Установка | исходники, SDK, PowerShell modes, сборка нескольких продуктов | готовый release, автообнаружение NX, одна кнопка «Установить» |
 | Запуск | обычный NX, managed launcher, Studio, Control Center, tray, NX toolbar | один ярлык `Siemens NX 2512 + NXKeys`; остальные входы прикрепляются к той же сессии |
 | Ежедневная команда | до 28 карточек, доступные и недоступные вперемешку | до 8 готовых действий текущего шага; остальное через путь или поиск |
+| Мнемонический ввод | `direct`, `leader`, `workspace_key` и global routes смешиваются при legacy translation | Direct, Leader, Workspace и Selection Intent имеют разные states/guards, но компилируются из одного operation contract |
+| Выученный путь | документация и тесты могут описывать разные Sketch-маршруты | route lock гарантирует неизменность `L/R/C/T`, `D/K/J/U`, aliases, `G` и `S`; ranking меняет только порядок подсказок |
 | Настройка | таблицы модулей, BUTTON ID, JSON и deployment | основные настройки простыми словами; mapping только в «Дополнительно» |
 | Ошибка | raw status, пути, журнал, ручной выбор maintenance mode | причина, влияние и одна безопасная кнопка следующего действия |
 | Обновление | повторная сборка и очистка конфликтов | «Обновить» с preflight, backup, apply, health-check и автоматическим откатом |
@@ -164,6 +200,12 @@ C#-тесты локально не запускались: в среде ауд
 8. NxEskd и Catalog Studio не входят в стандартную установку, но остаются доступными как optional packages.
 9. В первых этапах не добавлять новые `.csproj`. Удалять или объединять старые проекты раньше, чем создавать новые.
 10. Не дробить каждую форму или DTO на отдельный файл. Допустим один компилятор профиля и один тип состояния пользовательского потока; остальное следует размещать в существующих тематических файлах.
+11. `leader`, `direct`, `workspace_key` и Selection Intent — разные виды ввода с разными admission rules; compiler не должен преобразовывать один вид в другой ради совместимости.
+12. Активное NX application является неявным scope. Пользователь не вводит и не редактирует внутренний module prefix.
+13. Однотокенный Leader path является полноценным route. Минимальная длина два токена запрещена как универсальное правило.
+14. Primary route, aliases и universal overlays образуют prefix-free DFA внутри своего scope; Workspace local keys проверяются только внутри явно открытого Workspace state.
+15. Adaptive ranking может менять только подсказки. Автоматически менять выученный route или Direct Key по telemetry запрещено без preview и подтверждения пользователя.
+16. Historical v8.3 specification остаётся backlog дизайна. Функция попадает в current guide только после compiler test и, когда задействован NX UI/collector, live NX verification.
 
 ## 5. План работ
 
@@ -183,15 +225,24 @@ C#-тесты локально не запускались: в среде ауд
   - либо включить в обязательный pipeline и исправить текущие 11 расхождений;
   - либо удалить как устаревший валидатор. Оставлять падающий, но нигде не вызываемый скрипт нельзя.
 - `NX2512_HotkeyStudio.Tests/Program.cs`:
-  - добавить behavioral checks для лимита HUD, источника профиля, launcher arguments и совпадения runtime/permission capabilities.
-- добавить один versioned capability lock для audited baseline: уникальные исполняемые BUTTON ID, local actions, selection intents и module switches. Изменение lock допускается только с явным описанием миграции.
+  - заменить параллельную тестовую Sketch-грамматику `C→L`/`E→T` проверкой compiled routes из `config/nx2512-v8-profile.json`;
+  - добавить behavioral checks для лимита HUD, источника профиля, launcher arguments и совпадения runtime/permission capabilities;
+  - проверить однотокенные `L/R/C/A/T`, семейства `D/K/J/U`, alias `M→L→S`, universal `G→…`/`S→…` и отсутствие видимого module prefix.
+- `NX2512_HotkeyStudio.Tests/V8AliasRegression.cs`:
+  - проверять aliases как routes той же capability, а не как клонированные operation ID;
+  - отдельно проверять, что `workspace_key` недоступен в root и доступен только в Workspace state.
+- `NX2512_CommandBridge/SelectionIntentHotkeys.cs`, `NXKeys.StateMachines/LeaderStateMachines.cs` и `NXKeys.StateMachines.Tests/DeclarativePolicyTests.cs`:
+  - вынести чистую таблицу admission для `0…4` из P/Invoke/NX вызовов в существующий state-machine layer, не создавая нового проекта;
+  - покрыть foreground, Ctrl/Alt/Win, injected event, autorepeat, text/numeric focus, collector/no collector и seed/no seed.
+- добавить один versioned capability-and-route lock для audited baseline: `operation_id`, route kind, application scope, primary path, aliases, action, BUTTON ID, risk и availability. Изменение lock допускается только с явным описанием миграции.
 
 **Как тестировать**
 
 1. На clean checkout выполнить все команды, которые выполняет `verify`.
 2. Намеренно изменить лимит HUD, имя профиля и один permission — каждый дефект должен уронить CI.
-3. Проверить path filters: изменение `AdaptiveLeaderPolicy.cs` обязано запускать UI/runtime tests.
-4. Проверить, что generated timestamp сам по себе не создаёт commit и не меняет рабочее дерево после verify.
+3. Заменить `workspace_key:L` на `leader:[L]`, удалить `K→C` alias и превратить `switch_module` в `execute_command` по одному разу: каждый дефект должен уронить route tests.
+4. Проверить path filters: изменение `AdaptiveLeaderPolicy.cs`, `V8SecondaryAliasExpander.cs`, `SelectionIntentHotkeys.cs` или compiler обязано запускать UI/runtime tests.
+5. Проверить, что generated timestamp сам по себе не создаёт commit и не меняет рабочее дерево после verify.
 
 **Критерий готовности:** один обязательный workflow отвечает на вопрос «этот commit можно устанавливать», а не только «отдельные файлы содержат ожидаемые слова».
 
@@ -203,12 +254,25 @@ C#-тесты локально не запускались: в среде ауд
 
 - `NX2512_HotkeyStudio/Models/V8Models.cs`:
   - добавить явные поля `action`, `enabled`, `risk`, `confirmation_required`, `requires_selection`, `minimum_selection_count`, допустимые selected types и user-facing unavailable reason;
-  - отделить `local_behavior` от `execute_command`, `switch_module` и `set_selection_filter`.
+  - отделить `local_behavior` от `execute_command`, `switch_module` и `set_selection_filter`;
+  - представить route как типизированные `leader`, `direct` и `workspace`, сохранив совместимое чтение старых `paths`; scope route состоит из application + optional workspace, а не из буквы module prefix.
 - `NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs`:
   - удалить ручной `BuildHardcodedModules()`;
   - заменить `TranslateV8OperationsToLegacy()` детерминированной компиляцией в immutable runtime snapshot;
+  - принимать Leader path длиной 1–5; не использовать правило `leader.Count >= 2`;
+  - строить universal overlay для `G→…`, проверенных `S→…`, search/help и других global actions поверх каждого разрешённого application scope вместо создания псевдомодулей `v8_g`/`v8_s`;
+  - не выводить route kind из длины пути и не превращать `direct`/`workspace_key` в Leader terminal;
   - не сериализовать производные `Modules`, `Keyboard` и `LeaderKey.Sequences` в schema v8;
   - legacy schemas 3–7 загружать через read-only migration path и сохранять уже как однозначный v8 profile.
+- `NX2512_HotkeyStudio/Models/V8SecondaryAliasExpander.cs`:
+  - после появления compiler удалить клонирование operation для aliases;
+  - каждый alias должен ссылаться на тот же стабильный `operation_id`, наследовать action/risk/guards и отличаться только route;
+  - `secondary_aliases:["K->C"]` остаётся Leader route; однотокенный alias не становится Direct Key.
+- `NX2512_HotkeyStudio/Models/LeaderConfigV5.cs` и `NXKeys.StateMachines/LeaderStateMachines.cs`:
+  - строить DFA из compiled routes, а не из legacy modules;
+  - хранить application scope отдельно от user tokens;
+  - валидировать duplicate и terminal-prefix collision по `(route_kind, application_scope, workspace_scope)`;
+  - добавить один явный Workspace state; local key допускается только после перехода в него.
 - `NX2512_HotkeyStudio/NX2512_HotkeyStudio.csproj`:
   - встраивать канонический `config/nx2512-v8-profile.json` как resource;
   - при отсутствии installed profile восстанавливать копию из этого resource и явно сообщать о repair, а не включать другой набор команд.
@@ -222,7 +286,13 @@ C#-тесты локально не запускались: в среде ауд
   - проверять, что digest runtime snapshot совпадает с digest Bridge context.
 - `config/nx2512-v8-profile.json`:
   - разметить 145 button-id records по risk/action;
-  - отдельно описать local behaviors;
+  - нормализовать Sketch `L/R/C/A/S/P/W/G/I/T/E/O/F/H/M/V/Y/N/Z`: текущие `workspace_key`, дубли и псевдо-direct записи заменить однотокенными Leader routes там, где контрактом является `CapsLock → key`;
+  - исправить `paths.direct` на реально guarded Direct routes; значения вроде `"S direct"` заменить однозначным token + explicit direct policy;
+  - устранить расхождение Direct Dimension: current guide называет базовой клавишей `Q`, профиль содержит `D`; после live verification зафиксировать базовые `Q/S`, а `D/T/F/E/O` оставить отдельным opt-in extended set;
+  - разметить routing operations как `switch_module` с canonical target (`UG_APP_SBSM` для Sheet Metal);
+  - для заявленных, но отсутствующих в v8 profile `G→S` и `G→U` добавить verified switch/create contracts либо оставить видимый `target_only` result с причиной; не синтезировать target application по букве;
+  - разметить только проверенные selection type filters как `set_selection_filter`, оставив Smart Selection/scope/mode target-only до adapter verification;
+  - отдельно описать local behaviors и настоящие Workspace routes;
   - оставить 308 незавершённых contracts в каталоге, но не выдавать их за исполняемые команды.
 - удалить исключённый `NX2512_HotkeyStudio/Models/ConfigModels.cs`: Git уже хранит историю, архивная копия в активном проекте не нужна.
 
@@ -237,8 +307,12 @@ C#-тесты локально не запускались: в среде ауд
 5. Удаление внешнего JSON восстанавливает тот же набор возможностей, что и embedded canonical profile.
 6. Legacy fixture schema 3–7 мигрирует один раз; повторная миграция идемпотентна.
 7. Capability lock подтверждает, что ни один ранее исполняемый BUTTON ID, local action, selection intent или module switch не исчез.
+8. Route lock подтверждает точные user paths и тип ввода: `CapsLock→L` не становится direct `L`, а Direct Key не требует CapsLock.
+9. `G→H` создаёт `switch_module` к `UG_APP_SBSM`, затем остаётся в switching state до fresh context; обычный execute permission для этого route отсутствует.
+10. Проверенные `S→B/F/E/T/C/U/D/R/A/N` доступны во всех разрешённых applications и не смешиваются с Selection Intent `0…4`.
+11. Один и тот же `operation_id` с primary и secondary routes создаёт одну capability/permission и несколько DFA routes.
 
-**Критерий готовности:** профиль, HUD, desktop dispatch и Bridge allowlist используют один и тот же compiled snapshot и один digest.
+**Критерий готовности:** профиль, input admission, HUD, DFA, desktop dispatch и Bridge allowlist используют один compiled snapshot и один digest; документация может перечислить фактические routes без эвристики.
 
 ### P2. Оставить один установленный способ запуска
 
@@ -337,7 +411,34 @@ C#-тесты локально не запускались: в среде ауд
 
 **Критерий готовности:** при открытии приложения без чтения документации понятно, готова ли система и что делать дальше.
 
-### P5. Показывать в HUD только следующий полезный шаг
+### P5. Сохранить mnemonic language и показывать только следующий полезный шаг
+
+Пользовательский путь остаётся один — контекстная система NXKeys, — но внутри неё существуют три
+разных безопасных канала ввода. Их нельзя сводить к одной таблице клавиш.
+
+#### P5.1. Единый порядок admission
+
+**Что и где менять**
+
+- `NX2512_HotkeyStudio/Services/LeaderKeyEngine.cs`, `NX2512_CommandBridge/SelectionIntentHotkeys.cs` и существующий state-machine layer:
+  - зафиксировать общий порядок: protected text/numeric input → system modifiers → active Leader/Workspace → active NX workflow → Selection Intent → Direct Keys → стандартное поведение NX;
+  - использовать один снимок context revision для решения и повторно проверять его перед dispatch;
+  - physical key-down принимать один раз до real key-up для CapsLock, Direct Keys и `0…4`;
+  - убрать дублированный вызов `KeepOnlyLastSelected()` в intent `1`;
+  - не делать blind retry интерактивной NX-команды: успешное открытие dialog может не совпадать с boolean результата invocation API.
+- `NX2512_HotkeyStudio/Services/LeaderKeyEngine.cs`:
+  - автоматически вводить application scope в DFA, но никогда не показывать его как первый пользовательский токен;
+  - поддержать однотокенные Leader routes как обычные terminals;
+  - сохранить повторный CapsLock = закрыть, double tap = Sticky, Backspace = один уровень назад, Enter = однозначное действие и Esc = ровно одна отмена;
+  - `G→…` выполнять только как module-switch transition и завершать после fresh Bridge context;
+  - `S→…` менять тип выбора, а `0…4` — способ распространения от seed; состояния должны комбинироваться и отображаться отдельно.
+- Direct Keys реализовать в существующем input engine, без второго global-hook сервиса:
+  - базовый набор включать только после live verification;
+  - расширенный набор включается пользователем явно;
+  - конфликтующий `F`/Fit остаётся выключенным по умолчанию;
+  - при любом сомнении событие передаётся NX, а не поглощается.
+
+#### P5.2. Контекстный HUD поверх стабильной грамматики
 
 **Что и где менять**
 
@@ -345,31 +446,62 @@ C#-тесты локально не запускались: в среде ауд
   - ранжировать сначала исполняемые команды;
   - учитывать application/module, active command/collector, work part, selection count, selected types, recent usage и frequency;
   - unavailable items возвращать только для поиска и объяснения, но не для корневых рекомендаций;
-  - destructive items не поднимать только из-за частого использования.
+  - destructive items не поднимать только из-за частого использования;
+  - ranking не меняет route, Direct Key или alias и не записывает автоматические переназначения.
 - `NX2512_HotkeyStudio/Services/LeaderKeyEngine.cs`:
-  - передавать в HUD два множества: `recommended now` и `searchable catalog`;
-  - ручное циклическое переключение модуля не показывать как основной сценарий, поскольку модуль определяется автоматически; сохранить переключение через явную ветвь и Advanced setting.
+  - передавать в HUD `recommended now`, `next tokens` и `searchable catalog`;
+  - ручное циклическое переключение модуля не показывать как основной сценарий; сохранить `G→…` и явную Advanced-настройку;
+  - `Space` внутри Leader открывает поиск, вне Leader остаётся стандартным вводом, пока отдельное безопасное правило Hide Selected не реализовано и не проверено.
 - `NX2512_HotkeyStudio/UI/LeaderHudForm.cs`:
   - заменить `MaximumRootRows = 28` на `PrimarySuggestionLimit = 8`;
-  - корень показывает до восьми готовых действий или групп;
-  - `Space` ищет по полному текущему каталогу;
-  - для недоступного search result показывать короткую причину: «сначала выберите грань», «нужна рабочая деталь», «команда отсутствует в вашей роли»;
+  - корень показывает до восьми готовых действий или смысловых ветвей, но при вводе токена всегда показывает все допустимые следующие токены DFA;
+  - явно различать `Direct`, `Leader`, `Selection: тип`, `Intent: правило` и Workspace state;
+  - для недоступного search result показывать короткую причину и подходящий route восстановления: «сначала выберите грань», «нужна рабочая деталь», `G→C — открыть Manufacturing`;
   - заменить `BRIDGE OFF`, `SEL 0` и другие технические chips на короткие русские состояния;
   - при недостоверном контексте не показывать обычный каталог как готовый к исполнению.
 - `NX2512_HotkeyStudio/UI/CommandListPreviewPanel.cs`:
-  - использовать ту же ranking policy, что и живой HUD, чтобы preview не обещал другого поведения.
+  - использовать тот же compiled snapshot и ranking policy, что и живой HUD;
+  - preview показывает реальный user route без скрытого prefix и помечает `target_only` как недоступный design intent.
+
+#### P5.3. Workspace только как явное состояние
+
+Target v8.3 содержит полезные Layer, WAVE и Geometry Display workspaces. Их следует реализовывать
+по одному после P1, а не активировать существующие `workspace_key` как корневые команды.
+
+- `NXKeys.StateMachines/LeaderStateMachines.cs` и `LeaderBehaviorProfile.cs`:
+  - добавить один общий Workspace state с `workspace_id`, local routes, snapshot availability и back/close semantics;
+  - вход выполняется обычным Leader route, затем HUD остаётся открыт; local key действует только в этом state;
+  - `Esc` возвращает на уровень выше, повторный `Esc`/CapsLock закрывает; одно нажатие не выполняет два действия.
+- `config/nx2512-v8-profile.json`:
+  - сначала включить минимальный Layer Workspace с проверенным `UG_LAYER_SETTINGS` и disabled target actions с причинами;
+  - WAVE и Geometry Display включать только после явных input/snapshot/safety contracts и live NX tests;
+  - logical layer aliases хранятся в профиле; универсальный runtime не фиксирует корпоративные номера слоёв.
+- существующие Bridge/runtime services:
+  - Layer/Display actions до изменения создают восстанавливаемый snapshot;
+  - нельзя скрыть Work Layer, молча показать скрытый слой, загрузить component, выполнить Unsuppress или изменить Reference Set;
+  - WAVE требует явных source, target, associativity, проверки duplicate link и preview перед break/replace.
+
+Не создавать отдельные приложения или формы для трёх workspaces. Это состояния существующего Leader HUD;
+уникальная логика размещается в текущем state-machine/Bridge слое и включается capability за capability.
 
 **Как тестировать**
 
 1. Modeling без выбора: не более восьми доступных рекомендаций, нет selection-only destructive actions.
 2. Modeling с выбранной гранью: появляются релевантные face operations, но полный каталог остаётся в поиске.
-3. Sketch: `L`, `R`, `C`, `T`, `K→…`, `D→…` остаются достижимыми прежними путями.
-4. Sheet Metal использует canonical `UG_APP_SBSM` / `UG_SBSM_*`.
-5. Bridge offline/stale/authentication mismatch: HUD не отправляет команду и показывает одно понятное действие.
-6. Поиск находит каждую capability из capability lock, даже если она не входит в top 8.
-7. Destructive action всегда проходит отдельное confirmation state и повторно проверяется Bridge.
+3. Sketch: `CapsLock→L/R/C/A/T/E/O/F/H/M/V/Y/N/Z`, `D→*`, `K→*`, `J→*`, `U→*` и `C→V→…` совпадают с route lock; active Sketch prefix не виден.
+4. Direct Key нажимается при graphics focus и передаётся без перехвата при text/numeric focus, unknown modal, system modifier или неподходящем application.
+5. CapsLock/Direct/`0…4` autorepeat создаёт ровно одно действие до key-up; CapsLock state ОС восстанавливается.
+6. Повторный CapsLock, double tap, Backspace, Enter и Esc проходят таблицу состояний без двойного dispatch/cancel.
+7. `G→M/A/D/P/U/H/C/N/R/O/L/V/S` использует switch action и ждёт новый context; Sheet Metal использует `UG_APP_SBSM` / `UG_SBSM_*`.
+8. `S→B/F/E/T/C/U/D/R/A/N` меняет selection type; затем `0…4` меняет intent, не сбрасывая тип без явной причины.
+9. Цифры `0…4` остаются обычным вводом без collector/seed и в числовом поле; Ctrl/Alt/Win и injected events не поглощаются.
+10. Bridge offline/stale/authentication/profile mismatch: HUD не отправляет команду и показывает одно понятное действие.
+11. Поиск находит каждую capability и каждый user route из lock, даже если они не входят в top 8.
+12. Primary и secondary route выполняют одну capability и записывают одну usage identity.
+13. Workspace local key недоступен на root; Layer snapshot/restore идемпотентен; скрытие Work Layer блокируется.
+14. Destructive action всегда проходит отдельное confirmation state и повторно проверяется Bridge.
 
-**Критерий готовности:** полнота не уменьшилась, но в каждый момент пользователь видит не более восьми действительно полезных следующих вариантов.
+**Критерий готовности:** полнота и выученная грамматика не уменьшились, ложных перехватов нет, а в каждый момент пользователь видит не более восьми релевантных вариантов и все допустимые продолжения уже введённого пути.
 
 ### P6. Упростить настройку команд без потери контроля
 
@@ -377,9 +509,12 @@ C#-тесты локально не запускались: в среде ауд
 
 - `HotkeyStudioForm.BuildModulesPage()`:
   - заменить открытую по умолчанию DataGridView на поиск команд и карточку выбранной операции;
-  - обычные действия: включить/выключить, изменить mnemonic path, добавить в избранное, вернуть default;
+  - обычные действия: включить/выключить, изменить Leader path, добавить в избранное, вернуть default;
+  - Direct Key и Workspace route редактировать в отдельных явно названных controls; пользователь не может случайно превратить один вид маршрута в другой;
+  - hidden application prefix не показывать в поле пути;
   - BUTTON ID, adapter status и raw module ID показывать только в `Advanced mapping`;
-  - ошибки duplicate/prefix conflict показывать рядом с редактируемым путём до сохранения.
+  - primary route и aliases показывать как маршруты одной команды;
+  - ошибки duplicate/prefix conflict показывать рядом с редактируемым путём до сохранения с указанием application/workspace scope.
 - `ProfileDraftSession.cs`:
   - сохранить существующие undo/redo/diff/atomic save;
   - draft должен хранить overrides по стабильному `operation_id`, а не мутировать производные runtime modules;
@@ -396,6 +531,9 @@ C#-тесты локально не запускались: в среде ауд
 4. Удалить/переименовать operation: UI один раз предлагает сбросить или переназначить orphan override.
 5. Попытка создать duplicate или prefix conflict блокирует сохранение и указывает обе конфликтующие команды.
 6. В обычном режиме пользователь не может случайно заменить BUTTON ID.
+7. Изменение primary route не удаляет aliases; alias нельзя сохранить как Direct Key без отдельного подтверждения и guard policy.
+8. Один и тот же путь допустим в Modeling и Sketch, но конфликтует внутри одного application scope; Workspace local key не конфликтует с root вне Workspace.
+9. Telemetry может предложить новый Direct Key, но не применяет его до preview, проверки конфликтов и подтверждения пользователя.
 
 **Критерий готовности:** настройка выполняется в терминах задач и путей, а не структуры JSON/NX MenuScript.
 
@@ -406,7 +544,7 @@ C#-тесты локально не запускались: в среде ауд
 - `NxKeysHealthService.cs`, `HealthModels.cs`, `NxTransportReadResult.cs`:
   - ввести стабильные issue codes и recommended actions;
   - сохранить raw exception только в technical report;
-  - различать `NX_NOT_RUNNING`, `SESSION_NOT_MANAGED`, `BRIDGE_NOT_LOADED`, `BRIDGE_STALE`, `PROFILE_DIGEST_MISMATCH`, `PACKAGE_CORRUPT`, `DLL_LOCKED`, `COMMAND_UNAVAILABLE`, `COMMAND_CONTEXT_CHANGED`.
+  - различать `NX_NOT_RUNNING`, `SESSION_NOT_MANAGED`, `BRIDGE_NOT_LOADED`, `BRIDGE_STALE`, `PROFILE_DIGEST_MISMATCH`, `PACKAGE_CORRUPT`, `DLL_LOCKED`, `COMMAND_UNAVAILABLE`, `COMMAND_CONTEXT_CHANGED`, `ROUTE_NOT_COMPILED`, `INPUT_GUARD_BLOCKED`, `COLLECTOR_UNAVAILABLE`.
 - `HotkeyStudioForm.UnifiedShell.cs`:
   - отобразить для issue: что произошло, что это меняет и одну кнопку действия;
   - `Repair installation` сначала создаёт backup и выполняет только действия из package manifest;
@@ -422,6 +560,8 @@ C#-тесты локально не запускались: в среде ауд
 3. Repair не затрагивает файлы вне managed root и manifest.
 4. Повторный repair идемпотентен.
 5. Диагностический отчёт содержит commit/package version, NX build, profile digest и issue codes, но не session secret.
+6. Target-only operation в поиске показывает `ROUTE_NOT_COMPILED`/причину adapter status, а не кнопку выполнения.
+7. Заблокированный Direct Key или Selection Intent объясняет guard только по запросу в diagnostics и всегда оставляет исходное нажатие NX.
 
 **Критерий готовности:** для штатных неисправностей пользователю не приходится выбирать maintenance mode или вручную искать файл.
 
@@ -482,6 +622,11 @@ C#-тесты локально не запускались: в среде ауд
 - объединить ежедневную работу, cheatsheet и основные настройки в один `docs/USER_GUIDE.md`;
 - `docs/TROUBLESHOOTING.md`: симптомы в терминах UI issue codes и действий;
 - `DEVELOPMENT.md`: сборка из исходников, Catalog Studio, legacy generators;
+- `docs/MNEMONIC_COMMAND_LANGUAGE.md`, `docs/SKETCH_INTENT_LANGUAGE.md`, `docs/SELECTION_INTENT.md`:
+  - не поддерживать вручную таблицы, которые можно получить из compiled snapshot;
+  - в current-раздел включать только `implemented` routes, отдельно помечая `ci_verified` и `nx_verified`;
+  - Direct/Workspace/target-only operations не описывать как выполняемые только потому, что поле присутствует в JSON;
+  - сохранить короткое объяснение различий: `S→…` задаёт тип, `0…4` задаёт intent, application prefix скрыт.
 - advanced protocol/architecture оставить reference-документами, но убрать из основного пользовательского маршрута;
 - historical/generated документы не должны попадать в поисковую выдачу как current behavior;
 - убрать смешение русского пользовательского текста с `Main K3–K5 Profile`, `Adaptive Modules`, `Bridge OFF` и другими внутренними именами.
@@ -492,6 +637,8 @@ C#-тесты локально не запускались: в среде ауд
 2. В current user docs нет `nx2512-pro-hybrid.json`, 885/K3–K5 и source-build как основного способа установки.
 3. Новый пользователь по README устанавливает и выполняет первую Sketch-команду без перехода в другие документы.
 4. Каждая видимая ошибка UI находится в Troubleshooting по issue code.
+5. Documentation test сравнивает каждую current route table с route lock/compiled snapshot, а не ищет отдельные строки `CapsLock → L`.
+6. Historical v8.3 path не может попасть в `CHEATSHEET.md`, пока status не стал как минимум `implemented`; NX-dependent feature требует `nx_verified` для заявления «проверено».
 
 **Критерий готовности:** существует один актуальный пользовательский маршрут и отдельный маршрут разработчика.
 
@@ -505,12 +652,16 @@ CI не доказывает sensitivity BUTTON ID, работу collectors и �
 |---|---|
 | Gateway / без детали | запуск, отсутствие ложных part-dependent рекомендаций |
 | Modeling | Create Sketch, Extrude, Hole, Layer Settings, WAVE, поиск |
-| Sketch | L/R/C/T, K→constraints, D→dimensions, finish |
+| Sketch | однотокенные L/R/C/A/T/E/O/F/H/M/V/Y/N/Z; D/K/J/U families; C→V variants; Direct base set; finish |
 | Assembly | Add/Move/Replace/Remove Component, подтверждение destructive |
 | Drafting | base/projected/section view, dimensions |
 | Sheet Metal | `UG_APP_SBSM`, Tab/Flange/Bend/Flat Pattern |
 | Manufacturing | create/generate/postprocess/delete operation с подтверждением |
-| Selection collector | 0–4, text-input guard, seed selection и смена selection fingerprint |
+| Application switching | G→M/A/D/P/U/H/C/N/R/O/L/V/S, ожидание fresh context, отсутствие старого module prefix |
+| Selection type | S→B/F/E/T/C/U/D/R/A/N в разрешённых applications, временный filter и восстановление после OK/Cancel |
+| Selection collector | 0–4 до/после seed, text/numeric guard, autorepeat и смена selection fingerprint |
+| Input safety | graphics/text/numeric/table/modal focus, Ctrl/Alt/Win, injected key, drag/navigation, переключение foreground |
+| Workspace | local key не работает на root; Layer snapshot/restore; WAVE source/target; Display restore без Unsuppress/Load |
 | Смена роли/лицензии | недоступная команда объясняется и не попадает в top suggestions |
 | RU/EN UI | module detection и поиск не зависят от одной локализации title |
 
@@ -520,6 +671,10 @@ CI не доказывает sensitivity BUTTON ID, работу collectors и �
 - первая рабочая команда: не более минуты после первого запуска NX;
 - корневой HUD: не более восьми вариантов;
 - 100% capabilities из baseline доступны старым путём либо имеют документированную миграцию;
+- 100% primary и secondary routes из route baseline приводят к прежнему `operation_id` либо имеют подтверждённую пользователем миграцию;
+- 0 ложных перехватов Direct/`0…4` в матрице текстового и числового ввода;
+- одно физическое нажатие CapsLock/Direct/`0…4` создаёт не более одного transition до key-up;
+- 100% enabled current routes имеют status `implemented`, а NX-dependent release routes — подтверждение `nx_verified`;
 - 100% destructive capabilities требуют подтверждения в desktop и Bridge;
 - ни одного silently ignored profile/launcher mismatch;
 - после любой неуспешной установки предыдущая версия остаётся работоспособной;
@@ -532,11 +687,11 @@ CI не доказывает sensitivity BUTTON ID, работу collectors и �
 | Очередь | Пакет | Gate перед переходом дальше |
 |---:|---|---|
 | 1 | P0 — честный verify | все обязательные проверки воспроизводятся на clean checkout |
-| 2 | P1 — единый profile compiler | runtime capabilities = Bridge permissions; capability lock зелёный |
+| 2 | P1 — единый profile compiler | runtime capabilities = Bridge permissions; capability-and-route lock зелёный |
 | 3 | P2 — один launcher | все входы используют один profile/session |
 | 4 | P3 — готовый setup/release | clean VM устанавливает продукт без SDK/Node |
 | 5 | P4 + P7 — state-driven shell и repair | каждый health state имеет одну правильную action |
-| 6 | P5 — контекстный HUD | top 8 + полный поиск + destructive tests |
+| 6 | P5 — input language и контекстный HUD | стабильные routes + safe admission + top 8 + полный поиск |
 | 7 | P6 — простой editor | overrides, migration, undo/redo и update tests |
 | 8 | P8 + P9 — optional packages и очистка | capability parity и package-size gate |
 | 9 | P10 — каноническая документация | новый пользователь проходит путь только по README/User Guide |
@@ -549,13 +704,20 @@ CI не доказывает sensitivity BUTTON ID, работу collectors и �
 Фраза «не потерять функционал» должна проверяться не количеством записей в JSON, а capability baseline:
 
 - уникальные реально исполняемые NX BUTTON ID;
+- primary и secondary Leader routes с application scope и скрытым module prefix;
+- однотокенный Sketch и families `D/K/J/U`, включая prefix-free variant branch `C→V`;
 - local Leader/search/sticky/backspace/confirmation behaviors;
-- module switches;
-- selection type filters и Selection Intent 0–4;
+- отдельно проверенные Direct Keys и их input guards;
+- module switches `G→…` с fresh-context completion;
+- selection type filters `S→…` и отдельный Selection Intent `0…4`;
+- Workspace entry routes, local keys и восстанавливаемые snapshots после их фактической реализации;
 - profile editing, backup, restore, install, update и diagnostics;
 - Catalog Studio и NxEskd в optional packages.
 
-453 operation contract нельзя автоматически называть 453 работающими функциями. Незавершённый internal/TBD contract сохраняется в каталоге и может быть доработан, но не должен появляться в HUD как готовая команда или попадать в Bridge allowlist.
+453 operation contract нельзя автоматически называть 453 работающими функциями. Наличие `direct`,
+`workspace_key` или строки в historical spec также не доказывает достижимость route. Незавершённый
+internal/TBD contract сохраняется в каталоге и может быть доработан, но не должен появляться в HUD
+как готовая команда, current cheatsheet или Bridge allowlist.
 
 ## 8. Запрещённые упрощения
 
@@ -563,6 +725,10 @@ CI не доказывает sensitivity BUTTON ID, работу collectors и �
 - отключить HMAC, allowlist или context checks ради запуска обычного NX;
 - удалить поиск или advanced mapping вместе с перегруженной таблицей;
 - превращать `tbd_adapter` в BUTTON ID по строковому сходству;
+- превращать `workspace_key` или `secondary_alias` в корневой/direct route ради прохождения старого translator;
+- считать `paths.direct` реализованным Direct Key без отдельного hook/admission test;
+- менять выученный mnemonic route автоматически на основании частоты использования;
+- переносить команды из historical v8.3 spec в current cheatsheet до compiler/live verification;
 - создавать новый Control Center, новый формат профиля рядом с v8 или отдельный settings-файл на каждый модуль;
 - разбить монолиты на десятки однотипных файлов без уменьшения числа пользовательских состояний;
 - считать зелёным release, который не прошёл живой smoke test на NX 2512.6000.
@@ -576,6 +742,7 @@ CI не доказывает sensitivity BUTTON ID, работу collectors и �
 3. одним tray process;
 4. одним контекстным HUD;
 5. одной оболочкой со страницами `Состояние`, `Команды`, `Настройки`;
-6. одним каноническим профилем и одним compiled capability snapshot.
+6. одним стабильным языком ввода: guarded Direct, `0…4` в collector и CapsLock Leader;
+7. одним каноническим профилем и одним compiled capability-and-route snapshot.
 
 Всё остальное — Bridge DLL, protocol, state machines, catalog exporter, NxEskd, generated evidence и developer CLI — остаётся внутренней или явно расширенной частью системы и не конкурирует за внимание обычного пользователя.
