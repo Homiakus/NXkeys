@@ -806,7 +806,7 @@ if ($schemaVersion -lt 3 -or $schemaVersion -gt 8) { throw 'Для устано�
 
 if ($schemaVersion -lt 8) {
     if ($configJson.leader_key.adaptive_module_mode -ne $true) { throw 'Для установки требуется adaptive_module_mode=true.' }
-    Write-Host "Профиль schema $schemaVersion: $($configJson.profile.name)" -ForegroundColor Green
+    Write-Host "Профиль schema ${schemaVersion}: $($configJson.profile.name)" -ForegroundColor Green
 
     Write-Step 'Проверка 12 базовых сочетаний и 14 адаптивных модулей'
     & node (Join-Path $ScriptDir 'scripts\validate-command-tree.mjs')
