@@ -13,6 +13,26 @@ public sealed record DrawingPlan(
     public IReadOnlyList<DrawingOperation> Operations { get; init; } = Array.Empty<DrawingOperation>();
     public DrawingExecutionPolicy ExecutionPolicy { get; init; } = DrawingExecutionPolicy.SafeDefault;
     public DrawingPublicationPlan Publication { get; init; } = DrawingPublicationPlan.SafeDefault;
+
+    public string ComputeHash()
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append(ProfileId).Append('|')
+          .Append(DocumentKind).Append('|')
+          .Append(Designation).Append('|')
+          .Append(Name).Append('|')
+          .Append(DryRun ? "1" : "0").Append('|')
+          .Append(Model.FullPath ?? string.Empty).Append('|')
+          .Append(Model.PartName ?? string.Empty).Append('|');
+        foreach (var op in Operations)
+        {
+            sb.Append(op.OperationId).Append(':')
+              .Append(op.ObjectKind).Append(':')
+              .Append(op.ChangeKind).Append(':')
+              .Append(op.TargetId).Append(';');
+        }
+        return NxEskd.Core.Utilities.Hashing.Sha256(sb.ToString());
+    }
 }
 
 public sealed record DrawingExecutionPolicy(

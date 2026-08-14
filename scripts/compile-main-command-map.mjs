@@ -21,8 +21,8 @@ const valueOf = (name, fallback = '') => {
 };
 const has = name => argv.includes(name);
 const absolute = value => path.isAbsolute(value) ? value : path.resolve(root, value);
-const sourceCompiler = path.join(root, 'scripts', 'compile-full-command-map.mjs');
-const profilePath = absolute(valueOf('--profile', 'config/nx2512-pro-hybrid.json'));
+const defaultProfile = fs.existsSync(path.resolve(root, 'config/nx2512-v8-profile.json')) ? 'config/nx2512-v8-profile.json' : 'config/nx2512-pro-hybrid.json';
+const profilePath = absolute(valueOf('--profile', defaultProfile));
 const intentsDir = absolute(valueOf('--intents', 'config/full-command-map'));
 const catalogDir = valueOf('--catalog-dir', '');
 const probe = valueOf('--probe', 'docs/audit/runtime-command-probe-2026-07-28.json');

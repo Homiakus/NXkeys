@@ -24,29 +24,46 @@ jobs:
           }
           if (Test-Path go.mod) { throw 'go.mod must not exist in the C#-only repository.' }
 
-      - name: Validate JSON profiles
+      - name: Validate JSON profiles and all invariant scripts
         shell: pwsh
         run: |
-          Get-ChildItem .\config -File -Filter *.json | ForEach-Object {
-            Write-Host "Validating $($_.FullName)"
-            Get-Content $_.FullName -Raw -Encoding UTF8 | ConvertFrom-Json | Out-Null
-          }
+          node .\scripts\validate-documentation.mjs
+          node .\scripts\validate-command-tree.mjs
+          node .\scripts\validate-main-command-map.mjs
+          node .\scripts\validate-full-command-map.mjs
+          node .\scripts\validate-capability-route-lock.mjs
 
-      - name: Validate adaptive profile and documentation
-        shell: pwsh
-        run: |
-          node .\scripts\validate-command-tree.mjs *> adaptive-validation.log
-          $code = $LASTEXITCODE
-          Get-Content adaptive-validation.log -Tail 200
-          exit $code
-
-      - name: Run DFA and HFSM invariants
+      - name: Run DFA and HFSM invariants test suite
         shell: pwsh
         run: |
           dotnet run --project .\NXKeys.StateMachines.Tests\NXKeys.StateMachines.Tests.csproj -c Release --nologo *> state-machine-tests.log
           $code = $LASTEXITCODE
           Get-Content state-machine-tests.log -Tail 180
-          exit $code
+          if ($code -ne 0) { exit $code }
+
+      - name: Run HotkeyStudio and Profile test suite
+        shell: pwsh
+        run: |
+          dotnet run --project .\NX2512_HotkeyStudio.Tests\NX2512_HotkeyStudio.Tests.csproj -c Release --nologo *> hotkey-studio-tests.log
+          $code = $LASTEXITCODE
+          Get-Content hotkey-studio-tests.log -Tail 180
+          if ($code -ne 0) { exit $code }
+
+      - name: Run NxEskd Core and Architecture guards test suite
+        shell: pwsh
+        run: |
+          dotnet test .\nxeskd\tests\NxEskd.Core.Tests\NxEskd.Core.Tests.csproj -c Release --nologo *> nxeskd-core-tests.log
+          $code = $LASTEXITCODE
+          Get-Content nxeskd-core-tests.log -Tail 180
+          if ($code -ne 0) { exit $code }
+
+      - name: Run NxEskd Configurator test suite
+        shell: pwsh
+        run: |
+          dotnet test .\nxeskd\tests\NxEskd.Configurator.Tests\NxEskd.Configurator.Tests.csproj -c Release --nologo *> nxeskd-configurator-tests.log
+          $code = $LASTEXITCODE
+          Get-Content nxeskd-configurator-tests.log -Tail 180
+          if ($code -ne 0) { exit $code }
 
       - name: Build Hotkey Studio
         shell: pwsh

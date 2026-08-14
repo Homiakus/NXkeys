@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -22,13 +23,15 @@ namespace NXKeys.Protocol
         public const string SwitchModule = "switch_module";
         public const string SetSelectionFilter = "set_selection_filter";
         public const string ProbeCommand = "probe_command";
+        public const string RunCapability = "run_capability";
 
         public static bool IsSupported(string action)
         {
             return string.Equals(action, ExecuteCommand, StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(action, SwitchModule, StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(action, SetSelectionFilter, StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(action, ProbeCommand, StringComparison.OrdinalIgnoreCase);
+                   string.Equals(action, ProbeCommand, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(action, RunCapability, StringComparison.OrdinalIgnoreCase);
         }
     }
 
@@ -106,6 +109,40 @@ namespace NXKeys.Protocol
         [JsonPropertyName("confirmation_accepted")]
         public bool ConfirmationAccepted { get; set; }
 
+        // Capability Pack Integration Fields (Schema 4 Envelope)
+        [JsonPropertyName("capability_id")]
+        public string CapabilityId { get; set; } = string.Empty;
+
+        [JsonPropertyName("workflow_id")]
+        public string WorkflowId { get; set; } = string.Empty;
+
+        [JsonPropertyName("component_id")]
+        public string ComponentId { get; set; } = string.Empty;
+
+        [JsonPropertyName("component_version")]
+        public string ComponentVersion { get; set; } = string.Empty;
+
+        [JsonPropertyName("payload_name")]
+        public string PayloadName { get; set; } = string.Empty;
+
+        [JsonPropertyName("payload_sha256")]
+        public string PayloadSha256 { get; set; } = string.Empty;
+
+        [JsonPropertyName("payload_schema_version")]
+        public int PayloadSchemaVersion { get; set; }
+
+        [JsonPropertyName("expected_part_id")]
+        public string ExpectedPartId { get; set; } = string.Empty;
+
+        [JsonPropertyName("expected_model_revision")]
+        public string ExpectedModelRevision { get; set; } = string.Empty;
+
+        [JsonPropertyName("profile_id")]
+        public string ProfileId { get; set; } = string.Empty;
+
+        [JsonPropertyName("profile_sha256")]
+        public string ProfileSha256 { get; set; } = string.Empty;
+
         [JsonIgnore]
         public bool IsExpired
         {
@@ -141,9 +178,34 @@ namespace NXKeys.Protocol
             RequireMaxLength(nameof(Nonce), Nonce);
             RequireMaxLength(nameof(ProfileDigest), ProfileDigest);
             RequireMaxLength(nameof(PayloadHmac), PayloadHmac);
-            if (!string.Equals(Action, NxProtocolActions.SwitchModule, StringComparison.OrdinalIgnoreCase) &&
-                string.IsNullOrWhiteSpace(CommandId))
+            RequireMaxLength(nameof(CapabilityId), CapabilityId);
+            RequireMaxLength(nameof(WorkflowId), WorkflowId);
+            RequireMaxLength(nameof(ComponentId), ComponentId);
+            RequireMaxLength(nameof(ComponentVersion), ComponentVersion);
+            RequireMaxLength(nameof(PayloadName), PayloadName);
+            RequireMaxLength(nameof(PayloadSha256), PayloadSha256);
+            RequireMaxLength(nameof(ExpectedPartId), ExpectedPartId);
+            RequireMaxLength(nameof(ExpectedModelRevision), ExpectedModelRevision);
+            RequireMaxLength(nameof(ProfileId), ProfileId);
+            RequireMaxLength(nameof(ProfileSha256), ProfileSha256);
+
+            if (string.Equals(Action, NxProtocolActions.RunCapability, StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrWhiteSpace(CapabilityId))
+                    throw new InvalidOperationException("capability_id is required for run_capability.");
+                if (!string.IsNullOrWhiteSpace(PayloadName))
+                {
+                    if (Path.IsPathRooted(PayloadName) || PayloadName.Contains("..") || PayloadName.Contains(':'))
+                        throw new InvalidOperationException("payload_name must be a relative file name without path traversal.");
+                }
+            }
+            else if (!string.Equals(Action, NxProtocolActions.SwitchModule, StringComparison.OrdinalIgnoreCase) &&
+                     !string.Equals(Action, NxProtocolActions.SetSelectionFilter, StringComparison.OrdinalIgnoreCase) &&
+                     string.IsNullOrWhiteSpace(CommandId))
+            {
                 throw new InvalidOperationException("command_id is required for execute_command.");
+            }
+
             if (string.Equals(Action, "switch_module", StringComparison.OrdinalIgnoreCase) &&
                 string.IsNullOrWhiteSpace(TargetApplicationId) && string.IsNullOrWhiteSpace(CommandId))
                 throw new InvalidOperationException("target_application_id is required for switch_module.");
@@ -270,11 +332,44 @@ namespace NXKeys.Protocol
         [JsonPropertyName("request_id")]
         public string RequestId { get; set; } = string.Empty;
 
+        [JsonPropertyName("workflow_id")]
+        public string WorkflowId { get; set; } = string.Empty;
+
         [JsonPropertyName("status")]
         public string Status { get; set; } = string.Empty;
 
         [JsonPropertyName("message")]
         public string Message { get; set; } = string.Empty;
+
+        [JsonPropertyName("phase")]
+        public string Phase { get; set; } = string.Empty;
+
+        [JsonPropertyName("percent")]
+        public int Percent { get; set; }
+
+        [JsonPropertyName("issue_code")]
+        public string IssueCode { get; set; } = string.Empty;
+
+        [JsonPropertyName("recommended_action")]
+        public string RecommendedAction { get; set; } = string.Empty;
+
+        [JsonPropertyName("preview_hash")]
+        public string PreviewHash { get; set; } = string.Empty;
+
+        [JsonPropertyName("report_name")]
+        public string ReportName { get; set; } = string.Empty;
+
+        [JsonPropertyName("report_sha256")]
+        public string ReportSha256 { get; set; } = string.Empty;
+
+        [JsonPropertyName("rollback_attempted")]
+        public bool RollbackAttempted { get; set; }
+
+        [JsonPropertyName("rollback_verified")]
+        public bool RollbackVerified { get; set; }
+
+        [JsonPropertyName("manual_review_required")]
+        public bool ManualReviewRequired { get; set; }
 
         [JsonPropertyName("context_revision")]
         public long ContextRevision { get; set; }

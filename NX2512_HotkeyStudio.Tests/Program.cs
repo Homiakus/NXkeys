@@ -74,13 +74,84 @@ internal static class Program
         VerifyAuthenticatedIpc();
         VerifyBridgeInbox();
         VerifyProfileDraftSession();
+        VerifyDocumentationGenerator();
+        VerifyBehavioralGuardsAndLimits();
+        VerifyEskdSingleRouteAndCapability();
 
-        Console.WriteLine("[OK] Profile draft, Sketch grammar, authenticated IPC and background Bridge inbox regressions.");
+        Console.WriteLine("[OK] Profile draft, Sketch grammar, authenticated IPC, background Bridge inbox, behavioral guards and documentation generator regressions.");
     }
 
+    private static void VerifyEskdSingleRouteAndCapability()
+    {
+        string profilePath = FindRepositoryProfileFile();
+        Config config = Config.Load(profilePath);
+        var eskdOp = config.Operations.FirstOrDefault(op => op.OperationID == "drafting.eskd");
+        Assert(eskdOp != null, "Canonical v8 profile must contain drafting.eskd operation.");
+        Assert(eskdOp.Paths.Leader != null && eskdOp.Paths.Leader.SequenceEqual(new[] { "E" }),
+            "drafting.eskd must have single leader route 'E'.");
+        Assert(eskdOp.Adapter.Kind == "capability", "drafting.eskd adapter kind must be 'capability'.");
+        Assert(eskdOp.Adapter.Value == "nxeskd.open_workflow", "drafting.eskd adapter value must be 'nxeskd.open_workflow'.");
 
+        // Verify old routes are absent
+        Assert(!config.Operations.Any(op => op.OperationID == "drafting.eskd_control_center"), "Old eskd_control_center must not exist in v8 profile.");
+        Assert(!config.Operations.Any(op => op.OperationID == "drafting.eskd_generate"), "Old eskd_generate must not exist in v8 profile.");
+        Assert(!config.Operations.Any(op => op.OperationID == "drafting.eskd_update"), "Old eskd_update must not exist in v8 profile.");
+        Assert(!config.Operations.Any(op => op.OperationID == "drafting.eskd_preview"), "Old eskd_preview must not exist in v8 profile.");
+        Assert(!config.Operations.Any(op => op.OperationID == "drafting.eskd_validate"), "Old eskd_validate must not exist in v8 profile.");
+        Assert(!config.Operations.Any(op => op.OperationID == "drafting.eskd_inventory"), "Old eskd_inventory must not exist in v8 profile.");
+    }
 
+    private static void VerifyBehavioralGuardsAndLimits()
+    {
+        // 1. HUD PrimarySuggestionLimit = 8
+        Assert(LeaderHudForm.PrimarySuggestionLimit == 8, "PrimarySuggestionLimit must equal 8.");
 
+        // 2. Profile source and embedded canonical profile
+        Config embedded = Config.LoadEmbedded();
+        Assert(embedded != null && embedded.Operations.Count > 0, "Embedded canonical v8 profile must be available.");
+
+        // 3. Capability lock file exists and matches
+        string lockFile = FindRepositoryFile(Path.Combine("config", "nx2512-capability-route-lock.json"));
+        Assert(File.Exists(lockFile), "Capability-and-route lock file must exist.");
+
+        // 4. Destructive policies in permissions
+        string profilePath = FindRepositoryProfileFile();
+        var permissions = NXKeys.Protocol.NxBridgePermissionSet.FromProfileFile(profilePath);
+        var removeComp = permissions.Permissions.FirstOrDefault(p => p.CommandId == "UG_ASSEMBLIES_REMOVE_COMPONENT");
+        Assert(removeComp != null && removeComp.Destructive && removeComp.ConfirmationRequired,
+            "assemblies.remove_component must be destructive and require confirmation in Bridge allowlist.");
+        var deleteOp = permissions.Permissions.FirstOrDefault(p => p.CommandId == "UG_CAM_DELETE_OPERATION");
+        Assert(deleteOp != null && deleteOp.Destructive && deleteOp.ConfirmationRequired,
+            "manufacturing.delete_operation must be destructive and require confirmation in Bridge allowlist.");
+
+        // 5. No internal/tbd operations in execute_command permissions
+        foreach (var perm in permissions.Permissions.Where(p => p.Action == NXKeys.Protocol.NxProtocolActions.ExecuteCommand))
+        {
+            Assert(!perm.CommandId.Contains("."), "Bridge ExecuteCommand allowlist must not contain unmapped operation_ids: " + perm.CommandId);
+        }
+    }
+
+    private static void VerifyDocumentationGenerator()
+    {
+        var config = Config.Load(string.Empty);
+        var generator = new DocumentationGenerator(config);
+        string tempFile = Path.Combine(Path.GetTempPath(), "test-full-command-map-" + Guid.NewGuid().ToString("N") + ".md");
+        try
+        {
+            generator.GenerateMarkdownMap(tempFile);
+            Assert(File.Exists(tempFile), "DocumentationGenerator must output markdown file.");
+            string content = File.ReadAllText(tempFile);
+            Assert(content.Contains("Карта команд NXKeys v8"), "Output markdown must contain header.");
+            Assert(content.Contains("1169"), "Output markdown must include 1169 intent count marker.");
+            Assert(content.Contains("06_ui_commands_buttons.csv"), "Output markdown must include CSV catalog marker.");
+            Assert(content.Contains("ambiguous"), "Output markdown must include ambiguous marker.");
+            Assert(content.Contains("unresolved"), "Output markdown must include unresolved marker.");
+        }
+        finally
+        {
+            if (File.Exists(tempFile)) File.Delete(tempFile);
+        }
+    }
 
     private static void VerifyProfileDraftSession()
     {
@@ -234,6 +305,33 @@ internal static class Program
         };
         Assert(!permissions.TryGetPermission(unauthorized, out _),
             "Unknown command must not be admitted by the profile allowlist.");
+
+        // Capability request signing and verification
+        var capRequest = new NXKeys.Protocol.NxCommandRequest
+        {
+            RequestId = "capability-test",
+            Action = NXKeys.Protocol.NxProtocolActions.RunCapability,
+            CapabilityId = "nxeskd.open_workflow",
+            WorkflowId = "wf-test-01",
+            ModuleId = "drafting",
+            CreatedUtc = now.ToString("O"),
+            ExpiresUtc = now.AddMinutes(1).ToString("O"),
+            SourceProcessId = Environment.ProcessId,
+            ConfirmationAccepted = true
+        };
+        NXKeys.Protocol.NxRequestAuthenticator.Sign(
+            capRequest, sessionId, clientId, secret, permissions.ProfileDigest, 3);
+        capRequest.Validate();
+        Assert(NXKeys.Protocol.NxRequestAuthenticator.Verify(
+                capRequest, sessionId, secret, permissions.ProfileDigest, out string capError),
+            "Signed capability request must verify: " + capError);
+        Assert(permissions.TryGetPermission(capRequest, out NXKeys.Protocol.NxCommandPermission capResolved),
+            "Capability request must be admitted by the profile allowlist.");
+
+        capRequest.CapabilityId = "nxeskd.unauthorized";
+        Assert(!NXKeys.Protocol.NxRequestAuthenticator.Verify(
+                capRequest, sessionId, secret, permissions.ProfileDigest, out _),
+            "Tampering with capability_id must invalidate the HMAC.");
     }
 
     private static void VerifyPhaseZeroHardening()
@@ -355,51 +453,30 @@ internal static class Program
 
     private static void VerifySketchIntentGrammar()
     {
-        var commands = new List<ModuleCommand>
-        {
-            SketchCommand("UG_SKETCH_LINE", "Line", new[] { "C", "L" }, "K5", 1),
-            SketchCommand("UG_SKETCH_LINE_BY_TWO_POINTS", "Line by Two Points", new[] { "C", "L", "2" }, "K3", 2),
-            SketchCommand("UG_SKETCH_RECTANGLE", "Rectangle", new[] { "C", "R" }, "K5", 3),
-            SketchCommand("UG_SKETCH_TRIM", "Trim", new[] { "E", "T" }, "K5", 4),
-            SketchCommand("UG_MODELING_CHAMFER_FEATURE", "Sketch Chamfer", new[] { "C", "G", "C", "H" }, "K3", 5),
-            SketchCommand("UG_SKETCH_STUDIO_SPLINE", "Studio Spline", new[] { "M", "Z", "S" }, "K4", 6),
-            SketchCommand("UG_SKETCH_USER_CUSTOM", "User Custom", new[] { "U", "S", "X" }, "K3", 7, true)
-        };
-        commands[0].Aliases = new List<List<string>> { new List<string> { "Q", "W" } };
-        var module = new ModuleConfig
-        {
-            ID = "sketch",
-            Label = "Sketch",
-            Enabled = true,
-            CommandSets = new List<ModuleCommandSet>
-            {
-                new ModuleCommandSet { ID = "sketch", Label = "Sketch", Commands = commands }
-            }
-        };
+        string profilePath = FindRepositoryProfileFile();
+        Config config = Config.Load(profilePath);
+        Assert(config.SchemaVersion == 8, "v8 Profile must have schema_version = 8.");
 
-        MnemonicPathGenerator.Apply(new[] { module });
-        Assert(PathOf(commands, "UG_SKETCH_LINE").SequenceEqual(new[] { "C", "L" }),
-            "Line must use Create -> Line.");
-        Assert(PathOf(commands, "UG_SKETCH_LINE_BY_TWO_POINTS").SequenceEqual(new[] { "C", "V", "L", "2" }),
-            "Line variants must live under the explicit variant branch.");
-        Assert(PathOf(commands, "UG_SKETCH_RECTANGLE").SequenceEqual(new[] { "C", "R" }),
-            "Rectangle must use Create -> Rectangle.");
-        Assert(PathOf(commands, "UG_SKETCH_TRIM").SequenceEqual(new[] { "E", "T" }),
-            "Trim must use Edit -> Trim.");
-        Assert(PathOf(commands, "UG_MODELING_CHAMFER_FEATURE").SequenceEqual(new[] { "E", "H" }),
-            "The shared NX chamfer BUTTON ID must keep Sketch semantics in Sketch context.");
-        Assert(PathOf(commands, "UG_SKETCH_STUDIO_SPLINE").Take(2).SequenceEqual(new[] { "C", "G" }),
-            "Unknown Sketch geometry must remain in the Create -> Geometry family.");
-        Assert(PathOf(commands, "UG_SKETCH_USER_CUSTOM").SequenceEqual(new[] { "U", "S", "X" }),
-            "User-locked paths must remain untouched.");
-        Assert(commands.First(item => item.Command.ID == "UG_SKETCH_LINE").Aliases.Count == 0,
-            "Legacy positional aliases must be removed from generated Sketch intents.");
+        var sketchSeqs = config.LeaderKey.Sequences
+            .Where(s => string.Equals(s.ModuleID, "v8_s", StringComparison.OrdinalIgnoreCase))
+            .ToList();
 
-        List<string> paths = commands.Select(item => string.Concat(item.Path)).OrderBy(value => value.Length).ToList();
-        for (int left = 0; left < paths.Count; left++)
-            for (int right = left + 1; right < paths.Count; right++)
-                Assert(!paths[right].StartsWith(paths[left], StringComparison.OrdinalIgnoreCase),
-                    "Sketch paths must remain prefix-free: " + paths[left] + " / " + paths[right]);
+        // Single-token sketch routes
+        Assert(sketchSeqs.Any(s => s.Sequence == "S L" && s.Command?.ID == "UG_SKETCH_LINE"), "Line must be 'S L'");
+        Assert(sketchSeqs.Any(s => s.Sequence == "S R" && s.Command?.ID == "UG_SKETCH_RECTANGLE"), "Rectangle must be 'S R'");
+        Assert(sketchSeqs.Any(s => s.Sequence == "S C" && s.Command?.ID == "UG_SKETCH_CIRCLE"), "Circle must be 'S C'");
+        Assert(sketchSeqs.Any(s => s.Sequence == "S A" && s.Command?.ID == "UG_SKETCH_ARC"), "Arc must be 'S A'");
+        Assert(sketchSeqs.Any(s => s.Sequence == "S T" && s.Command?.ID == "UG_SKETCH_TRIM"), "Trim must be 'S T'");
+
+        // Constraints (K family)
+        Assert(sketchSeqs.Any(s => s.Sequence == "S K C" && s.Command?.ID == "UG_SKETCH_COINCIDENT_CONSTRAINT"), "Coincident must be 'S K C'");
+        Assert(sketchSeqs.Any(s => s.Sequence == "S K H" && s.Command?.ID == "UG_SKETCH_HORIZONTAL_CONSTRAINT"), "Horizontal must be 'S K H'");
+        Assert(sketchSeqs.Any(s => s.Sequence == "S K V" && s.Command?.ID == "UG_SKETCH_VERTICAL_CONSTRAINT"), "Vertical must be 'S K V'");
+        Assert(sketchSeqs.Any(s => s.Sequence == "S K T" && s.Command?.ID == "UG_SKETCH_TANGENT_CONSTRAINT"), "Tangent must be 'S K T'");
+
+        // Dimensions (D family)
+        Assert(sketchSeqs.Any(s => s.Sequence == "S D Q" && s.Command?.ID == "UG_SKETCH_RAPID_DIMENSION"), "Rapid Dimension must be 'S D Q'");
+        Assert(sketchSeqs.Any(s => s.Sequence == "S D L" && s.Command?.ID == "UG_SKETCH_LINEAR_DIMENSION"), "Linear Dimension must be 'S D L'");
     }
 
     private static ModuleCommand SketchCommand(

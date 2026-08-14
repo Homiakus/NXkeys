@@ -25,34 +25,58 @@ nx2512-pro-hybrid.json
 
 Для production используйте installed `nx2512-v8-profile.json`, а fallback — как resilience/test path.
 
-## Команды
+## Первичный лаунчер `run-nxkeys.cmd`
+
+Для пользователей и скриптов развертывания предоставляется единый лаунчер:
+
+```powershell
+.\run-nxkeys.cmd [команда/опции]
+```
+
+Опции лаунчера:
+- `--daemon` / `--minimized` — запуск в фоне (в системном трее);
+- `--apply` — применить профиль и развернуть ribbon/overlay в NX;
+- `--verify` — проверить валидность профиля и инвариантов;
+- `--repair` — восстановить канонический профиль и развернуть в NX;
+- `--profile <путь>` — указать путь к пользовательскому профилю;
+- `--help` — показать справку по всем командам.
+
+## Команды CLI HotkeyStudio
 
 ```text
-validate
+validate / verify / --verify
+apply / --apply
+repair / --repair
 scan
 catalog
 plan
-apply
 launch
 leader
 backups
 restore
 bridge-status
 health
-icons
-export-icons
+icons / export-icons
+doc-map / generate-docs
+help / --help / -h
 ```
 
-Отдельная подтверждённая команда `--help` в текущем switch отсутствует.
-
-## `validate`
+## `validate` / `verify` / `--verify`
 
 ```powershell
-.\NX2512_HotkeyStudio.exe validate `
+.\NX2512_HotkeyStudio.exe verify `
   --config .\nx2512-v8-profile.json
 ```
 
 Загружает profile, применяет defaults/normalization и model validation. Проверка не доказывает доступность `BUTTON ID` в живой NX.
+
+## `repair` / `--repair`
+
+```powershell
+.\NX2512_HotkeyStudio.exe repair
+```
+
+Восстанавливает канонический профиль v8 из встроенного шаблона и выполняет автоматическое развертывание в NX.
 
 Current schema — 8; source range — 3…8.
 

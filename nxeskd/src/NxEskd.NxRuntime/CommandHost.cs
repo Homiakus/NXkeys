@@ -26,73 +26,7 @@ public static class CommandHost
         }
     }
 
-    public static int OpenCommandCenter()
-    {
-        try
-        {
-            WriteDiagnosticHeader("CommandCenter");
-            var root = LocateRoot();
-            var profile = LocateActiveProfile(root);
-            var requestPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "NxEskdGenerator", "requests", Guid.NewGuid().ToString("N") + ".request.json");
-            Directory.CreateDirectory(Path.GetDirectoryName(requestPath)!);
-            var exe = LocateConfigurator(root);
-            if (!File.Exists(exe)) throw new FileNotFoundException("Не найден редактор конфигурации.", exe);
-
-            var workPart = Session.GetSession().Parts.Work
-                           ?? throw new InvalidOperationException("В NX не открыта рабочая деталь.");
-            var partPath = workPart.FullPath;
-            if (string.IsNullOrWhiteSpace(partPath))
-                throw new InvalidOperationException(
-                    "Перед запуском внешнего Configurator сохраните WorkPart. " +
-                    "Несохранённую деталь нельзя устойчиво идентифицировать после переключения окон NX.");
-
-            var psi = new ProcessStartInfo
-            {
-                FileName = exe,
-                UseShellExecute = false,
-                WorkingDirectory = Path.GetDirectoryName(exe)!
-            };
-            psi.ArgumentList.Add("--profile");
-            psi.ArgumentList.Add(profile);
-            psi.ArgumentList.Add("--request");
-            psi.ArgumentList.Add(requestPath);
-            psi.ArgumentList.Add("--nx-part");
-            psi.ArgumentList.Add(partPath);
-            using var process = Process.Start(psi) ?? throw new InvalidOperationException("Не удалось запустить редактор конфигурации.");
-            if (!process.WaitForExit((int)TimeSpan.FromHours(2).TotalMilliseconds))
-            {
-                try { process.Kill(entireProcessTree: true); } catch { }
-                throw new TimeoutException("Конфигуратор не завершился в течение двух часов. Запрос отменён.");
-            }
-            if (process.ExitCode != 0 && !File.Exists(requestPath))
-                throw new InvalidOperationException($"Конфигуратор завершился с кодом {process.ExitCode} и не сформировал запрос.");
-            if (!File.Exists(requestPath)) return 0;
-            try
-            {
-                var request = CommandRequest.Load(requestPath);
-                var currentPart = Session.GetSession().Parts.Work?.FullPath;
-                if (string.IsNullOrWhiteSpace(currentPart) || !request.TargetsPart(currentPart))
-                    throw new InvalidOperationException(
-                        "Активная рабочая деталь NX изменилась, была закрыта или стала несохранённой после запуска Configurator. Запрос не выполнен.");
-                if (request.Command == DrawingCommand.None) return 0;
-                return Execute(request.DryRun && request.Command is DrawingCommand.Generate or DrawingCommand.Update
-                    ? DrawingCommand.Preview
-                    : request.Command, request.ProfilePath, root);
-            }
-            finally
-            {
-                try { File.Delete(requestPath); } catch { }
-            }
-        }
-        catch (Exception ex)
-        {
-            Show("Центр настройки ЕСКД", ex.ToString(), isError: true);
-            return 1;
-        }
-    }
-
-    private static int Execute(DrawingCommand command, string profilePath, string root)
+    public static int Execute(DrawingCommand command, string profilePath, string root)
     {
         IExecutionAdapter adapter = command == DrawingCommand.Inventory
             ? new NxInventoryAdapter(root)
@@ -128,7 +62,7 @@ public static class CommandHost
         return report.Success ? 0 : 2;
     }
 
-    private static string ResolveReportPath(string profilePath, string? partPath, ExecutionReport report, string root)
+    public static string ResolveReportPath(string profilePath, string? partPath, ExecutionReport report, string root)
     {
         try
         {
@@ -158,20 +92,14 @@ public static class CommandHost
         return FallbackReportPath(report);
     }
 
-    private static string FallbackReportPath(ExecutionReport report)
+    public static string FallbackReportPath(ExecutionReport report)
     {
-        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NxEskdGenerator", "reports");
+        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys", "reports", "nxeskd");
         Directory.CreateDirectory(dir);
-        return Path.Combine(dir, $"drawing-report-{DateTime.Now:yyyyMMdd-HHmmss}-{report.RunId[..8]}.json");
+        return Path.Combine(dir, $"drawing-report-{DateTime.Now:yyyyMMdd-HHmmss}-{report.RunId[..Math.Min(8, report.RunId.Length)]}.json");
     }
 
-    /// <summary>
-    /// Выводит диагностическую шапку при каждом запуске команды:
-    /// версию NxEskd, путь к NXOpen reference, версию NXOpen.dll,
-    /// строку NX-сессии и временну́ю метку запуска.
-    /// Пишет в ListingWindow и в %LOCALAPPDATA%\NxEskdGenerator\logs\startup.log.
-    /// </summary>
-    private static void WriteDiagnosticHeader(string commandName)
+    public static void WriteDiagnosticHeader(string commandName)
     {
         try
         {
@@ -180,7 +108,6 @@ public static class CommandHost
             sb.AppendLine($"[NxEskd] command            = {commandName}");
             sb.AppendLine($"[NxEskd] product version    = {BuildInfo.Version}");
 
-            // NXOpen reference assembly path + file version
             try
             {
                 var nxOpenAsm = typeof(Session).Assembly;
@@ -195,11 +122,9 @@ public static class CommandHost
                 sb.AppendLine($"[NxEskd] NXOpen ref         = (error: {ex.Message})");
             }
 
-            // NX session string (NX build/version info)
             try
             {
                 var session = Session.GetSession();
-                // Session.NXVersion is not always available via reflection; use ToString() as fallback
                 var sessionType = session.GetType();
                 var versionProp = sessionType.GetProperty("NXVersion",
                     BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
@@ -216,66 +141,57 @@ public static class CommandHost
 
             var header = sb.ToString();
 
-            // Write to NX Listing Window
             try
             {
                 var listing = NxReflection.Get(Session.GetSession(), "ListingWindow");
                 _ = NxReflection.InvokeCommand(listing, ["Open"]);
                 _ = NxReflection.InvokeCommand(listing, ["WriteFullline", "WriteLine"], header);
             }
-            catch { /* ListingWindow недоступен — не фатально */ }
+            catch { }
 
-            // Write to startup log file
             try
             {
                 var logDir  = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "NxEskdGenerator", "logs");
+                    "NXKeys", "logs", "nxeskd");
                 Directory.CreateDirectory(logDir);
                 var logPath = Path.Combine(logDir, "startup.log");
                 File.AppendAllText(logPath, header, new UTF8Encoding(false));
             }
-            catch { /* запись лога — не фатальна */ }
+            catch { }
         }
-        catch { /* WriteDiagnosticHeader никогда не должен ронять команду */ }
+        catch { }
     }
 
-    private static string LocateRoot()
+    public static string LocateRoot()
     {
-        var env = Environment.GetEnvironmentVariable("NX_ESKD_ROOT");
-        if (!string.IsNullOrWhiteSpace(env) && Directory.Exists(env)) return Path.GetFullPath(env);
         var assemblyDir = Path.GetDirectoryName(typeof(CommandHost).Assembly.Location)!;
         var candidates = new[]
         {
             assemblyDir,
             Path.GetFullPath(Path.Combine(assemblyDir, "..")),
-            Path.GetFullPath(Path.Combine(assemblyDir, "..", ".."))
+            Path.GetFullPath(Path.Combine(assemblyDir, "..", "..")),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys")
         };
-        return candidates.FirstOrDefault(c => Directory.Exists(Path.Combine(c, "config"))) ?? assemblyDir;
+        return candidates.FirstOrDefault(c => Directory.Exists(Path.Combine(c, "config")) || Directory.Exists(Path.Combine(c, "templates"))) ?? assemblyDir;
     }
 
-    private static string LocateActiveProfile(string root)
+    public static string LocateActiveProfile(string root)
     {
-        var user = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NxEskdGenerator", "profiles", "active-profile.json");
+        var user = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys", "profiles", "nxeskd", "active-profile.json");
         if (File.Exists(user)) return user;
         var packaged = Path.Combine(root, "config", "active-profile.json");
         if (File.Exists(packaged)) return packaged;
         var example = Path.Combine(root, "config", "active-profile.example.json");
+        if (!File.Exists(example))
+        {
+            var repoExample = Path.Combine(root, "nxeskd", "config", "active-profile.example.json");
+            if (File.Exists(repoExample)) example = repoExample;
+        }
         if (!File.Exists(example)) throw new FileNotFoundException("Не найден активный профиль ЕСКД.", example);
         Directory.CreateDirectory(Path.GetDirectoryName(user)!);
         File.Copy(example, user, overwrite: false);
         return user;
-    }
-
-    private static string LocateConfigurator(string root)
-    {
-        var candidates = new[]
-        {
-            Path.Combine(root, "bin", "NxEskd.Configurator.exe"),
-            Path.Combine(root, "application", "NxEskd.Configurator.exe"),
-            Path.Combine(root, "NxEskd.Configurator.exe")
-        };
-        return candidates.FirstOrDefault(File.Exists) ?? candidates[0];
     }
 
     private static void Show(string title, string message, bool isError)
@@ -307,7 +223,7 @@ public static class CommandHost
 
         try
         {
-            var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NxEskdGenerator", "logs");
+            var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys", "logs", "nxeskd");
             Directory.CreateDirectory(directory);
             var path = Path.Combine(directory, "command-host-fallback.log");
             File.AppendAllText(path,

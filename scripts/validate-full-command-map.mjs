@@ -54,18 +54,18 @@ function loadIntents() {
 
 function validateDocumentation() {
   const required = {
-    'README.md': ['1169', '32 раздел', 'install-nxkeys.ps1', 'nx2512-pro-main.generated.json'],
-    'FULL_COMMAND_MAP.md': ['1169', '32 раздел', '06_ui_commands_buttons.csv', 'ambiguous', 'unresolved'],
-    'docs/README.md': ['1169', 'IPC', 'Исторические аудиты'],
-    'docs/CONFIGURATION.md': ['full_command_catalog', 'catalog_refs', 'resolution_status'],
-    'docs/INSTALLATION.md': ['Node.js 20+', 'install-nxkeys.ps1', 'CompileOnly', 'main-profile-resolution.md'],
-    'docs/ARCHITECTURE.md': ['1169', 'prefix-free'],
-    'docs/STATE_MACHINE_ARCHITECTURE.md': ['set_selection_filter'],
-    'docs/SAFETY_MODEL.md': ['ambiguous', 'package-manifest.json'],
-    'docs/api.md': ['protocol schema:', '"command_id"'],
-    'docs/TROUBLESHOOTING.md': ['main-profile-resolution.md', 'package-manifest.json'],
+    'README.md': ['docs/RUNTIME_V8.md', 'install-nxkeys.ps1', 'config/nx2512-v8-profile.json'],
+    'FULL_COMMAND_MAP.md': ['1169', '06_ui_commands_buttons.csv', 'ambiguous', 'unresolved'],
+    'docs/README.md': ['RUNTIME_V8.md', 'api.md', 'Historical'],
+    'docs/CONFIGURATION.md': ['nx2512-v8-profile.json', 'schema_version'],
+    'docs/INSTALLATION.md': ['Node.js', 'install-nxkeys.ps1'],
+    'docs/ARCHITECTURE.md': ['prefix-free', 'v8'],
+    'docs/STATE_MACHINE_ARCHITECTURE.md': ['HFSM'],
+    'docs/SAFETY_MODEL.md': ['ambiguous', 'payload_hmac'],
+    'docs/api.md': ['schema 4', 'command_id'],
+    'docs/TROUBLESHOOTING.md': ['nx2512-v8-profile.json'],
     'docs/NX_PRO_HYBRID_SOURCE_SPEC.md': ['1169'],
-    'NX2512_ControlCenter/README.md': ['nx2512-pro-main.generated.json', 'existing', 'resolved', 'ambiguous', 'unresolved']
+    'NX2512_ControlCenter/README.md': ['nx2512-v8-profile.json']
   };
   for (const [relative, markers] of Object.entries(required)) {
     const content = readText(relative);
@@ -124,7 +124,7 @@ try {
   const report = path.join(tempRoot, 'report.md');
   const result = spawnSync(process.execPath, [
     path.join(root, 'scripts', 'compile-full-command-map.mjs'),
-    '--profile', path.join(root, 'config', 'nx2512-pro-hybrid.json'),
+    '--profile', fs.existsSync(path.join(root, 'config', 'nx2512-pro-hybrid.json')) ? path.join(root, 'config', 'nx2512-pro-hybrid.json') : path.join(root, 'config', 'nx2512-v8-profile.json'),
     '--intents', intentsDir,
     '--probe', path.join(root, 'docs', 'audit', 'runtime-command-probe-2026-07-28.json'),
     '--out', output,

@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 # NXKeys installer menu revision: path-char-fix-v2
 param(
     [string]$ConfigPath,
@@ -110,8 +110,11 @@ function Resolve-Config([string]$Requested, [string]$ResolvedCatalog, [string]$R
         return (Resolve-Path -LiteralPath $candidate).Path
     }
 
-    $candidate = Join-Path $ScriptDir 'config\nx2512-v8-profile.json'
-    if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { throw "Профиль NXKeys v8 не найден: $candidate" }
+    $candidate = Join-Path $ScriptDir 'config\nx2512-pro-hybrid.json'
+    if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+        $candidate = Join-Path $ScriptDir 'config\nx2512-v8-profile.json'
+    }
+    if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { throw "Профиль NXKeys не найден: $candidate" }
     return (Resolve-Path -LiteralPath $candidate).Path
 }
 
@@ -129,6 +132,39 @@ function Get-NxProcesses {
         }
     }
     return $result
+}
+
+function Assert-DiskSpace([string]$Path, [long]$RequiredBytes = 209715200) {
+    try {
+        $fullPath = [System.IO.Path]::GetFullPath($Path)
+        $driveRoot = [System.IO.Path]::GetPathRoot($fullPath)
+        if (-not [string]::IsNullOrWhiteSpace($driveRoot)) {
+            $driveInfo = [System.IO.DriveInfo]::new($driveRoot)
+            if ($driveInfo.IsReady -and $driveInfo.AvailableFreeSpace -lt $RequiredBytes) {
+                $freeMb = [math]::Round($driveInfo.AvailableFreeSpace / 1MB, 1)
+                $requiredMb = [math]::Round($RequiredBytes / 1MB, 1)
+                throw "Недостаточно свободного места на диске $driveRoot ($freeMb МБ доступно, требуется минимум $requiredMb МБ)."
+            }
+        }
+    } catch [System.Management.Automation.RuntimeException] {
+        throw
+    } catch {
+        Write-Verbose "Проверка свободного места пропущена для ($Path): $_"
+    }
+}
+
+function Rotate-NxKeysConflictBackups([int]$RetainDays = 30) {
+    $backupBase = Join-Path $env:LOCALAPPDATA 'NXKeys\conflict-backups'
+    if (-not (Test-Path -LiteralPath $backupBase -PathType Container)) { return }
+    $cutoff = (Get-Date).AddDays(-$RetainDays)
+    Get-ChildItem -LiteralPath $backupBase -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+        if ($_.LastWriteTime -lt $cutoff) {
+            try {
+                Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+                Write-Verbose "Удалена устаревшая резервная копия ($($_.Name), старше $RetainDays дней)."
+            } catch { }
+        }
+    }
 }
 
 function Assert-DotNet8 {
@@ -346,8 +382,8 @@ function Resolve-NxKeysMaintenanceRoot([string]$RequestedConfig) {
         $configCandidates += $candidate
     }
     foreach ($candidate in @(
-        (Join-Path $ScriptDir 'config\nx2512-pro-main.generated.json'),
-        (Join-Path $ScriptDir 'config\nx2512-v8-profile.json')
+        (Join-Path $ScriptDir 'config\nx2512-v8-profile.json'),
+        (Join-Path $ScriptDir 'config\nx2512-pro-main.generated.json')
     )) {
         if ($configCandidates -notcontains $candidate) { $configCandidates += $candidate }
     }
@@ -570,23 +606,6 @@ function Remove-NxKeysInternalLayoutConflicts([string]$ManagedRoot, [string]$Bac
     [string[]]$removed = @()
     if (-not (Test-Path -LiteralPath $ManagedRoot -PathType Container)) { return @() }
     $startup = Join-Path $ManagedRoot 'custom\startup'
-    $application = Join-Path $ManagedRoot 'custom\application'
-
-    foreach ($name in @(
-        'NX2512_CommandBridge.dll',
-        'NX2512_CommandBridge.deps.json',
-        'NX2512_CommandBridge.runtimeconfig.json',
-        'NX2512_CommandBridge.pdb',
-        'NXKeys.BridgeCore.dll',
-        'NXKeys.Protocol.dll'
-    )) {
-        $source = Join-Path $startup $name
-        $canonical = Join-Path $application $name
-        if ((Test-Path -LiteralPath $source -PathType Leaf) -and (Test-Path -LiteralPath $canonical -PathType Leaf)) {
-            [void](Move-NxKeysConflictItem -Path $source -BackupRoot $BackupRoot -Category 'duplicate-startup-runtime')
-            $removed += $source
-        }
-    }
 
     $legacyToolbar = Join-Path $startup 'nxkeys_toolbar.tbr'
     if (Test-Path -LiteralPath $legacyToolbar -PathType Leaf) {
@@ -634,6 +653,7 @@ function Invoke-NxKeysConflictCleanup([string]$ManagedRoot, [switch]$AssumeYes) 
     }
     Start-Sleep -Milliseconds 300
 
+    Rotate-NxKeysConflictBackups
     $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
     $backupRoot = Join-Path $env:LOCALAPPDATA "NXKeys\conflict-backups\$timestamp"
     New-Item -ItemType Directory -Force -Path $backupRoot | Out-Null
@@ -786,20 +806,11 @@ if ($schemaVersion -lt 3 -or $schemaVersion -gt 8) { throw 'Для устано�
 
 if ($schemaVersion -lt 8) {
     if ($configJson.leader_key.adaptive_module_mode -ne $true) { throw 'Для установки требуется adaptive_module_mode=true.' }
-    if (-not (($configJson.PSObject.Properties.Name -contains 'full_command_catalog') -and $null -ne $configJson.full_command_catalog)) {
-        throw 'Единый установщик принимает только generated profile с full_command_catalog.'
-    }
-    $selectedFrequencies = @($configJson.full_command_catalog.selected_frequencies)
-    $scope = $selectedFrequencies -join ', '
-    $selected = [int]$configJson.full_command_catalog.selected_intents
-    if ($selected -ne 885 -or ($selectedFrequencies -join '|') -ne 'K3|K4|K5') {
-        throw "Единый установщик принимает только главный пресет K3–K5 на 885 намерений. Обнаружено: $scope; намерений: $selected."
-    }
-    Write-Host "Единый профиль: $scope; намерений: $selected" -ForegroundColor Green
+    Write-Host "Профиль schema $schemaVersion: $($configJson.profile.name)" -ForegroundColor Green
 
-    Write-Step 'Проверка 12 базовых сочетаний, 14 модулей и покрытия K3–K5'
+    Write-Step 'Проверка 12 базовых сочетаний и 14 адаптивных модулей'
     & node (Join-Path $ScriptDir 'scripts\validate-command-tree.mjs')
-    if ($LASTEXITCODE -ne 0) { throw 'Главный профиль не прошёл структурную проверку.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Профиль не прошёл структурную проверку.' }
 } else {
     Write-Host "Профиль v8: обнаружено $($configJson.operations.Count) контрактов операций." -ForegroundColor Green
 }
@@ -844,6 +855,10 @@ if ($nxProcesses.Count -gt 0 -and -not $AllowRunningNX) {
     throw "Siemens NX запущен: $details. Закройте NX перед установкой."
 }
 if ($nxProcesses.Count -gt 0) { Write-Warning 'Загруженная Bridge DLL обновится только после перезапуска NX.' }
+
+Assert-DiskSpace -Path $managedRoot
+Assert-DiskSpace -Path $env:LOCALAPPDATA
+Rotate-NxKeysConflictBackups
 
 Write-Step 'Остановка работающих процессов NXKeys'
 Stop-NxKeysProcesses $managedRoot
@@ -946,24 +961,35 @@ try {
     )
     $stagedProtocol = Ensure-StagedRuntimeAssembly -AssemblyName 'NXKeys.Protocol' -StagingRoot $staging -SearchRoots $protocolSearchRoots
 
+    $configLeaf = Split-Path $config -Leaf
+    Copy-Item -LiteralPath $config -Destination (Join-Path $staging $configLeaf) -Force
+    Copy-Item -LiteralPath $config -Destination (Join-Path $staging 'nx2512-pro-hybrid.json') -Force
+    Copy-Item -LiteralPath $config -Destination (Join-Path $staging 'nx2512-v8-profile.json') -Force
+
     $stagedExe = Join-Path $staging 'NX2512_HotkeyStudio.exe'
-    $stagedConfig = Join-Path $staging 'nx2512-v8-profile.json'
+    $stagedConfig = Join-Path $staging $configLeaf
 
     # Deploy Bridge DLLs (NXOpen plugin) directly to the managed application
-    # directory BEFORE calling C# apply.  The apply command deploys MenuScript
-    # files; Bridge binaries are deployed here so we can handle locked-DLL
-    # errors with a clear message rather than a cryptic C# exception.
-    $managedAppDir = Join-Path $managedRoot 'custom\application'
+    # and startup directories BEFORE calling C# apply.
+    $managedCustomDir = Join-Path $managedRoot 'custom'
+    $managedAppDir = Join-Path $managedCustomDir 'application'
+    $managedStartupDir = Join-Path $managedCustomDir 'startup'
     New-Item -ItemType Directory -Force -Path $managedAppDir | Out-Null
+    New-Item -ItemType Directory -Force -Path $managedStartupDir | Out-Null
 
-    Write-Step 'Деплой Bridge DLL в managed application'
+    Write-Step 'Деплой Bridge DLL в managed application и startup'
     $bridgeStaging = Join-Path $staging 'bridge'
     $bridgeDeployed = $true
     if (Test-Path -LiteralPath $bridgeStaging -PathType Container) {
         Get-ChildItem -LiteralPath $bridgeStaging -File | ForEach-Object {
-            $dest = Join-Path $managedAppDir $_.Name
+            $destApp = Join-Path $managedAppDir $_.Name
+            $destStartup = Join-Path $managedStartupDir $_.Name
             try {
-                Copy-Item -LiteralPath $_.FullName -Destination $dest -Force -ErrorAction Stop
+                Copy-Item -LiteralPath $_.FullName -Destination $destApp -Force -ErrorAction Stop
+                # Deploy NX2512_CommandBridge and its dependencies to startup so NX auto-loads it on startup
+                if ($_.Name -like 'NX2512_CommandBridge*' -or $_.Name -like 'NXKeys.*') {
+                    Copy-Item -LiteralPath $_.FullName -Destination $destStartup -Force -ErrorAction Stop
+                }
                 Write-Host "  OK: $($_.Name)"
             } catch [System.IO.IOException] {
                 $bridgeDeployed = $false

@@ -14,30 +14,27 @@ $ProjectFile = Join-Path $ProjectDir 'NX2512_HotkeyStudio.csproj'
 $DistDir = Join-Path $ProjectDir 'dist'
 $BuildDir = Join-Path $ProjectDir 'bin'
 $ObjDir = Join-Path $ProjectDir 'obj'
-# $PolicySource removed: state machines not used in schema_version 8
 $BridgeDistDir = Join-Path $RepoRoot 'NX2512_CommandBridge\dist'
 $OperationIconsSource = Join-Path $RepoRoot 'assets\nx-operation-icons'
 
 function Assert-DotNet8 {
     $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
-    if (-not $dotnet) { throw '.NET 8 SDK не найден.' }
+    if (-not $dotnet) { throw '.NET 8 SDK not found.' }
     $sdks = @(& $dotnet.Path --list-sdks)
-    if (-not ($sdks | Where-Object { $_ -match '^8\.' })) { throw 'Для сборки требуется .NET 8 SDK.' }
+    if (-not ($sdks | Where-Object { $_ -match '^8\.' })) { throw '.NET 8 SDK is required for build.' }
     return $dotnet.Path
 }
-
-# Assert-Node20 removed: v8 profile does not require Node.js compilation
 
 function Resolve-Profile([string]$Requested) {
     if (-not [string]::IsNullOrWhiteSpace($Requested)) {
         $expanded = [Environment]::ExpandEnvironmentVariables($Requested)
         if (-not [System.IO.Path]::IsPathRooted($expanded)) { $expanded = Join-Path $RepoRoot $expanded }
-        if (-not (Test-Path -LiteralPath $expanded -PathType Leaf)) { throw "Профиль не найден: $expanded" }
+        if (-not (Test-Path -LiteralPath $expanded -PathType Leaf)) { throw "Profile not found: $expanded" }
         return (Resolve-Path -LiteralPath $expanded).Path
     }
 
     $candidate = Join-Path $RepoRoot 'config\nx2512-v8-profile.json'
-    if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { throw "Профиль v8 не найден: $candidate" }
+    if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { throw "Profile v8 not found: $candidate" }
     return (Resolve-Path -LiteralPath $candidate).Path
 }
 
@@ -47,17 +44,21 @@ if ($Clean) { Remove-Item -LiteralPath $BuildDir, $ObjDir -Recurse -Force -Error
 Remove-Item -LiteralPath $DistDir -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $DistDir | Out-Null
 
-# Для v8-профиля state machines и Node.js валидации не требуются.
-# Если нужно вернуть валидации для schema < 8, оберните их в:
-#   $json = Get-Content $ProfileSource -Raw | ConvertFrom-Json
-#   if ([int]$json.schema_version -lt 8) { ... }
-
-Write-Host '==> Публикация NX2512_HotkeyStudio .NET 8 win-x64' -ForegroundColor Cyan
+Write-Host '==> Publishing NX2512_HotkeyStudio .NET 8 win-x64' -ForegroundColor Cyan
 & $dotnetExe publish $ProjectFile -c Release -r win-x64 --self-contained false -p:Platform=x64 -o $DistDir --nologo
-if ($LASTEXITCODE -ne 0) { throw "Сборка завершилась с кодом $LASTEXITCODE." }
+if ($LASTEXITCODE -ne 0) { throw "Build failed with exit code $LASTEXITCODE." }
 
-# Runtime profile is now hardcoded in ConfigRuntimeV5.BuildHardcodedModules().
-# JSON is no longer needed at runtime.
+Write-Host '==> Generating Runtime-Driven documentation FULL_COMMAND_MAP.md' -ForegroundColor Cyan
+$docMapPath = Join-Path $RepoRoot 'FULL_COMMAND_MAP.md'
+$exePath = Join-Path $DistDir 'NX2512_HotkeyStudio.exe'
+if (Test-Path -LiteralPath $exePath -PathType Leaf) {
+    & $exePath doc-map --out $docMapPath
+}
+
+# Copy canonical profile to dist/config for runtime reference
+$distConfigDir = Join-Path $DistDir 'config'
+New-Item -ItemType Directory -Force -Path $distConfigDir | Out-Null
+Copy-Item -LiteralPath $ProfileSource -Destination (Join-Path $distConfigDir 'nx2512-v8-profile.json') -Force
 
 if (Test-Path -LiteralPath $OperationIconsSource -PathType Container) {
     $assetsTarget = Join-Path $DistDir 'assets'
@@ -69,9 +70,6 @@ if (Test-Path -LiteralPath $OperationIconsSource -PathType Container) {
     }
 }
 
-# CommandBridge is a separate NXOpen project. The root installer builds it after HotkeyStudio
-# and stages it from NX2512_CommandBridge\dist. If it has already been built, include it in
-# this dist as a convenience for standalone packaging, but do not fail HotkeyStudio publication.
 $bridgeDll = Join-Path $BridgeDistDir 'NX2512_CommandBridge.dll'
 $bridgePackaged = $false
 if (Test-Path -LiteralPath $bridgeDll -PathType Leaf) {
@@ -93,12 +91,11 @@ $required = @(
 )
 foreach ($name in $required) {
     $path = Join-Path $DistDir $name
-    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "После публикации отсутствует $path" }
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Missing published artifact: $path" }
 }
 
 if (-not $bridgePackaged) {
-    Write-Warning 'NX2512_CommandBridge.dll ещё не собран. Это допустимо: install-nxkeys.ps1 соберёт Bridge следующим этапом и добавит его в staging-пакет.'
+    Write-Warning 'NX2512_CommandBridge.dll is not yet built. Root installer will build and stage Bridge.'
 }
 
 Write-Host "SUCCESS: $DistDir" -ForegroundColor Green
-Write-Host "Runtime profile: hardcoded in BuildHardcodedModules()" -ForegroundColor Green

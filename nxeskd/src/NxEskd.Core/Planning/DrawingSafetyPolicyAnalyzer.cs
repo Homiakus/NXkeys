@@ -89,6 +89,12 @@ public sealed class DrawingSafetyPolicyAnalyzer
         var normalized = status.Trim().ToLowerInvariant();
         return normalized.Contains("released", StringComparison.Ordinal)
                || normalized.Contains("approved", StringComparison.Ordinal)
+               || normalized.Contains("issued", StringComparison.Ordinal)
+               || normalized.Contains("frozen", StringComparison.Ordinal)
+               || normalized.Contains("obsolete", StringComparison.Ordinal)
+               || normalized.StartsWith("rel_", StringComparison.Ordinal)
+               || normalized.EndsWith("_rel", StringComparison.Ordinal)
+               || normalized.Equals("rel", StringComparison.Ordinal)
                || normalized.Contains("выпущ", StringComparison.Ordinal)
                || normalized.Contains("утверж", StringComparison.Ordinal)
                || normalized.Contains("архив", StringComparison.Ordinal);

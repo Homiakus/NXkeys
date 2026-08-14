@@ -70,6 +70,7 @@ public sealed class DrawingEngine
             report.Metrics["plan.operationCount"] = plan.Operations.Count;
             report.Metrics["plan.sheetCount"] = plan.Sheets.Count;
             report.Metrics["plan.viewCount"] = plan.Sheets.Sum(sheet => sheet.Views.Count);
+            report.Metrics["plan.hash"] = plan.ComputeHash();
 
             switch (command)
             {

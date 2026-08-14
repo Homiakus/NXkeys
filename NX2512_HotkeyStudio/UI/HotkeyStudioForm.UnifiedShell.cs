@@ -170,9 +170,13 @@ namespace NX2512_HotkeyStudio.UI
         private Control BuildSettingsPage()
         {
             Panel page = CreatePage();
-            var root = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 2, Padding = new Padding(20) };
-            root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 300));
-            root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 360));
+            var mainLayout = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Padding = new Padding(16) };
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 360));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            var root = new TableLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, ColumnCount = 2 };
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 280));
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 380));
 
             settingsTrigger.DropDownStyle = ComboBoxStyle.DropDownList;
             settingsTrigger.Items.AddRange(new object[] { "CapsLock", "F12" });
@@ -202,18 +206,37 @@ namespace NX2512_HotkeyStudio.UI
             buttons.Controls.Add(save);
             root.Controls.Add(buttons, 1, 7);
 
-            Label note = new Label
-            {
-                Dock = DockStyle.Fill,
-                AutoSize = true,
-                MaximumSize = new Size(660, 0),
-                Text = "Изменения попадают в draft и поддерживают Ctrl+Z / Ctrl+Y. Для применения runtime-параметров к уже запущенному Leader перезапустите Leader после сохранения.",
-                ForeColor = muted,
-                Padding = new Padding(0, 14, 0, 0)
-            };
-            root.SetColumnSpan(note, 2);
-            root.Controls.Add(note, 0, 8);
-            page.Controls.Add(root);
+            mainLayout.Controls.Add(root, 0, 0);
+
+            var backupGroup = Card();
+            backupGroup.Dock = DockStyle.Fill;
+            var backupLayout = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1 };
+            backupLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            backupLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
+
+            backupList.Dock = DockStyle.Fill;
+            StyleList(backupList);
+            backupList.Columns.Clear();
+            backupList.Columns.Add("Время создания", 190);
+            backupList.Columns.Add("Профиль", 260);
+            backupList.Columns.Add("Файлов", 80);
+            backupList.Columns.Add("Каталог", 500);
+
+            var backupButtons = new FlowLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(6) };
+            Button refreshBackups = CreateActionButton("Обновить копии", text);
+            refreshBackups.Click += (_, _) => RefreshBackups();
+            Button restoreBackup = CreateActionButton("Восстановить выбранную", Color.FromArgb(245, 158, 11));
+            restoreBackup.Click += (_, _) => RestoreSelected();
+            backupButtons.Controls.Add(refreshBackups);
+            backupButtons.Controls.Add(restoreBackup);
+
+            backupLayout.Controls.Add(backupList, 0, 0);
+            backupLayout.Controls.Add(backupButtons, 0, 1);
+            backupGroup.Controls.Add(backupLayout);
+
+            mainLayout.Controls.Add(backupGroup, 0, 1);
+
+            page.Controls.Add(mainLayout);
             RefreshSettingsControls();
             return page;
         }

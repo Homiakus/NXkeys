@@ -178,8 +178,10 @@ function disabledSummary(profile) {
 
 try {
   const intents = loadIntents();
-  const bootstrap = readJson('config/nx2512-pro-hybrid.json');
-  const runtime = readJson('config/nx2512-pro-main.generated.json');
+  const bootstrapPath = fs.existsSync(path.join(root, 'config', 'nx2512-pro-hybrid.json')) ? 'config/nx2512-pro-hybrid.json' : 'config/nx2512-v8-profile.json';
+  const runtimePath = fs.existsSync(path.join(root, 'config', 'nx2512-pro-main.generated.json')) ? 'config/nx2512-pro-main.generated.json' : 'config/nx2512-v8-profile.json';
+  const bootstrap = readJson(bootstrapPath);
+  const runtime = readJson(runtimePath);
   const probePath = path.join(root, 'docs', 'audit', 'runtime-command-probe-2026-07-28.json');
   const probe = fs.existsSync(probePath) ? JSON.parse(fs.readFileSync(probePath, 'utf8')) : null;
   const rows = sequenceRows(runtime);

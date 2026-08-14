@@ -81,6 +81,75 @@ public sealed class DrawingOperationSchedulerTests
         Assert.True(IndexOf(ordered, "validation:postconditions") < IndexOf(ordered, "output:publish"));
     }
 
+    [Fact]
+    public void NormalizerPreservesMultipleOutputOperations()
+    {
+        var plan = new DrawingPlan(
+            "P",
+            "part_drawing",
+            "A.001",
+            "Деталь",
+            [],
+            new Dictionary<string, string>(),
+            false)
+        {
+            Operations =
+            [
+                new DrawingOperation("sheet:S1", "S1", "sheet", "ensure", [], [],
+                    new Dictionary<string, object?>()),
+                new DrawingOperation("output:pdf", "drawing", "output", "export_pdf",
+                    [], [], new Dictionary<string, object?>()),
+                new DrawingOperation("output:dxf", "drawing", "output", "export_dxf",
+                    [], [], new Dictionary<string, object?>()),
+                new DrawingOperation("output:step", "drawing", "output", "export_step",
+                    [], [], new Dictionary<string, object?>())
+            ]
+        };
+
+        var normalized = DrawingOperationPlanNormalizer.Normalize(plan);
+        var (ordered, report) = new DrawingOperationScheduler().Build(normalized.Operations);
+
+        Assert.False(report.HasErrors);
+        Assert.Contains(normalized.Operations, op => op.OperationId == "output:pdf");
+        Assert.Contains(normalized.Operations, op => op.OperationId == "output:dxf");
+        Assert.Contains(normalized.Operations, op => op.OperationId == "output:step");
+        Assert.True(IndexOf(ordered, "validation:postconditions") < IndexOf(ordered, "output:pdf"));
+        Assert.True(IndexOf(ordered, "validation:postconditions") < IndexOf(ordered, "output:dxf"));
+        Assert.True(IndexOf(ordered, "validation:postconditions") < IndexOf(ordered, "output:step"));
+    }
+
+    [Fact]
+    public void NormalizerIsStrictlyIdempotent()
+    {
+        var plan = new DrawingPlan(
+            "P",
+            "part_drawing",
+            "A.001",
+            "Деталь",
+            [],
+            new Dictionary<string, string>(),
+            false)
+        {
+            Operations =
+            [
+                new DrawingOperation("sheet:S1", "S1", "sheet", "ensure", [], [],
+                    new Dictionary<string, object?>()),
+                new DrawingOperation("output:pdf", "drawing", "output", "export_pdf",
+                    [], [], new Dictionary<string, object?>())
+            ]
+        };
+
+        var pass1 = DrawingOperationPlanNormalizer.Normalize(plan);
+        var pass2 = DrawingOperationPlanNormalizer.Normalize(pass1);
+
+        Assert.Equal(pass1.Operations.Count, pass2.Operations.Count);
+        for (int i = 0; i < pass1.Operations.Count; i++)
+        {
+            Assert.Equal(pass1.Operations[i].OperationId, pass2.Operations[i].OperationId);
+            Assert.Equal(pass1.Operations[i].Dependencies, pass2.Operations[i].Dependencies);
+        }
+    }
+
     private static DrawingOperation Operation(string id, IReadOnlyList<string> dependencies)
         => new(id, id, "view", "ensure", dependencies, [], new Dictionary<string, object?>());
 

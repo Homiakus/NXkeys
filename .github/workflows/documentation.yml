@@ -133,6 +133,9 @@ jobs:
       - name: Validate main command map
         run: node .\scripts\validate-main-command-map.mjs
 
+      - name: Validate full command map
+        run: node .\scripts\validate-full-command-map.mjs
+
       - name: Validate command tree
         run: node .\scripts\validate-command-tree.mjs
 

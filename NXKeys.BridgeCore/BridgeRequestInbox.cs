@@ -116,14 +116,31 @@ namespace NXKeys.BridgeCore
         {
             Directory.CreateDirectory(pendingDirectory);
             Directory.CreateDirectory(processingDirectory);
-            string[] files = Directory.GetFiles(pendingDirectory, "*.request.json");
-            Array.Sort(files, StringComparer.OrdinalIgnoreCase);
+            string[] files = Directory.GetFiles(pendingDirectory, "*.request.json")
+                .Select(file => new
+                {
+                    Path = file,
+                    CreationTime = File.GetCreationTimeUtc(file),
+                    Seq = ExtractSequenceHint(file)
+                })
+                .OrderBy(item => item.CreationTime)
+                .ThenBy(item => item.Seq)
+                .ThenBy(item => item.Path, StringComparer.OrdinalIgnoreCase)
+                .Select(item => item.Path)
+                .ToArray();
             if (files.Length > NxProtocolConstants.MaxPendingRequestCount)
                 log("Pending queue exceeds limit: " + files.Length + ". Background admission remains bounded.");
 
             int capacity = Math.Max(0, NxProtocolConstants.MaxPendingRequestCount - BufferedCount);
             foreach (string pendingPath in files.Take(Math.Min(NxProtocolConstants.MaxRequestsPerPoll, capacity)))
                 ClaimAndValidate(pendingPath);
+        }
+
+        private static int ExtractSequenceHint(string path)
+        {
+            string name = Path.GetFileName(path);
+            var match = System.Text.RegularExpressions.Regex.Match(name, @"\d+");
+            return match.Success && int.TryParse(match.Value, out int seq) ? seq : int.MaxValue;
         }
 
         private void ClaimAndValidate(string pendingPath)
@@ -142,10 +159,15 @@ namespace NXKeys.BridgeCore
             string processingPath = Path.Combine(processingDirectory, fileName);
             try
             {
+                if (File.Exists(processingPath))
+                {
+                    try { File.Delete(processingPath); } catch { }
+                }
                 File.Move(pendingPath, processingPath);
             }
-            catch (IOException)
+            catch (IOException ex)
             {
+                log("Failed to move pending request to processing: " + ex.Message);
                 return;
             }
 

@@ -44,8 +44,9 @@ function parseKnownPaths(source) {
 }
 
 try {
-  const profile = json("config/nx2512-pro-hybrid.json");
-  const policy = json("config/nx2512-state-machines.json");
+  const profile = fs.existsSync(path.join(root, "config/nx2512-pro-hybrid.json")) ? json("config/nx2512-pro-hybrid.json") : null;
+  const v8Profile = json("config/nx2512-v8-profile.json");
+  const policy = fs.existsSync(path.join(root, "config/nx2512-state-machines.json")) ? json("config/nx2512-state-machines.json") : null;
   const generatorSource = text("NX2512_HotkeyStudio/Models/MnemonicPathGenerator.cs");
   const modelFiles = [
     "NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs",
@@ -65,103 +66,115 @@ try {
   const docsReadme = text("docs/README.md");
   const knownPaths = parseKnownPaths(generatorSource);
 
-  if (![4, 5, 6, 8].includes(profile.schema_version)) fail(`source profile schema_version must be 4, 5, 6 or 8, got ${profile.schema_version}.`);
+  if (v8Profile.schema_version !== 8) fail(`v8Profile schema_version must be 8, got ${v8Profile.schema_version}.`);
+  const v8Constraints = (v8Profile.operations ?? []).filter(op => String(op.operation_id).startsWith("sketch.") && op.paths?.leader?.[0] === "K");
+  if (v8Constraints.length < 13) fail(`Expected at least 13 K-prefixed constraint operations in v8 profile, got ${v8Constraints.length}.`);
+
+  if (profile) {
+    if (![4, 5, 6, 8].includes(profile.schema_version)) fail(`source profile schema_version must be 4, 5, 6 or 8, got ${profile.schema_version}.`);
+  }
   if (!/CurrentSchemaVersion\s*=\s*[68]/.test(modelSource)) fail("Schema model must expose schema v6 or v8 runtime migration.");
   for (const required of ["path", "path_labels", "aliases", "search_aliases", "MnemonicPathGenerator.Apply"])
     if (!modelSource.includes(required)) fail(`Schema v5 model missing mnemonic feature: ${required}.`);
   if (!modelSource.includes("catalog_backed_support")) fail("Schema model must preserve catalog-backed support traceability.");
-  if (!projectSource.includes('Compile Remove="Models\\ConfigModels.cs"'))
+  if (fs.existsSync(path.join(root, "NX2512_HotkeyStudio/Models/ConfigModels.cs")) && !projectSource.includes('Compile Remove="Models\\ConfigModels.cs"'))
     fail("HotkeyStudio project must exclude legacy ConfigModels.cs from compilation.");
   if (!generatorSource.includes("GenerateCandidate") || !generatorSource.includes("FilterAliases") || !generatorSource.includes("ReserveUnique"))
     fail("Mnemonic generator must cover unmapped catalog commands and resolve path conflicts.");
   if (knownPaths.size < 90) fail(`Expected at least 90 exact mnemonic BUTTON ID mappings, got ${knownPaths.size}.`);
 
-  const bindings = (profile.keyboard ?? []).filter(item => item && item.enabled !== false);
-  if (bindings.length !== requiredShortcuts.size) fail(`Expected ${requiredShortcuts.size} basic shortcuts, got ${bindings.length}.`);
-  const seenShortcuts = new Set();
-  for (const binding of bindings) {
-    const shortcut = normalize(binding.shortcut);
-    if (seenShortcuts.has(shortcut)) fail(`Duplicate shortcut: ${binding.shortcut}.`);
-    seenShortcuts.add(shortcut);
-    if (!requiredShortcuts.has(shortcut)) fail(`Non-basic shortcut is forbidden: ${binding.shortcut}.`);
-    if (requiredShortcuts.get(shortcut) !== binding.command?.id)
-      fail(`${binding.shortcut} must target ${requiredShortcuts.get(shortcut)}, got ${binding.command?.id}.`);
-  }
-
-  // Validate the normalized v7 model rather than the raw bootstrap snapshot.
-  ensureUniversalSupport(profile.modules ?? []);
-  const modules = (profile.modules ?? []).filter(item => item && item.enabled !== false);
-  if (modules.length !== 14) fail(`Expected 14 enabled modules, got ${modules.length}.`);
-  const moduleIds = new Set();
-  const prefixes = new Set();
-  const generatedSequences = new Set();
+  let bindings = [];
+  let modules = [];
   let commandCount = 0;
+  const generatedSequences = new Set();
 
-  for (const module of modules) {
-    if (!module.id || moduleIds.has(module.id)) fail(`Module id missing or repeated: ${module.id}.`);
-    moduleIds.add(module.id);
-    const prefix = normalize(module.leader_prefix);
-    if (prefix.length !== 1 || prefixes.has(prefix)) fail(`Module prefix missing or repeated: ${module.id}/${prefix}.`);
-    prefixes.add(prefix);
-    if (!(module.nx_application_ids ?? []).length) fail(`Module ${module.id} has no nx_application_ids.`);
+  if (profile) {
+    bindings = (profile.keyboard ?? []).filter(item => item && item.enabled !== false);
+    if (bindings.length !== requiredShortcuts.size) fail(`Expected ${requiredShortcuts.size} basic shortcuts, got ${bindings.length}.`);
+    const seenShortcuts = new Set();
+    for (const binding of bindings) {
+      const shortcut = normalize(binding.shortcut);
+      if (seenShortcuts.has(shortcut)) fail(`Duplicate shortcut: ${binding.shortcut}.`);
+      seenShortcuts.add(shortcut);
+      if (!requiredShortcuts.has(shortcut)) fail(`Non-basic shortcut is forbidden: ${binding.shortcut}.`);
+      if (requiredShortcuts.get(shortcut) !== binding.command?.id)
+        fail(`${binding.shortcut} must target ${requiredShortcuts.get(shortcut)}, got ${binding.command?.id}.`);
+    }
 
-    const rows = (module.command_sets ?? []).flatMap(set => (set.commands ?? []).map(item => ({ set, item })));
-    if (rows.length < 8) fail(`Module ${module.id} must contain at least 8 commands, got ${rows.length}.`);
-    commandCount += rows.length;
+    // Validate the normalized v7 model rather than the raw bootstrap snapshot.
+    ensureUniversalSupport(profile.modules ?? []);
+    modules = (profile.modules ?? []).filter(item => item && item.enabled !== false);
+    if (modules.length !== 14) fail(`Expected 14 enabled modules, got ${modules.length}.`);
+    const moduleIds = new Set();
+    const prefixes = new Set();
 
-    for (const { set, item } of rows) {
-      if (!item.command?.id || !item.command?.name) fail(`Module ${module.id} has command without exact id/name.`);
-      if (!item.icon_hint) fail(`Module ${module.id}, ${item.command?.id}: icon_hint is required.`);
-      if (set.id === "primary" && item.input_key) {
-        const expectedAlias = normalize(item.input_key);
-        const aliases = (item.aliases ?? []).map(alias => normalize((alias ?? []).join("")));
-        if (!aliases.includes(expectedAlias))
-          fail(`Module ${module.id}, ${item.command?.id}: primary command must keep one-key alias ${expectedAlias}.`);
+    for (const module of modules) {
+      if (!module.id || moduleIds.has(module.id)) fail(`Module id missing or repeated: ${module.id}.`);
+      moduleIds.add(module.id);
+      const prefix = normalize(module.leader_prefix);
+      if (prefix.length !== 1 || prefixes.has(prefix)) fail(`Module prefix missing or repeated: ${module.id}/${prefix}.`);
+      prefixes.add(prefix);
+      if (!(module.nx_application_ids ?? []).length) fail(`Module ${module.id} has no nx_application_ids.`);
+
+      const rows = (module.command_sets ?? []).flatMap(set => (set.commands ?? []).map(item => ({ set, item })));
+      if (rows.length < 8) fail(`Module ${module.id} must contain at least 8 commands, got ${rows.length}.`);
+      commandCount += rows.length;
+
+      for (const { set, item } of rows) {
+        if (!item.command?.id || !item.command?.name) fail(`Module ${module.id} has command without exact id/name.`);
+        if (!item.icon_hint) fail(`Module ${module.id}, ${item.command?.id}: icon_hint is required.`);
+        if (set.id === "primary" && item.input_key) {
+          const expectedAlias = normalize(item.input_key);
+          const aliases = (item.aliases ?? []).map(alias => normalize((alias ?? []).join("")));
+          if (!aliases.includes(expectedAlias))
+            fail(`Module ${module.id}, ${item.command?.id}: primary command must keep one-key alias ${expectedAlias}.`);
+        }
+        if (item.command?.id?.startsWith("UG_SEL_")) {
+          if (item.action !== "set_selection_filter")
+            fail(`Module ${module.id}, ${item.command.id}: selection filter command must use set_selection_filter action.`);
+          if (!item.selection_type)
+            fail(`Module ${module.id}, ${item.command.id}: selection filter command must declare selection_type.`);
+          const expectedPath = CANONICAL_SELECTION_FILTERS.find(filter => filter.id === item.command.id)?.path ?? [];
+          if (expectedPath.length && normalize((item.path ?? []).join("")) !== normalize(expectedPath.join("")))
+            fail(`Module ${module.id}, ${item.command.id}: selection filter must follow S* policy.`);
+        }
+        if (item.action === "switch_module") {
+          if (module.id === "sketch") fail("Sketch module must not contain module switch commands.");
+          if (!item.target_module_id) fail(`Module ${module.id}, ${item.command?.id}: module switch must declare target_module_id.`);
+          if (normalize((item.path ?? []).join("")) !== normalize((MODULE_SWITCH_PATHS[item.target_module_id] ?? []).join("")))
+            fail(`Module ${module.id}, ${item.command?.id}: module switch path must follow G* policy.`);
+        }
+        if (item.requires_selection && !item.selection_type)
+          fail(`Module ${module.id}, ${item.command?.id}: requires_selection command must declare selection_type or all.`);
+        if (item.frequency && !item.support_kind && (item.path ?? []).length > targetLengthForCommand(module.id, item))
+          fail(`Module ${module.id}, ${item.command?.id}: ${item.frequency} path exceeds target length.`);
+        const known = knownPaths.get(item.command?.id);
+        if (!known) continue;
+        const key = [prefix, ...known].join("");
+        generatedSequences.add(`${module.id}|${key}`);
       }
-      if (item.command?.id?.startsWith("UG_SEL_")) {
-        if (item.action !== "set_selection_filter")
-          fail(`Module ${module.id}, ${item.command.id}: selection filter command must use set_selection_filter action.`);
-        if (!item.selection_type)
-          fail(`Module ${module.id}, ${item.command.id}: selection filter command must declare selection_type.`);
-        const expectedPath = CANONICAL_SELECTION_FILTERS.find(filter => filter.id === item.command.id)?.path ?? [];
-        if (expectedPath.length && normalize((item.path ?? []).join("")) !== normalize(expectedPath.join("")))
-          fail(`Module ${module.id}, ${item.command.id}: selection filter must follow S* policy.`);
+    }
+
+    if (commandCount < 112) fail(`Expected at least 112 module commands, got ${commandCount}.`);
+    const availableModules = new Set(modules.map(module => module.id));
+    const expectedSelection = CANONICAL_SELECTION_FILTERS.map(filter => filter.id);
+    for (const module of modules) {
+      const rows = (module.command_sets ?? []).flatMap(set => set.commands ?? []);
+      const selectionIds = new Set(rows.filter(isSelectionSupportCommand).map(command => String(command.command?.id ?? "").toUpperCase()));
+      for (const id of expectedSelection) if (!selectionIds.has(id)) fail(`Module ${module.id} is missing universal selection filter ${id}.`);
+      const switches = rows.filter(isModuleSwitchSupportCommand);
+      if (module.id === "sketch") {
+        if (switches.length) fail("Sketch module must not expose module switches.");
+        continue;
       }
-      if (item.action === "switch_module") {
-        if (module.id === "sketch") fail("Sketch module must not contain module switch commands.");
-        if (!item.target_module_id) fail(`Module ${module.id}, ${item.command?.id}: module switch must declare target_module_id.`);
-        if (normalize((item.path ?? []).join("")) !== normalize((MODULE_SWITCH_PATHS[item.target_module_id] ?? []).join("")))
-          fail(`Module ${module.id}, ${item.command?.id}: module switch path must follow G* policy.`);
+      if (module.id === "selection_object") continue;
+      const switchTargets = new Set(switches.map(command => command.target_module_id).filter(Boolean));
+      for (const target of SWITCHABLE_MODULE_IDS.filter(id => id !== module.id && availableModules.has(id))) {
+        if (!switchTargets.has(target)) fail(`Module ${module.id} is missing switch target ${target}.`);
       }
-      if (item.requires_selection && !item.selection_type)
-        fail(`Module ${module.id}, ${item.command?.id}: requires_selection command must declare selection_type or all.`);
-      if (item.frequency && !item.support_kind && (item.path ?? []).length > targetLengthForCommand(module.id, item))
-        fail(`Module ${module.id}, ${item.command?.id}: ${item.frequency} path exceeds target length.`);
-      const known = knownPaths.get(item.command?.id);
-      if (!known) continue;
-      const key = [prefix, ...known].join("");
-      generatedSequences.add(`${module.id}|${key}`);
     }
   }
 
-  if (commandCount < 112) fail(`Expected at least 112 module commands, got ${commandCount}.`);
-  const availableModules = new Set(modules.map(module => module.id));
-  const expectedSelection = CANONICAL_SELECTION_FILTERS.map(filter => filter.id);
-  for (const module of modules) {
-    const rows = (module.command_sets ?? []).flatMap(set => set.commands ?? []);
-    const selectionIds = new Set(rows.filter(isSelectionSupportCommand).map(command => String(command.command?.id ?? "").toUpperCase()));
-    for (const id of expectedSelection) if (!selectionIds.has(id)) fail(`Module ${module.id} is missing universal selection filter ${id}.`);
-    const switches = rows.filter(isModuleSwitchSupportCommand);
-    if (module.id === "sketch") {
-      if (switches.length) fail("Sketch module must not expose module switches.");
-      continue;
-    }
-    if (module.id === "selection_object") continue;
-    const switchTargets = new Set(switches.map(command => command.target_module_id).filter(Boolean));
-    for (const target of SWITCHABLE_MODULE_IDS.filter(id => id !== module.id && availableModules.has(id))) {
-      if (!switchTargets.has(target)) fail(`Module ${module.id} is missing switch target ${target}.`);
-    }
-  }
   if (!protocolSource.includes("selection_filter")) fail("Protocol request must carry selection_filter.");
   const hasSelectionDispatch = bridgeSource.includes("set_selection_filter") ||
     bridgeSource.includes("NxProtocolActions.SetSelectionFilter");
@@ -170,11 +183,13 @@ try {
   if (!runtimeSource.includes("SelectionIntent") || !runtimeSource.includes("AddAlias(command, command.InputKey)"))
     fail("Runtime config must preserve short aliases and infer selection intent.");
 
-  const policyKeys = Object.keys(policy.commands ?? {}).map(normalize);
-  const allGeneratedKeys = new Set([...generatedSequences].map(value => value.split("|")[1]));
-  for (const key of policyKeys) if (!allGeneratedKeys.has(key)) fail(`Policy references unknown mnemonic sequence: ${key}.`);
-  if (policy.adaptive_module?.enabled !== true || policy.adaptive_module?.scope !== "active_module")
-    fail("Policy must enable active_module scope.");
+  if (policy) {
+    const policyKeys = Object.keys(policy.commands ?? {}).map(normalize);
+    const allGeneratedKeys = new Set([...generatedSequences].map(value => value.split("|")[1]));
+    for (const key of policyKeys) if (!allGeneratedKeys.has(key)) fail(`Policy references unknown mnemonic sequence: ${key}.`);
+    if (policy.adaptive_module?.enabled !== true || policy.adaptive_module?.scope !== "active_module")
+      fail("Policy must enable active_module scope.");
+  }
 
   const applicationFiles = [
     ...modelFiles,

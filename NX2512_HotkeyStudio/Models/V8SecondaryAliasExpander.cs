@@ -74,18 +74,13 @@ namespace NX2512_HotkeyStudio.Models
                     if (!seen.Add(dedupeKey)) continue;
 
                     OperationContract alias = CloneOperation(operation);
-                    alias.OperationID = (operation.OperationID ?? "operation") + "#secondary_alias_" + aliasIndex;
+                    alias.OperationID = operation.OperationID ?? string.Empty;
                     alias.Paths.SecondaryAliases.Clear();
                     alias.Paths.Direct = null;
                     alias.Paths.WorkspaceKey = null;
-                    alias.Paths.Leader = new List<string>();
+                    alias.Paths.Leader = tokens;
                     if (globalManageAlias)
                         alias.Availability.Applications = new List<string> { "modeling" };
-
-                    if (tokens.Count == 1)
-                        alias.Paths.Direct = tokens[0];
-                    else
-                        alias.Paths.Leader = tokens;
 
                     expanded.Add(alias);
                 }
@@ -125,6 +120,16 @@ namespace NX2512_HotkeyStudio.Models
             {
                 OperationID = source.OperationID ?? string.Empty,
                 CommandName = source.CommandName ?? string.Empty,
+                Action = source.Action ?? "execute_command",
+                Enabled = source.Enabled,
+                Risk = source.Risk ?? "safe",
+                ConfirmationRequired = source.ConfirmationRequired,
+                RequiresSelection = source.RequiresSelection,
+                MinimumSelectionCount = source.MinimumSelectionCount,
+                SelectionTypes = source.SelectionTypes?.ToList() ?? new List<string>(),
+                UnavailableReason = source.UnavailableReason ?? string.Empty,
+                TargetApplicationId = source.TargetApplicationId ?? string.Empty,
+                SelectionFilter = source.SelectionFilter ?? string.Empty,
                 Paths = new OperationPaths
                 {
                     Direct = source.Paths?.Direct,

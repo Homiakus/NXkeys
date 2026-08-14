@@ -25,8 +25,8 @@ public partial class MainWindow
         };
         _draftingStandards.Load(_document.Root);
 
-        var index = Math.Min(7, MainTabs.Items.Count);
-        MainTabs.Items.Insert(index, new TabItem
+        var index = Math.Min(3, InputsSubTabs.Items.Count);
+        InputsSubTabs.Items.Insert(index, new TabItem
         {
             Header = "Стандарты и шаблоны",
             Content = _draftingStandards

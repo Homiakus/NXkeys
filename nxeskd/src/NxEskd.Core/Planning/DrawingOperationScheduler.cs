@@ -67,14 +67,14 @@ public sealed class DrawingOperationScheduler
 
             state[id] = 1;
             path.Push(id);
-            foreach (var dependency in operation.Dependencies)
+            foreach (var dependency in operation.Dependencies.OrderBy(d => d, StringComparer.OrdinalIgnoreCase))
                 Visit(dependency, path);
             path.Pop();
             state[id] = 2;
             ordered.Add(operation);
         }
 
-        foreach (var operation in operations)
+        foreach (var operation in operations.OrderBy(o => o.OperationId, StringComparer.OrdinalIgnoreCase))
             Visit(operation.OperationId, new Stack<string>());
         return report.HasErrors
             ? (Array.Empty<DrawingOperation>(), report)

@@ -70,7 +70,7 @@ function compile(tempRoot) {
   const report = path.join(tempRoot, 'main-report.md');
   const result = spawnSync(process.execPath, [
     path.join(root, 'scripts', 'compile-main-command-map.mjs'),
-    '--profile', path.join(root, 'config', 'nx2512-pro-hybrid.json'),
+    '--profile', fs.existsSync(path.join(root, 'config', 'nx2512-pro-hybrid.json')) ? path.join(root, 'config', 'nx2512-pro-hybrid.json') : path.join(root, 'config', 'nx2512-v8-profile.json'),
     '--intents', intentsDir,
     '--probe', path.join(root, 'docs', 'audit', 'runtime-command-probe-2026-07-28.json'),
     '--out', output,

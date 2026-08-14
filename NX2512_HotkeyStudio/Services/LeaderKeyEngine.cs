@@ -242,8 +242,6 @@ namespace NX2512_HotkeyStudio.Services
 
             if (data.vkCode == triggerVk)
             {
-                if (IsFocusedInTextInput()) return CallNextHookEx(hookId, code, message, dataPointer);
-
                 // Low-level keyboard hooks receive WM_KEYDOWN repeatedly while a key
                 // is held. Treat the leader trigger as a physical edge: exactly one
                 // trigger is admitted until the matching KEYUP resets the latch.
@@ -296,7 +294,6 @@ namespace NX2512_HotkeyStudio.Services
                 if (capturing) queue.Enqueue(new InputEvent { Kind = InputKind.Cancel, Reason = "Фокус покинул Siemens NX.", TimestampUtc = DateTime.UtcNow });
                 return;
             }
-            if (IsFocusedInTextInput()) return;
             Interlocked.Exchange(ref captureFlag, 1);
             ScheduleCapsLockRestore();
             QueueTrigger(triggerVk);

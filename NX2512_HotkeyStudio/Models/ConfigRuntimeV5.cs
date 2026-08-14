@@ -73,14 +73,9 @@ namespace NX2512_HotkeyStudio.Models
 
         public static Config Load(string path)
         {
-            // When no profile file exists, build a hardcoded v8 config directly.
-            // This eliminates the JSON dependency and ensures all mnemonics are curated.
             if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
             {
-                Config config = new Config();
-                config.ApplyDefaults();
-                config.Validate();
-                return config;
+                return LoadEmbedded();
             }
             string json;
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -96,6 +91,36 @@ namespace NX2512_HotkeyStudio.Models
             deserialized.ApplyDefaults();
             deserialized.Validate();
             return deserialized;
+        }
+
+        public static Config LoadEmbedded()
+        {
+            var assembly = typeof(Config).Assembly;
+            string resourceName = assembly.GetManifestResourceNames()
+                .FirstOrDefault(n => n.EndsWith("nx2512-v8-profile.json", StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(resourceName))
+            {
+                using var stream = assembly.GetManifestResourceStream(resourceName);
+                if (stream != null)
+                {
+                    using var reader = new StreamReader(stream, Encoding.UTF8);
+                    string json = reader.ReadToEnd();
+                    Config deserialized = JsonSerializer.Deserialize<Config>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        ReadCommentHandling = JsonCommentHandling.Skip,
+                        AllowTrailingCommas = true
+                    }) ?? new Config();
+                    deserialized.ExpandEnvironment();
+                    deserialized.ApplyDefaults();
+                    deserialized.Validate();
+                    return deserialized;
+                }
+            }
+            Config config = new Config();
+            config.ApplyDefaults();
+            config.Validate();
+            return config;
         }
 
         private static void ValidateSourceSchemaVersion(string json)
@@ -128,15 +153,36 @@ namespace NX2512_HotkeyStudio.Models
         {
             ApplyDefaults();
             Validate();
-            string json = JsonSerializer.Serialize(this, new JsonSerializerOptions
+
+            List<ModuleConfig> preservedModules = Modules;
+            List<Binding> preservedKeyboard = Keyboard;
+            bool isV8Profile = SchemaVersion == 8 && Operations != null && Operations.Count > 0;
+            if (isV8Profile)
             {
-                WriteIndented = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            }) + Environment.NewLine;
-            string directory = Path.GetDirectoryName(Path.GetFullPath(path));
-            if (!string.IsNullOrWhiteSpace(directory)) Directory.CreateDirectory(directory);
-            NX2512_HotkeyStudio.Services.AtomicFileWriter.WriteAllText(
-                path, json, true, new UTF8Encoding(false));
+                Modules = null;
+                Keyboard = null;
+            }
+
+            try
+            {
+                string json = JsonSerializer.Serialize(this, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                }) + Environment.NewLine;
+                string directory = Path.GetDirectoryName(Path.GetFullPath(path));
+                if (!string.IsNullOrWhiteSpace(directory)) Directory.CreateDirectory(directory);
+                NX2512_HotkeyStudio.Services.AtomicFileWriter.WriteAllText(
+                    path, json, true, new UTF8Encoding(false));
+            }
+            finally
+            {
+                if (isV8Profile)
+                {
+                    Modules = preservedModules;
+                    Keyboard = preservedKeyboard;
+                }
+            }
         }
 
         public void ApplyDefaults()
@@ -146,19 +192,12 @@ namespace NX2512_HotkeyStudio.Models
                     $"Unsupported configuration schema_version {SchemaVersion}. Supported range is " +
                     $"{MinimumSupportedSchemaVersion}..{CurrentSchemaVersion}.");
 
-            // If no profile file is available, build a hardcoded set of curated
-            // v8 modules directly in code — no JSON dependency.
-            if ((Modules == null || Modules.Count == 0) &&
-                (Operations == null || Operations.Count == 0))
+            if (SchemaVersion == 8 && Operations != null && Operations.Count > 0)
             {
-                BuildHardcodedModules();
+                TranslateV8OperationsToLegacy();
             }
-            // Only translate v8 operations to legacy modules on first load (when no
-            // modules exist yet).  After the user saves, the file contains translated
-            // modules alongside operations, and subsequent loads must preserve any
-            // manual edits the user made to those modules.
-            else if (SchemaVersion == 8 && Operations != null && Operations.Count > 0 &&
-                (Modules == null || Modules.Count == 0))
+            else if ((Modules == null || Modules.Count == 0) &&
+                     (Operations == null || Operations.Count == 0))
             {
                 TranslateV8OperationsToLegacy();
             }
@@ -730,10 +769,11 @@ namespace NX2512_HotkeyStudio.Models
         private static bool IsTbdAdapter(OperationContract op)
         {
             string kind = op?.Adapter?.Kind ?? string.Empty;
-            // button_id adapters are always ready to execute regardless of status
+            // button_id and capability adapters are always ready to execute regardless of status
             // ("tbd_adapter" in status means the mapping needs human review, not
             // that the button ID is missing).
-            if (string.Equals(kind, "button_id", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(kind, "button_id", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(kind, "capability", StringComparison.OrdinalIgnoreCase))
                 return false;
             // internal adapters need explicit "mapped" status to be executable.
             string status = op?.Adapter?.Status ?? string.Empty;
@@ -762,11 +802,20 @@ namespace NX2512_HotkeyStudio.Models
                 return appPrefix;
             }
 
-            // 2. Global / no specific application → first leader token is the module prefix.
-            //    Operations like global.layer_workspace have leader ["M", "L"]
-            //    where "M" genuinely is the Modeling module prefix.
+            // 2. Global operations starting with "S": selection filters like global.faces
+            //    belong to Modeling ("M") where S is the Selection submenu prefix (M -> S -> F).
+            //    They must not be routed into v8_s (Sketch), where 1-token keys (L, F, E, C, T, M)
+            //    are reserved for Sketch geometry.
             if (op.Paths?.Leader != null && op.Paths.Leader.Count >= 1)
-                return op.Paths.Leader[0].ToUpperInvariant();
+            {
+                string p0 = op.Paths.Leader[0].ToUpperInvariant();
+                if (string.Equals(p0, "S", StringComparison.OrdinalIgnoreCase) &&
+                    (string.IsNullOrWhiteSpace(appId) || string.Equals(appId, "global", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return "M";
+                }
+                return p0;
+            }
 
             // 3. Direct / workspace_key with global availability → try mapped prefix.
             if (!string.IsNullOrWhiteSpace(appId) &&
@@ -818,11 +867,18 @@ namespace NX2512_HotkeyStudio.Models
             foreach (var op in Operations)
             {
                 if (op.Paths == null) { totalSkipped++; continue; }
+                if (op.OperationID != null && (
+                    op.OperationID.StartsWith("global.sketch_direct_", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(op.OperationID, "sketch.finish_sketch", StringComparison.OrdinalIgnoreCase)))
+                {
+                    totalSkipped++;
+                    continue;
+                }
 
                 var leaderPath = op.Paths.Leader;
                 string directPath = op.Paths.Direct;
                 string workspaceKey = op.Paths.WorkspaceKey;
-                bool hasLeader = leaderPath != null && leaderPath.Count >= 2;
+                bool hasLeader = leaderPath != null && leaderPath.Count >= 1;
                 bool hasDirect = !string.IsNullOrWhiteSpace(directPath);
                 bool hasWorkspace = !string.IsNullOrWhiteSpace(workspaceKey);
 
@@ -889,10 +945,19 @@ namespace NX2512_HotkeyStudio.Models
 
                 foreach (var op in kvp.Value)
                 {
+                    // Skip global direct-key wrappers that duplicate dedicated domain operations.
+                    if (op.OperationID != null && (
+                        op.OperationID.StartsWith("global.sketch_direct_", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(op.OperationID, "sketch.finish_sketch", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        totalSkipped++;
+                        continue;
+                    }
+
                     var leaderPath = op.Paths.Leader;
                     string directPath = op.Paths.Direct;
                     string workspaceKey = op.Paths.WorkspaceKey;
-                    bool hasLeader = leaderPath != null && leaderPath.Count >= 2;
+                    bool hasLeader = leaderPath != null && leaderPath.Count >= 1;
 
                     List<string> rawPath;
                     if (hasLeader)
@@ -900,10 +965,15 @@ namespace NX2512_HotkeyStudio.Models
                         // When the module prefix came from availability.applications
                         // (e.g. modeling.revolve → module M), the FULL leader path is
                         // the navigation within that module (e.g. ["C","R"]).
-                        // When the module prefix came from the first leader token
-                        // (global ops like ["M","L"]), skip the first token.
+                        // When the module prefix came from global selection filters in Modeling
+                        // (e.g. global.faces -> ["S","F"]), use the full leader path ["S","F"].
+                        // For other global ops (like ["M","L"]), skip the first token.
                         bool prefixFromApp = ModulePrefixFromApplication(op);
-                        rawPath = (prefixFromApp
+                        bool isGlobalSelectionInModeling = string.Equals(modulePrefix, "M", StringComparison.OrdinalIgnoreCase) &&
+                            op.Paths.Leader.Count >= 2 &&
+                            string.Equals(op.Paths.Leader[0], "S", StringComparison.OrdinalIgnoreCase);
+
+                        rawPath = (prefixFromApp || isGlobalSelectionInModeling
                             ? leaderPath
                             : leaderPath.Skip(1))
                             .Select(t => t.ToUpperInvariant())
@@ -938,6 +1008,7 @@ namespace NX2512_HotkeyStudio.Models
                     string commandName = op.CommandName ?? string.Empty;
                     string adapterKind = op.Adapter?.Kind ?? string.Empty;
                     bool isButtonId = string.Equals(adapterKind, "button_id", StringComparison.OrdinalIgnoreCase);
+                    bool isCapability = string.Equals(adapterKind, "capability", StringComparison.OrdinalIgnoreCase);
                     bool isTbd = IsTbdAdapter(op);
                     string pathKey = string.Concat(innerPath);
                     bool duplicate = pathIsDuplicate.Contains(pathKey);
@@ -949,13 +1020,28 @@ namespace NX2512_HotkeyStudio.Models
                             $"для {op.OperationID} — будет разрешён генератором мнемоник.");
                     }
 
-                    string displayId = isButtonId ? commandId : op.OperationID ?? string.Empty;
+                    string displayId = (isButtonId || isCapability) ? commandId : op.OperationID ?? string.Empty;
+                    string effectiveAction = !string.IsNullOrWhiteSpace(op.Action)
+                        ? op.Action
+                        : (isCapability ? "run_capability" : (isButtonId ? SelectionIntent.ExecuteCommandAction : "local_behavior"));
+                    string effectiveSelectionType = !string.IsNullOrWhiteSpace(op.SelectionFilter)
+                        ? op.SelectionFilter
+                        : (string.Equals(effectiveAction, SelectionIntent.SetSelectionFilterAction, StringComparison.OrdinalIgnoreCase) ? op.Adapter?.Value ?? string.Empty : string.Empty);
+                    bool destructive = string.Equals(op.Risk, "destructive", StringComparison.OrdinalIgnoreCase) ||
+                                       string.Equals(op.OperationID, "assemblies.remove_component", StringComparison.OrdinalIgnoreCase) ||
+                                       string.Equals(op.OperationID, "manufacturing.delete_operation", StringComparison.OrdinalIgnoreCase);
+                    bool confirmRequired = op.ConfirmationRequired || destructive;
+
                     var mc = new ModuleCommand
                     {
                         Enabled = !isTbd,
                         Command = new CommandRef { ID = displayId, Name = commandName },
-                        Action = SelectionIntent.ExecuteCommandAction,
-                        SelectionType = string.Empty,
+                        Action = effectiveAction,
+                        SelectionType = effectiveSelectionType,
+                        Destructive = destructive,
+                        ConfirmBeforeExecute = confirmRequired,
+                        RequiresSelection = op.RequiresSelection,
+                        TargetModuleID = op.TargetApplicationId,
                         Path = innerPath,
                         PathLabels = new List<string> { commandName },
                         Aliases = new List<List<string>>(),

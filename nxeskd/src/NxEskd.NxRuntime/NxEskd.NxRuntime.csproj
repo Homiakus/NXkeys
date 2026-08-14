@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NxEskd.Core\NxEskd.Core.csproj" />
+    <ProjectReference Include="..\..\..\NXKeys.Protocol\NXKeys.Protocol.csproj" />
     <Reference Include="NXOpen">
       <HintPath>$(NxOpenManagedDir)\NXOpen.dll</HintPath>
       <Private>false</Private>

@@ -132,6 +132,8 @@ namespace NX2512_HotkeyStudio
                 switch (command)
                 {
                     case "validate":
+                    case "verify":
+                    case "--verify":
                         Console.WriteLine($"[OK] '{config.Profile.Name}': {config.Keyboard.Count(x => x.Enabled)} базовых, " +
                                           $"{config.Modules.Count(x => x.Enabled)} модулей, {config.LeaderKey.Sequences.Count} команд.");
                         break;
@@ -146,7 +148,22 @@ namespace NX2512_HotkeyStudio
                             NxScanner.Scan(config, GetArgValue(args, "--catalog")).Catalog));
                         break;
                     case "apply":
+                    case "--apply":
                         Apply(config, args);
+                        break;
+                    case "repair":
+                    case "--repair":
+                        {
+                            Config restored = Config.LoadEmbedded();
+                            if (string.IsNullOrWhiteSpace(configPath))
+                                configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config", "nx2512-v8-profile.json");
+                            restored.Save(configPath);
+                            ScanResult repairScan = NxScanner.Scan(restored, GetArgValue(args, "--catalog"));
+                            DeploymentPlan repairPlan = DeploymentEngine.BuildPlan(restored, repairScan.Catalog);
+                            if (!DeploymentEngine.ApplyPlan(restored, repairPlan, out string repBackup, out string repError))
+                                throw new InvalidOperationException(repError);
+                            Console.WriteLine("[OK] Канонический профиль восстановлен и развернут в NX. Резервная копия: " + repBackup);
+                        }
                         break;
                     case "launch":
                         LaunchNx(config, configPath, args);
@@ -172,6 +189,39 @@ namespace NX2512_HotkeyStudio
                         int iconCount = OperationThumbnailRenderer.ExportAllIcons(config, 128);
                         Console.WriteLine($"[OK] Сгенерировано {iconCount} миниатюр операций и manifest.json.");
                         break;
+                    case "doc-map":
+                    case "generate-docs":
+                        {
+                            string outPath = GetArgValue(args, "--out");
+                            if (string.IsNullOrWhiteSpace(outPath))
+                            {
+                                string candidate = AppDomain.CurrentDomain.BaseDirectory;
+                                while (!string.IsNullOrWhiteSpace(candidate))
+                                {
+                                    if (Directory.Exists(Path.Combine(candidate, ".git")) ||
+                                        File.Exists(Path.Combine(candidate, "config", "nx2512-v8-profile.json")))
+                                    {
+                                        outPath = Path.Combine(candidate, "FULL_COMMAND_MAP.md");
+                                        break;
+                                    }
+                                    DirectoryInfo parent = Directory.GetParent(candidate);
+                                    if (parent == null || parent.FullName == candidate) break;
+                                    candidate = parent.FullName;
+                                }
+                                if (string.IsNullOrWhiteSpace(outPath))
+                                    outPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FULL_COMMAND_MAP.md");
+                            }
+                            outPath = Path.GetFullPath(outPath);
+                            var generator = new DocumentationGenerator(config);
+                            generator.GenerateMarkdownMap(outPath);
+                            Console.WriteLine($"[OK] Runtime-driven documentation map written to: {outPath}");
+                        }
+                        break;
+                    case "help":
+                    case "--help":
+                    case "-h":
+                        PrintHelp();
+                        break;
                     default:
                         throw new ArgumentException("Неизвестная команда: " + command);
                 }
@@ -181,6 +231,29 @@ namespace NX2512_HotkeyStudio
                 Console.Error.WriteLine("[ERROR] " + exception.Message);
                 Environment.ExitCode = 1;
             }
+        }
+
+        private static void PrintHelp()
+        {
+            Console.WriteLine(@"NXKeys — Адаптивные модульные команды для Siemens NX 2512
+Использование:
+  NX2512_HotkeyStudio.exe [команда] [опции]
+
+Команды:
+  (без аргументов)          Запустить Control Center (GUI)
+  --daemon / --minimized    Запустить в фоновом режиме в системном трее
+  --apply / apply           Применить профиль и развернуть ribbon/overlay в NX
+  --verify / validate       Проверить валидность профиля и инвариантов
+  --repair / repair         Восстановить канонический профиль v8 и развернуть в NX
+  health / bridge-status    Проверить состояние среды NX, Bridge и очереди
+  plan                      Сформировать план развертывания без применения
+  doc-map                   Сгенерировать карту команд FULL_COMMAND_MAP.md
+  --help / help             Показать эту справку
+
+Опции:
+  --config <path>           Путь к файлу профиля (по умолчанию nx2512-v8-profile.json)
+  --dry-run                 Тестовый запуск без изменения файлов на диске
+  --yes / -y                Автоматическое подтверждение применения");
         }
 
         private static void Apply(Config config, string[] args)
@@ -447,8 +520,9 @@ namespace NX2512_HotkeyStudio
             string command = (value ?? string.Empty).Trim().ToLowerInvariant();
             return new[]
             {
-                "validate", "scan", "catalog", "plan", "apply", "launch", "leader",
-                "backups", "restore", "bridge-status", "health", "export-icons", "icons"
+                "validate", "verify", "--verify", "scan", "catalog", "plan", "apply", "--apply",
+                "repair", "--repair", "launch", "leader", "backups", "restore", "bridge-status",
+                "health", "export-icons", "icons", "doc-map", "generate-docs", "help", "--help", "-h"
             }.Contains(command);
         }
 

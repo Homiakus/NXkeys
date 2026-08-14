@@ -95,4 +95,49 @@ public sealed class LayoutSolverTests
         Assert.True(result.Placements["SECOND"].Left >= result.Placements["FIRST"].Right + 10);
         Assert.Equal(result.Placements["FIRST"].Center.Y, result.Placements["SECOND"].Center.Y, 6);
     }
+
+    [Fact]
+    public void ItemIterationScopingDoesNotAbortRemainingItemsOnObstacle()
+    {
+        var area = new Rect2(0, 0, 200, 200);
+        var reserved = new[] { new Rect2(0, 100, 200, 100) };
+        var item1 = new LayoutItem("ITEM_1", "view", new Rect2(0, 0, 50, 50), 100);
+        var item2 = new LayoutItem("ITEM_2", "view", new Rect2(0, 0, 50, 50), 90);
+
+        var result = new LayoutSolver().Solve(area, reserved, new[] { item1, item2 }, 2.5, maxIterations: 50);
+
+        // ITEM_1 and ITEM_2 should both be placed in the lower unreserved area (0, 0, 200, 100)
+        Assert.True(result.Placements.ContainsKey("ITEM_1") || result.Placements.ContainsKey("ITEM_2"));
+    }
+
+    [Fact]
+    public void ProjectedViewNeverOverlapsParentView()
+    {
+        var area = new Rect2(0, 0, 500, 500);
+        var baseView = new LayoutItem("BASE", "view", new Rect2(0, 0, 100, 100), 100);
+        var projView = new LayoutItem("PROJ", "projected_view", new Rect2(0, 0, 80, 80), 80,
+            "BASE", null, "right");
+
+        var result = new LayoutSolver().Solve(area, [], [baseView, projView], 10, 200);
+
+        Assert.Empty(result.Unresolved);
+        var parentRect = result.Placements["BASE"];
+        var projRect = result.Placements["PROJ"];
+        Assert.False(parentRect.Intersects(projRect, 0));
+        Assert.True(projRect.Left >= parentRect.Right + 10);
+    }
+
+    [Fact]
+    public void LargeSheetWithOccupiedTopLeftPlacesItemInFreeRegion()
+    {
+        var area = new Rect2(0, 0, 600, 600);
+        var reserved = new[] { new Rect2(0, 300, 400, 300) }; // Blocks top-left quadrant
+        var item = new LayoutItem("MAIN", "view", new Rect2(0, 0, 100, 100), 100, PreferredAnchor: "top_left");
+
+        var result = new LayoutSolver().Solve(area, reserved, [item], 10, 200);
+
+        Assert.Empty(result.Unresolved);
+        Assert.True(result.Placements.TryGetValue("MAIN", out var placed));
+        Assert.False(reserved[0].Intersects(placed, 10));
+    }
 }

@@ -190,21 +190,23 @@ S → N    Deselect All
 
 Этот слой отвечает на вопрос **какой тип объекта** выбирать.
 
-## 11. Selection Intent `0…4`
+## 11. Selection Intent
 
-Selection Intent — отдельный in-process Bridge mechanism, **не Leader path**.
+Selection Intent — in-process Bridge механизм управления распространением выбора в активных collector.
+
+Основной леворучный слой под `CapsLock` (с поддержкой прямого ввода `0…4` и `~ / Q / W / E / R`):
 
 ```text
-0    Reset
-1    Single
-2    Connected / Chain
-3    Tangent
-4    Inferred Path / Region Boundary
+CapsLock → Q  (или 1)    Single (одиночный объект)
+CapsLock → W  (или 2)    Connected / Chain (связанная цепочка)
+CapsLock → E  (или 3)    Tangent (касательные элементы)
+CapsLock → R  (или 4)    Inferred Path / Region Boundary (граница области)
+CapsLock → ~  (или 0)    Reset (сброс к обычному поведению NX)
 ```
 
 Он отвечает на вопрос **как распространить выбор** от seed geometry.
 
-Цифры перехватываются только при NX foreground и подходящем active collector/seed, с guards против text/numeric input.
+События перехватываются только при NX foreground и подходящем active collector/seed, с guards против text/numeric input.
 
 Подробности: [SELECTION_INTENT.md](SELECTION_INTENT.md).
 

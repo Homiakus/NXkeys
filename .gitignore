@@ -82,6 +82,7 @@ TestResults/
 /nx2512-pro-hybrid.json
 /nx2512-ergo-80.json
 /default-profile.json
+/config/*.generated.json
 
 # Generated reports and local packaging output.
 /resolution-report.md

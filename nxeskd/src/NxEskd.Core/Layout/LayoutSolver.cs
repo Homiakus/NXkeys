@@ -25,15 +25,15 @@ public sealed class LayoutSolver
             var relational = IsStrictProjection(item);
             var candidates = GenerateCandidates(workArea, item, gap, knownPlacements).ToList();
             var placed = false;
+            var itemIterations = 0;
             foreach (var candidate in candidates)
             {
                 iterations++;
-                if (iterations > maxIterations) break;
+                itemIterations++;
+                if (itemIterations > maxIterations) break;
                 if (!workArea.Contains(candidate)) continue;
                 if (reservedList.Any(r => r.Intersects(candidate, gap))) continue;
-                if (knownPlacements.Any(pair =>
-                        !string.Equals(pair.Key, item.ParentId, StringComparison.OrdinalIgnoreCase)
-                        && pair.Value.Intersects(candidate, gap))) continue;
+                if (knownPlacements.Any(pair => pair.Value.Intersects(candidate, gap))) continue;
                 placements[item.Id] = candidate;
                 knownPlacements[item.Id] = candidate;
                 placed = true;
@@ -50,7 +50,6 @@ public sealed class LayoutSolver
                     continue;
                 }
             }
-            if (iterations > maxIterations) break;
         }
 
         return new LayoutResult(placements, unresolved, iterations);
@@ -123,9 +122,12 @@ public sealed class LayoutSolver
             yield return preferred;
         foreach (var candidate in anchors.Values.Distinct()) yield return candidate;
 
-        var step = Math.Max(gap, 2.5);
-        for (var y = area.Top - h; y >= area.Bottom; y -= step)
-            for (var x = area.Left; x <= area.Right - w; x += step)
+        var spanX = Math.Max(0.0, area.Width - w);
+        var spanY = Math.Max(0.0, area.Height - h);
+        var minStep = Math.Max(gap, 2.5);
+        var step = Math.Max(minStep, Math.Max(spanX, spanY) / 16.0);
+        for (var y = area.Top - h; y >= area.Bottom - 1e-6; y -= step)
+            for (var x = area.Left; x <= area.Right - w + 1e-6; x += step)
                 yield return new Rect2(x, y, w, h);
     }
 

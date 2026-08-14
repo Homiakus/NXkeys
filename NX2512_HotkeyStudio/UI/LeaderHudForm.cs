@@ -23,7 +23,8 @@ namespace NX2512_HotkeyStudio.UI
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT { public int X; public int Y; }
 
-        private const int MaximumRootRows = 28;
+        public const int PrimarySuggestionLimit = 8;
+        private const int MaximumRootRows = PrimarySuggestionLimit;
         private readonly Color backColor = NxKeysTheme.Background;
         private readonly Color cardColor = NxKeysTheme.Surface;
         private readonly Color cardHighlightColor = NxKeysTheme.Raised;
@@ -281,10 +282,10 @@ namespace NX2512_HotkeyStudio.UI
             using (SolidBrush muted = new SolidBrush(mutedColor)) DrawEllipsized(graphics, activeModuleId, idFont, muted, new Rectangle(364, 40, 140, 16));
 
             int chipRight = Width - 18;
-            chipRight = DrawRightPill(graphics, chipRight, 20, sticky ? "STICKY" : "LIVE", sticky ? stickyColor : accentColor, Color.Black);
-            chipRight = DrawRightPill(graphics, chipRight - 8, 20, bridgeReady ? "BRIDGE OK" : "BRIDGE OFF", bridgeReady ? stickyColor : dangerColor, Color.Black);
+            chipRight = DrawRightPill(graphics, chipRight, 20, sticky ? "ФИКСАЦИЯ" : "ЖИВОЙ", sticky ? stickyColor : accentColor, Color.Black);
+            chipRight = DrawRightPill(graphics, chipRight - 8, 20, bridgeReady ? "BRIDGE ОК" : "BRIDGE ОТКЛ", bridgeReady ? stickyColor : dangerColor, Color.Black);
             if (selectionCount >= 0)
-                DrawRightPill(graphics, chipRight - 8, 20, "SEL " + selectionCount, selectionCount > 0 ? accentColor : borderColor, selectionCount > 0 ? Color.Black : mutedColor);
+                DrawRightPill(graphics, chipRight - 8, 20, "ВЫБОР: " + selectionCount, selectionCount > 0 ? accentColor : borderColor, selectionCount > 0 ? Color.Black : mutedColor);
             if (sticky)
             {
                 using (Pen glow = new Pen(Color.FromArgb(160, stickyColor), 2f))

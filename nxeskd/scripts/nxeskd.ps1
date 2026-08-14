@@ -445,9 +445,13 @@ function Invoke-Build {
     $runtimeOut = Join-Path $ProjectRoot "src\NxEskd.NxRuntime\bin\$Configuration\net8.0-windows"
     Copy-Item (Join-Path $runtimeOut '*') (Join-Path $staging 'application') -Recurse -Force
 
-    foreach ($command in @('CommandCenter', 'Generate', 'Update', 'Validate', 'Preview', 'Inventory')) {
-        $commandOut = Join-Path $ProjectRoot "src\NxEskd.Commands\$command\bin\$Configuration\net8.0-windows"
-        Copy-Item (Join-Path $commandOut 'NxEskd.*') (Join-Path $staging 'application') -Force
+    if (Test-Path (Join-Path $ProjectRoot 'src\NxEskd.Commands')) {
+        foreach ($command in @('CommandCenter', 'Generate', 'Update', 'Validate', 'Preview', 'Inventory')) {
+            $commandOut = Join-Path $ProjectRoot "src\NxEskd.Commands\$command\bin\$Configuration\net8.0-windows"
+            if (Test-Path $commandOut) {
+                Copy-Item (Join-Path $commandOut 'NxEskd.*') (Join-Path $staging 'application') -Force
+            }
+        }
     }
     if (Test-Path (Join-Path $ProjectRoot 'application')) {
         Copy-Item (Join-Path $ProjectRoot 'application\*') (Join-Path $staging 'application') -Recurse -Force

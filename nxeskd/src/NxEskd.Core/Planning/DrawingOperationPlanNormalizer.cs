@@ -44,9 +44,13 @@ public static class DrawingOperationPlanNormalizer
             ["reconciliation:managed_objects"],
             ["nx_update_completed"]));
 
-        var output = original.FirstOrDefault(operation => operation.ObjectKind.Equals("output", StringComparison.OrdinalIgnoreCase));
-        if (output is not null)
-            result.Add(output with { Dependencies = ["validation:postconditions"] });
+        foreach (var output in original.Where(operation => operation.ObjectKind.Equals("output", StringComparison.OrdinalIgnoreCase)))
+        {
+            var dependencies = output.Dependencies.ToList();
+            if (!dependencies.Contains("validation:postconditions", StringComparer.OrdinalIgnoreCase))
+                dependencies.Insert(0, "validation:postconditions");
+            result.Add(output with { Dependencies = dependencies.Distinct(StringComparer.OrdinalIgnoreCase).ToArray() });
+        }
 
         return plan with { Operations = result };
     }
@@ -55,7 +59,8 @@ public static class DrawingOperationPlanNormalizer
         => id.Equals("setup:layers", StringComparison.OrdinalIgnoreCase)
            || id.Equals("setup:styles", StringComparison.OrdinalIgnoreCase)
            || id.Equals("attributes:canonical", StringComparison.OrdinalIgnoreCase)
-           || id.Equals("reconciliation:managed_objects", StringComparison.OrdinalIgnoreCase);
+           || id.Equals("reconciliation:managed_objects", StringComparison.OrdinalIgnoreCase)
+           || id.Equals("validation:postconditions", StringComparison.OrdinalIgnoreCase);
 
     private static DrawingOperation Operation(
         string operationId,

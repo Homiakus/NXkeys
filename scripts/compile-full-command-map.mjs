@@ -21,8 +21,8 @@ const arg = (name, fallback = '') => {
   return index >= 0 && index + 1 < argv.length ? argv[index + 1] : fallback;
 };
 const has = name => argv.includes(name);
-const absolute = value => path.isAbsolute(value) ? value : path.resolve(repoRoot, value);
-const profilePath = absolute(arg('--profile', 'config/nx2512-pro-hybrid.json'));
+const defaultProfile = fs.existsSync(path.resolve(repoRoot, 'config/nx2512-v8-profile.json')) ? 'config/nx2512-v8-profile.json' : 'config/nx2512-pro-hybrid.json';
+const profilePath = absolute(arg('--profile', defaultProfile));
 const intentsDir = absolute(arg('--intents', 'config/full-command-map'));
 const catalogDirValue = arg('--catalog-dir', '');
 const catalogDir = catalogDirValue ? absolute(catalogDirValue) : '';

@@ -27,6 +27,15 @@ namespace NX2512_HotkeyStudio.Services
             "    BUTTON UG_NXKEYS_START_BRIDGE\r\n" +
             "    BUTTON UG_NXKEYS_START_DAEMON\r\n" +
             "    BUTTON UG_NXKEYS_OPEN_STUDIO\r\n" +
+            "END_GROUP\r\n" +
+            "BEGIN_GROUP NXKEYS_ESKD_GROUP\r\n" +
+            "LABEL ЕСКД\r\n" +
+            "BITMAP drawing\r\n" +
+            "    BUTTON NX_ESKD_COMMAND_CENTER\r\n" +
+            "    BUTTON NX_ESKD_GENERATE\r\n" +
+            "    BUTTON NX_ESKD_UPDATE\r\n" +
+            "    BUTTON NX_ESKD_PREVIEW\r\n" +
+            "    BUTTON NX_ESKD_VALIDATE\r\n" +
             "END_GROUP\r\n";
     }
 }

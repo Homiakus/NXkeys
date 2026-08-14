@@ -149,17 +149,17 @@ Leader selection filters отвечают на вопрос **что по тип
 | `S → A` | Select All |
 | `S → N` | Deselect All |
 
-## 9. Selection Intent `0…4`
+## 9. Selection Intent `0…4` / `CapsLock → Q/W/E/R/~`
 
-Цифры отвечают на другой вопрос: **как распространить выбор от seed-объекта**.
+Selection Intent отвечает на вопрос: **как распространить выбор от seed-объекта**.
 
-| Клавиша без CapsLock | Режим |
-|---:|---|
-| `0` | Reset |
-| `1` | Single |
-| `2` | Connected / Chain |
-| `3` | Tangent |
-| `4` | Inferred Path / Region Boundary |
+| Клавиша под `CapsLock` | Прямой ввод | Режим |
+|---|---|---|
+| `CapsLock → ~` | `0` | Reset |
+| `CapsLock → Q` | `1` | Single |
+| `CapsLock → W` | `2` | Connected / Chain |
+| `CapsLock → E` | `3` | Tangent |
+| `CapsLock → R` | `4` | Inferred Path / Region Boundary |
 
 Используйте их при активном NX collector, например внутри Extrude/Section selection.
 
@@ -167,10 +167,10 @@ Leader selection filters отвечают на вопрос **что по тип
 
 ```text
 CapsLock → S → E    выбрать тип Edge
-3                   включить Tangent intent
+CapsLock → E        включить Tangent intent (или цифра 3)
 ```
 
-Handler цифр работает только когда NX foreground и обнаружен подходящий collector либо seed selection; обычный ввод цифр не должен глобально блокироваться.
+Handler работает только когда NX foreground и обнаружен подходящий collector либо seed selection; обычный ввод текста/чисел защищен guards.
 
 Подробности: [SELECTION_INTENT.md](SELECTION_INTENT.md).
 

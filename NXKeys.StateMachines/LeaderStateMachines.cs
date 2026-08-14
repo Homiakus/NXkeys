@@ -48,6 +48,7 @@ namespace NXKeys.StateMachines
         public bool NeedsWorkPart { get; set; } = true;
         public bool Destructive { get; set; }
         public bool ConfirmBeforeExecute { get; set; }
+        public string Action { get; set; } = string.Empty;
         public bool Enabled { get; set; } = true;
     }
 
@@ -166,13 +167,49 @@ namespace NXKeys.StateMachines
                 .Select(item => new
                 {
                     Item = item,
-                    Score = tokens.Count(token => NormalizeSearch(BuildSearchText(item)).Contains(token, StringComparison.OrdinalIgnoreCase))
+                    Score = CalculateSearchScore(item, tokens, normalized)
                 })
                 .Where(value => value.Score > 0)
                 .OrderByDescending(value => value.Score)
                 .ThenBy(value => value.Item.Sequence, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(value => value.Item.ModuleId, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(value => value.Item.CommandId, StringComparer.OrdinalIgnoreCase)
                 .Select(value => value.Item)
                 .ToList();
+        }
+
+        private static int CalculateSearchScore(SequenceDefinition item, string[] tokens, string normalizedQuery)
+        {
+            int score = 0;
+            string nameNorm = NormalizeSearch(item.CommandName);
+            string searchNorm = NormalizeSearch(item.SearchText);
+            string seqNorm = NormalizeSearch(item.Sequence);
+            string cmdIdNorm = NormalizeSearch(item.CommandId);
+            string modIdNorm = NormalizeSearch(item.ModuleId);
+
+            if (!string.IsNullOrWhiteSpace(nameNorm) && string.Equals(nameNorm, normalizedQuery, StringComparison.OrdinalIgnoreCase))
+                score += 100;
+            if (!string.IsNullOrWhiteSpace(searchNorm) && string.Equals(searchNorm, normalizedQuery, StringComparison.OrdinalIgnoreCase))
+                score += 80;
+            if (!string.IsNullOrWhiteSpace(seqNorm) && string.Equals(seqNorm, normalizedQuery, StringComparison.OrdinalIgnoreCase))
+                score += 60;
+
+            foreach (string token in tokens)
+            {
+                if (!string.IsNullOrWhiteSpace(nameNorm) && nameNorm.Contains(token, StringComparison.OrdinalIgnoreCase))
+                    score += 20;
+                if (!string.IsNullOrWhiteSpace(searchNorm) && searchNorm.Contains(token, StringComparison.OrdinalIgnoreCase))
+                    score += 15;
+                if (!string.IsNullOrWhiteSpace(seqNorm) && seqNorm.Contains(token, StringComparison.OrdinalIgnoreCase))
+                    score += 10;
+                if (!string.IsNullOrWhiteSpace(cmdIdNorm) && cmdIdNorm.Contains(token, StringComparison.OrdinalIgnoreCase))
+                    score += 5;
+                if (!string.IsNullOrWhiteSpace(modIdNorm) && (modIdNorm.Contains(token, StringComparison.OrdinalIgnoreCase) ||
+                    (token.Length <= 2 && modIdNorm.StartsWith(token, StringComparison.OrdinalIgnoreCase))))
+                    score += 1;
+            }
+
+            return score;
         }
 
         private void Compile()
@@ -273,17 +310,30 @@ namespace NXKeys.StateMachines
             if (context == null || !context.IsFresh)
                 return Deny("Контекст NX отсутствует или устарел.", behavior);
 
+            string actualStatus = (context.Status ?? string.Empty).Trim();
             if (policy.BridgeStatuses != null && policy.BridgeStatuses.Count > 0 &&
-                !policy.BridgeStatuses.Contains(context.Status ?? string.Empty, StringComparer.OrdinalIgnoreCase))
-                return Deny("NX Command Bridge не готов: " + context.Status, behavior);
+                (string.IsNullOrWhiteSpace(actualStatus) || !policy.BridgeStatuses.Contains(actualStatus, StringComparer.OrdinalIgnoreCase)))
+                return Deny("NX Command Bridge не готов: " + (string.IsNullOrWhiteSpace(context.Status) ? "unknown" : context.Status), behavior);
 
             if (context.ContextConfidence < Math.Max(0, policy.MinimumContextConfidence))
                 return Deny("Достоверность контекста NX недостаточна: " + context.ContextConfidence + "%.", behavior);
 
+            bool allowInDialog = string.Equals(command.Action, "set_selection_intent", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(command.Action, "set_selection_filter", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(command.Action, "cancel_dialog", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(command.Action, "view_fit", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(command.Action, "view_refresh", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(command.Action, "set_layer_settings", StringComparison.OrdinalIgnoreCase) ||
+                                 (command.CommandId != null && (
+                                     command.CommandId.StartsWith("UG_VIEW_", StringComparison.OrdinalIgnoreCase) ||
+                                     command.CommandId.StartsWith("UG_SEL_", StringComparison.OrdinalIgnoreCase) ||
+                                     command.CommandId.StartsWith("UG_LAYER_", StringComparison.OrdinalIgnoreCase) ||
+                                     command.CommandId.StartsWith("NX_ESKD_", StringComparison.OrdinalIgnoreCase)));
+
             string interactionState = context.ModalDialogActive
                 ? "modal_dialog"
                 : string.IsNullOrWhiteSpace(context.ActiveCommandId) ? "idle" : "command_active";
-            if (policy.InteractionStates != null && policy.InteractionStates.Count > 0 &&
+            if (!allowInDialog && policy.InteractionStates != null && policy.InteractionStates.Count > 0 &&
                 !policy.InteractionStates.Contains(interactionState, StringComparer.OrdinalIgnoreCase))
                 return Deny(context.ModalDialogActive ? "Закройте активный модальный диалог NX." : "Завершите активную команду NX.", behavior);
 
@@ -427,7 +477,7 @@ namespace NXKeys.StateMachines
         private static GuardResult Deny(string reason, ResolvedCommandBehavior behavior)
         {
             FallbackPolicy fallback = behavior?.OnUnavailable ?? new FallbackPolicy();
-            string effectiveReason = string.IsNullOrWhiteSpace(fallback.Message) ? reason : fallback.Message;
+            string effectiveReason = string.IsNullOrWhiteSpace(reason) ? (fallback.Message ?? string.Empty) : reason;
             return new GuardResult
             {
                 Allowed = false,
@@ -686,6 +736,90 @@ namespace NXKeys.StateMachines
                 Command = PendingCommand,
                 Candidates = CurrentCandidates()
             };
+        }
+    }
+
+    public sealed class SelectionIntentAdmissionContext
+    {
+        public int Intent { get; set; }
+        public bool IsNxForeground { get; set; }
+        public bool HasSystemModifier { get; set; }
+        public bool IsInjectedEvent { get; set; }
+        public bool IsPhysicalRepeat { get; set; }
+        public bool IsFocusedInTextInput { get; set; }
+        public bool IsModalActive { get; set; }
+        public bool HasWorkPart { get; set; }
+        public bool IsNativeCollectorActive { get; set; }
+        public int SelectionCount { get; set; }
+    }
+
+    public sealed class SelectionIntentAdmissionResult
+    {
+        public bool Admitted { get; set; }
+        public bool RequireSeedExpansion { get; set; }
+        public bool ResetSelectionToLastOnly { get; set; }
+        public string RejectionReason { get; set; } = string.Empty;
+    }
+
+    public static class SelectionIntentAdmissionEvaluator
+    {
+        public static SelectionIntentAdmissionResult Evaluate(SelectionIntentAdmissionContext context)
+        {
+            if (context == null)
+                return new SelectionIntentAdmissionResult { Admitted = false, RejectionReason = "Контекст admission не задан." };
+
+            if (context.Intent < 0 || context.Intent > 4)
+                return new SelectionIntentAdmissionResult { Admitted = false, RejectionReason = "Неизвестный Selection Intent (поддерживаются 0..4)." };
+
+            if (context.IsInjectedEvent)
+                return new SelectionIntentAdmissionResult { Admitted = false, RejectionReason = "Синтетическое событие ввода (injected) заблокировано." };
+
+            if (context.IsPhysicalRepeat)
+                return new SelectionIntentAdmissionResult { Admitted = false, RejectionReason = "Повтор клавиши заблокирован physical latch до реального key-up." };
+
+            if (!context.IsNxForeground)
+                return new SelectionIntentAdmissionResult { Admitted = false, RejectionReason = "Siemens NX не находится на переднем плане." };
+
+            if (context.HasSystemModifier)
+                return new SelectionIntentAdmissionResult { Admitted = false, RejectionReason = "Системные модификаторы (Ctrl/Alt/Win) активны." };
+
+            if (context.IsFocusedInTextInput)
+                return new SelectionIntentAdmissionResult { Admitted = false, RejectionReason = "Фокус ввода находится в текстовом или числовом поле." };
+
+            if (context.IsModalActive)
+                return new SelectionIntentAdmissionResult { Admitted = false, RejectionReason = "Активно модальное диалоговое окно." };
+
+            if (!context.HasWorkPart)
+                return new SelectionIntentAdmissionResult { Admitted = false, RejectionReason = "Отсутствует активная рабочая деталь (Work Part)." };
+
+            if (!context.IsNativeCollectorActive && context.SelectionCount <= 0)
+                return new SelectionIntentAdmissionResult { Admitted = false, RejectionReason = "Нет активного коллектора или выбранного seed объекта. Ввод передан в NX." };
+
+            var result = new SelectionIntentAdmissionResult { Admitted = true };
+            switch (context.Intent)
+            {
+                case 0:
+                    // Reset to normal selection
+                    result.RequireSeedExpansion = false;
+                    result.ResetSelectionToLastOnly = false;
+                    break;
+
+                case 1:
+                    // Single object selection mode
+                    result.RequireSeedExpansion = false;
+                    result.ResetSelectionToLastOnly = context.SelectionCount > 1;
+                    break;
+
+                case 2:
+                case 3:
+                case 4:
+                    // 2: Connected/Chain, 3: Tangent, 4: Inferred path / region boundary
+                    result.RequireSeedExpansion = context.SelectionCount > 0;
+                    result.ResetSelectionToLastOnly = false;
+                    break;
+            }
+
+            return result;
         }
     }
 }

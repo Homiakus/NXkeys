@@ -20,24 +20,15 @@
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
 
-  <!-- ConfigModels.cs is ARCHIVED — the original schema-v4 model (now diverged from
-       ConfigRuntimeV5.cs).  It is excluded from compilation and kept only for git
-       history reference.  Do not use for runtime validation; ConfigRuntimeV5.cs is
-       the authoritative runtime model for all supported schema versions. -->
-  <ItemGroup>
-    <Compile Remove="Models\ConfigModels.cs" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\NXKeys.Protocol\NXKeys.Protocol.csproj" />
     <Compile Include="..\NXKeys.StateMachines\LeaderBehaviorProfile.cs" Link="StateMachines\LeaderBehaviorProfile.cs" />
     <Compile Include="..\NXKeys.StateMachines\LeaderStateMachines.cs" Link="StateMachines\LeaderStateMachines.cs" />
   </ItemGroup>
 
-  <!-- Command routing can be hardcoded, but LeaderBehaviorProfile still loads the
-       declarative state-machine timeouts/guards at runtime. Publish it beside the exe. -->
   <ItemGroup>
-    <None Include="..\config\nx2512-state-machines.json" Link="nx2512-state-machines.json">
+    <EmbeddedResource Include="..\config\nx2512-v8-profile.json" Link="config\nx2512-v8-profile.json" />
+    <None Include="..\config\nx2512-state-machines.json" Link="nx2512-state-machines.json" Condition="Exists('..\config\nx2512-state-machines.json')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>

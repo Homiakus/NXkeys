@@ -56,6 +56,16 @@ namespace NX2512_CommandBridge
             return Startup();
         }
 
+        public static int ufsta(string[] args)
+        {
+            return Startup();
+        }
+
+        public static int ufusr(string[] args)
+        {
+            return Startup();
+        }
+
         public static int Startup()
         {
             if (isInitialized)
@@ -264,6 +274,12 @@ namespace NX2512_CommandBridge
                     string message = ProbeNxCommand(request.CommandId);
                     CompleteClaim(claim.ProcessingPath, request, "completed", message, before.Revision);
                 }
+                else if (string.Equals(request.Action, NxProtocolActions.RunCapability, StringComparison.OrdinalIgnoreCase))
+                {
+                    NxCommandResult capResult = ExecuteCapabilityRequest(request);
+                    NxContextSnapshot after = BuildCurrentContext();
+                    CompleteClaimWithResult(claim.ProcessingPath, request, capResult, after.Revision);
+                }
                 else if (string.Equals(request.Action, NxProtocolActions.ExecuteCommand, StringComparison.OrdinalIgnoreCase))
                 {
                     ExecuteNxCommand(request);
@@ -288,7 +304,18 @@ namespace NX2512_CommandBridge
 
         private static void ValidateExpectedContext(NxCommandRequest request, NxContextSnapshot current)
         {
-            if (current.ModalDialogActive)
+            bool allowInDialog = string.Equals(request.Action, "set_selection_intent", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(request.Action, "set_selection_filter", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(request.Action, "cancel_dialog", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(request.Action, "view_fit", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(request.Action, "view_refresh", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(request.Action, "set_layer_settings", StringComparison.OrdinalIgnoreCase) ||
+                                 (request.CommandId != null && (
+                                     request.CommandId.StartsWith("UG_VIEW_", StringComparison.OrdinalIgnoreCase) ||
+                                     request.CommandId.StartsWith("UG_SEL_", StringComparison.OrdinalIgnoreCase) ||
+                                     request.CommandId.StartsWith("UG_LAYER_", StringComparison.OrdinalIgnoreCase)));
+
+            if (current.ModalDialogActive && !allowInDialog)
                 throw new InvalidOperationException("NX has an active modal dialog.");
             if (request.ExpectedContextRevision > 0 && current.Revision != request.ExpectedContextRevision)
                 throw new InvalidOperationException(
@@ -526,6 +553,98 @@ namespace NX2512_CommandBridge
             {
                 WriteLog("Relaxed menu action failed for " + id + ": " + ex.Message);
             }
+        }
+
+        private static NxCommandResult ExecuteCapabilityRequest(NxCommandRequest request)
+        {
+            string capabilityId = (request.CapabilityId ?? request.CommandId ?? string.Empty).Trim();
+            WriteLog("Executing capability request: " + capabilityId + " (workflow=" + request.WorkflowId + ")");
+
+            if (capabilityId.StartsWith("nxeskd.", StringComparison.OrdinalIgnoreCase))
+            {
+                Assembly handlerAssembly = ResolveInstalledCapabilityAssembly("nxeskd", "NxEskd.NxRuntime.dll");
+                if (handlerAssembly == null)
+                {
+                    return new NxCommandResult
+                    {
+                        SchemaVersion = NxProtocolConstants.SchemaVersion,
+                        RequestId = request.RequestId,
+                        WorkflowId = request.WorkflowId,
+                        Status = "blocked",
+                        Phase = "preflight",
+                        IssueCode = "COMPONENT_NOT_INSTALLED",
+                        RecommendedAction = "Установите модуль ЕСКД через инсталлятор NXKeys.",
+                        Message = "Модуль ЕСКД не установлен на данной рабочей станции.",
+                        CompletedUtc = DateTimeOffset.UtcNow.ToString("O")
+                    };
+                }
+
+                Type handlerType = handlerAssembly.GetType("NxEskd.NxRuntime.NxEskdCapabilityHandler") ??
+                                   handlerAssembly.GetType("NxEskd.NxRuntime.CommandHost");
+                if (handlerType == null)
+                {
+                    throw new InvalidOperationException("NxEskd capability handler type was not found in runtime assembly.");
+                }
+
+                var method = handlerType.GetMethod("ExecuteCapability", BindingFlags.Public | BindingFlags.Static);
+                if (method != null)
+                {
+                    object resultObj = method.Invoke(null, new object[] { request, ProcessingDirectory });
+                    if (resultObj is NxCommandResult typedResult)
+                        return typedResult;
+                }
+                throw new InvalidOperationException("ExecuteCapability method invocation failed.");
+            }
+
+            throw new InvalidOperationException("Unsupported capability: " + capabilityId);
+        }
+
+        private static Assembly ResolveInstalledCapabilityAssembly(string componentName, string assemblyFileName)
+        {
+            foreach (Assembly loaded in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (string.Equals(loaded.GetName().Name, Path.GetFileNameWithoutExtension(assemblyFileName), StringComparison.OrdinalIgnoreCase))
+                    return loaded;
+            }
+
+            string bridgeDir = Path.GetDirectoryName(typeof(Program).Assembly.Location) ?? string.Empty;
+            string localPath = Path.Combine(bridgeDir, assemblyFileName);
+            if (File.Exists(localPath))
+            {
+                try { return Assembly.LoadFrom(localPath); }
+                catch (Exception ex) { WriteLog("Failed loading local assembly " + localPath + ": " + ex.Message); }
+            }
+
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string componentsDir = Path.Combine(localAppData, "NXKeys", "components", componentName);
+            if (Directory.Exists(componentsDir))
+            {
+                foreach (string versionDir in Directory.GetDirectories(componentsDir).OrderByDescending(d => d))
+                {
+                    string candidate = Path.Combine(versionDir, "runtime", assemblyFileName);
+                    if (File.Exists(candidate))
+                    {
+                        try { return Assembly.LoadFrom(candidate); }
+                        catch (Exception ex) { WriteLog("Failed loading component assembly " + candidate + ": " + ex.Message); }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static void CompleteClaimWithResult(
+            string processingPath,
+            NxCommandRequest request,
+            NxCommandResult result,
+            long revision)
+        {
+            string requestId = request.RequestId;
+            result.ContextRevision = revision;
+            string destinationDir = result.Success ? CompletedDirectory : FailedDirectory;
+            WriteResultAtomic(destinationDir, result);
+            ArchiveRequest(processingPath, destinationDir, requestId);
+            RememberResult(requestId, result.Status, result.Message);
         }
 
         private static void CompleteClaim(

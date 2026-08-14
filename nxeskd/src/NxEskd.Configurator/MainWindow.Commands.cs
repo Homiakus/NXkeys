@@ -1,45 +1,274 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
+using NXKeys.Protocol;
 using NxEskd.Core.Configuration;
+using NxEskd.Core.Diagnostics;
+using NxEskd.Core.Planning;
 using NxEskd.Core.Runtime;
+using NxEskd.Core.Utilities;
 
 namespace NxEskd.Configurator;
 
 public partial class MainWindow
 {
-    private void Request(DrawingCommand command)
+    private async void Request(DrawingCommand command)
+    {
+        string capabilityId = command switch
+        {
+            DrawingCommand.Preview => "nxeskd.preview",
+            DrawingCommand.Validate => "nxeskd.validate",
+            DrawingCommand.Inventory => "nxeskd.inventory",
+            DrawingCommand.Generate => "nxeskd.generate",
+            DrawingCommand.Update => "nxeskd.update",
+            _ => "nxeskd.preview"
+        };
+
+        await ExecuteCapabilityAsync(capabilityId, command == DrawingCommand.Preview);
+    }
+
+    private async Task ExecuteCapabilityAsync(string capabilityId, bool dryRun = false)
     {
         if (!SaveCurrent()) return;
-        if (!ConfirmRiskyExecution(command)) return;
 
-        if (string.IsNullOrWhiteSpace(_requestPath))
+        bool isGenerateOrUpdate = string.Equals(capabilityId, "nxeskd.generate", StringComparison.OrdinalIgnoreCase) ||
+                                  string.Equals(capabilityId, "nxeskd.update", StringComparison.OrdinalIgnoreCase);
+
+        if (isGenerateOrUpdate && !ConfirmRiskyExecution()) return;
+
+        // Switch to the relevant workflow tab
+        if (capabilityId == "nxeskd.preview")
+            WorkflowTabs.SelectedIndex = 1;
+        else if (capabilityId == "nxeskd.validate" || capabilityId == "nxeskd.inventory")
+            WorkflowTabs.SelectedIndex = 2;
+        else if (isGenerateOrUpdate)
+            WorkflowTabs.SelectedIndex = 3;
+
+        string bridgeRoot = Environment.GetEnvironmentVariable("NXKEYS_BRIDGE_ROOT")
+                            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys", "bridge");
+
+        string pendingDir = Path.Combine(bridgeRoot, "pending");
+        string completedDir = Path.Combine(bridgeRoot, "completed");
+        string failedDir = Path.Combine(bridgeRoot, "failed");
+
+        Directory.CreateDirectory(pendingDir);
+        Directory.CreateDirectory(completedDir);
+        Directory.CreateDirectory(failedDir);
+
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        string requestId = $"{now:yyyyMMddHHmmssfff}-{Guid.NewGuid():N}";
+
+        var request = new NxCommandRequest
         {
-            MessageBox.Show(this,
-                "Профиль проверен и сохранён. Запустите требуемую команду из меню NX.",
-                "ЕСКД-генератор",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-            return;
+            SchemaVersion = NxProtocolConstants.SchemaVersion,
+            RequestId = requestId,
+            Action = NxProtocolActions.RunCapability,
+            CapabilityId = capabilityId,
+            CommandId = capabilityId,
+            WorkflowId = _workflowId,
+            ExpectedPartId = _nxPartPath ?? string.Empty,
+            ProfileId = _document.ProfilePath,
+            ProfileSha256 = File.Exists(_document.ProfilePath) ? Hashing.Sha256File(_document.ProfilePath) : string.Empty,
+            CreatedUtc = now.ToString("O"),
+            ExpiresUtc = now.AddMinutes(5).ToString("O"),
+            SourceProcessId = Environment.ProcessId,
+            ConfirmationAccepted = true
+        };
+
+        // Sign request if session credentials exist
+        string? sessionId = Environment.GetEnvironmentVariable(NxBridgeSecurityEnvironment.SessionIdVariable);
+        string? secretBase64 = Environment.GetEnvironmentVariable(NxBridgeSecurityEnvironment.SessionSecretVariable);
+        string? configPath = Environment.GetEnvironmentVariable(NxBridgeSecurityEnvironment.ConfigPathVariable);
+
+        if (!string.IsNullOrWhiteSpace(sessionId) && !string.IsNullOrWhiteSpace(secretBase64))
+        {
+            try
+            {
+                byte[] secret = Convert.FromBase64String(secretBase64);
+                string digest = File.Exists(configPath)
+                    ? NxBridgePermissionSet.FromProfileFile(configPath).ProfileDigest
+                    : Hashing.Sha256(_document.CurrentJson);
+                NxRequestAuthenticator.Sign(request, sessionId, Guid.NewGuid().ToString("N"), secret, digest, 1);
+            }
+            catch { }
         }
 
+        // Show Progress UI
+        ExecutionProgressBar.Visibility = Visibility.Visible;
+        ExecutionProgressBar.IsIndeterminate = true;
+        ExecutionProgressPhase.Visibility = Visibility.Visible;
+        ExecutionProgressPhase.Text = $"Запуск операции {capabilityId} в NX...";
+        Status($"Выполняется {capabilityId}...");
+        ExecutionLogBox.Text = $"[{DateTime.Now:HH:mm:ss}] Запрос {requestId} отправлен в очередь NXKeys...\n";
+
+        // Write request atomically
+        string requestPath = Path.Combine(pendingDir, requestId + ".request.json");
+        string tempRequestPath = requestPath + ".tmp";
+        File.WriteAllText(tempRequestPath, JsonSerializer.Serialize(request, NxProtocolJson.WriteOptions));
+        File.Move(tempRequestPath, requestPath, true);
+
+        // Async wait for result
+        NxCommandResult? result = null;
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
         try
         {
-            CommandRequest.Create(command, _document.ProfilePath, _nxPartPath,
-                command == DrawingCommand.Preview).SaveAtomic(_requestPath);
-            _closeAfterRequest = true;
-            try { DialogResult = true; } catch (InvalidOperationException) { }
-            Close();
+            result = await Task.Run(async () =>
+            {
+                while (!cts.Token.IsCancellationRequested)
+                {
+                    string compPath = Path.Combine(completedDir, requestId + ".result.json");
+                    if (File.Exists(compPath))
+                    {
+                        try
+                        {
+                            using var fs = new FileStream(compPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                            return JsonSerializer.Deserialize<NxCommandResult>(fs, NxProtocolJson.ReadOptions);
+                        }
+                        catch { }
+                    }
+
+                    string failPath = Path.Combine(failedDir, requestId + ".result.json");
+                    if (File.Exists(failPath))
+                    {
+                        try
+                        {
+                            using var fs = new FileStream(failPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                            return JsonSerializer.Deserialize<NxCommandResult>(fs, NxProtocolJson.ReadOptions);
+                        }
+                        catch { }
+                    }
+
+                    await Task.Delay(250, cts.Token);
+                }
+                return null;
+            }, cts.Token);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException) { }
+
+        // Finalize UI
+        ExecutionProgressBar.IsIndeterminate = false;
+        ExecutionProgressBar.Value = 100;
+        ExecutionProgressBar.Visibility = Visibility.Collapsed;
+        ExecutionProgressPhase.Visibility = Visibility.Collapsed;
+
+        if (result != null)
         {
-            MessageBox.Show(this, ex.ToString(), "Ошибка запроса NX", MessageBoxButton.OK, MessageBoxImage.Error);
+            bool success = result.Success;
+            ResultStatusTitle.Text = success ? "Операция успешно завершена" : "Операция завершена с замечаниями";
+            ResultStatusDescription.Text = result.Message;
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"[{DateTime.Now:HH:mm:ss}] Результат: {result.Status} (фаза: {result.Phase})");
+            sb.AppendLine($"Сообщение: {result.Message}");
+            if (!string.IsNullOrWhiteSpace(result.IssueCode))
+                sb.AppendLine($"Код проблемы: {result.IssueCode}");
+            if (!string.IsNullOrWhiteSpace(result.RecommendedAction))
+                sb.AppendLine($"Рекомендация: {result.RecommendedAction}");
+            if (!string.IsNullOrWhiteSpace(result.ReportName))
+            {
+                sb.AppendLine($"Отчёт: {result.ReportName}");
+                string reportsDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys", "reports", "nxeskd");
+                _lastReportPath = Path.Combine(reportsDir, result.ReportName);
+                if (!File.Exists(_lastReportPath))
+                {
+                    var found = Directory.Exists(reportsDir)
+                        ? Directory.GetFiles(reportsDir, "*.json").OrderByDescending(File.GetLastWriteTimeUtc).FirstOrDefault()
+                        : null;
+                    if (found != null) _lastReportPath = found;
+                }
+                OpenReportButton.IsEnabled = File.Exists(_lastReportPath);
+            }
+
+            ExecutionLogBox.Text = sb.ToString();
+            Status(success ? "Операция завершена успешно." : $"Завершено со статусом: {result.Status}");
+
+            if (capabilityId == "nxeskd.preview")
+            {
+                PopulatePreviewOperations();
+                PreviewSummaryText.Text = $"Предпросмотр завершён: {_planOperations.Count} запланированных операций.";
+                PreviewHashText.Text = $"Хэш плана: {result.PreviewHash ?? Hashing.Sha256(_document.CurrentJson)[..16]}";
+            }
+        }
+        else
+        {
+            ResultStatusTitle.Text = "Таймаут ожидания ответа NX";
+            ResultStatusDescription.Text = "NX не вернул результат в течение 90 секунд. Проверьте состояние NX и сессии Bridge.";
+            ExecutionLogBox.Text += $"[{DateTime.Now:HH:mm:ss}] Истёк таймаут ожидания обработки запроса {requestId}.\n";
+            Status("Превышено время ожидания ответа NX.");
+
+            if (capabilityId == "nxeskd.preview")
+            {
+                PopulatePreviewOperations();
+            }
         }
     }
 
-    private bool ConfirmRiskyExecution(DrawingCommand command)
+    private void PopulatePreviewOperations()
     {
-        if (command is not (DrawingCommand.Generate or DrawingCommand.Update)) return true;
+        _planOperations.Clear();
+        try
+        {
+            var profile = ProfileLoader.Load(_document.ProfilePath);
+            var planner = new DrawingPlanner();
+            var (plan, report) = planner.Build(profile, null, _nxPartPath);
+            if (plan != null && plan.Operations != null)
+            {
+                foreach (var op in plan.Operations)
+                {
+                    _planOperations.Add(new PlanOperationDisplayItem
+                    {
+                        OperationId = op.OperationId,
+                        ObjectKind = op.ObjectKind,
+                        ChangeKind = op.ChangeKind,
+                        TargetId = op.TargetId,
+                        DependenciesText = op.Dependencies != null && op.Dependencies.Count > 0
+                            ? string.Join(", ", op.Dependencies)
+                            : "—"
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _planOperations.Add(new PlanOperationDisplayItem
+            {
+                OperationId = "PREVIEW_ERROR",
+                ObjectKind = "Error",
+                ChangeKind = "Failed",
+                TargetId = "Plan",
+                DependenciesText = ex.Message
+            });
+        }
+    }
 
+    private void OpenReport_Click(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrWhiteSpace(_lastReportPath) && File.Exists(_lastReportPath))
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = _lastReportPath,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, "Не удалось открыть отчёт: " + ex.Message, "Отчёт", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+    }
+
+    private bool ConfirmRiskyExecution()
+    {
         var actions = new List<string>();
         if (JsonNavigator.GetBool(_document.Root, "$.output.allowOverwriteExisting", false))
             actions.Add("разрешена перезапись существующего выходного PRT");

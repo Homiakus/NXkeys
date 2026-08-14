@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
 using NxEskd.Core.Diagnostics;
 using NxEskd.Core.Utilities;
@@ -25,5 +29,27 @@ public sealed class ExecutionReport
     public void Save(string path)
     {
         AtomicFile.WriteAllText(path, JsonSerializer.Serialize(this, ValidationReport.JsonOptions()));
+        var dir = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(dir))
+        {
+            PruneOldReports(dir, 50);
+        }
+    }
+
+    public static void PruneOldReports(string directory, int maxReports = 50)
+    {
+        try
+        {
+            if (!Directory.Exists(directory)) return;
+            var files = Directory.GetFiles(directory, "drawing-report-*.json")
+                .Select(f => new FileInfo(f))
+                .OrderByDescending(f => f.LastWriteTimeUtc)
+                .Skip(maxReports);
+            foreach (var file in files)
+            {
+                try { file.Delete(); } catch { }
+            }
+        }
+        catch { }
     }
 }

@@ -83,21 +83,21 @@ CapsLock → U → …        Sketch utilities
 
 Полная таблица: [SKETCH_INTENT_LANGUAGE.md](SKETCH_INTENT_LANGUAGE.md).
 
-## Selection Intent: клавиши `0…4`
+## Selection Intent: клавиши `CapsLock → Q/W/E/R/~` (и `0…4`)
 
-Внутри NX process Command Bridge устанавливает low-level handler для быстрого изменения способа выбора геометрии.
+Внутри NX process Command Bridge устанавливает in-process handler для быстрого изменения способа выбора геометрии.
 
-| Клавиша | Режим |
-|---:|---|
-| `0` | Reset — обычный выбор NX, снять intent toggles |
-| `1` | Single — одиночный объект |
-| `2` | Connected / Chain — связанная цепочка |
-| `3` | Tangent — касательно связанная геометрия |
-| `4` | Inferred Path / Region Boundary — путь/граница области |
+| Под `CapsLock` | Прямой ввод | Режим |
+|---|---|---|
+| `CapsLock → ~` | `0` | Reset — обычный выбор NX, снять intent toggles |
+| `CapsLock → Q` | `1` | Single — одиночный объект |
+| `CapsLock → W` | `2` | Connected / Chain — связанная цепочка |
+| `CapsLock → E` | `3` | Tangent — касательно связанная геометрия |
+| `CapsLock → R` | `4` | Inferred Path / Region Boundary — путь/граница области |
 
-Цифра перехватывается **только**, когда NX находится на переднем плане и есть активный native collector либо уже выбран seed-объект. Ctrl/Alt/Win, текстовые поля и обычный цифровой ввод не должны перехватываться.
+События перехватываются **только**, когда NX находится на переднем плане и есть активный native collector либо уже выбран seed-объект. Ctrl/Alt/Win, текстовые поля и обычный цифровой ввод не должны перехватываться.
 
-Для `3` используются native tangent toggles NX (`UI_CURVE_FINDER_TANGENT`, `UI_FACE_FINDER_TANGENT`) и, при наличии seed, NXOpen rule expansion. Для `2`/`4` используются native chain/path/boundary controls и, где возможно, `ScRuleFactory` через compatibility reflection.
+Для `3` (`E`) используются native tangent toggles NX (`UI_CURVE_FINDER_TANGENT`, `UI_FACE_FINDER_TANGENT`) и, при наличии seed, NXOpen rule expansion. Для `2`/`4` (`W`/`R`) используются native chain/path/boundary controls и, где возможно, `ScRuleFactory` через compatibility reflection.
 
 Подробности и сценарии: [SELECTION_INTENT.md](SELECTION_INTENT.md).
 

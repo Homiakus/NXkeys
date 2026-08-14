@@ -154,10 +154,10 @@ namespace NX2512_CommandBridge
             if ((data.flags & LLKHF_INJECTED) != 0)
                 return CallNextHookEx(hookId, code, message, dataPointer);
 
-            if (data.vkCode < 0x30 || data.vkCode > 0x34)
+            int intent = MapVkToIntent(data.vkCode);
+            if (intent < 0 || intent > 4)
                 return CallNextHookEx(hookId, code, message, dataPointer);
 
-            int intent = (int)data.vkCode - 0x30;
             lock (Sync)
             {
                 if (up)
@@ -180,6 +180,30 @@ namespace NX2512_CommandBridge
 
             lock (Sync) HandledDown[intent] = handled;
             return handled ? (IntPtr)1 : CallNextHookEx(hookId, code, message, dataPointer);
+        }
+
+        private static int MapVkToIntent(uint vkCode)
+        {
+            switch (vkCode)
+            {
+                case 0x30: // '0'
+                case 0xC0: // '~' / '`' (VK_OEM_3)
+                    return 0; // Reset
+                case 0x31: // '1'
+                case 0x51: // 'Q'
+                    return 1; // Single
+                case 0x32: // '2'
+                case 0x57: // 'W'
+                    return 2; // Connected / Chain
+                case 0x33: // '3'
+                case 0x45: // 'E'
+                    return 3; // Tangent
+                case 0x34: // '4'
+                case 0x52: // 'R'
+                    return 4; // Inferred Path / Region Boundary
+                default:
+                    return -1;
+            }
         }
 
         private static bool TryApplyIntent(int intent)

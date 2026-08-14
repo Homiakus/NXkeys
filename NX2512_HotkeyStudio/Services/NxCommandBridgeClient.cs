@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using NX2512_HotkeyStudio.Models;
@@ -61,6 +62,16 @@ namespace NX2512_HotkeyStudio.Services
             string action = string.IsNullOrWhiteSpace(item.Action)
                 ? "execute_command"
                 : item.Action.Trim();
+
+            if (string.Equals(action, "run_capability", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(item.Command?.ID, "nxeskd.open_workflow", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.Equals(item.Command?.ID, "nxeskd.open_workflow", StringComparison.OrdinalIgnoreCase))
+                {
+                    return LaunchNxEskdConfigurator(item, context);
+                }
+            }
+
             NxCommandRequest request = CreateRequest(
                 action,
                 item.Command.ID.Trim(),
@@ -75,6 +86,74 @@ namespace NX2512_HotkeyStudio.Services
             request.Validate();
             WriteRequest(request);
             return request;
+        }
+
+        public static NxCommandRequest LaunchNxEskdConfigurator(LeaderSequenceItem item, NxBridgeContext context)
+        {
+            string workflowId = Guid.NewGuid().ToString("N");
+            string root = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string profilePath = Path.Combine(root, "NXKeys", "profiles", "nxeskd", "active-profile.json");
+            if (!File.Exists(profilePath))
+            {
+                string example = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config", "active-profile.example.json");
+                if (File.Exists(example))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(profilePath)!);
+                    File.Copy(example, profilePath, false);
+                }
+            }
+
+            string exePath = LocateConfiguratorExecutable();
+            if (!string.IsNullOrEmpty(exePath) && File.Exists(exePath))
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    UseShellExecute = true,
+                    WorkingDirectory = Path.GetDirectoryName(exePath)!
+                };
+
+                psi.EnvironmentVariables[NxBridgeSecurityEnvironment.SessionIdVariable] = (context?.SecuritySessionId ?? string.Empty);
+                psi.EnvironmentVariables[NxBridgeSecurityEnvironment.ConfigPathVariable] = securityProfilePath;
+                psi.EnvironmentVariables["NXKEYS_BRIDGE_ROOT"] = BridgeRoot;
+
+                if (File.Exists(profilePath))
+                    psi.ArgumentList.Add("--profile=" + profilePath);
+                psi.ArgumentList.Add("--workflow=" + workflowId);
+
+                try { Process.Start(psi); }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException("Не удалось запустить ЕСКД Конфигуратор: " + ex.Message, ex);
+                }
+            }
+
+            var request = CreateRequest(
+                "run_capability",
+                "nxeskd.open_workflow",
+                "ЕСКД — мастер подготовки чертежа",
+                item.Sequence,
+                item.ModuleID,
+                string.Empty,
+                context);
+            request.CapabilityId = "nxeskd.open_workflow";
+            request.WorkflowId = workflowId;
+            request.ConfirmationAccepted = true;
+            return request;
+        }
+
+        private static string LocateConfiguratorExecutable()
+        {
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var candidates = new[]
+            {
+                Path.Combine(baseDir, "NxEskd.Configurator.exe"),
+                Path.Combine(baseDir, "bin", "NxEskd.Configurator.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys", "components", "nxeskd", "current", "configurator", "NxEskd.Configurator.exe"),
+                Path.Combine(baseDir, "..", "nxeskd", "src", "NxEskd.Configurator", "bin", "Release", "net8.0-windows", "NxEskd.Configurator.exe"),
+                Path.Combine(baseDir, "..", "..", "..", "nxeskd", "src", "NxEskd.Configurator", "bin", "Release", "net8.0-windows", "NxEskd.Configurator.exe")
+            };
+            return candidates.FirstOrDefault(File.Exists) ?? candidates[0];
         }
 
         public static NxCommandRequest EnqueueModuleSwitch(ModuleConfig module)

@@ -133,44 +133,6 @@
       }
     },
     {
-      "operation_id": "global.modeling",
-      "paths": {
-        "direct": "B",
-        "leader": [],
-        "secondary_aliases": []
-      },
-      "command_name": "Modeling",
-      "adapter": {
-        "kind": "button_id",
-        "value": "UG_MODELING_BLEND_FEATURE",
-        "status": "declared_v8"
-      },
-      "availability": {
-        "applications": [
-          "global"
-        ]
-      }
-    },
-    {
-      "operation_id": "global.modeling",
-      "paths": {
-        "direct": "C",
-        "leader": [],
-        "secondary_aliases": []
-      },
-      "command_name": "Modeling",
-      "adapter": {
-        "kind": "button_id",
-        "value": "UG_MODELING_CHAMFER_FEATURE",
-        "status": "declared_v8"
-      },
-      "availability": {
-        "applications": [
-          "global"
-        ]
-      }
-    },
-    {
       "operation_id": "global.sketch",
       "paths": {
         "direct": "Q",
@@ -188,111 +150,6 @@
           "global"
         ]
       }
-    },
-    {
-      "operation_id": "global.sketch_direct_dimension",
-      "paths": {
-        "direct": "D",
-        "leader": [],
-        "secondary_aliases": []
-      },
-      "command_name": "Sketch — Rapid Dimension",
-      "adapter": {
-        "kind": "button_id",
-        "value": "UG_SKETCH_RAPID_DIMENSION",
-        "status": "declared_v8"
-      },
-      "availability": {
-        "applications": [
-          "sketch"
-        ],
-        "blocked_in_text_input": true
-      },
-      "direct_key_set": "extended"
-    },
-    {
-      "operation_id": "global.sketch_direct_trim",
-      "paths": {
-        "direct": "T",
-        "leader": [],
-        "secondary_aliases": []
-      },
-      "command_name": "Sketch — Trim",
-      "adapter": {
-        "kind": "button_id",
-        "value": "UG_SKETCH_TRIM",
-        "status": "declared_v8"
-      },
-      "availability": {
-        "applications": [
-          "sketch"
-        ],
-        "blocked_in_text_input": true
-      },
-      "direct_key_set": "extended"
-    },
-    {
-      "operation_id": "global.sketch_direct_fillet",
-      "paths": {
-        "direct": "F",
-        "leader": [],
-        "secondary_aliases": []
-      },
-      "command_name": "Sketch — Fillet",
-      "adapter": {
-        "kind": "button_id",
-        "value": "UG_SKETCH_FILLET",
-        "status": "declared_v8"
-      },
-      "availability": {
-        "applications": [
-          "sketch"
-        ],
-        "blocked_in_text_input": true
-      },
-      "direct_key_set": "extended"
-    },
-    {
-      "operation_id": "global.sketch_direct_extend",
-      "paths": {
-        "direct": "E",
-        "leader": [],
-        "secondary_aliases": []
-      },
-      "command_name": "Sketch — Extend",
-      "adapter": {
-        "kind": "button_id",
-        "value": "UG_SKETCH_EXTEND",
-        "status": "declared_v8"
-      },
-      "availability": {
-        "applications": [
-          "sketch"
-        ],
-        "blocked_in_text_input": true
-      },
-      "direct_key_set": "extended"
-    },
-    {
-      "operation_id": "global.sketch_direct_offset",
-      "paths": {
-        "direct": "O",
-        "leader": [],
-        "secondary_aliases": []
-      },
-      "command_name": "Sketch — Offset Curve",
-      "adapter": {
-        "kind": "button_id",
-        "value": "UG_SKETCH_OFFSET_CURVE",
-        "status": "declared_v8"
-      },
-      "availability": {
-        "applications": [
-          "sketch"
-        ],
-        "blocked_in_text_input": true
-      },
-      "direct_key_set": "extended"
     },
     {
       "operation_id": "global.drafting",
@@ -318,7 +175,8 @@
       "paths": {
         "direct": "Space",
         "leader": [],
-        "secondary_aliases": []
+        "secondary_aliases": [],
+        "workspace_key": "?"
       },
       "command_name": "Есть выделение, графическое окно",
       "adapter": {
@@ -644,25 +502,6 @@
         "secondary_aliases": []
       },
       "command_name": "Навигация по результатам поиска",
-      "adapter": {
-        "kind": "internal",
-        "value": "tbd_adapter",
-        "status": "tbd_adapter"
-      },
-      "availability": {
-        "applications": [
-          "global"
-        ]
-      }
-    },
-    {
-      "operation_id": "global.________________________________",
-      "paths": {
-        "workspace_key": "?",
-        "leader": [],
-        "secondary_aliases": []
-      },
-      "command_name": "Показать подсказку текущего узла",
       "adapter": {
         "kind": "internal",
         "value": "tbd_adapter",
@@ -3349,10 +3188,7 @@
     {
       "operation_id": "modeling.open_geometry_display_workspace",
       "paths": {
-        "leader": [
-          "V",
-          "G"
-        ],
+        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Open Geometry Display Workspace",
@@ -4134,8 +3970,11 @@
     {
       "operation_id": "sketch.line",
       "paths": {
+        "leader": [
+          "L"
+        ],
+        "direct": "L",
         "workspace_key": "L",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Line",
@@ -4153,8 +3992,11 @@
     {
       "operation_id": "sketch.rectangle",
       "paths": {
+        "leader": [
+          "R"
+        ],
+        "direct": "R",
         "workspace_key": "R",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Rectangle",
@@ -4172,8 +4014,11 @@
     {
       "operation_id": "sketch.circle",
       "paths": {
+        "leader": [
+          "C"
+        ],
         "direct": "C",
-        "leader": [],
+        "workspace_key": "C",
         "secondary_aliases": []
       },
       "command_name": "Circle",
@@ -4191,8 +4036,11 @@
     {
       "operation_id": "sketch.arc",
       "paths": {
+        "leader": [
+          "A"
+        ],
+        "direct": "A",
         "workspace_key": "A",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Arc",
@@ -4210,8 +4058,11 @@
     {
       "operation_id": "sketch.spline",
       "paths": {
+        "leader": [
+          "S"
+        ],
         "direct": "S",
-        "leader": [],
+        "workspace_key": "S",
         "secondary_aliases": []
       },
       "command_name": "Spline",
@@ -4229,8 +4080,11 @@
     {
       "operation_id": "sketch.point",
       "paths": {
+        "leader": [
+          "P"
+        ],
+        "direct": "P",
         "workspace_key": "P",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Point",
@@ -4248,8 +4102,11 @@
     {
       "operation_id": "sketch.slot",
       "paths": {
+        "leader": [
+          "W"
+        ],
+        "direct": "W",
         "workspace_key": "W",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Slot",
@@ -4267,8 +4124,11 @@
     {
       "operation_id": "sketch.polygon",
       "paths": {
+        "leader": [
+          "G"
+        ],
+        "direct": "G",
         "workspace_key": "G",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Polygon",
@@ -4286,8 +4146,11 @@
     {
       "operation_id": "sketch.ellipse",
       "paths": {
+        "leader": [
+          "I"
+        ],
+        "direct": "I",
         "workspace_key": "I",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Ellipse",
@@ -4305,8 +4168,11 @@
     {
       "operation_id": "sketch.trim",
       "paths": {
+        "leader": [
+          "T"
+        ],
+        "direct": "T",
         "workspace_key": "T",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Trim",
@@ -4324,8 +4190,11 @@
     {
       "operation_id": "sketch.extend",
       "paths": {
+        "leader": [
+          "E"
+        ],
+        "direct": "E",
         "workspace_key": "E",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Extend",
@@ -4343,8 +4212,11 @@
     {
       "operation_id": "sketch.offset_curve",
       "paths": {
+        "leader": [
+          "O"
+        ],
+        "direct": "O",
         "workspace_key": "O",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Offset Curve",
@@ -4362,8 +4234,11 @@
     {
       "operation_id": "sketch.sketch_fillet",
       "paths": {
+        "leader": [
+          "F"
+        ],
+        "direct": "F",
         "workspace_key": "F",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Sketch Fillet",
@@ -4381,8 +4256,11 @@
     {
       "operation_id": "sketch.sketch_chamfer",
       "paths": {
+        "leader": [
+          "H"
+        ],
+        "direct": "H",
         "workspace_key": "H",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Sketch Chamfer",
@@ -4400,8 +4278,11 @@
     {
       "operation_id": "sketch.mirror_curve",
       "paths": {
+        "leader": [
+          "M"
+        ],
+        "direct": "M",
         "workspace_key": "M",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Mirror Curve",
@@ -4419,8 +4300,11 @@
     {
       "operation_id": "sketch.move_curve",
       "paths": {
+        "leader": [
+          "V"
+        ],
+        "direct": "V",
         "workspace_key": "V",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Move Curve",
@@ -4438,8 +4322,11 @@
     {
       "operation_id": "sketch.pattern_curve",
       "paths": {
+        "leader": [
+          "Y"
+        ],
+        "direct": "Y",
         "workspace_key": "Y",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Pattern Curve",
@@ -4627,12 +4514,10 @@
       "operation_id": "sketch.coincident",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "C"
         ],
-        "secondary_aliases": [
-          "K->C"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Coincident",
       "adapter": {
@@ -4650,12 +4535,10 @@
       "operation_id": "sketch.horizontal",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "H"
         ],
-        "secondary_aliases": [
-          "K->H"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Horizontal",
       "adapter": {
@@ -4673,12 +4556,10 @@
       "operation_id": "sketch.vertical",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "V"
         ],
-        "secondary_aliases": [
-          "K->V"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Vertical",
       "adapter": {
@@ -4696,12 +4577,10 @@
       "operation_id": "sketch.tangent",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "T"
         ],
-        "secondary_aliases": [
-          "K->T"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Tangent",
       "adapter": {
@@ -4719,12 +4598,10 @@
       "operation_id": "sketch.parallel",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "P"
         ],
-        "secondary_aliases": [
-          "K->P"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Parallel",
       "adapter": {
@@ -4742,12 +4619,10 @@
       "operation_id": "sketch.perpendicular",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "N"
         ],
-        "secondary_aliases": [
-          "K->N"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Perpendicular",
       "adapter": {
@@ -4765,12 +4640,10 @@
       "operation_id": "sketch.concentric",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "O"
         ],
-        "secondary_aliases": [
-          "K->O"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Concentric",
       "adapter": {
@@ -4788,12 +4661,10 @@
       "operation_id": "sketch.equal",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "E"
         ],
-        "secondary_aliases": [
-          "K->E"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Equal",
       "adapter": {
@@ -4812,12 +4683,10 @@
       "operation_id": "sketch.collinear",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "L"
         ],
-        "secondary_aliases": [
-          "K->L"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Collinear",
       "adapter": {
@@ -4835,12 +4704,10 @@
       "operation_id": "sketch.midpoint",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "M"
         ],
-        "secondary_aliases": [
-          "K->M"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Midpoint",
       "adapter": {
@@ -4858,12 +4725,10 @@
       "operation_id": "sketch.symmetric",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "S"
         ],
-        "secondary_aliases": [
-          "K->S"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Symmetric",
       "adapter": {
@@ -4881,12 +4746,10 @@
       "operation_id": "sketch.fixed",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "F"
         ],
-        "secondary_aliases": [
-          "K->F"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Fixed",
       "adapter": {
@@ -4904,12 +4767,10 @@
       "operation_id": "sketch.remove_constraint",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "X"
         ],
-        "secondary_aliases": [
-          "K->X"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Remove Constraint",
       "adapter": {
@@ -4927,8 +4788,11 @@
     {
       "operation_id": "sketch.sketch_navigator",
       "paths": {
+        "leader": [
+          "N"
+        ],
+        "direct": "N",
         "workspace_key": "N",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Sketch Navigator",
@@ -4946,8 +4810,11 @@
     {
       "operation_id": "sketch.sketch_checker",
       "paths": {
+        "leader": [
+          "Z"
+        ],
+        "direct": "Z",
         "workspace_key": "Z",
-        "leader": [],
         "secondary_aliases": []
       },
       "command_name": "Sketch Checker",
@@ -4969,9 +4836,7 @@
           "D",
           "D"
         ],
-        "secondary_aliases": [
-          "U->D"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Show Degrees of Freedom",
       "adapter": {
@@ -4993,10 +4858,7 @@
           "U",
           "R"
         ],
-        "secondary_aliases": [
-          "U->R",
-          "D->R"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Show Relations",
       "adapter": {
@@ -5018,10 +4880,7 @@
           "U",
           "E"
         ],
-        "secondary_aliases": [
-          "U->E",
-          "D->E"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "External References",
       "adapter": {
@@ -5043,10 +4902,7 @@
           "U",
           "I"
         ],
-        "secondary_aliases": [
-          "U->I",
-          "D->I"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Issues",
       "adapter": {
@@ -5064,7 +4920,7 @@
     {
       "operation_id": "sketch.finish_sketch",
       "paths": {
-        "direct": "S direct",
+        "direct": "S",
         "leader": [],
         "secondary_aliases": []
       },
@@ -5129,10 +4985,7 @@
           "U",
           "A"
         ],
-        "secondary_aliases": [
-          "U->A",
-          "D->A"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Alternate Solution",
       "adapter": {
@@ -5150,12 +5003,10 @@
       "operation_id": "sketch.auto_constrain",
       "paths": {
         "leader": [
-          "C",
+          "K",
           "A"
         ],
-        "secondary_aliases": [
-          "K->A"
-        ]
+        "secondary_aliases": []
       },
       "command_name": "Auto Constrain",
       "adapter": {
@@ -6749,134 +6600,23 @@
       }
     },
     {
-      "operation_id": "drafting.eskd_control_center",
+      "operation_id": "drafting.eskd",
       "paths": {
         "leader": [
-          "E",
-          "C"
+          "E"
         ],
         "secondary_aliases": []
       },
-      "command_name": "ESKD Control Center",
+      "command_name": "ЕСКД — подготовить или обновить чертёж",
       "adapter": {
-        "kind": "button_id",
-        "value": "NX_ESKD_COMMAND_CENTER",
+        "kind": "capability",
+        "value": "nxeskd.open_workflow",
         "status": "declared_v8"
       },
       "availability": {
         "applications": [
           "drafting",
-          "global"
-        ]
-      }
-    },
-    {
-      "operation_id": "drafting.eskd_generate",
-      "paths": {
-        "leader": [
-          "E",
-          "G"
-        ],
-        "secondary_aliases": []
-      },
-      "command_name": "ESKD Generate Drawing",
-      "adapter": {
-        "kind": "button_id",
-        "value": "NX_ESKD_GENERATE",
-        "status": "declared_v8"
-      },
-      "availability": {
-        "applications": [
-          "drafting",
-          "global"
-        ]
-      }
-    },
-    {
-      "operation_id": "drafting.eskd_update",
-      "paths": {
-        "leader": [
-          "E",
-          "U"
-        ],
-        "secondary_aliases": []
-      },
-      "command_name": "ESKD Update Drawing",
-      "adapter": {
-        "kind": "button_id",
-        "value": "NX_ESKD_UPDATE",
-        "status": "declared_v8"
-      },
-      "availability": {
-        "applications": [
-          "drafting",
-          "global"
-        ]
-      }
-    },
-    {
-      "operation_id": "drafting.eskd_preview",
-      "paths": {
-        "leader": [
-          "E",
-          "P"
-        ],
-        "secondary_aliases": []
-      },
-      "command_name": "ESKD Layout Preview",
-      "adapter": {
-        "kind": "button_id",
-        "value": "NX_ESKD_PREVIEW",
-        "status": "declared_v8"
-      },
-      "availability": {
-        "applications": [
-          "drafting",
-          "global"
-        ]
-      }
-    },
-    {
-      "operation_id": "drafting.eskd_validate",
-      "paths": {
-        "leader": [
-          "E",
-          "V"
-        ],
-        "secondary_aliases": []
-      },
-      "command_name": "ESKD Validate Compliance",
-      "adapter": {
-        "kind": "button_id",
-        "value": "NX_ESKD_VALIDATE",
-        "status": "declared_v8"
-      },
-      "availability": {
-        "applications": [
-          "drafting",
-          "global"
-        ]
-      }
-    },
-    {
-      "operation_id": "drafting.eskd_inventory",
-      "paths": {
-        "leader": [
-          "E",
-          "I"
-        ],
-        "secondary_aliases": []
-      },
-      "command_name": "ESKD API Diagnostics",
-      "adapter": {
-        "kind": "button_id",
-        "value": "NX_ESKD_INVENTORY",
-        "status": "declared_v8"
-      },
-      "availability": {
-        "applications": [
-          "drafting",
-          "global"
+          "modeling"
         ]
       }
     },
@@ -7096,7 +6836,7 @@
       "operation_id": "surface.swept_surface",
       "paths": {
         "leader": [
-          "C",
+          "S",
           "W"
         ],
         "secondary_aliases": []
@@ -9449,26 +9189,6 @@
       "availability": {
         "applications": [
           "global"
-        ]
-      }
-    },
-    {
-      "operation_id": "sketch.circle",
-      "paths": {
-        "leader": [
-          "C"
-        ],
-        "secondary_aliases": []
-      },
-      "command_name": "Circle",
-      "adapter": {
-        "kind": "button_id",
-        "value": "UG_SKETCH_CIRCLE",
-        "status": "declared_v8"
-      },
-      "availability": {
-        "applications": [
-          "sketch"
         ]
       }
     }

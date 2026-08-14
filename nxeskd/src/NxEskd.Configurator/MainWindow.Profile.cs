@@ -13,8 +13,11 @@ public partial class MainWindow
         for (var i = 0; i < args.Length; i++)
         {
             if (args[i] == "--profile" && i + 1 < args.Length) profilePath = args[++i];
-            else if (args[i] == "--request" && i + 1 < args.Length) _requestPath = args[++i];
+            else if (args[i].StartsWith("--profile=")) profilePath = args[i].Substring("--profile=".Length);
+            else if (args[i] == "--workflow" && i + 1 < args.Length) _workflowId = args[++i];
+            else if (args[i].StartsWith("--workflow=")) _workflowId = args[i].Substring("--workflow=".Length);
             else if (args[i] == "--nx-part" && i + 1 < args.Length) _nxPartPath = args[++i];
+            else if (args[i].StartsWith("--nx-part=")) _nxPartPath = args[i].Substring("--nx-part=".Length);
         }
         return profilePath;
     }
@@ -84,9 +87,9 @@ public partial class MainWindow
             DisplayValidation(report);
             if (report.HasErrors)
             {
-                MainTabs.SelectedIndex = 6;
+                WorkflowTabs.SelectedIndex = 2;
                 MessageBox.Show(this,
-                    "Профиль не сохранён. Исправьте ошибки, показанные на вкладке «Проверка».",
+                    "Профиль не сохранён. Исправьте ошибки, показанные на шаге «3. Проверка».",
                     "Проверка профиля",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);

@@ -41,6 +41,7 @@ namespace NX2512_HotkeyStudio.UI
         private readonly List<Control> pages = new List<Control>();
         private readonly ListView basicList = new ListView();
         private readonly ComboBox moduleBox = new ComboBox();
+        private readonly TextBox commandSearchBox = new TextBox();
         private readonly DataGridView moduleGrid = new DataGridView();
         private readonly CommandListPreviewPanel modulePreview = new CommandListPreviewPanel();
         private readonly RichTextBox contextBox = new RichTextBox();
@@ -123,7 +124,7 @@ namespace NX2512_HotkeyStudio.UI
             };
             sidebar.Controls.Add(nav);
 
-            string[] names = { "Главная", "Базовые сочетания", "Команды", "Живой контекст NX", "Установка", "Backups / Profile", "Диагностика", "Настройки" };
+            string[] names = { "Обзор и статус", "Команды и маршруты", "Настройки и безопасность" };
             for (int index = 0; index < names.Length; index++)
             {
                 int target = index;
@@ -163,12 +164,7 @@ namespace NX2512_HotkeyStudio.UI
             workspace.Controls.Add(status, 0, 2);
 
             pages.Add(BuildOverviewPage());
-            pages.Add(BuildBasicPage());
             pages.Add(BuildModulesPage());
-            pages.Add(BuildContextPage());
-            pages.Add(BuildDeploymentPage());
-            pages.Add(BuildBackupPage());
-            pages.Add(BuildDiagnosticsPage());
             pages.Add(BuildSettingsPage());
             foreach (Control page in pages) content.Controls.Add(page);
             ShowPage(0);
@@ -178,54 +174,73 @@ namespace NX2512_HotkeyStudio.UI
         {
             var page = CreatePage();
             var layout = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1 };
-            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 150));
-            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 120));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 130));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 100));
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
-            var metrics = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = true };
-            metrics.Controls.Add(Metric("Базовые сочетания", config.Keyboard.Count(binding => binding.Enabled).ToString(), accent));
-            metrics.Controls.Add(Metric("Модули", config.Modules.Count(module => module.Enabled).ToString(), success));
-            metrics.Controls.Add(Metric("Модульные команды", config.LeaderKey.Sequences.Count.ToString(), Color.FromArgb(245, 158, 11)));
-            metrics.Controls.Add(Metric("Схема ввода", "3 колонки", accent));
+            var metrics = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, RowCount = 1 };
+            metrics.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25f));
+            metrics.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25f));
+            metrics.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25f));
+            metrics.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25f));
+            metrics.Controls.Add(Metric("Среда NX", "NX 2512", accent), 0, 0);
+            metrics.Controls.Add(Metric("Command Bridge", "ОК (v4)", success), 1, 0);
+            metrics.Controls.Add(Metric("Перехват Leader", config.LeaderKey.TriggerKey, accent), 2, 0);
+            metrics.Controls.Add(Metric("Команды v8", config.LeaderKey.Sequences.Count.ToString(), Color.FromArgb(245, 158, 11)), 3, 0);
 
-            Panel enginePanel = Card();
-            enginePanel.Dock = DockStyle.Fill;
-            engineState.Dock = DockStyle.Fill;
-            engineState.ForeColor = text;
-            engineState.Font = new Font("Segoe UI Semibold", 11f);
-            engineState.Padding = new Padding(16, 12, 8, 8);
-            engineButton.Dock = DockStyle.Right;
-            engineButton.Width = 230;
+            Panel actionsPanel = Card();
+            actionsPanel.Dock = DockStyle.Fill;
+            var actionsLayout = new FlowLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(12, 14, 12, 12) };
+            
+            Button applyToNx = CreateActionButton("Применить в NX", accent);
+            applyToNx.Width = 200;
+            applyToNx.Height = 42;
+            applyToNx.Click += async (_, _) => await ApplyPlanAsync();
+
+            Button repairProfile = CreateActionButton("Восстановить шаблон", text);
+            repairProfile.Width = 210;
+            repairProfile.Height = 42;
+            repairProfile.Click += (_, _) => RestoreFromEmbedded();
+
+            engineButton.Width = 200;
+            engineButton.Height = 42;
             StyleButton(engineButton, accent);
             engineButton.Click += (_, _) => ToggleEngine();
-            enginePanel.Controls.Add(engineState);
-            enginePanel.Controls.Add(engineButton);
 
-            RichTextBox explanation = ReadOnlyBox();
-            explanation.Text =
-                "NXKeys сохраняет только базовые глобальные сочетания. Все профессиональные операции вызываются через CapsLock и одну клавишу из списка.\n\n" +
-                "Активный набор определяется по context.json Command Bridge. В Sketch клавиши запускают команды эскиза; в Modeling — моделирование; в Sheet Metal — листовой металл; в Drafting — чертёж и т. д.\n\n" +
-                "Tab / Shift+Tab запрашивают смену приложения NX. Space включает поиск только внутри текущего модуля. Опасные команды требуют Enter.";
+            actionsLayout.Controls.Add(applyToNx);
+            actionsLayout.Controls.Add(repairProfile);
+            actionsLayout.Controls.Add(engineButton);
+            actionsPanel.Controls.Add(actionsLayout);
+
+            Panel contextCard = Card();
+            contextCard.Dock = DockStyle.Fill;
+            contextBox.Dock = DockStyle.Fill;
+            contextBox.BackColor = surface;
+            contextBox.ForeColor = text;
+            contextBox.BorderStyle = BorderStyle.None;
+            contextBox.Font = new Font("Consolas", 9.5f);
+            contextBox.ReadOnly = true;
+            contextCard.Controls.Add(contextBox);
 
             layout.Controls.Add(metrics, 0, 0);
-            layout.Controls.Add(enginePanel, 0, 1);
-            layout.Controls.Add(explanation, 0, 2);
+            layout.Controls.Add(actionsPanel, 0, 1);
+            layout.Controls.Add(contextCard, 0, 2);
             page.Controls.Add(layout);
             return page;
         }
 
-        private Control BuildBasicPage()
+        private void RestoreFromEmbedded()
         {
-            var page = CreatePage();
-            basicList.Dock = DockStyle.Fill;
-            StyleList(basicList);
-            basicList.Columns.Add("Сочетание", 160);
-            basicList.Columns.Add("Команда", 230);
-            basicList.Columns.Add("BUTTON ID", 300);
-            basicList.Columns.Add("Scope", 130);
-            basicList.Columns.Add("Назначение", 420);
-            page.Controls.Add(basicList);
-            return page;
+            DialogResult confirm = MessageBox.Show(
+                "Восстановить канонический профиль NX 2512 v8 из встроенного шаблона?",
+                "NXKeys — восстановление", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (confirm != DialogResult.Yes) return;
+
+            config = Config.LoadEmbedded();
+            config.Save(configPath);
+            draftSession.AcceptSavedState();
+            RefreshAll();
+            MessageBox.Show("Канонический профиль успешно восстановлен.", "NXKeys", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private Control BuildModulesPage()
@@ -235,29 +250,38 @@ namespace NX2512_HotkeyStudio.UI
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             var bar = new Panel { Dock = DockStyle.Fill };
-            var label = new Label { Dock = DockStyle.Left, Width = 160, Text = "Просмотр модуля:", ForeColor = muted, TextAlign = ContentAlignment.MiddleLeft };
+            var label = new Label { Dock = DockStyle.Left, Width = 140, Text = "Модуль NX:", ForeColor = muted, TextAlign = ContentAlignment.MiddleLeft };
             moduleBox.Dock = DockStyle.Left;
-            moduleBox.Width = 310;
+            moduleBox.Width = 240;
             moduleBox.DropDownStyle = ComboBoxStyle.DropDownList;
             moduleBox.BackColor = raised;
             moduleBox.ForeColor = text;
             moduleBox.SelectedIndexChanged += (_, _) => RefreshModuleCommands();
+
+            commandSearchBox.Dock = DockStyle.Left;
+            commandSearchBox.Width = 220;
+            commandSearchBox.BackColor = raised;
+            commandSearchBox.ForeColor = text;
+            commandSearchBox.Font = new Font("Segoe UI", 10f);
+            commandSearchBox.PlaceholderText = "Поиск команд…";
+            commandSearchBox.TextChanged += (_, _) => RefreshModuleCommands();
+
             Button save = CreateActionButton("Сохранить", success);
-            save.Width = 118;
+            save.Width = 110;
             save.Click += (_, _) => SaveConfig();
             Button diff = CreateActionButton("Diff", text);
-            diff.Width = 86;
+            diff.Width = 76;
             diff.Click += (_, _) => ShowDraftDiff();
             undoButton = CreateActionButton("Отменить", text);
-            undoButton.Width = 104;
+            undoButton.Width = 96;
             undoButton.Click += (_, _) => UndoDraft();
             redoButton = CreateActionButton("Повторить", text);
-            redoButton.Width = 104;
+            redoButton.Width = 96;
             redoButton.Click += (_, _) => RedoDraft();
             var history = new FlowLayoutPanel
             {
                 Dock = DockStyle.Right,
-                Width = 440,
+                Width = 400,
                 FlowDirection = FlowDirection.RightToLeft,
                 WrapContents = false
             };
@@ -265,9 +289,9 @@ namespace NX2512_HotkeyStudio.UI
             history.Controls.Add(diff);
             history.Controls.Add(redoButton);
             history.Controls.Add(undoButton);
-            var hint = new Label { Dock = DockStyle.Fill, Text = "Изменения сохраняются в draft · Ctrl+Z / Ctrl+Y · Ctrl+S", ForeColor = muted, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(18, 0, 0, 0) };
-            bar.Controls.Add(hint);
+            
             bar.Controls.Add(history);
+            bar.Controls.Add(commandSearchBox);
             bar.Controls.Add(moduleBox);
             bar.Controls.Add(label);
             UpdateHistoryButtons();
@@ -307,15 +331,13 @@ namespace NX2512_HotkeyStudio.UI
             moduleGrid.ColumnHeadersDefaultCellStyle.ForeColor = text;
             moduleGrid.EnableHeadersVisualStyles = false;
             moduleGrid.Columns.Clear();
-            moduleGrid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Enabled", HeaderText = "Enabled", Width = 72 });
-            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Path", HeaderText = "Путь", Width = 145 });
-            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "PathLabels", HeaderText = "Подсказки пути", Width = 190 });
-            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Icon", HeaderText = "Icon", Width = 72 });
-            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "CommandName", HeaderText = "Command Name", Width = 180, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "ButtonId", HeaderText = "BUTTON ID", Width = 240 });
-            moduleGrid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "RequiresSelection", HeaderText = "Selection", Width = 78 });
-            moduleGrid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Confirm", HeaderText = "Confirm", Width = 72 });
-            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Notes", HeaderText = "Notes", Width = 210 });
+            moduleGrid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Enabled", HeaderText = "Вкл", Width = 55 });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Path", HeaderText = "Мнемоника", Width = 130 });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "CommandName", HeaderText = "Команда", Width = 200, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "ButtonId", HeaderText = "BUTTON ID", Width = 220 });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Статус", Width = 180, ReadOnly = true });
+            moduleGrid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Confirm", HeaderText = "Подтверждение", Width = 110 });
+            moduleGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Notes", HeaderText = "Примечание", Width = 160 });
             moduleGrid.CurrentCellDirtyStateChanged += (_, _) =>
             {
                 if (moduleGrid.IsCurrentCellDirty) moduleGrid.CommitEdit(DataGridViewDataErrorContexts.Commit);
@@ -507,21 +529,36 @@ namespace NX2512_HotkeyStudio.UI
                     return;
                 }
 
+                string filter = commandSearchBox.Text?.Trim() ?? string.Empty;
+
                 foreach (ModuleCommand command in ModuleCommands(module))
                 {
+                    string pathStr = EditableCommandPathPolicy.FormatPath(EditableCommandPathPolicy.EffectivePath(command));
+                    string nameStr = command.Command?.Name ?? string.Empty;
+                    string idStr = command.Command?.ID ?? string.Empty;
+                    string notesStr = command.Notes ?? string.Empty;
+
+                    if (!string.IsNullOrWhiteSpace(filter))
+                    {
+                        bool match = pathStr.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                     nameStr.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                     idStr.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                     notesStr.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+                        if (!match) continue;
+                    }
+
+                    string statusStr = command.Destructive
+                        ? "Опасная: удаление"
+                        : (command.RequiresSelection ? "Требуется выбор" : "Готово к выполнению");
+
                     int rowIndex = moduleGrid.Rows.Add(
                         command.Enabled,
-                        EditableCommandPathPolicy.FormatPath(EditableCommandPathPolicy.EffectivePath(command)),
-                        EditableCommandPathPolicy.FormatLabels(command.PathLabels),
-                        string.IsNullOrWhiteSpace(command.IconHint)
-                            ? CommandIconHints.FromCommand(command.Command?.ID, command.Command?.Name,
-                                command.Path?.FirstOrDefault(), command.PathLabels?.FirstOrDefault())
-                            : command.IconHint,
-                        command.Command?.Name ?? string.Empty,
-                        command.Command?.ID ?? string.Empty,
-                        command.RequiresSelection,
+                        pathStr,
+                        nameStr,
+                        idStr,
+                        statusStr,
                         command.ConfirmBeforeExecute || command.Destructive,
-                        command.Notes ?? string.Empty);
+                        notesStr);
                     moduleGrid.Rows[rowIndex].Tag = command;
                 }
             }
@@ -545,13 +582,11 @@ namespace NX2512_HotkeyStudio.UI
                 {
                     if (row.IsNewRow || row.Tag is not ModuleCommand command) continue;
                     command.Enabled = ReadBool(row, "Enabled");
-                    EditableCommandPathPolicy.ApplyEditedPath(command, ReadText(row, "Path"), ReadText(row, "PathLabels"));
-                    command.IconHint = ReadText(row, "Icon").Trim();
+                    EditableCommandPathPolicy.ApplyEditedPath(command, ReadText(row, "Path"), ReadText(row, "CommandName"));
                     command.DisplayOrder = order++;
                     command.Command ??= new CommandRef();
                     command.Command.Name = ReadText(row, "CommandName").Trim();
                     command.Command.ID = ReadText(row, "ButtonId").Trim();
-                    command.RequiresSelection = ReadBool(row, "RequiresSelection");
                     command.ConfirmBeforeExecute = ReadBool(row, "Confirm");
                     command.Notes = ReadText(row, "Notes").Trim();
                 }
@@ -760,25 +795,19 @@ namespace NX2512_HotkeyStudio.UI
             }
             string[] headings =
             {
-                "NXKeys Control Center", "Только базовые глобальные сочетания", "Команды активного модуля NX",
-                "Живой контекст Command Bridge", "Транзакционная установка", "Резервные копии и профиль",
-                "Диагностика системы", "Настройки Leader и HUD"
+                "Обзор и статус NXKeys", "Команды и маршруты модулей", "Настройки Leader и безопасность"
             };
             string[] descriptions =
             {
-                "Одна клавиатурная сетка автоматически меняется вместе с приложением NX.",
-                "Системный минимум; профессиональные операции вынесены в модульный Leader.",
-                "Редактирование команд и preview ровно в 3-колоночном виде CapsLock.",
-                "Фактический application_id, module_id, selection и revision.",
-                "План, SHA-256, backup, atomic commit и rollback.",
-                "Сохранение schema 6 и безопасное восстановление.",
-                "Typed transport state, package hashes, queue и журнал Bridge.",
-                "Параметры редактируются через undoable draft и сохраняются атомарно."
+                "Состояние среды Siemens NX, Command Bridge и управление развертыванием.",
+                "Просмотр и редактирование мнемоник, фильтрация по модулям и живое превью.",
+                "Параметры клавиши Leader, тайм-ауты, визуальные подсказки и резервные копии."
             };
             title.Text = headings[index];
             subtitle.Text = descriptions[index];
-            if (index == 6) _ = RefreshDiagnosticsAsync();
-            if (index == 7) RefreshSettingsControls();
+            if (index == 0) RefreshContext();
+            if (index == 1) RefreshModuleCommands();
+            if (index == 2) { RefreshSettingsControls(); RefreshBackups(); }
         }
 
         private void OnFormClosing(object sender, FormClosingEventArgs eventArgs)

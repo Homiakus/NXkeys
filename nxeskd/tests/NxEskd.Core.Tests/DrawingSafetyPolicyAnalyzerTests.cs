@@ -50,6 +50,27 @@ public sealed class DrawingSafetyPolicyAnalyzerTests
             issue.Code == "SAFETY_NATIVE_OUTPUT_EXTENSION_INVALID");
     }
 
+    [Theory]
+    [InlineData("ISSUED")]
+    [InlineData("REL_PROD")]
+    [InlineData("FROZEN")]
+    [InlineData("OBSOLETE")]
+    [InlineData("УТВЕРЖДЕНО")]
+    public void PlmReleasedStatusesAreRecognizedAsReleased(string status)
+    {
+        using var fixture = ProfileFixture.Create();
+        EnsureObject(fixture.Profile.Root, "output")["allowOverwriteExisting"] = true;
+        EnsureObject(fixture.Profile.Root, "output")["allowOverwriteReleasedDocument"] = true;
+        var job = EnsureObject(fixture.Profile.Root, "job");
+        var doc = EnsureObject(job, "document");
+        doc["status"] = status;
+
+        var report = new DrawingSafetyPolicyAnalyzer().Analyze(fixture.Profile);
+
+        Assert.Contains(report.Issues, issue =>
+            issue.Code == "SAFETY_RELEASED_OVERWRITE_ARMED");
+    }
+
     private static JsonObject EnsureObject(JsonObject owner, string name)
     {
         if (owner[name] is JsonObject existing) return existing;

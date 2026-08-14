@@ -19,6 +19,7 @@
         <SolidColorBrush x:Key="AccentHoverBrush" Color="#114A9E"/>
         <SolidColorBrush x:Key="DangerBrush" Color="#B42318"/>
         <SolidColorBrush x:Key="WarningBrush" Color="#B54708"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#027A48"/>
 
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -80,7 +81,7 @@
             <Setter Property="RowHeaderWidth" Value="0"/>
             <Setter Property="HeadersVisibility" Value="Column"/>
             <Setter Property="AlternatingRowBackground" Value="#FAFBFC"/>
-            <Setter Property="RowHeight" Value="42"/>
+            <Setter Property="RowHeight" Value="40"/>
             <Setter Property="ColumnHeaderHeight" Value="38"/>
             <Setter Property="EnableRowVirtualization" Value="True"/>
             <Setter Property="EnableColumnVirtualization" Value="True"/>
@@ -107,6 +108,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Top Header Bar -->
         <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
             <Grid Margin="18,14">
@@ -119,7 +121,7 @@
 
                 <StackPanel>
                     <TextBlock Text="NX ESKD" FontSize="22" FontWeight="SemiBold"/>
-                    <TextBlock Text="Настройка и выпуск чертежей" Foreground="{StaticResource MutedTextBrush}"/>
+                    <TextBlock Text="Мастер подготовки и выпуска чертежей" Foreground="{StaticResource MutedTextBrush}"/>
                 </StackPanel>
 
                 <Grid Grid.Column="2" VerticalAlignment="Center">
@@ -127,7 +129,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="Активный профиль" FontSize="11" FontWeight="SemiBold"
+                    <TextBlock Text="Активный профиль ЕСКД" FontSize="11" FontWeight="SemiBold"
                                Foreground="{StaticResource MutedTextBrush}"/>
                     <TextBox x:Name="ProfilePathBox" Grid.Row="1" IsReadOnly="True"
                              Background="#F8FAFC" Margin="0,4,0,0"/>
@@ -141,219 +143,322 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300"/>
-                <ColumnDefinition Width="5"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <!-- Main 4-Step Workflow Area -->
+        <Border Grid.Row="1" Margin="14" Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <TabControl x:Name="WorkflowTabs" Background="White" BorderThickness="0" Padding="0">
+                
+                <!-- STEP 1: Исходные данные -->
+                <TabItem Header="1. Исходные данные" FontSize="14" FontWeight="SemiBold">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="280"/>
+                            <ColumnDefinition Width="5"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Background="{StaticResource PanelBrush}"
-                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
-                <DockPanel Margin="14">
-                    <StackPanel DockPanel.Dock="Top">
-                        <TextBlock Text="Разделы профиля" FontSize="16" FontWeight="SemiBold"/>
-                        <TextBlock Text="Выберите область настройки или найдите параметр"
-                                   Foreground="{StaticResource MutedTextBrush}"
-                                   TextWrapping="Wrap" Margin="0,3,0,12"/>
-                        <TextBox x:Name="SectionSearchBox" Margin="0,0,0,10"
-                                 ToolTip="Поиск раздела"
-                                 TextChanged="SectionSearchBox_TextChanged"/>
-                    </StackPanel>
-                    <TreeView x:Name="SectionsTree"
-                              Background="Transparent" BorderThickness="0"
-                              SelectedItemChanged="SectionsTree_SelectedItemChanged"
-                              VirtualizingPanel.IsVirtualizing="True"
-                              VirtualizingPanel.VirtualizationMode="Recycling"/>
-                </DockPanel>
-            </Border>
+                        <!-- Section Navigation Panel -->
+                        <Border Grid.Column="0" Background="{StaticResource PanelBrush}"
+                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+                            <DockPanel Margin="14">
+                                <StackPanel DockPanel.Dock="Top">
+                                    <TextBlock Text="Разделы профиля" FontSize="15" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Выберите область для настройки"
+                                               Foreground="{StaticResource MutedTextBrush}"
+                                               TextWrapping="Wrap" Margin="0,3,0,10"/>
+                                    <TextBox x:Name="SectionSearchBox" Margin="0,0,0,10"
+                                             ToolTip="Поиск раздела"
+                                             TextChanged="SectionSearchBox_TextChanged"/>
+                                </StackPanel>
+                                <TreeView x:Name="SectionsTree"
+                                          Background="Transparent" BorderThickness="0"
+                                          SelectedItemChanged="SectionsTree_SelectedItemChanged"
+                                          VirtualizingPanel.IsVirtualizing="True"
+                                          VirtualizingPanel.VirtualizationMode="Recycling"/>
+                            </DockPanel>
+                        </Border>
 
-            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"
-                          Background="#E5E9EF" ShowsPreview="True"/>
+                        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"
+                                      Background="#E5E9EF" ShowsPreview="True"/>
 
-            <Border Grid.Column="2" Margin="14" Background="{StaticResource SurfaceBrush}"
-                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-                <TabControl x:Name="MainTabs" Background="White" BorderThickness="0" Padding="0">
-                    <TabItem Header="Документ и выпуск">
-                        <local:DocumentSettingsControl x:Name="DocumentSettingsEditor"/>
-                    </TabItem>
-                    <TabItem Header="Листы и виды">
-                        <local:DrawingStructureControl x:Name="DrawingStructureEditor"/>
-                    </TabItem>
-                    <TabItem Header="Технические требования">
-                        <local:TechnicalRequirementsControl x:Name="TechnicalRequirementsEditor"/>
-                    </TabItem>
-                    <TabItem Header="Настройки">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <Border Grid.Row="0" Background="#F8FAFC"
-                                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
-                                    Padding="14,11">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Text="Параметры раздела" FontSize="15" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Изменения сразу проходят типовую проверку"
-                                                   Foreground="{StaticResource MutedTextBrush}"/>
-                                    </StackPanel>
-                                    <TextBox x:Name="SettingSearchBox" Grid.Column="1" Width="360"
-                                             HorizontalAlignment="Right" VerticalAlignment="Center"
-                                             ToolTip="Поиск по имени, пути, описанию или значению"
-                                             TextChanged="SettingSearchBox_TextChanged"/>
-                                </Grid>
-                            </Border>
+                        <!-- Step 1 Editors Sub-Tabs -->
+                        <Border Grid.Column="2" Background="{StaticResource SurfaceBrush}">
+                            <TabControl x:Name="InputsSubTabs" Background="White" BorderThickness="0" Padding="0">
+                                <TabItem Header="Документ и выпуск" FontSize="12" FontWeight="Normal">
+                                    <local:DocumentSettingsControl x:Name="DocumentSettingsEditor"/>
+                                </TabItem>
+                                <TabItem Header="Листы и виды" FontSize="12" FontWeight="Normal">
+                                    <local:DrawingStructureControl x:Name="DrawingStructureEditor"/>
+                                </TabItem>
+                                <TabItem Header="Технические требования" FontSize="12" FontWeight="Normal">
+                                    <local:TechnicalRequirementsControl x:Name="TechnicalRequirementsEditor"/>
+                                </TabItem>
+                                <TabItem Header="Параметры раздела" FontSize="12" FontWeight="Normal">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <Border Grid.Row="0" Background="#F8FAFC"
+                                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                                                Padding="14,11">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="Параметры раздела" FontSize="14" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="Изменения сразу проходят типовую проверку"
+                                                               Foreground="{StaticResource MutedTextBrush}"/>
+                                                </StackPanel>
+                                                <TextBox x:Name="SettingSearchBox" Grid.Column="1" Width="360"
+                                                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                         ToolTip="Поиск по имени, пути, описанию или значению"
+                                                         TextChanged="SettingSearchBox_TextChanged"/>
+                                            </Grid>
+                                        </Border>
 
-                            <DataGrid x:Name="SettingsGrid" Grid.Row="1"
-                                      AutoGenerateColumns="False" CanUserAddRows="False"
-                                      CanUserDeleteRows="False" IsReadOnly="False"
-                                      SelectionUnit="FullRow">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Параметр" Binding="{Binding Name}"
-                                                        Width="190" IsReadOnly="True"/>
-                                    <DataGridTextColumn Header="Описание" Binding="{Binding Description}"
-                                                        Width="2.3*" IsReadOnly="True"/>
-                                    <DataGridTemplateColumn Header="Значение" Width="1.5*">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <ContentControl Content="{Binding}">
-                                                    <ContentControl.Style>
-                                                        <Style TargetType="ContentControl">
-                                                            <Setter Property="ContentTemplate"
-                                                                    Value="{StaticResource TextSettingEditor}"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding HasAllowedValues}" Value="True">
-                                                                    <Setter Property="ContentTemplate"
-                                                                            Value="{StaticResource ChoiceSettingEditor}"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </ContentControl.Style>
-                                                </ContentControl>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                    <DataGridTextColumn Header="JSON path" Binding="{Binding Path}"
-                                                        Width="1.5*" IsReadOnly="True"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </Grid>
-                    </TabItem>
+                                        <DataGrid x:Name="SettingsGrid" Grid.Row="1"
+                                                  AutoGenerateColumns="False" CanUserAddRows="False"
+                                                  CanUserDeleteRows="False" IsReadOnly="False"
+                                                  SelectionUnit="FullRow">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Параметр" Binding="{Binding Name}"
+                                                                    Width="190" IsReadOnly="True"/>
+                                                <DataGridTextColumn Header="Описание" Binding="{Binding Description}"
+                                                                    Width="2.3*" IsReadOnly="True"/>
+                                                <DataGridTemplateColumn Header="Значение" Width="1.5*">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <ContentControl Content="{Binding}">
+                                                                <ContentControl.Style>
+                                                                    <Style TargetType="ContentControl">
+                                                                        <Setter Property="ContentTemplate"
+                                                                                Value="{StaticResource TextSettingEditor}"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding HasAllowedValues}" Value="True">
+                                                                                <Setter Property="ContentTemplate"
+                                                                                        Value="{StaticResource ChoiceSettingEditor}"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </ContentControl.Style>
+                                                            </ContentControl>
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                                <DataGridTextColumn Header="JSON path" Binding="{Binding Path}"
+                                                                    Width="1.5*" IsReadOnly="True"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </Grid>
+                                </TabItem>
+                            </TabControl>
+                        </Border>
+                    </Grid>
+                </TabItem>
 
-                    <TabItem Header="JSON — расширенный режим">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderBrush}"
-                                    BorderThickness="0,0,0,1" Padding="12">
+                <!-- STEP 2: Предпросмотр -->
+                <TabItem Header="2. Предпросмотр" FontSize="14" FontWeight="SemiBold">
+                    <Grid Margin="18">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1" Padding="16" Margin="0,0,0,14" CornerRadius="4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="План операций чертежа (Dry-run Preview)" FontSize="16" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="PreviewSummaryText" Text="Предпросмотр строит граф операций без модификации активной детали NX."
+                                               Foreground="{StaticResource MutedTextBrush}" Margin="0,4,0,0"/>
+                                    <TextBlock x:Name="PreviewHashText" Text="Хэш плана: —"
+                                               FontFamily="Cascadia Mono, Consolas" FontSize="12" Foreground="{StaticResource AccentBrush}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Content="Построить предпросмотр" Click="Preview_Click" Style="{StaticResource PrimaryButton}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Grid.Row="1" Text="Запланированные операции DAG:" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8"/>
+
+                        <DataGrid x:Name="PlanOperationsGrid" Grid.Row="2" AutoGenerateColumns="False" IsReadOnly="True"
+                                  CanUserAddRows="False" SelectionUnit="FullRow">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Операция" Binding="{Binding OperationId}" Width="220"/>
+                                <DataGridTextColumn Header="Тип объекта" Binding="{Binding ObjectKind}" Width="160"/>
+                                <DataGridTextColumn Header="Действие" Binding="{Binding ChangeKind}" Width="130"/>
+                                <DataGridTextColumn Header="Целевой ID" Binding="{Binding TargetId}" Width="200"/>
+                                <DataGridTextColumn Header="Зависимости" Binding="{Binding DependenciesText}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <!-- STEP 3: Проверка -->
+                <TabItem Header="3. Проверка" FontSize="14" FontWeight="SemiBold">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="0,0,0,1" Padding="16,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Готовность профиля и диагностика NX" FontSize="16" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="ValidationSummaryText"
+                                               Foreground="{StaticResource MutedTextBrush}" Margin="0,3,0,0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button Content="Проверить профиль" Click="ValidateProfile_Click" Style="{StaticResource ToolbarButton}"/>
+                                    <Button Content="Проверить в NX" Click="ValidateNx_Click" Style="{StaticResource PrimaryButton}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <DataGrid x:Name="IssuesGrid" Grid.Row="1"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  CanUserAddRows="False" SelectionUnit="FullRow">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Уровень" Binding="{Binding Severity}" Width="125"/>
+                                <DataGridTextColumn Header="Код" Binding="{Binding Code}" Width="220"/>
+                                <DataGridTextColumn Header="Объект" Binding="{Binding ObjectId}" Width="170"/>
+                                <DataGridTextColumn Header="JSON path" Binding="{Binding JsonPath}" Width="260"/>
+                                <DataGridTextColumn Header="Сообщение" Binding="{Binding Message}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <!-- STEP 4: Результат -->
+                <TabItem Header="4. Результат" FontSize="14" FontWeight="SemiBold">
+                    <Grid Margin="24">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Progress / Status Card -->
+                        <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1" Padding="20" CornerRadius="6" Margin="0,0,0,18">
+                            <StackPanel>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="Исходный профиль" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Используйте для редких и экспериментальных параметров"
-                                                   Foreground="{StaticResource MutedTextBrush}"/>
+                                        <TextBlock x:Name="ResultStatusTitle" Text="Статус выполнения" FontSize="18" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="ResultStatusDescription" Text="Готово к запуску формирования чертежа."
+                                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,4,0,0"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                        <Button Content="Применить и проверить" Click="ApplyRawJson_Click"
-                                                Style="{StaticResource ToolbarButton}"/>
-                                        <Button Content="Восстановить из формы" Click="RefreshRawJson_Click"
-                                                Style="{StaticResource ToolbarButton}"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button x:Name="OpenReportButton" Content="Открыть отчёт" Click="OpenReport_Click"
+                                                IsEnabled="False" Style="{StaticResource ToolbarButton}"/>
+                                        <Button Content="Сформировать чертёж" Click="Generate_Click"
+                                                Style="{StaticResource PrimaryButton}" Margin="8,0,0,0"/>
                                     </StackPanel>
                                 </Grid>
-                            </Border>
-                            <TextBox x:Name="RawJsonBox" Grid.Row="1"
-                                     Margin="0" Padding="14"
-                                     FontFamily="Cascadia Mono, Consolas" FontSize="13"
-                                     AcceptsReturn="True" AcceptsTab="True"
-                                     HorizontalScrollBarVisibility="Auto"
-                                     VerticalScrollBarVisibility="Auto"
-                                     TextWrapping="NoWrap" BorderThickness="0"/>
-                        </Grid>
-                    </TabItem>
 
-                    <TabItem Header="Проверка">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderBrush}"
-                                    BorderThickness="0,0,0,1" Padding="14,11">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel>
-                                        <TextBlock Text="Готовность профиля" FontSize="15" FontWeight="SemiBold"/>
-                                        <TextBlock x:Name="ValidationSummaryText"
-                                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,3,0,0"/>
-                                    </StackPanel>
-                                    <Button Grid.Column="1" Content="Проверить сейчас"
-                                            Click="ValidateProfile_Click"
-                                            Style="{StaticResource ToolbarButton}"/>
-                                </Grid>
-                            </Border>
-                            <DataGrid x:Name="IssuesGrid" Grid.Row="1"
-                                      AutoGenerateColumns="False" IsReadOnly="True"
-                                      CanUserAddRows="False" SelectionUnit="FullRow">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Уровень" Binding="{Binding Severity}" Width="125"/>
-                                    <DataGridTextColumn Header="Код" Binding="{Binding Code}" Width="220"/>
-                                    <DataGridTextColumn Header="Объект" Binding="{Binding ObjectId}" Width="170"/>
-                                    <DataGridTextColumn Header="JSON path" Binding="{Binding JsonPath}" Width="260"/>
-                                    <DataGridTextColumn Header="Сообщение" Binding="{Binding Message}" Width="*"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </Grid>
-                    </TabItem>
-
-                    <TabItem Header="Справка">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Margin="26" MaxWidth="900" HorizontalAlignment="Left">
-                                <TextBlock Text="Рабочий процесс" FontSize="22" FontWeight="SemiBold"/>
-                                <TextBlock Margin="0,10,0,20" TextWrapping="Wrap"
-                                           Foreground="{StaticResource MutedTextBrush}"
-                                           Text="Configurator редактирует профиль вне процесса NX. Перед передачей команды профиль полностью разбирается, проверяется и сохраняется атомарно с резервной копией."/>
-
-                                <TextBlock Text="1. Настройте документ" FontSize="16" FontWeight="SemiBold"/>
-                                <TextBlock Margin="0,5,0,15" TextWrapping="Wrap"
-                                           Text="Используйте типизированные поля. Неподдерживаемые типы видов отсутствуют в списке и не подменяются базовым видом."/>
-
-                                <TextBlock Text="2. Проверьте профиль" FontSize="16" FontWeight="SemiBold"/>
-                                <TextBlock Margin="0,5,0,15" TextWrapping="Wrap"
-                                           Text="Ошибки блокируют сохранение и выполнение. Предупреждения и ManualReview требуют инженерной оценки."/>
-
-                                <TextBlock Text="3. Выполните Preview" FontSize="16" FontWeight="SemiBold"/>
-                                <TextBlock Margin="0,5,0,15" TextWrapping="Wrap"
-                                           Text="Preview строит план операций без изменения WorkPart. После этого можно запускать Generate или Update."/>
-
-                                <TextBlock Text="4. Проверьте результат в NX" FontSize="16" FontWeight="SemiBold"/>
-                                <TextBlock Margin="0,5,0,15" TextWrapping="Wrap"
-                                           Text="Рамка, основная надпись, виды, PMI, таблицы и экспорт подтверждаются postcondition-проверками. При ошибке NX-транзакция откатывается."/>
-
-                                <Border Background="#FFF7ED" BorderBrush="#FDBA74" BorderThickness="1"
-                                        Padding="14" Margin="0,12,0,0">
-                                    <TextBlock TextWrapping="Wrap"
-                                               Text="Для запуска внешнего Configurator WorkPart должен быть сохранён. Это защищает от применения запроса к другой детали после переключения окна NX."/>
-                                </Border>
+                                <ProgressBar x:Name="ExecutionProgressBar" Height="8" Margin="0,16,0,8"
+                                             Minimum="0" Maximum="100" Value="0" Visibility="Collapsed"/>
+                                <TextBlock x:Name="ExecutionProgressPhase" Text=""
+                                           Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" Visibility="Collapsed"/>
                             </StackPanel>
-                        </ScrollViewer>
-                    </TabItem>
-                </TabControl>
-            </Border>
-        </Grid>
+                        </Border>
 
+                        <TextBlock Grid.Row="1" Text="Подробный журнал операции:" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8"/>
+
+                        <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="14">
+                            <TextBox x:Name="ExecutionLogBox" IsReadOnly="True" BorderThickness="0"
+                                     FontFamily="Cascadia Mono, Consolas" FontSize="12"
+                                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                     Text="Ожидание выполнения команды..."/>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <!-- Expert Mode: JSON -->
+                <TabItem Header="JSON (Эксперт)" FontSize="12" FontWeight="Normal">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="0,0,0,1" Padding="12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Исходный JSON профиль" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Используйте для прямых правок параметров"
+                                               Foreground="{StaticResource MutedTextBrush}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button Content="Применить и проверить" Click="ApplyRawJson_Click"
+                                            Style="{StaticResource ToolbarButton}"/>
+                                    <Button Content="Восстановить из формы" Click="RefreshRawJson_Click"
+                                            Style="{StaticResource ToolbarButton}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <TextBox x:Name="RawJsonBox" Grid.Row="1"
+                                 Margin="0" Padding="14"
+                                 FontFamily="Cascadia Mono, Consolas" FontSize="13"
+                                 AcceptsReturn="True" AcceptsTab="True"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 VerticalScrollBarVisibility="Auto"
+                                 TextWrapping="NoWrap" BorderThickness="0"/>
+                    </Grid>
+                </TabItem>
+
+                <!-- Help -->
+                <TabItem Header="Справка" FontSize="12" FontWeight="Normal">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="26" MaxWidth="900" HorizontalAlignment="Left">
+                            <TextBlock Text="Рабочий процесс подготовки чертежей" FontSize="22" FontWeight="SemiBold"/>
+                            <TextBlock Margin="0,10,0,20" TextWrapping="Wrap"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       Text="Configurator работает как отдельный процесс, взаимодействуя с NX через защищённую очередь NXKeys. Полный цикл состоит из 4 последовательных шагов:"/>
+
+                            <TextBlock Text="1. Исходные данные" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Margin="0,5,0,15" TextWrapping="Wrap"
+                                       Text="Настройка формата листа, масштаба, основной надписи, технических требований и таблиц PMI/BOM."/>
+
+                            <TextBlock Text="2. Предпросмотр (Preview)" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Margin="0,5,0,15" TextWrapping="Wrap"
+                                       Text="Построение графа операций (DAG) без модификации активной детали NX с расчетом хэша плана."/>
+
+                            <TextBlock Text="3. Проверка (Validate)" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Margin="0,5,0,15" TextWrapping="Wrap"
+                                       Text="Проверка геометрической совместимости, ограничений NXOpen и валидности параметров профиля."/>
+
+                            <TextBlock Text="4. Результат (Generate / Update)" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Margin="0,5,0,15" TextWrapping="Wrap"
+                                       Text="Асинхронное исполнение плана в NX с автоматической транзакцией отката при ошибках и сохранением отчёта."/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </Border>
+
+        <!-- Bottom Action / Status Bar -->
         <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
             <Grid Margin="14,10">
@@ -366,7 +471,7 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Content="Диагностика API" Click="Inventory_Click"
                             Style="{StaticResource ToolbarButton}"/>
-                    <Button Content="Preview" Click="Preview_Click"
+                    <Button Content="Предпросмотр" Click="Preview_Click"
                             Style="{StaticResource ToolbarButton}"/>
                     <Button Content="Проверить в NX" Click="ValidateNx_Click"
                             Style="{StaticResource ToolbarButton}"/>

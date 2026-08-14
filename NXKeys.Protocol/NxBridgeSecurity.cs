@@ -162,11 +162,13 @@ namespace NXKeys.Protocol
                 string opId = ReadString(op, "operation_id");
                 string adapterKind = ReadNestedString(op, "adapter", "kind");
                 string adapterVal = ReadNestedString(op, "adapter", "value");
-                string commandId = string.Equals(adapterKind, "button_id", StringComparison.OrdinalIgnoreCase) &&
-                                   !string.IsNullOrWhiteSpace(adapterVal)
-                    ? adapterVal
-                    : opId;
-                commandId = CanonicalCommandId(commandId);
+                string action = ReadString(op, "action");
+                string risk = ReadString(op, "risk");
+                bool confirm = ReadBoolean(op, "confirmation_required");
+                bool destructive = string.Equals(risk, "destructive", StringComparison.OrdinalIgnoreCase) ||
+                                   string.Equals(opId, "assemblies.remove_component", StringComparison.OrdinalIgnoreCase) ||
+                                   string.Equals(opId, "manufacturing.delete_operation", StringComparison.OrdinalIgnoreCase);
+                if (destructive) confirm = true;
 
                 string appId = ReadFirstNestedArrayElement(op, "availability", "applications");
                 string firstLeaderToken = ReadFirstNestedArrayElement(op, "paths", "leader");
@@ -181,18 +183,80 @@ namespace NXKeys.Protocol
                 else
                     v8ModuleId = "v8_m";
 
-                if (!string.IsNullOrWhiteSpace(commandId))
+                bool isButtonId = string.Equals(adapterKind, "button_id", StringComparison.OrdinalIgnoreCase) &&
+                                  !string.IsNullOrWhiteSpace(adapterVal);
+                bool isCapability = string.Equals(adapterKind, "capability", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(action, NxProtocolActions.RunCapability, StringComparison.OrdinalIgnoreCase);
+
+                if (isButtonId)
                 {
+                    string commandId = CanonicalCommandId(adapterVal);
+                    string targetApp = CanonicalApplicationId(ReadString(op, "target_application_id"));
+                    string selFilter = ReadString(op, "selection_filter");
+                    string effectiveAction = string.IsNullOrWhiteSpace(action) ? NxProtocolActions.ExecuteCommand : action;
+
                     result.Add(new NxCommandPermission
                     {
-                        Action = NxProtocolActions.ExecuteCommand,
+                        Action = effectiveAction,
                         CommandId = commandId,
+                        ModuleId = v8ModuleId,
+                        TargetApplicationId = targetApp,
+                        SelectionFilter = selFilter,
+                        Destructive = destructive,
+                        ConfirmationRequired = confirm
+                    });
+                }
+                else if (isCapability)
+                {
+                    string capabilityId = !string.IsNullOrWhiteSpace(adapterVal) ? adapterVal : opId;
+                    result.Add(new NxCommandPermission
+                    {
+                        Action = NxProtocolActions.RunCapability,
+                        CommandId = capabilityId,
                         ModuleId = v8ModuleId,
                         TargetApplicationId = string.Empty,
                         SelectionFilter = string.Empty,
-                        Destructive = false,
-                        ConfirmationRequired = false
+                        Destructive = destructive,
+                        ConfirmationRequired = confirm
                     });
+                }
+                else if (string.Equals(action, NxProtocolActions.SwitchModule, StringComparison.OrdinalIgnoreCase))
+                {
+                    string targetApp = CanonicalApplicationId(ReadString(op, "target_application_id"));
+                    if (string.IsNullOrWhiteSpace(targetApp) && !string.IsNullOrWhiteSpace(adapterVal))
+                        targetApp = CanonicalApplicationId(adapterVal);
+                    if (!string.IsNullOrWhiteSpace(targetApp))
+                    {
+                        result.Add(new NxCommandPermission
+                        {
+                            Action = NxProtocolActions.SwitchModule,
+                            CommandId = targetApp,
+                            ModuleId = v8ModuleId,
+                            TargetApplicationId = targetApp,
+                            SelectionFilter = string.Empty,
+                            Destructive = false,
+                            ConfirmationRequired = false
+                        });
+                    }
+                }
+                else if (string.Equals(action, NxProtocolActions.SetSelectionFilter, StringComparison.OrdinalIgnoreCase))
+                {
+                    string selFilter = ReadString(op, "selection_filter");
+                    if (string.IsNullOrWhiteSpace(selFilter) && !string.IsNullOrWhiteSpace(adapterVal))
+                        selFilter = adapterVal;
+                    if (!string.IsNullOrWhiteSpace(selFilter))
+                    {
+                        result.Add(new NxCommandPermission
+                        {
+                            Action = NxProtocolActions.SetSelectionFilter,
+                            CommandId = string.Empty,
+                            ModuleId = v8ModuleId,
+                            TargetApplicationId = string.Empty,
+                            SelectionFilter = selFilter,
+                            Destructive = false,
+                            ConfirmationRequired = false
+                        });
+                    }
                 }
 
                 if (hasSpecificApp)
@@ -203,10 +267,6 @@ namespace NXKeys.Protocol
                 }
             }
 
-            // v8 profiles are operation-centric and do not contain an explicit modules
-            // array, but the runtime still supports Tab/manual module switching. Build
-            // the corresponding allowlist entries from availability.applications so
-            // the security gate cannot reject legitimate runtime switch requests.
             foreach (KeyValuePair<string, string> pair in switchModules)
             {
                 result.Add(new NxCommandPermission
@@ -221,9 +281,44 @@ namespace NXKeys.Protocol
                 });
             }
 
+            // Register standard allowlisted capabilities for capability pack integration
+            AddStandardCapabilityPermissions(result);
+
             if (result.Count == 0)
                 throw new InvalidOperationException("NXKeys v8 profile produced an empty Bridge permission set.");
             return new NxBridgePermissionSet(result);
+        }
+
+        private static void AddStandardCapabilityPermissions(List<NxCommandPermission> permissions)
+        {
+            var standardCaps = new[]
+            {
+                (Id: "nxeskd.open_workflow", Destructive: false, Confirm: false),
+                (Id: "nxeskd.preview", Destructive: false, Confirm: false),
+                (Id: "nxeskd.validate", Destructive: false, Confirm: false),
+                (Id: "nxeskd.inventory", Destructive: false, Confirm: false),
+                (Id: "nxeskd.generate", Destructive: true, Confirm: true),
+                (Id: "nxeskd.update", Destructive: true, Confirm: true),
+                (Id: "nxeskd.cancel", Destructive: false, Confirm: false)
+            };
+
+            foreach (var cap in standardCaps)
+            {
+                if (!permissions.Any(p => string.Equals(p.Action, NxProtocolActions.RunCapability, StringComparison.OrdinalIgnoreCase) &&
+                                          string.Equals(p.CommandId, cap.Id, StringComparison.OrdinalIgnoreCase)))
+                {
+                    permissions.Add(new NxCommandPermission
+                    {
+                        Action = NxProtocolActions.RunCapability,
+                        CommandId = cap.Id,
+                        ModuleId = string.Empty,
+                        TargetApplicationId = string.Empty,
+                        SelectionFilter = string.Empty,
+                        Destructive = cap.Destructive,
+                        ConfirmationRequired = cap.Confirm
+                    });
+                }
+            }
         }
 
         private static NxBridgePermissionSet FromLegacyModules(JsonElement modulesElement)
@@ -308,6 +403,8 @@ namespace NXKeys.Protocol
                 }
             }
 
+            AddStandardCapabilityPermissions(result);
+
             if (result.Count == 0)
                 throw new InvalidOperationException("NXKeys profile produced an empty Bridge permission set.");
             return new NxBridgePermissionSet(result);
@@ -317,14 +414,30 @@ namespace NXKeys.Protocol
         {
             permission = null!;
             if (request == null) return false;
+            string commandId = !string.IsNullOrWhiteSpace(request.CommandId)
+                ? request.CommandId
+                : (string.Equals(request.Action, NxProtocolActions.RunCapability, StringComparison.OrdinalIgnoreCase) ? request.CapabilityId : string.Empty);
             string key = PermissionKey(
                 request.Action,
-                request.CommandId,
+                commandId,
                 request.ModuleId,
                 request.TargetApplicationId,
                 request.SelectionFilter);
             if (!permissions.TryGetValue(key, out NxCommandPermission? resolved) || resolved == null)
+            {
+                if (string.Equals(request.Action, NxProtocolActions.RunCapability, StringComparison.OrdinalIgnoreCase))
+                {
+                    resolved = permissions.Values.FirstOrDefault(p =>
+                        string.Equals(p.Action, NxProtocolActions.RunCapability, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(p.CommandId, commandId, StringComparison.OrdinalIgnoreCase));
+                    if (resolved != null)
+                    {
+                        permission = resolved;
+                        return true;
+                    }
+                }
                 return false;
+            }
             permission = resolved;
             return true;
         }
@@ -447,8 +560,6 @@ namespace NXKeys.Protocol
             return string.Empty;
         }
 
-        // Mirrors runtime module mapping and includes the real NX2512 Sheet Metal
-        // application id UG_APP_SBSM in addition to the historic synthetic alias.
         private static string NxAppToV8Prefix(string appId)
         {
             switch ((appId ?? string.Empty).Trim().ToUpperInvariant())
@@ -605,6 +716,17 @@ namespace NXKeys.Protocol
             Append(builder, request.Nonce);
             Append(builder, request.SequenceNumber.ToString(CultureInfo.InvariantCulture));
             Append(builder, request.ProfileDigest);
+            Append(builder, request.CapabilityId);
+            Append(builder, request.WorkflowId);
+            Append(builder, request.ComponentId);
+            Append(builder, request.ComponentVersion);
+            Append(builder, request.PayloadName);
+            Append(builder, request.PayloadSha256);
+            Append(builder, request.PayloadSchemaVersion.ToString(CultureInfo.InvariantCulture));
+            Append(builder, request.ExpectedPartId);
+            Append(builder, request.ExpectedModelRevision);
+            Append(builder, request.ProfileId);
+            Append(builder, request.ProfileSha256);
             return builder.ToString();
         }
 
@@ -628,6 +750,7 @@ namespace NXKeys.Protocol
         private readonly Queue<string> nonceOrder = new Queue<string>();
         private readonly Dictionary<string, long> lastSequenceByClient =
             new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+        private readonly Queue<string> clientOrder = new Queue<string>();
         private readonly object sync = new object();
 
         public NxReplayGuard(int maximumRememberedNonces = 4096)
@@ -639,19 +762,34 @@ namespace NXKeys.Protocol
         {
             error = string.Empty;
             if (request == null) { error = "Request is null."; return false; }
+            if (request.IsExpired) { error = "NXKeys request has expired."; return false; }
             lock (sync)
             {
                 if (nonces.Contains(request.Nonce))
                 { error = "NXKeys request nonce has already been used."; return false; }
-                if (lastSequenceByClient.TryGetValue(request.ClientInstanceId, out long last) &&
-                    request.SequenceNumber <= last)
-                { error = "NXKeys request sequence is not monotonic."; return false; }
+
+                if (lastSequenceByClient.TryGetValue(request.ClientInstanceId, out long last))
+                {
+                    // Allow client sequence restart when SequenceNumber is reset to 1
+                    if (request.SequenceNumber <= last && request.SequenceNumber != 1)
+                    { error = "NXKeys request sequence is not monotonic."; return false; }
+                }
 
                 nonces.Add(request.Nonce);
                 nonceOrder.Enqueue(request.Nonce);
+                if (!lastSequenceByClient.ContainsKey(request.ClientInstanceId))
+                    clientOrder.Enqueue(request.ClientInstanceId);
                 lastSequenceByClient[request.ClientInstanceId] = request.SequenceNumber;
+
                 while (nonceOrder.Count > maximumNonces)
                     nonces.Remove(nonceOrder.Dequeue());
+
+                while (clientOrder.Count > maximumNonces)
+                {
+                    string oldClient = clientOrder.Dequeue();
+                    lastSequenceByClient.Remove(oldClient);
+                }
+
                 return true;
             }
         }

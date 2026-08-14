@@ -8,5 +8,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NxEskd.Core\NxEskd.Core.csproj" />
+    <ProjectReference Include="..\..\..\NXKeys.Protocol\NXKeys.Protocol.csproj" />
   </ItemGroup>
 </Project>
