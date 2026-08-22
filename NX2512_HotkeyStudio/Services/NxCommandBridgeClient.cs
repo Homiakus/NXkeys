@@ -2,8 +2,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
-using System.Threading;
 using NX2512_HotkeyStudio.Models;
 using NXKeys.Protocol;
 
@@ -13,44 +11,27 @@ namespace NX2512_HotkeyStudio.Services
     public sealed class NxBridgeContext : NxContextSnapshot { }
     public sealed class NxBridgeResult : NxCommandResult { }
 
+    /// <summary>
+    /// Фасад к файловой IPC-очереди. Тонкая оркестровка: свежий контекст → построение запроса →
+    /// подпись (IRequestPolicy) → транспортировка (INxQueueTransport). Внутреннее состояние подписи
+    /// изолировано в <see cref="NxRequestSigningPolicy"/>, файловый IO — в <see cref="NxFileQueueTransport"/>.
+    /// </summary>
     public static class NxCommandBridgeClient
     {
-        private static readonly string ClientInstanceId = Guid.NewGuid().ToString("N");
-        private static readonly object SecuritySync = new object();
-        private static NxBridgePermissionSet securityPermissions;
-        private static string securityProfilePath = string.Empty;
-        private static DateTime securityProfileWriteUtc = DateTime.MinValue;
-        private static long securitySequence;
+        private static readonly IRequestPolicy policy = new NxRequestSigningPolicy();
+        private static readonly INxQueueTransport transport = new NxFileQueueTransport();
 
         public static void ConfigureSecurity(string configPath)
         {
-            if (string.IsNullOrWhiteSpace(configPath))
-                throw new ArgumentException("NXKeys security profile path is required.", nameof(configPath));
-            string fullPath = Path.GetFullPath(configPath);
-            NxBridgePermissionSet permissions = NxBridgePermissionSet.FromProfileFile(fullPath);
-            lock (SecuritySync)
-            {
-                securityPermissions = permissions;
-                securityProfilePath = fullPath;
-                securityProfileWriteUtc = File.GetLastWriteTimeUtc(fullPath);
-            }
-        }
-        public static string BridgeRoot
-        {
-            get
-            {
-                string overrideRoot = Environment.GetEnvironmentVariable("NXKEYS_BRIDGE_ROOT");
-                return string.IsNullOrWhiteSpace(overrideRoot)
-                    ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NXKeys", "bridge")
-                    : Path.GetFullPath(overrideRoot);
-            }
+            policy.ConfigureSecurity(configPath);
         }
 
-        public static string PendingDirectory => Path.Combine(BridgeRoot, "pending");
-        public static string ProcessingDirectory => Path.Combine(BridgeRoot, "processing");
-        public static string CompletedDirectory => Path.Combine(BridgeRoot, "completed");
-        public static string FailedDirectory => Path.Combine(BridgeRoot, "failed");
-        public static string ContextPath => Path.Combine(BridgeRoot, "context.json");
+        public static string BridgeRoot => transport.BridgeRoot;
+        public static string PendingDirectory => transport.PendingDirectory;
+        public static string ProcessingDirectory => transport.ProcessingDirectory;
+        public static string CompletedDirectory => transport.CompletedDirectory;
+        public static string FailedDirectory => transport.FailedDirectory;
+        public static string ContextPath => transport.ContextPath;
 
         public static NxCommandRequest Enqueue(LeaderSequenceItem item, bool confirmationAccepted = false)
         {
@@ -114,7 +95,7 @@ namespace NX2512_HotkeyStudio.Services
                 };
 
                 psi.EnvironmentVariables[NxBridgeSecurityEnvironment.SessionIdVariable] = (context?.SecuritySessionId ?? string.Empty);
-                psi.EnvironmentVariables[NxBridgeSecurityEnvironment.ConfigPathVariable] = securityProfilePath;
+                psi.EnvironmentVariables[NxBridgeSecurityEnvironment.ConfigPathVariable] = policy.ActiveProfilePath;
                 psi.EnvironmentVariables["NXKEYS_BRIDGE_ROOT"] = BridgeRoot;
 
                 if (File.Exists(profilePath))
@@ -180,110 +161,11 @@ namespace NX2512_HotkeyStudio.Services
             return request;
         }
 
-        public static NxTransportReadResult<NxBridgeContext> ReadContextDetailed()
-        {
-            if (!File.Exists(ContextPath))
-                return NxTransportReadResult<NxBridgeContext>.Failure(
-                    NxTransportReadStatus.NotFound, "Bridge context file was not found.");
-            try
-            {
-                using (FileStream stream = new FileStream(ContextPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-                {
-                    NxBridgeContext context = JsonSerializer.Deserialize<NxBridgeContext>(stream, NxProtocolJson.ReadOptions);
-                    if (context == null)
-                        return NxTransportReadResult<NxBridgeContext>.Failure(
-                            NxTransportReadStatus.Corrupt, "Bridge context JSON is empty.");
-                    if (context.SchemaVersion != NxProtocolConstants.SchemaVersion)
-                        return NxTransportReadResult<NxBridgeContext>.Failure(
-                            NxTransportReadStatus.SchemaMismatch,
-                            "Unsupported Bridge context schema: " + context.SchemaVersion + ".");
-                    return NxTransportReadResult<NxBridgeContext>.Success(context);
-                }
-            }
-            catch (JsonException exception)
-            {
-                return NxTransportReadResult<NxBridgeContext>.Failure(
-                    NxTransportReadStatus.Corrupt, exception.Message);
-            }
-            catch (UnauthorizedAccessException exception)
-            {
-                return NxTransportReadResult<NxBridgeContext>.Failure(
-                    NxTransportReadStatus.AccessDenied, exception.Message);
-            }
-            catch (IOException exception)
-            {
-                return NxTransportReadResult<NxBridgeContext>.Failure(
-                    NxTransportReadStatus.IoError, exception.Message);
-            }
-        }
-
-        public static NxBridgeContext ReadContext()
-        {
-            NxTransportReadResult<NxBridgeContext> read = ReadContextDetailed();
-            return read.IsSuccess ? read.Value : null;
-        }
-
-        public static NxTransportReadResult<NxBridgeResult> ReadResultDetailed(string requestId)
-        {
-            if (string.IsNullOrWhiteSpace(requestId))
-                return NxTransportReadResult<NxBridgeResult>.Failure(
-                    NxTransportReadStatus.InvalidRequest, "requestId is required.");
-            foreach (string directory in new[] { CompletedDirectory, FailedDirectory })
-            {
-                string path = Path.Combine(directory, requestId + ".result.json");
-                if (!File.Exists(path)) continue;
-                try
-                {
-                    using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-                    {
-                        NxBridgeResult result = JsonSerializer.Deserialize<NxBridgeResult>(stream, NxProtocolJson.ReadOptions);
-                        if (result == null)
-                            return NxTransportReadResult<NxBridgeResult>.Failure(
-                                NxTransportReadStatus.Corrupt, "Bridge result JSON is empty.");
-                        if (result.SchemaVersion != NxProtocolConstants.SchemaVersion)
-                            return NxTransportReadResult<NxBridgeResult>.Failure(
-                                NxTransportReadStatus.SchemaMismatch,
-                                "Unsupported Bridge result schema: " + result.SchemaVersion + ".");
-                        return NxTransportReadResult<NxBridgeResult>.Success(result);
-                    }
-                }
-                catch (JsonException exception)
-                {
-                    return NxTransportReadResult<NxBridgeResult>.Failure(
-                        NxTransportReadStatus.Corrupt, exception.Message);
-                }
-                catch (UnauthorizedAccessException exception)
-                {
-                    return NxTransportReadResult<NxBridgeResult>.Failure(
-                        NxTransportReadStatus.AccessDenied, exception.Message);
-                }
-                catch (IOException exception)
-                {
-                    return NxTransportReadResult<NxBridgeResult>.Failure(
-                        NxTransportReadStatus.IoError, exception.Message);
-                }
-            }
-            return NxTransportReadResult<NxBridgeResult>.Failure(
-                NxTransportReadStatus.NotFound, "Bridge result file was not found.");
-        }
-
-        public static bool TryReadResult(string requestId, out NxBridgeResult result)
-        {
-            NxTransportReadResult<NxBridgeResult> read = ReadResultDetailed(requestId);
-            result = read.IsSuccess ? read.Value : null;
-            return read.IsSuccess;
-        }
-
-        public static string FindRequestFile(string requestId)
-        {
-            if (string.IsNullOrWhiteSpace(requestId)) return string.Empty;
-            foreach (string directory in new[] { PendingDirectory, ProcessingDirectory, CompletedDirectory, FailedDirectory })
-            {
-                string path = Path.Combine(directory, requestId + ".request.json");
-                if (File.Exists(path)) return path;
-            }
-            return string.Empty;
-        }
+        public static NxTransportReadResult<NxBridgeContext> ReadContextDetailed() => transport.ReadContextDetailed();
+        public static NxBridgeContext ReadContext() => transport.ReadContext();
+        public static NxTransportReadResult<NxBridgeResult> ReadResultDetailed(string requestId) => transport.ReadResultDetailed(requestId);
+        public static bool TryReadResult(string requestId, out NxBridgeResult result) => transport.TryReadResult(requestId, out result);
+        public static string FindRequestFile(string requestId) => transport.FindRequestFile(requestId);
 
         private static NxBridgeContext RequireFreshContext()
         {
@@ -338,87 +220,10 @@ namespace NX2512_HotkeyStudio.Services
             };
         }
 
-        private static void PrepareAuthenticatedRequest(NxCommandRequest request)
-        {
-            if (!NxBridgeSecurityEnvironment.TryRead(
-                    out string sessionId,
-                    out byte[] secret,
-                    out string environmentProfilePath,
-                    out string clientExecutable,
-                    out string error))
-                throw new InvalidOperationException(error + " Запустите NX через launch-nx2512-with-nxkeys.cmd.");
-
-            string actualClient = Path.GetFullPath(Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty);
-            if (!string.Equals(actualClient, clientExecutable, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("NXKeys request source is not the trusted managed HotkeyStudio executable.");
-
-            NxBridgePermissionSet permissions;
-            lock (SecuritySync)
-            {
-                string fullEnvironmentProfile = Path.GetFullPath(environmentProfilePath);
-                if (securityPermissions == null ||
-                    !string.Equals(securityProfilePath, fullEnvironmentProfile, StringComparison.OrdinalIgnoreCase) ||
-                    File.GetLastWriteTimeUtc(fullEnvironmentProfile) != securityProfileWriteUtc)
-                {
-                    securityPermissions = NxBridgePermissionSet.FromProfileFile(fullEnvironmentProfile);
-                    securityProfilePath = fullEnvironmentProfile;
-                    securityProfileWriteUtc = File.GetLastWriteTimeUtc(fullEnvironmentProfile);
-                }
-                permissions = securityPermissions;
-            }
-
-            if (!permissions.TryGetPermission(request, out NxCommandPermission permission))
-                throw new InvalidOperationException(
-                    "NXKeys request is not present in the active profile allowlist: " +
-                    NxBridgePermissionSet.PermissionKey(request.Action, request.CommandId, request.ModuleId,
-                        request.TargetApplicationId, request.SelectionFilter));
-            if (request.Destructive != permission.Destructive)
-                throw new InvalidOperationException("NXKeys request destructive policy differs from the active profile.");
-            if (permission.ConfirmationRequired && !request.ConfirmationAccepted)
-                throw new InvalidOperationException("NXKeys request has not passed the confirmation policy.");
-
-            NxRequestAuthenticator.Sign(
-                request,
-                sessionId,
-                ClientInstanceId,
-                secret,
-                permissions.ProfileDigest,
-                Interlocked.Increment(ref securitySequence));
-            request.Validate();
-        }
-
         private static void WriteRequest(NxCommandRequest request)
         {
-            PrepareAuthenticatedRequest(request);
-            Directory.CreateDirectory(PendingDirectory);
-            Directory.CreateDirectory(ProcessingDirectory);
-            Directory.CreateDirectory(CompletedDirectory);
-            Directory.CreateDirectory(FailedDirectory);
-
-            int pendingCount = Directory.GetFiles(PendingDirectory, "*.request.json").Length;
-            if (pendingCount >= NxProtocolConstants.MaxPendingRequestCount)
-                throw new InvalidOperationException(
-                    "NXKeys Bridge queue limit reached: " + pendingCount + ".");
-
-            string finalPath = Path.Combine(PendingDirectory, request.RequestId + ".request.json");
-            string temporaryPath = finalPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
-            byte[] payload = JsonSerializer.SerializeToUtf8Bytes(request, NxProtocolJson.WriteOptions);
-            if (payload.Length > NxProtocolConstants.MaxRequestPayloadBytes)
-                throw new InvalidOperationException(
-                    "NXKeys request payload exceeds " + NxProtocolConstants.MaxRequestPayloadBytes + " bytes.");
-            try
-            {
-                using (FileStream stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-                {
-                    stream.Write(payload, 0, payload.Length);
-                    stream.Flush(true);
-                }
-                File.Move(temporaryPath, finalPath);
-            }
-            finally
-            {
-                try { if (File.Exists(temporaryPath)) File.Delete(temporaryPath); } catch { }
-            }
+            policy.PrepareAuthenticated(request);
+            transport.WriteRequest(request);
         }
     }
 }

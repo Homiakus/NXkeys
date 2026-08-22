@@ -1,4 +1,4 @@
-# ADR-0003: Authenticated file IPC with ephemeral launch capability
+# ADR-0004: Authenticated file IPC with ephemeral launch capability
 
 ## Status
 
