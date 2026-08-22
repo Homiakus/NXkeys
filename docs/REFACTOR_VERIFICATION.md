@@ -40,8 +40,8 @@ dotnet run --project NX2512_HotkeyStudio.Tests -c Release
 - `NXKeys.StateMachines.Tests` — ожидается зелёный (автоматы/guards/policy).
 - `NX2512_HotkeyStudio.Tests` — генерация конфига/мнемоник.
 
-> Замечание: `StateMachines.Tests` на Termux временами «зависал» при пересборке — это среда/зеркало,
-> не код; на Windows/CI должно собираться штатно.
+> Замечание: `StateMachines.Tests` в этом окружении требует перед сборкой `dotnet build-server shutdown`
+> (снимает завис от ранее убитых сборок); на Windows/CI собирается штатно.
 
 ### 2.3 Live-NX регресс (по `RUNTIME_V8.md`)
 1. Запуск Bridge в NX (`Start NXKeys Bridge`) → `bridge/context.json` пишется, ревизия растёт.
@@ -58,11 +58,9 @@ dotnet run --project NX2512_HotkeyStudio.Tests -c Release
 
 ## 3. Известные follow-up (не сделано / требует Windows)
 
-1. **`ContextGuardEvaluator.NormalizeModule` расходится с каноникой `NxContextNormalization.NormalizeModule`**
-   по `v8_sm`/`v8_sh` (в `NXKeys.StateMachines/LeaderStateMachines.cs` → `modeling`; каноника → `sheet_metal`).
-   Нужно свести к одному источнику (делегат `ContextGuardEvaluator.NormalizeModule` → `NxContextNormalization`)
-   + добавить `NxContextNormalization` в `NXKeys.StateMachines.Tests.csproj`. В этом окружении не верифицировано
-   (сборка StateMachines зависала).
+1. **~~`ContextGuardEvaluator.NormalizeModule` расходился с каноникой~~ — ИСПРАВЛЕНО (коммит `c09cab0`):**
+   теперь делегирует в `NxContextNormalization.NormalizeModule` (`v8_sm`/`v8_sh` → `sheet_metal`).
+   StateMachines.Tests собран и зелёный (exit 0).
 
 2. **Точка 7 (консолидация гвардов):** in-NX гварды (`IsCurrentNxForeground`/`HasSystemModifier`/`IsFocusedInTextInput`)
    сейчас в `NxSelectionExecutor`; out-NX `LeaderKeyEngine.IsFocusedInTextInput` остаётся процесс-локальным
