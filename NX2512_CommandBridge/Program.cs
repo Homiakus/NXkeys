@@ -31,9 +31,7 @@ namespace NX2512_CommandBridge
         private static FileSystemWatcher pendingWatcher;
         private static bool isInitialized;
         private static bool isProcessing;
-        private static DateTime lastContextWriteUtc = DateTime.MinValue;
-        private static long contextRevision;
-        private static string lastContextFingerprint = string.Empty;
+        private static NxContextMonitor contextMonitor;
         private static string lastRequestId = string.Empty;
         private static string lastResult = string.Empty;
         private static string lastMessage = string.Empty;
@@ -80,6 +78,7 @@ namespace NX2512_CommandBridge
                 theUfSession = UFSession.GetUFSession();
                 theUI = UI.GetUI();
                 listingWindow = theSession.ListingWindow;
+                contextMonitor = new NxContextMonitor(theSession, theUfSession, theUI, WriteLog);
 
                 try
                 {
@@ -110,7 +109,7 @@ namespace NX2512_CommandBridge
 
                 EnsureDirectories();
                 securityGate = BridgeSecurityGate.CreateFromEnvironment(WriteLog);
-                LoadPreviousContextRevision();
+                contextMonitor.LoadPreviousContextRevision();
                 RecoverInterruptedRequests();
                 requestInbox = new BridgeRequestInbox(
                     PendingDirectory,
@@ -138,7 +137,7 @@ namespace NX2512_CommandBridge
 
                 isInitialized = true;
                 WriteStatus("running");
-                WriteContext("initialized", "NXKeys Command Bridge initialized.");
+                PublishContext("initialized", "NXKeys Command Bridge initialized.");
                 WriteLog("NXKeys Command Bridge initialized. Pending=" + PendingDirectory);
             }
             catch (Exception ex)
@@ -181,7 +180,7 @@ namespace NX2512_CommandBridge
                 listingWindow.WriteLine("NXKeys Command Bridge is running.");
                 listingWindow.WriteLine("Pending: " + PendingDirectory);
                 listingWindow.WriteLine("Processing: " + ProcessingDirectory);
-                listingWindow.WriteLine("Context revision: " + contextRevision);
+                listingWindow.WriteLine("Context revision: " + contextMonitor.CurrentRevision);
                 listingWindow.WriteLine("Security: " + (securityGate?.Status ?? "not_initialized"));
                 listingWindow.WriteLine("Admitted queue: " + (requestInbox?.ReadyCount ?? 0));
                 listingWindow.WriteLine("Rejected queue: " + (requestInbox?.RejectedCount ?? 0));
@@ -197,7 +196,7 @@ namespace NX2512_CommandBridge
         private static void PollTimerTick(object sender, EventArgs e)
         {
             if (isProcessing) return;
-            bool contextDue = (DateTime.UtcNow - lastContextWriteUtc).TotalSeconds >= 1;
+            bool contextDue = (DateTime.UtcNow - contextMonitor.LastContextWriteUtc).TotalSeconds >= 1;
 
             if (requestInbox != null && requestInbox.TryDequeueRejected(out BridgeRequestRejection rejection) && rejection != null)
             {
@@ -209,8 +208,8 @@ namespace NX2512_CommandBridge
                         rejection.RequestId,
                         "rejected",
                         rejection.Message,
-                        BuildCurrentContext().Revision);
-                    WriteContext(lastResult, lastMessage);
+                        contextMonitor.GetCurrent()?.Revision ?? 0);
+                    PublishContext(lastResult, lastMessage);
                 }
                 catch (Exception exception)
                 {
@@ -229,7 +228,7 @@ namespace NX2512_CommandBridge
                 try
                 {
                     ProcessClaim(claim);
-                    WriteContext(lastResult, lastMessage);
+                    PublishContext(lastResult, lastMessage);
                 }
                 catch (Exception exception)
                 {
@@ -242,7 +241,7 @@ namespace NX2512_CommandBridge
                 return;
             }
 
-            if (contextDue) WriteContext(lastResult, lastMessage);
+            if (contextDue) PublishContext(lastResult, lastMessage);
         }
 
         private static void PendingWatcherChanged(object sender, FileSystemEventArgs e)
@@ -255,7 +254,7 @@ namespace NX2512_CommandBridge
             NxCommandRequest request = claim.Request;
             try
             {
-                NxContextSnapshot before = BuildCurrentContext();
+                NxContextSnapshot before = contextMonitor.GetCurrent()!;
                 ValidateExpectedContext(request, before);
 
                 if (string.Equals(request.Action, NxProtocolActions.SwitchModule, StringComparison.OrdinalIgnoreCase))
@@ -277,13 +276,13 @@ namespace NX2512_CommandBridge
                 else if (string.Equals(request.Action, NxProtocolActions.RunCapability, StringComparison.OrdinalIgnoreCase))
                 {
                     NxCommandResult capResult = ExecuteCapabilityRequest(request);
-                    NxContextSnapshot after = BuildCurrentContext();
+                    NxContextSnapshot after = contextMonitor.GetCurrent()!;
                     CompleteClaimWithResult(claim.ProcessingPath, request, capResult, after.Revision);
                 }
                 else if (string.Equals(request.Action, NxProtocolActions.ExecuteCommand, StringComparison.OrdinalIgnoreCase))
                 {
                     ExecuteNxCommand(request);
-                    NxContextSnapshot after = BuildCurrentContext();
+                    NxContextSnapshot after = contextMonitor.GetCurrent()!;
                     CompleteClaim(claim.ProcessingPath, request, "executed", "OK", after.Revision);
                 }
                 else
@@ -298,7 +297,7 @@ namespace NX2512_CommandBridge
                     request?.RequestId ?? claim.RequestId,
                     "rejected",
                     exception.Message,
-                    BuildCurrentContext().Revision);
+                    contextMonitor.GetCurrent()?.Revision ?? 0);
             }
         }
 
@@ -337,8 +336,8 @@ namespace NX2512_CommandBridge
 
             if (!string.Equals(request.Action, "switch_module", StringComparison.OrdinalIgnoreCase) &&
                 !string.IsNullOrWhiteSpace(request.ModuleId) &&
-                !IsSharedModule(request.ModuleId) &&
-                !string.Equals(NormalizeModule(current.ModuleId), NormalizeModule(request.ModuleId), StringComparison.OrdinalIgnoreCase))
+                !NxContextMonitor.IsSharedModule(request.ModuleId) &&
+                !string.Equals(NxContextMonitor.NormalizeModule(current.ModuleId), NxContextMonitor.NormalizeModule(request.ModuleId), StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException(
                     "Command belongs to module " + request.ModuleId + ", current module is " + current.ModuleId + ".");
         }
@@ -752,7 +751,7 @@ namespace NX2512_CommandBridge
                         requestId,
                         "interrupted_unknown",
                         "Bridge restarted while the request was in processing. The command will not be replayed automatically.",
-                        contextRevision);
+                        contextMonitor.CurrentRevision);
                     WriteResultAtomic(FailedDirectory, result);
                     ArchiveRequest(path, FailedDirectory, requestId);
                     WriteLog("Interrupted request quarantined without replay: " + requestId);
@@ -770,7 +769,7 @@ namespace NX2512_CommandBridge
             lastResult = result ?? string.Empty;
             lastMessage = message ?? string.Empty;
             WriteLog(lastResult + ": " + lastRequestId + " - " + lastMessage);
-            WriteContext(lastResult, lastMessage);
+            PublishContext(lastResult, lastMessage);
         }
 
         private static void EnsureDirectories()
@@ -783,85 +782,13 @@ namespace NX2512_CommandBridge
             Directory.CreateDirectory(LogDirectory);
         }
 
-        private static void LoadPreviousContextRevision()
+        private static void PublishContext(string result, string message)
         {
-            try
-            {
-                if (!File.Exists(ContextPath)) return;
-                using (FileStream stream = new FileStream(ContextPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-                {
-                    NxContextSnapshot previous = JsonSerializer.Deserialize<NxContextSnapshot>(stream, NxProtocolJson.ReadOptions);
-                    if (previous == null) return;
-                    contextRevision = Math.Max(0, previous.Revision);
-                    lastContextFingerprint = previous.SemanticFingerprint();
-                }
-            }
-            catch (Exception ex)
-            {
-                WriteLog("LoadPreviousContextRevision warning: " + ex.Message);
-            }
-        }
-
-        private static NxContextSnapshot BuildCurrentContext()
-        {
-            string applicationId = AskCurrentApplicationId(out int applicationConfidence);
-            string moduleId = ModuleIdFromRuntimeContext(applicationId, out int moduleConfidence);
-            int selectionCount = AskSelectionSnapshot(
-                out List<string> selectedTypes, out string selectionFingerprint);
-            bool workPart = AskWorkPartAvailable();
-            bool displayPart = AskDisplayPartAvailable();
-            bool modal = IsModalDialogActive();
-
-            var snapshot = new NxContextSnapshot
-            {
-                SchemaVersion = NxProtocolConstants.SchemaVersion,
-                Status = "running",
-                ApplicationId = applicationId,
-                ModuleId = moduleId,
-                ModuleLabel = ModuleLabelFromModule(moduleId),
-                SelectionCount = selectionCount,
-                SelectionState = selectionCount < 0 ? "unknown" : selectionCount == 0 ? "none" : selectionCount == 1 ? "single" : "multiple",
-                SelectedTypes = selectedTypes,
-                SelectionFingerprint = selectionFingerprint,
-                WorkPartAvailable = workPart,
-                DisplayPartAvailable = displayPart,
-                ModalDialogActive = modal,
-                ActiveCommandId = string.Empty,
-                ContextConfidence = Math.Min(applicationConfidence, moduleConfidence),
-                UpdatedUtc = DateTimeOffset.UtcNow.ToString("O"),
-                LastRequestId = lastRequestId,
-                LastResult = lastResult,
-                LastMessage = lastMessage,
-                SecurityStatus = securityGate?.Status ?? "not_initialized",
-                SecuritySessionId = securityGate?.SessionId ?? string.Empty,
-                SecurityProfileDigest = securityGate?.ProfileDigest ?? string.Empty
-            };
-
-            string fingerprint = snapshot.SemanticFingerprint();
-            if (!string.Equals(fingerprint, lastContextFingerprint, StringComparison.Ordinal))
-            {
-                contextRevision++;
-                lastContextFingerprint = fingerprint;
-            }
-            snapshot.Revision = Math.Max(1, contextRevision);
-            return snapshot;
-        }
-
-        private static void WriteContext(string result, string message)
-        {
-            try
-            {
-                EnsureDirectories();
-                if (result != null) lastResult = result;
-                if (message != null) lastMessage = message;
-                NxContextSnapshot snapshot = BuildCurrentContext();
-                WriteJsonAtomic(ContextPath, snapshot);
-                lastContextWriteUtc = DateTime.UtcNow;
-            }
-            catch (Exception ex)
-            {
-                WriteLog("WriteContext failed: " + ex.Message);
-            }
+            contextMonitor.LastRequestId = lastRequestId;
+            contextMonitor.SecurityStatus = securityGate?.Status ?? "not_initialized";
+            contextMonitor.SecuritySessionId = securityGate?.SessionId ?? string.Empty;
+            contextMonitor.SecurityProfileDigest = securityGate?.ProfileDigest ?? string.Empty;
+            contextMonitor.Refresh(result, message);
         }
 
         private static void WriteStatus(string status)
@@ -911,295 +838,6 @@ namespace NX2512_CommandBridge
             }
         }
 
-        private static string AskCurrentApplicationId(out int confidence)
-        {
-            confidence = 100;
-            try
-            {
-                if (theUfSession == null)
-                {
-                    confidence = 30;
-                    return "UG_APP_GATEWAY";
-                }
-                int currentModuleId;
-                theUfSession.UF.AskApplicationModule(out currentModuleId);
-                return ApplicationIdFromUfModule(currentModuleId);
-            }
-            catch (Exception ex)
-            {
-                confidence = 20;
-                WriteLog("AskApplicationModule failed: " + ex.Message);
-                return "UG_APP_GATEWAY";
-            }
-        }
-
-        private static int AskSelectionSnapshot(
-            out List<string> selectedTypes,
-            out string selectionFingerprint)
-        {
-            selectedTypes = new List<string>();
-            selectionFingerprint = string.Empty;
-            try
-            {
-                int count = theUI.SelectionManager.GetNumSelectedObjects();
-                int inspected = Math.Min(count, 64);
-                var identities = new List<string>(inspected);
-                for (int index = 0; index < inspected; index++)
-                {
-                    object selected = AskSelectedObject(index);
-                    AddSelectedType(selectedTypes, selected);
-                    identities.Add(SelectedObjectIdentity(selected, index));
-                }
-                identities.Sort(StringComparer.Ordinal);
-                string material = count.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" +
-                                  string.Join("|", identities);
-                using (SHA256 sha256 = SHA256.Create())
-                    selectionFingerprint = Convert.ToHexString(
-                        sha256.ComputeHash(Encoding.UTF8.GetBytes(material)));
-                return count;
-            }
-            catch (Exception ex)
-            {
-                WriteLog("AskSelectionSnapshot failed: " + ex.Message);
-                selectionFingerprint = string.Empty;
-                return -1;
-            }
-        }
-
-        private static string SelectedObjectIdentity(object selected, int index)
-        {
-            if (selected == null) return "null@" + index;
-            Type type = selected.GetType();
-            foreach (string propertyName in new[] { "Tag", "JournalIdentifier", "Name" })
-            {
-                try
-                {
-                    PropertyInfo property = type.GetProperty(propertyName);
-                    object value = property?.GetValue(selected);
-                    string text = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
-                    if (!string.IsNullOrWhiteSpace(text))
-                        return (type.FullName ?? type.Name) + "#" + propertyName + "=" + text;
-                }
-                catch
-                {
-                    // Identity probing is best effort; NX Tag is used when available.
-                }
-            }
-            return (type.FullName ?? type.Name) + "#index=" + index;
-        }
-
-        private static object AskSelectedObject(int index)
-        {
-            object manager = theUI?.SelectionManager;
-            if (manager == null) return null;
-            Type type = manager.GetType();
-            foreach (string methodName in new[] { "GetSelectedObject", "GetSelectedTaggedObject" })
-            {
-                try
-                {
-                    var method = type.GetMethod(methodName, new[] { typeof(int) });
-                    if (method == null) continue;
-                    return method.Invoke(manager, new object[] { index });
-                }
-                catch (Exception ex)
-                {
-                    Exception targetEx = (ex is TargetInvocationException tie) ? (tie.InnerException ?? tie) : ex;
-                    WriteLog("Selection object probe failed for method " + methodName + "(" + index + "): " + targetEx.Message);
-                }
-            }
-            return null;
-        }
-
-        private static void AddSelectedType(List<string> selectedTypes, object selected)
-        {
-            if (selected == null) return;
-            for (Type type = selected.GetType(); type != null && type != typeof(object); type = type.BaseType)
-            {
-                string typeName = type.FullName;
-                if (!string.IsNullOrWhiteSpace(typeName) && !selectedTypes.Contains(typeName, StringComparer.Ordinal))
-                    selectedTypes.Add(typeName);
-            }
-        }
-
-        private static bool AskWorkPartAvailable()
-        {
-            try { return theSession?.Parts?.Work != null; }
-            catch { return false; }
-        }
-
-        private static bool AskDisplayPartAvailable()
-        {
-            try { return theSession?.Parts?.Display != null; }
-            catch { return false; }
-        }
-
-        private static bool IsModalDialogActive()
-        {
-            try
-            {
-                IntPtr mainWindow = Process.GetCurrentProcess().MainWindowHandle;
-                if (mainWindow == IntPtr.Zero) return false;
-                if (!IsWindowEnabled(mainWindow)) return true;
-                IntPtr popup = GetLastActivePopup(mainWindow);
-                return popup != IntPtr.Zero && popup != mainWindow && IsWindowVisible(popup);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private static string ApplicationIdFromUfModule(int moduleId)
-        {
-            string constant = TryMatchUfConstant(moduleId);
-            switch (constant)
-            {
-                case "UF_APP_MODELING": return "UG_APP_MODELING";
-                case "UF_APP_DRAFTING": return "UG_APP_DRAFTING";
-                case "UF_APP_MANUFACTURING": return "UG_APP_MANUFACTURING";
-                case "UF_APP_SFEM": return "UG_APP_SFEM";
-                case "UF_APP_DESFEM": return "UG_APP_DESFEM";
-                case "UF_APP_SHEETMETAL": return "UG_APP_SHEETMETAL";
-                case "UF_APP_ROUTING": return "UG_APP_ROUTING";
-                case "UF_APP_STUDIO": return "UG_APP_STUDIO";
-                default: return "UG_APP_GATEWAY";
-            }
-        }
-
-        private static string TryMatchUfConstant(int moduleId)
-        {
-            try
-            {
-                foreach (var field in typeof(UFConstants).GetFields())
-                {
-                    if (!field.Name.StartsWith("UF_APP_", StringComparison.OrdinalIgnoreCase)) continue;
-                    object value = field.GetValue(null);
-                    if (value is int intValue && intValue == moduleId) return field.Name;
-                }
-            }
-            catch { }
-            return string.Empty;
-        }
-
-        private static string ModuleIdFromApplication(string applicationId)
-        {
-            string id = (applicationId ?? string.Empty).ToUpperInvariant();
-            if (id.Contains("DRAFTING")) return "drafting";
-            if (id.Contains("MANUFACTURING")) return "manufacturing";
-            if (id.Contains("SFEM") || id.Contains("DESFEM")) return "simulation";
-            if (id.Contains("SHEETMETAL")) return "sheet_metal";
-            if (id.Contains("ROUTING")) return "routing";
-            if (id.Contains("STUDIO")) return "surface";
-            if (id.Contains("MOLD")) return "mold";
-            if (id.Contains("ASSEMBL")) return "assembly";
-            if (id.Contains("MODEL")) return "modeling";
-            return "inspect_view";
-        }
-
-        private static string ModuleIdFromRuntimeContext(string applicationId, out int confidence)
-        {
-            if (IsButtonReady("UG_SKETCH_FINISH") || IsButtonReady("UG_SKETCH_LINE"))
-            {
-                confidence = 60;
-                return "sketch";
-            }
-            confidence = 90;
-            return ModuleIdFromApplication(applicationId);
-        }
-
-        private static bool IsButtonReady(string commandId)
-        {
-            try
-            {
-                MenuButton button = theUI.MenuBarManager.GetButtonFromName(commandId);
-                return button != null &&
-                       button.ButtonAvailability != MenuButton.AvailabilityStatus.Unavailable &&
-                       button.ButtonSensitivity != MenuButton.SensitivityStatus.Insensitive;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private static string ModuleLabelFromModule(string moduleId)
-        {
-            switch ((moduleId ?? string.Empty).ToLowerInvariant())
-            {
-                case "drafting": return "Drafting";
-                case "manufacturing": return "CAM / Manufacturing";
-                case "simulation": return "CAE / Simulation";
-                case "sheet_metal": return "Sheet Metal";
-                case "routing": return "Routing";
-                case "surface": return "Surface";
-                case "mold": return "Mold / Tooling";
-                case "sketch": return "Sketch";
-                case "modeling": return "Modeling";
-                default: return "Inspect / View";
-            }
-        }
-
-        private static bool IsSharedModule(string moduleId)
-        {
-            string normalized = NormalizeModule(moduleId);
-            return normalized == "selection_object" || normalized == "inspect_view" || normalized == "reuse";
-        }
-
-        // Maps v8_* module ID suffixes to NX module names so that
-        // ValidateExpectedContext accepts commands from v8-translated modules.
-        private static string NormalizeV8Module(string moduleId)
-        {
-            string id = (moduleId ?? string.Empty).Trim().ToLowerInvariant();
-            if (!id.StartsWith("v8_", StringComparison.Ordinal)) return null;
-            string suffix = id.Substring(3);
-            switch (suffix)
-            {
-                case "m": return "modeling";
-                case "s": return "sketch";
-                case "a": return "assembly";
-                case "d": return "drafting";
-                case "g": return "modeling";
-                case "h": return "sheet_metal";
-                case "k": return "sketch";
-                case "p": return "inspect_view";
-                case "v": return "drafting";
-                case "i": return "simulation";
-                case "n": return "manufacturing";
-                case "u": return "surface";
-                case "r": return "routing";
-                case "l": return "mold";
-                case "sm": return "sheet_metal";
-                case "sh": return "sheet_metal";
-                default: return "modeling";
-            }
-        }
-
-        private static string NormalizeModule(string moduleId)
-        {
-            string value = (moduleId ?? string.Empty).Trim().ToLowerInvariant().Replace(' ', '_');
-
-            // v8-translated modules carry a "v8_" prefix; resolve them to the
-            // canonical NX module name so context validation passes.
-            string v8Resolved = NormalizeV8Module(value);
-            if (v8Resolved != null) return v8Resolved;
-
-            switch (value)
-            {
-                case "view":
-                case "inspect":
-                case "inspect_/_view": return "inspect_view";
-                case "selection_filters":
-                case "selection": return "selection_object";
-                case "cam_/_manufacturing":
-                case "cam": return "manufacturing";
-                case "cae_/_simulation":
-                case "cae": return "simulation";
-                case "mold_/_tooling": return "mold";
-                case "reuse_/_templates": return "reuse";
-                default: return value;
-            }
-        }
-
         private static void WriteLog(string message)
         {
             try
@@ -1217,7 +855,6 @@ namespace NX2512_CommandBridge
         private static string ProcessingDirectory => Path.Combine(BridgeRoot, "processing");
         private static string CompletedDirectory => Path.Combine(BridgeRoot, "completed");
         private static string FailedDirectory => Path.Combine(BridgeRoot, "failed");
-        private static string ContextPath => Path.Combine(BridgeRoot, "context.json");
         private static string LogDirectory => Path.Combine(LocalAppData, "NXKeys", "logs");
         private static string LogPath => Path.Combine(LogDirectory, "nx-command-bridge.log");
     }

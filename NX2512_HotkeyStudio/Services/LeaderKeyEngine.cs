@@ -117,6 +117,7 @@ namespace NX2512_HotkeyStudio.Services
         private readonly Timer capsLockRestore = new Timer { Interval = 35 };
         private readonly Timer progress = new Timer { Interval = 40 };
         private readonly Timer contextWatch = new Timer { Interval = 250 };
+        private readonly NxContextClient contextClient;
 
         private IntPtr hookId;
         private HookProc hookDelegate;
@@ -152,6 +153,7 @@ namespace NX2512_HotkeyStudio.Services
             config.RebuildFromModules(config.RuntimeModules);
             if (!config.AdaptiveModuleMode) throw new InvalidOperationException("Adaptive module mode is required.");
             if (config.Sequences.Count == 0) throw new InvalidOperationException("The profile contains no module commands.");
+            contextClient = new NxContextClient();
 
             triggerVk = string.Equals(config.TriggerKey, "F12", StringComparison.OrdinalIgnoreCase) ? VK_F12 : VK_CAPITAL;
             behaviorProfile = LeaderBehaviorProfile.LoadDefault();
@@ -234,7 +236,7 @@ namespace NX2512_HotkeyStudio.Services
                 return CallNextHookEx(hookId, code, message, dataPointer);
             }
 
-            if (config.HookOnlyWhenNXActive && GetActiveNxWindow() == IntPtr.Zero)
+            if (config.HookOnlyWhenNXActive && NxContextClient.GetActiveNxWindow() == IntPtr.Zero)
             {
                 if (capturing) queue.Enqueue(new InputEvent { Kind = InputKind.Cancel, Reason = "Фокус покинул Siemens NX.", TimestampUtc = DateTime.UtcNow });
                 return CallNextHookEx(hookId, code, message, dataPointer);
@@ -289,7 +291,7 @@ namespace NX2512_HotkeyStudio.Services
             if (Volatile.Read(ref triggerPhysicalDown) == 1) return;
 
             bool capturing = Volatile.Read(ref captureFlag) == 1;
-            if (config.HookOnlyWhenNXActive && GetActiveNxWindow() == IntPtr.Zero)
+            if (config.HookOnlyWhenNXActive && NxContextClient.GetActiveNxWindow() == IntPtr.Zero)
             {
                 if (capturing) queue.Enqueue(new InputEvent { Kind = InputKind.Cancel, Reason = "Фокус покинул Siemens NX.", TimestampUtc = DateTime.UtcNow });
                 return;
@@ -553,104 +555,13 @@ namespace NX2512_HotkeyStudio.Services
 
         private void RefreshContext()
         {
-            NxBridgeContext latest = NxCommandBridgeClient.ReadContext();
-            if (latest != null && latest.IsFresh) currentContext = latest;
-            else if (TryCreateForegroundNxFallbackContext(out NxBridgeContext fallback)) currentContext = fallback;
+            NxBridgeContext refreshed = (NxBridgeContext)contextClient.GetCurrent();
+            if (refreshed != null) currentContext = refreshed;
             AdaptiveModuleResolution resolution = AdaptiveModuleResolver.Resolve(config.RuntimeModules, currentContext);
             if (resolution.IsResolved) activeModule = resolution.Module;
         }
 
-        private static bool TryCreateForegroundNxFallbackContext(out NxBridgeContext context)
-        {
-            context = null;
-            IntPtr window = GetActiveNxWindow();
-            if (window == IntPtr.Zero) return false;
 
-            string title = GetWindowTitle(window);
-            string moduleId = ModuleIdFromWindowTitle(title);
-            string applicationId = ApplicationIdFromModuleId(moduleId);
-            context = new NxBridgeContext
-            {
-                SchemaVersion = NXKeys.Protocol.NxProtocolConstants.SchemaVersion,
-                Revision = 0,
-                Status = "running",
-                ApplicationId = applicationId,
-                ModuleId = moduleId,
-                ModuleLabel = ModuleLabelFromModuleId(moduleId),
-                SelectionCount = 0,
-                SelectionState = "none",
-                WorkPartAvailable = true,
-                DisplayPartAvailable = true,
-                ModalDialogActive = false,
-                ContextConfidence = 60,
-                UpdatedUtc = DateTimeOffset.UtcNow.ToString("O"),
-                LastResult = "fallback",
-                LastMessage = "Command Bridge context is missing; module inferred from active NX window."
-            };
-            return true;
-        }
-
-        private static string GetWindowTitle(IntPtr window)
-        {
-            int length = Math.Max(256, GetWindowTextLength(window) + 1);
-            var builder = new StringBuilder(length);
-            return GetWindowText(window, builder, builder.Capacity) > 0 ? builder.ToString() : string.Empty;
-        }
-
-        private static string ModuleIdFromWindowTitle(string title)
-        {
-            string value = (title ?? string.Empty).ToLowerInvariant();
-            if (value.Contains("sketch") || value.Contains("эскиз")) return "sketch";
-            if (value.Contains("assembl") || value.Contains("сбор")) return "assembly";
-            if (value.Contains("draft") || value.Contains("черт")) return "drafting";
-            if (value.Contains("sheet") || value.Contains("лист")) return "sheet_metal";
-            if (value.Contains("manufact") || value.Contains("cam") || value.Contains("обработ")) return "manufacturing";
-            if (value.Contains("simulat") || value.Contains("cae") || value.Contains("симуля")) return "simulation";
-            if (value.Contains("routing") || value.Contains("трасс")) return "routing";
-            if (value.Contains("mold") || value.Contains("пресс")) return "mold";
-            if (value.Contains("pmi")) return "pmi";
-            if (value.Contains("surface") || value.Contains("поверх")) return "surface";
-            if (value.Contains("model") || value.Contains("модел")) return "modeling";
-            return "inspect_view";
-        }
-
-        private static string ApplicationIdFromModuleId(string moduleId)
-        {
-            switch ((moduleId ?? string.Empty).ToLowerInvariant())
-            {
-                case "modeling": return "UG_APP_MODELING";
-                case "sketch": return "UG_APP_SKETCH";
-                case "assembly": return "UG_APP_ASSEMBLIES";
-                case "drafting": return "UG_APP_DRAFTING";
-                case "pmi": return "UG_APP_PMI";
-                case "surface": return "UG_APP_STUDIO";
-                case "sheet_metal": return "UG_APP_SHEETMETAL";
-                case "manufacturing": return "UG_APP_MANUFACTURING";
-                case "simulation": return "UG_APP_SFEM";
-                case "routing": return "UG_APP_ROUTING";
-                case "mold": return "UG_APP_MOLDWIZARD";
-                default: return "UG_APP_GATEWAY";
-            }
-        }
-
-        private static string ModuleLabelFromModuleId(string moduleId)
-        {
-            switch ((moduleId ?? string.Empty).ToLowerInvariant())
-            {
-                case "modeling": return "Modeling";
-                case "sketch": return "Sketch";
-                case "assembly": return "Assembly";
-                case "drafting": return "Drafting";
-                case "pmi": return "PMI";
-                case "surface": return "Surface";
-                case "sheet_metal": return "Sheet Metal";
-                case "manufacturing": return "CAM / Manufacturing";
-                case "simulation": return "CAE / Simulation";
-                case "routing": return "Routing";
-                case "mold": return "Mold / Tooling";
-                default: return "Inspect / View";
-            }
-        }
 
         private void HudDelayTick(object sender, EventArgs eventArgs)
         {
@@ -780,22 +691,7 @@ namespace NX2512_HotkeyStudio.Services
             return '\0';
         }
 
-        private static IntPtr GetActiveNxWindow()
-        {
-            IntPtr window = GetForegroundWindow();
-            if (window == IntPtr.Zero) return IntPtr.Zero;
-            GetWindowThreadProcessId(window, out uint processId);
-            if (processId == 0) return IntPtr.Zero;
-            try
-            {
-                using (Process process = Process.GetProcessById((int)processId))
-                {
-                    string name = process.ProcessName.ToLowerInvariant();
-                    return name == "ugraf" || name == "nx" || name == "run_nx" || name.StartsWith("designcenter") ? window : IntPtr.Zero;
-                }
-            }
-            catch { return IntPtr.Zero; }
-        }
+
 
         private static bool IsFocusedInTextInput()
         {
