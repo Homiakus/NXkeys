@@ -100,59 +100,13 @@ namespace NX2512_HotkeyStudio.Services
         }
 
         private static string ModuleIdFromWindowTitle(string title)
-        {
-            string value = (title ?? string.Empty).ToLowerInvariant();
-            if (value.Contains("sketch") || value.Contains("эскиз")) return "sketch";
-            if (value.Contains("assembl") || value.Contains("сбор")) return "assembly";
-            if (value.Contains("draft") || value.Contains("черт")) return "drafting";
-            if (value.Contains("sheet") || value.Contains("лист")) return "sheet_metal";
-            if (value.Contains("manufact") || value.Contains("cam") || value.Contains("обработ")) return "manufacturing";
-            if (value.Contains("simulat") || value.Contains("cae") || value.Contains("симуля")) return "simulation";
-            if (value.Contains("routing") || value.Contains("трасс")) return "routing";
-            if (value.Contains("mold") || value.Contains("пресс")) return "mold";
-            if (value.Contains("pmi")) return "pmi";
-            if (value.Contains("surface") || value.Contains("поверх")) return "surface";
-            if (value.Contains("model") || value.Contains("модел")) return "modeling";
-            return "inspect_view";
-        }
+            => NxContextNormalization.ModuleIdFromWindowTitle(title);
 
         private static string ApplicationIdFromModuleId(string moduleId)
-        {
-            switch ((moduleId ?? string.Empty).ToLowerInvariant())
-            {
-                case "modeling": return "UG_APP_MODELING";
-                case "sketch": return "UG_APP_SKETCH";
-                case "assembly": return "UG_APP_ASSEMBLIES";
-                case "drafting": return "UG_APP_DRAFTING";
-                case "pmi": return "UG_APP_PMI";
-                case "surface": return "UG_APP_STUDIO";
-                case "sheet_metal": return "UG_APP_SHEETMETAL";
-                case "manufacturing": return "UG_APP_MANUFACTURING";
-                case "simulation": return "UG_APP_SFEM";
-                case "routing": return "UG_APP_ROUTING";
-                case "mold": return "UG_APP_MOLDWIZARD";
-                default: return "UG_APP_GATEWAY";
-            }
-        }
+            => NxContextNormalization.ApplicationIdFromModuleId(moduleId);
 
         private static string ModuleLabelFromModuleId(string moduleId)
-        {
-            switch ((moduleId ?? string.Empty).ToLowerInvariant())
-            {
-                case "modeling": return "Modeling";
-                case "sketch": return "Sketch";
-                case "assembly": return "Assembly";
-                case "drafting": return "Drafting";
-                case "pmi": return "PMI";
-                case "surface": return "Surface";
-                case "sheet_metal": return "Sheet Metal";
-                case "manufacturing": return "CAM / Manufacturing";
-                case "simulation": return "CAE / Simulation";
-                case "routing": return "Routing";
-                case "mold": return "Mold / Tooling";
-                default: return "Inspect / View";
-            }
-        }
+            => NxContextNormalization.ModuleLabelFromModule(moduleId);
 
         /// <summary>Активное окно NX (процесс ugraf/nx/run_nx/designcenter) или IntPtr.Zero.</summary>
         public static IntPtr GetActiveNxWindow()

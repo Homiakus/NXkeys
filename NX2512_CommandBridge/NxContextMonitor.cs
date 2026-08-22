@@ -367,19 +367,7 @@ namespace NX2512_CommandBridge
         }
 
         private static string ModuleIdFromApplication(string applicationId)
-        {
-            string id = (applicationId ?? string.Empty).ToUpperInvariant();
-            if (id.Contains("DRAFTING")) return "drafting";
-            if (id.Contains("MANUFACTURING")) return "manufacturing";
-            if (id.Contains("SFEM") || id.Contains("DESFEM")) return "simulation";
-            if (id.Contains("SHEETMETAL")) return "sheet_metal";
-            if (id.Contains("ROUTING")) return "routing";
-            if (id.Contains("STUDIO")) return "surface";
-            if (id.Contains("MOLD")) return "mold";
-            if (id.Contains("ASSEMBL")) return "assembly";
-            if (id.Contains("MODEL")) return "modeling";
-            return "inspect_view";
-        }
+            => NxContextNormalization.ModuleIdFromApplication(applicationId);
 
         private static string ModuleIdFromRuntimeContext(string applicationId, out int confidence)
         {
@@ -408,83 +396,14 @@ namespace NX2512_CommandBridge
         }
 
         private static string ModuleLabelFromModule(string moduleId)
-        {
-            switch ((moduleId ?? string.Empty).ToLowerInvariant())
-            {
-                case "drafting": return "Drafting";
-                case "manufacturing": return "CAM / Manufacturing";
-                case "simulation": return "CAE / Simulation";
-                case "sheet_metal": return "Sheet Metal";
-                case "routing": return "Routing";
-                case "surface": return "Surface";
-                case "mold": return "Mold / Tooling";
-                case "sketch": return "Sketch";
-                case "modeling": return "Modeling";
-                default: return "Inspect / View";
-            }
-        }
+            => NxContextNormalization.ModuleLabelFromModule(moduleId);
 
         /// <summary>Является ли модуль разделяемым (selection_object / inspect_view / reuse).</summary>
         public static bool IsSharedModule(string moduleId)
-        {
-            string normalized = NormalizeModule(moduleId);
-            return normalized == "selection_object" || normalized == "inspect_view" || normalized == "reuse";
-        }
-
-        // Maps v8_* module ID suffixes to NX module names so that
-        // ValidateExpectedContext accepts commands from v8-translated modules.
-        private static string NormalizeV8Module(string moduleId)
-        {
-            string id = (moduleId ?? string.Empty).Trim().ToLowerInvariant();
-            if (!id.StartsWith("v8_", StringComparison.Ordinal)) return null;
-            string suffix = id.Substring(3);
-            switch (suffix)
-            {
-                case "m": return "modeling";
-                case "s": return "sketch";
-                case "a": return "assembly";
-                case "d": return "drafting";
-                case "g": return "modeling";
-                case "h": return "sheet_metal";
-                case "k": return "sketch";
-                case "p": return "inspect_view";
-                case "v": return "drafting";
-                case "i": return "simulation";
-                case "n": return "manufacturing";
-                case "u": return "surface";
-                case "r": return "routing";
-                case "l": return "mold";
-                case "sm": return "sheet_metal";
-                case "sh": return "sheet_metal";
-                default: return "modeling";
-            }
-        }
+            => NxContextNormalization.IsSharedModule(moduleId);
 
         /// <summary>Каноническая нормализация module id (используется admission/циклами выбора).</summary>
         public static string NormalizeModule(string moduleId)
-        {
-            string value = (moduleId ?? string.Empty).Trim().ToLowerInvariant().Replace(' ', '_');
-
-            // v8-translated modules carry a "v8_" prefix; resolve them to the
-            // canonical NX module name so context validation passes.
-            string v8Resolved = NormalizeV8Module(value);
-            if (v8Resolved != null) return v8Resolved;
-
-            switch (value)
-            {
-                case "view":
-                case "inspect":
-                case "inspect_/_view": return "inspect_view";
-                case "selection_filters":
-                case "selection": return "selection_object";
-                case "cam_/_manufacturing":
-                case "cam": return "manufacturing";
-                case "cae_/_simulation":
-                case "cae": return "simulation";
-                case "mold_/_tooling": return "mold";
-                case "reuse_/_templates": return "reuse";
-                default: return value;
-            }
-        }
+            => NxContextNormalization.NormalizeModule(moduleId);
     }
 }
