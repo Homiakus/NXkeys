@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace NXKeys.Protocol
 {
@@ -141,6 +142,31 @@ namespace NXKeys.Protocol
                 case "modeling": return "Modeling";
                 default: return "Inspect / View";
             }
+        }
+        /// <summary>Нормализация значения selection-фильтра (регистр/спецсимволы → '_').</summary>
+        public static string NormalizeSelectionFilter(string value)
+        {
+            string normalized = new string((value ?? string.Empty).Trim().ToLowerInvariant()
+                .Select(character => char.IsLetterOrDigit(character) ? character : '_').ToArray());
+            while (normalized.Contains("__", StringComparison.Ordinal)) normalized = normalized.Replace("__", "_");
+            return normalized.Trim('_');
+        }
+
+        /// <summary>Определить selection-фильтр по command id (deselect/select_all/reset/...).</summary>
+        public static string SelectionFilterFromCommandId(string commandId)
+        {
+            string id = (commandId ?? string.Empty).ToUpperInvariant();
+            if (id.Contains("DESELECT")) return "none";
+            if (id.Contains("SELECT_ALL")) return "all";
+            if (id.Contains("RESET")) return "reset";
+            if (id.Contains("EDGE")) return "edge";
+            if (id.Contains("FACE")) return "face";
+            if (id.Contains("BODY")) return "body";
+            if (id.Contains("COMPONENT")) return "component";
+            if (id.Contains("CURVE")) return "curve";
+            if (id.Contains("DATUM")) return "datum";
+            if (id.Contains("FEATURE")) return "feature";
+            return string.Empty;
         }
     }
 }

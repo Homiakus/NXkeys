@@ -53,6 +53,8 @@ namespace NXKeys.Protocol.Tests
             Run("Маппинг: window title → module", WindowTitleToModuleId);
             Run("Маппинг: module → application id", ModuleToApplicationId);
             Run("Маппинг: module → label", ModuleToLabel);
+            Run("Нормализация: selection-фильтр по command id", SelectionFilterFromCommandIdTest);
+            Run("Нормализация: selection-фильтр значение", NormalizeSelectionFilterTest);
 
             Console.WriteLine();
             Console.WriteLine(failures == 0
@@ -488,6 +490,26 @@ namespace NXKeys.Protocol.Tests
             Assert(NxContextNormalization.ModuleLabelFromModule("sheet_metal") == "Sheet Metal", "sheet_metal → Sheet Metal.");
             Assert(NxContextNormalization.ModuleLabelFromModule("drafting") == "Drafting", "drafting → Drafting.");
             Assert(NxContextNormalization.ModuleLabelFromModule("whatever") == "Inspect / View", "unknown → Inspect / View.");
+        }
+
+        private static void SelectionFilterFromCommandIdTest()
+        {
+            Assert(NxContextNormalization.SelectionFilterFromCommandId("UG_SEL_DESELECT_ALL") == "none", "DESELECT → none.");
+            Assert(NxContextNormalization.SelectionFilterFromCommandId("UG_SELECT_ALL") == "all", "SELECT_ALL → all.");
+            Assert(NxContextNormalization.SelectionFilterFromCommandId("UG_SEL_RESET") == "reset", "RESET → reset.");
+            Assert(NxContextNormalization.SelectionFilterFromCommandId("UG_SEL_EDGE") == "edge", "EDGE → edge.");
+            Assert(NxContextNormalization.SelectionFilterFromCommandId("UG_SEL_FACE") == "face", "FACE → face.");
+            Assert(NxContextNormalization.SelectionFilterFromCommandId("UG_SEL_COMPONENT") == "component", "COMPONENT → component.");
+            Assert(NxContextNormalization.SelectionFilterFromCommandId("UG_SEL_UNKNOWN") == string.Empty, "неизвестный → пусто.");
+        }
+
+        private static void NormalizeSelectionFilterTest()
+        {
+            Assert(NxContextNormalization.NormalizeSelectionFilter("  Edge  ") == "edge", "'  Edge  ' → edge.");
+            Assert(NxContextNormalization.NormalizeSelectionFilter("all faces") == "all_faces", "'all faces' → all_faces.");
+            Assert(NxContextNormalization.NormalizeSelectionFilter("Body.Part") == "body_part", "'Body.Part' → body_part.");
+            Assert(NxContextNormalization.NormalizeSelectionFilter("MixEd  case") == "mixed_case", "'MixEd  case' → mixed_case.");
+            Assert(NxContextNormalization.NormalizeSelectionFilter("__empty__") == "empty", "'__empty__' → empty.");
         }
     }
 }
