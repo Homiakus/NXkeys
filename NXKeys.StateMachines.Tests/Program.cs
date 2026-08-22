@@ -25,6 +25,7 @@ namespace NXKeys.StateMachines.Tests
             Run("Команда другого модуля не переключает NX скрыто", CrossModuleCommandIsRejected);
             Run("Результат завершает AwaitingResult", RequestResultCompletes);
             Run("Ошибка dispatch немедленно освобождает автомат", DispatchFailureCompletes);
+            Run("Нормализация: ContextGuardEvaluator канонична (v8_sm→sheet_metal)", GuardNormalizeModuleCanonical);
 
             Console.WriteLine(failures == 0
                 ? "[OK] Все инварианты автоматов выполнены."
@@ -232,6 +233,16 @@ namespace NXKeys.StateMachines.Tests
             try { action(); }
             catch (InvalidOperationException) { return; }
             throw new InvalidOperationException("Ожидалось InvalidOperationException.");
+        }
+
+        private static void GuardNormalizeModuleCanonical()
+        {
+            Assert(ContextGuardEvaluator.NormalizeModule("v8_sm") == "sheet_metal", "v8_sm → sheet_metal (каноника).");
+            Assert(ContextGuardEvaluator.NormalizeModule("v8_sh") == "sheet_metal", "v8_sh → sheet_metal (каноника).");
+            Assert(ContextGuardEvaluator.NormalizeModule("v8_m") == "modeling", "v8_m → modeling.");
+            Assert(ContextGuardEvaluator.NormalizeModule("View") == "inspect_view", "View → inspect_view.");
+            Assert(ContextGuardEvaluator.NormalizeModule("cam") == "manufacturing", "cam → manufacturing.");
+            Assert(ContextGuardEvaluator.NormalizeModule("ug_sketch") == "ug_sketch", "неизвестный остаётся как есть.");
         }
     }
 }
