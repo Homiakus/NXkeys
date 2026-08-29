@@ -170,7 +170,7 @@ jobs:
           foreach ($required in @('BasicShortcutPolicy','CurrentSchemaVersion = 8','MnemonicPathGenerator.Apply','PathLabels','SearchAliases','CatalogBackedSupport','RebuildFromModules','JsonIgnore','SecondaryAliases','ExpandSecondaryAliasesForLegacyRuntime','ResolveSequenceModule')) {
             if ($models -notmatch [regex]::Escape($required)) { throw "Missing mnemonic config element: $required" }
           }
-          if ($project -notmatch 'Compile Remove="Models\\ConfigModels\.cs"') { throw 'Legacy ConfigModels.cs must be excluded from HotkeyStudio compilation.' }
+          if (Test-Path .\NX2512_HotkeyStudio\Models\ConfigModels.cs) { throw 'Legacy ConfigModels.cs must remain deleted after the v8 model migration.' }
           if ($project -notmatch 'nx2512-state-machines\.json') { throw 'HotkeyStudio must publish the declarative state-machine profile.' }
           foreach ($required in @('ModuleId','ModuleLabel','ApplicationId','NXApplicationIDs','ApplicationFallbacks','V8ModuleMatchesContext')) {
             if ($resolver -notmatch $required) { throw "Missing module resolution element: $required" }
