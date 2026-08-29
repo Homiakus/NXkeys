@@ -16,7 +16,8 @@
 - F-017 Pages path fix entered `main` as `6e1882bd8f6b61d0f67d194f96df55c245ee700f`.
 - F-018 Pages dependency-contract fix entered `main` as `8425ec3739e68782dc204e94337bb5f0f6915048`.
 - On `8425ec373...`: full `ci` run `33266648847` PASS; Documentation run `33266648784` PASS; Pages run `33266648791` passes validator + static website preparation, then fails only at `actions/configure-pages@v6` because repository Pages is not enabled/configured for GitHub Actions.
-- T-002 preflight branch: `audit/t002-master-plan-gate-20260829`; Documentation has already proved the executable plan validator and its negative self-tests after CRLF normalization.
+- T-002 preflight branch: `audit/t002-master-plan-gate-20260829`; implementation head `98a187a48b175407d9ecd28751e637fcaee97b28` has Documentation run `33267035550` PASS and full `ci` run `33267035511` PASS. Documentation uses `checkout@v7`, `setup-node@v7`, Node 24 and the executable plan validator with negative self-tests.
+- T-003 is the next selected governance task after clean T-002 integration.
 - Live NX 2512 remains an external verification layer; NXOpen stubs are compile-contract evidence only.
 
 # 3. Architecture Map
@@ -44,8 +45,8 @@ Pages ownership: `docs/command-tree.html` consumes canonical v8 command-map data
 
 | Check | Original main | Current evidence |
 |---|---|---|
-| Core/current-v8 CI | red/blocked | PASS on `8425ec373...` |
-| Documentation | red/blocked | PASS on `8425ec373...` |
+| Core/current-v8 CI | red/blocked | PASS on `8425ec373...`; T-002 preflight full CI PASS |
+| Documentation | red/blocked | PASS on `8425ec373...`; T-002 Node24/v7 gate PASS |
 | Desktop UI | red | PASS on verified current-v8 tree |
 | Runtime hardening | red | PASS on verified current-v8 tree |
 | Raw v8 identity | not explicit | PASS: 439/439 unique |
@@ -79,6 +80,7 @@ Pages ownership: `docs/command-tree.html` consumes canonical v8 command-map data
 15. Deleted K3–K5/legacy assets are never recreated merely to satisfy stale checks.
 16. Pages asserts HTML dependencies only for files actually consumed by the page.
 17. External infrastructure blockers remain explicit; they are never converted to `continue-on-error`, skipped gates or fake PASS states.
+18. Living-plan structure and controlled vocabularies are executable CI contracts, including negative self-tests.
 
 # 6. Findings Registry
 
@@ -144,10 +146,9 @@ Pages ownership: `docs/command-tree.html` consumes canonical v8 command-map data
 **Required external action:** Repository → Settings → Pages → Build and deployment → Source = `GitHub Actions`, then rerun Pages workflow.
 **Non-solution:** do not hide this with `continue-on-error`, disable the workflow, or add `enablement:true` with an incapable `GITHUB_TOKEN`.
 
-## F-020 — Documentation gate still pins deprecated Node 20
-**Status:** Addressing in T-002 | **Severity:** Low | **Category:** CI/Maintenance | **Confidence:** Confirmed
-**Evidence:** current Windows runner warns Node 20 is deprecated while executing Documentation workflow.
-**Direction:** move Documentation script runtime to Node 24 and reverify all Node validators.
+## F-020 — Documentation gate pinned deprecated Node-backed actions
+**Status:** Addressed by T-002 | **Severity:** Low | **Category:** CI/Maintenance | **Confidence:** Confirmed
+**Evidence:** Windows runner warned that `checkout@v4`/`setup-node@v4` targeted deprecated Node 20. T-002 moved the workflow to `checkout@v7`, `setup-node@v7` and Node 24; Documentation run `33267035550` PASS.
 
 # 7. Risk Register
 
@@ -199,9 +200,9 @@ T-003 + T-005 + T-008 ─ T-009 measured hardening ─ T-010 convergence audit
 
 ## T-002 — Enforce MASTER_PLAN structure as executable gate
 **Status:** VERIFYING | **Priority:** P1 | **Type:** HARDEN | **Leverage:** HIGH
-**Implementation:** `scripts/validate-master-plan.mjs` validates 21 required headings, heading order, unique F/T IDs, finding severity/confidence, task status/priority/type/leverage vocabularies, and non-empty iteration history. `--self-test` proves rejection of missing heading, duplicate finding ID, duplicate task ID, invalid task status and missing iteration entry. Documentation workflow runs it fail-fast.
-**Evidence:** first Windows run exposed CRLF parser defect; newline normalization fixed it; subsequent Documentation gate PASS.
-**Remaining:** Node 24 migration (F-020), full branch `ci`, plan reconciliation, clean non-force main integration.
+**Implementation:** `scripts/validate-master-plan.mjs` validates 21 required headings, heading order, unique F/T IDs, finding severity/confidence, task status/priority/type/leverage vocabularies, and non-empty iteration history. `--self-test` proves rejection of missing heading, duplicate finding ID, duplicate task ID, invalid task status and missing iteration entry. Documentation workflow runs it fail-fast. Parser normalizes CRLF/LF; negative mutations are section-scoped.
+**Evidence:** implementation head `98a187a48b175407d9ecd28751e637fcaee97b28`: Documentation `33267035550` PASS on `checkout@v7` + `setup-node@v7` + Node 24; full `ci` `33267035511` PASS through NXOpen/adaptive/deployment/artifacts.
+**Remaining:** verify this plan-only reconciliation tree, then create one clean non-force main commit and reverify applicable workflows.
 
 ## T-003 — Capture machine-readable verified baseline
 **Status:** READY | **Priority:** P1 | **Type:** HARDEN | **Leverage:** HIGH
@@ -276,7 +277,7 @@ Preserve HMAC, replay guard, permissions, context/source-process binding and bou
 
 # 19. Completed Tasks
 
-No task is fully closed yet. T-001 is code-verified but externally blocked by F-019; T-002 is in verification.
+No task is fully closed yet. T-001 is code-verified but externally blocked by F-019; T-002 has green preflight and awaits clean main integration.
 
 # 20. Iteration Log
 
@@ -290,7 +291,7 @@ F-017 replaced removed hybrid profile with canonical v8 assets. F-018 removed th
 Main run `33266648791` proves code-side Pages package PASS and repository Pages setup missing. No code workaround can honestly satisfy this with current token/tool permissions. T-001 marked BLOCKED only for external deployment closure; governance work continues.
 
 ## Iteration 2 — T-002 executable plan gate
-Added pure Node plan validator and Documentation integration. First run exposed Windows CRLF sensitivity; parser normalized. Negative self-tests were generalized to remain valid after task-status changes. Documentation PASS obtained; full CI and Node 24 reconciliation remain.
+Added pure Node plan validator and Documentation integration. First run exposed Windows CRLF sensitivity; parser normalized. A second self-test regression exposed an unscoped status mutation after T-001 changed to BLOCKED; mutation was constrained to Atomic Tasks. Documentation actions were upgraded from Node-20-backed v4 majors to current v7 majors with Node 24. Implementation head `98a187a48b175407d9ecd28751e637fcaee97b28`: Documentation `33267035550` PASS and full `ci` `33267035511` PASS. Result: PASS → plan reconciliation and clean main integration selected.
 
 # 21. Definition of Final Done
 
