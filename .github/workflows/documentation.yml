@@ -36,10 +36,13 @@ jobs:
   validate:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
+
+      - name: Validate living master plan
+        run: node .\scripts\validate-master-plan.mjs --self-test
 
       - name: Validate current command tree
         run: node .\scripts\validate-command-tree.mjs
