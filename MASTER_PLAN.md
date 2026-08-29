@@ -11,12 +11,12 @@
 - `Config : IJsonOnDeserialized` через `V8SecondaryAliasExpander` материализует `secondary_aliases` в compatibility projection: 500 projected rows / 439 semantic IDs.
 - IPC schema 4: HMAC authentication, replay guard, permission/context/source-process binding.
 - Boundaries: HotkeyStudio → Protocol/StateMachines → BridgeCore → CommandBridge/NXOpen; ControlCenter и NxEskd — отдельные surfaces.
-- Baseline `main`: `2359e85c02313f4c6227a5e9a38ef62e9b9c043f`; 5/5 push workflows тогда были red.
-- Primary preflight branch: `audit/living-master-plan-bootstrap-20260829`.
-- Clean T-001 baseline tree was fast-forwarded to `main` as `2b28da717d4325b767c240851d487ae7717a3cb0` after green preflight; four current-v8/core workflows are being reverified, but the main-only Pages workflow exposed F-017.
-- F-017 preflight branch: `audit/t001-pages-f017-20260829`, based exactly on `2b28da717...`.
-- Code-bearing Wave E head `709fa114e4fa03ab82f86caf02cd1bdc4a893491` полностью PASS в `ci`: validators, DFA/HFSM, HotkeyStudio, NxEskd 55+27 tests, HotkeyStudio/ControlCenter build+publish, NXOpen stubs, CommandBridge compile, adaptive invariants, deployment invariants и artifacts.
-- Documentation, Desktop UI и Runtime hardening также имеют полностью зелёные прогоны на том же логическом T-001 состоянии; текущая plan-only reconciliation должна быть повторно проверена перед интеграцией в `main`.
+- Original baseline `main`: `2359e85c02313f4c6227a5e9a38ef62e9b9c043f`; 5/5 push workflows были red.
+- Clean T-001 core tree был non-force fast-forwarded в `main` как `2b28da717d4325b767c240851d487ae7717a3cb0`; на нём `ci`, Documentation, Desktop UI и Runtime hardening полностью PASS.
+- Main-only Pages run `33265565463` выявил F-017: workflow всё ещё копировал удалённый `nx2512-pro-hybrid.json`.
+- F-017 preflight branch: `audit/t001-pages-f017-20260829`, основана ровно на `2b28da717...`.
+- F-017 implementation head `73a5fed49ef1eeb7880979ee24e7b5539dcbb2df` полностью PASS по full `ci`, включая validators, DFA/HFSM, HotkeyStudio, NxEskd 55+27, desktop build/publish, NXOpen stubs, CommandBridge compile, adaptive/deployment invariants и artifacts.
+- F-017 delta меняет только `.github/workflows/pages.yml` и этот living plan; runtime/test production code не меняется.
 - Live NX 2512 — отдельный внешний verification layer; stubs не считаются live-NX proof.
 
 # 3. Architecture Map
@@ -44,9 +44,9 @@ Ownership: Protocol = contracts/security/normalization; StateMachines = determin
 
 # 4. Baseline
 
-| Check | Original main | Current preflight evidence |
+| Check | Original main | Current evidence |
 |---|---|---|
-| Push workflows | 5/5 FAIL | preflight core/current-v8 PASS; main-only Pages exposed F-017 |
+| Push workflows | 5/5 FAIL | 4/5 PASS on `2b28da717...`; Pages F-017 fixed on green preflight |
 | Current Node validators | stale/masked | PASS |
 | Raw v8 identity | not explicit | PASS: 439/439 unique |
 | DFA/HFSM | FAIL missing policy | PASS |
@@ -57,12 +57,11 @@ Ownership: Protocol = contracts/security/normalization; StateMachines = determin
 | HotkeyStudio build/publish | blocked | PASS |
 | ControlCenter build/publish | blocked | PASS |
 | NXOpen stubs + CommandBridge compile | blocked | PASS |
-| Adaptive invariants | blocked | PASS after hook→executor ownership reconciliation |
+| Adaptive invariants | blocked | PASS |
 | Deployment invariants | not reached | PASS |
+| Pages static package | FAIL legacy hybrid path | F-017 preflight PASS; main proof pending |
 | Live NX | NOT RUN | external requirement |
 | Mutation / performance baselines | absent / unknown | T-007 / T-009 |
-
-Pre-existing failures remain separated from defects introduced by current work.
 
 # 5. System Invariants
 
@@ -84,99 +83,83 @@ Pre-existing failures remain separated from defects introduced by current work.
 
 # 6. Findings Registry
 
-## F-001 — Main has no trustworthy green baseline
-**Status:** Planned | **Severity:** Critical | **Category:** Reliability/CI | **Confidence:** Confirmed  
-Evidence: baseline `2359e85...` had 5/5 red push workflows. Root cause: incomplete v8 migration + stale automation. Impact: repository-wide delivery risk. Tasks: T-001. Direction: recover current-v8 baseline first.
+## F-001 — Main had no trustworthy green baseline
+**Status:** Addressed by T-001 | **Severity:** Critical | **Category:** Reliability/CI | **Confidence:** Confirmed  
+Original `2359e85...` had 5/5 red workflows. Core/current-v8 baseline is now green; final Pages proof remains before T-001 closure.
 
 ## F-002 — Active CI depended on removed K3–K5/full-command-map assets
-**Status:** Planned | **Severity:** High | **Category:** CI/Migration | **Confidence:** Confirmed  
-Evidence: obsolete workflows referenced absent legacy maps. Impact: permanent-red gates. Invariants: 1,2,15. Tasks: T-001,T-004. Direction: retire obsolete gates; never restore dual source-of-truth.
+**Status:** Addressed by T-001; cleanup continues in T-004 | **Severity:** High | **Category:** CI/Migration | **Confidence:** Confirmed  
+Obsolete active workflows were retired rather than restoring a second source of truth.
 
 ## F-003 — Independent state-machine policy was accidentally removed
-**Status:** Planned | **Severity:** High | **Category:** Correctness/Packaging | **Confidence:** Confirmed  
-Evidence: runtime/tests consume `nx2512-state-machines.json`, including `root_ms=4000`. Impact: fallback behavior/timing. Tasks: T-001. Direction: restore independent policy only.
+**Status:** Addressed by T-001 | **Severity:** High | **Category:** Correctness/Packaging | **Confidence:** Confirmed  
+`nx2512-state-machines.json` restored as an independent schema-1 behavior policy; it is not a legacy command map.
 
 ## F-004 — Runtime hardening checked transport result in wrong file
-**Status:** Planned | **Severity:** Medium | **Category:** Testing/Architecture | **Confidence:** Confirmed  
-Evidence: `NxTransportReadStatus` moved to its semantic owner. Impact: false-red hardening. Tasks: T-001,T-006. Direction: ownership-aware/executable test.
+**Status:** Addressed; structural replacement in T-006 | **Severity:** Medium | **Category:** Testing/Architecture | **Confidence:** Confirmed  
+Ownership-aware check restored; executable architecture guard remains T-006.
 
 ## F-005 — Selection validator assumed effect remained in `Program.cs`
-**Status:** Planned | **Severity:** Medium | **Category:** Testing/Architecture | **Confidence:** Confirmed  
-Evidence: dispatch lives in `Program.ProcessClaim`, effect in executor. Impact: false failure. Tasks: T-001,T-006. Direction: verify dispatch/effect boundaries separately.
+**Status:** Addressed; structural replacement in T-006 | **Severity:** Medium | **Category:** Testing/Architecture | **Confidence:** Confirmed  
+Dispatch/effect ownership now follows executor boundary.
 
 ## F-006 — Orphan `.claude` worktree gitlink
-**Status:** Planned | **Severity:** Medium | **Category:** Repository Integrity | **Confidence:** Confirmed  
-Evidence: mode 160000 without `.gitmodules`. Impact: checkout noise/failure. Task: T-001. Direction: delete gitlink, do not fabricate submodule metadata.
+**Status:** Addressed by T-001 | **Severity:** Medium | **Category:** Repository Integrity | **Confidence:** Confirmed  
+Mode-160000 orphan removed; no fake `.gitmodules` added.
 
 ## F-007 — Documentation still describes retired K3–K5 assets
 **Status:** Open | **Severity:** Medium | **Category:** Documentation/Migration | **Confidence:** Strong  
-Impact: mixed current/legacy onboarding. Tasks: T-004. Direction: evidence-based deletion/update after baseline recovery.
+Mixed legacy/current narrative remains T-004 cleanup scope.
 
 ## F-008 — Critical pure logic has no mutation baseline
 **Status:** Open | **Severity:** Medium | **Category:** Test-of-tests | **Confidence:** Strong  
-Impact: possible false confidence in auth/state/validation tests. Task: T-007. Direction: targeted Stryker.NET pilot.
+Targeted Stryker.NET baseline is T-007.
 
-## F-009 — `Sketch intent grammar` workflow is retired K3–K5 pipeline
-**Status:** Planned | **Severity:** High | **Category:** CI/Migration | **Confidence:** Confirmed  
-Impact: duplicate permanent-red gate. Tasks: T-001,T-004. Direction: retire while retaining v8 regression coverage.
+## F-009 — `Sketch intent grammar` workflow was retired K3–K5 pipeline
+**Status:** Addressed by T-001 | **Severity:** High | **Category:** CI/Migration | **Confidence:** Confirmed  
+Retired while current v8 sketch grammar coverage remains in active suites.
 
 ## F-010 — Signing assertion ignored `NxRequestSigningPolicy` extraction
-**Status:** Planned | **Severity:** Medium | **Category:** Testing/Architecture | **Confidence:** Confirmed  
-Evidence: facade delegates to signing policy. Tasks: T-001,T-006. Direction: assert facade/policy ownership independently.
+**Status:** Addressed; structural replacement in T-006 | **Severity:** Medium | **Category:** Testing/Architecture | **Confidence:** Confirmed  
+Facade and signing-policy ownership reconciled.
 
 ## F-011 — Capability-lock test and validator disagreed about optionality
-**Status:** Planned | **Severity:** Medium | **Category:** Testing/Contract | **Confidence:** Confirmed  
-Expected: raw v8 is truth; optional derived lock exact-matches if present. Tasks: T-001,T-006.
+**Status:** Addressed by T-001 | **Severity:** Medium | **Category:** Testing/Contract | **Confidence:** Confirmed  
+Raw v8 is truth; optional derived lock must exact-match if present.
 
 ## F-012 — Strict Protocol build exposed nullable contract mismatch
-**Status:** Planned | **Severity:** Medium | **Category:** Correctness/Static analysis | **Confidence:** Confirmed  
-Symbol: `NxContextNormalization.NormalizeV8Module`. Direction: behavior-preserving nullable annotation. Task: T-001.
+**Status:** Addressed by T-001 | **Severity:** Medium | **Category:** Correctness/Static analysis | **Confidence:** Confirmed  
+`NxContextNormalization.NormalizeV8Module` received behavior-preserving nullable contract correction.
 
 ## F-013 — Desktop UI gate hardcoded obsolete 10-row HUD contract
-**Status:** Planned | **Severity:** Medium | **Category:** Testing/UI Contract | **Confidence:** Confirmed  
-Evidence: production contract is `PrimarySuggestionLimit = 8`. Tasks: T-001,T-006. Direction: semantic/current public contract.
+**Status:** Addressed; stronger guard in T-006 | **Severity:** Medium | **Category:** Testing/UI Contract | **Confidence:** Confirmed  
+Current production contract `PrimarySuggestionLimit = 8` is reflected by active verification.
 
 ## F-014 — C# identity regression confused raw operations with alias projections
-**Status:** Planned | **Severity:** Medium | **Category:** Testing/Data Contract | **Confidence:** Confirmed  
-Evidence: raw = 439 unique; post-deserialization = 500 rows/439 semantic IDs. Tasks: T-001,T-006. Direction: raw uniqueness + projection fidelity, never delete valid aliases.
+**Status:** Addressed by T-001 | **Severity:** Medium | **Category:** Testing/Data Contract | **Confidence:** Confirmed  
+Raw = 439 unique IDs; projected runtime = 500 rows / 439 semantic IDs. Raw uniqueness and projection fidelity are now separate invariants.
 
 ## F-015 — Adaptive CI required exclusion for already-deleted `ConfigModels.cs`
-**Status:** Planned | **Severity:** Medium | **Category:** Testing/Migration | **Confidence:** Confirmed  
-Evidence: project builds/publishes while file is physically absent; old gate demanded literal `<Compile Remove>`. Tasks: T-001,T-004,T-006. Direction: fail if legacy file returns, not if stale exclusion disappears.
+**Status:** Addressed; stronger guard in T-006 | **Severity:** Medium | **Category:** Testing/Migration | **Confidence:** Confirmed  
+CI now fails if the legacy file returns rather than requiring dead `<Compile Remove>` scaffolding.
 
-## F-016 — Selection Intent CI checks executor semantics in keyboard-hook file
-**Status:** Planned | **Severity:** Medium | **Category:** Testing/Architecture | **Confidence:** Confirmed  
-**Evidence:** Wave D `ci` passes all executable suites/builds through CommandBridge compile, then searches `UG_SEL_CHAINING`, `UG_SC_INFERRED_CURVE_SELECTION`, `CreateRule*` and `RequestSelections` only in `SelectionIntentHotkeys.cs`; that file now maps physical keys and delegates to `NxSelectionExecutor.TryApplyIntent`, while `NxSelectionExecutor.cs` owns the NX menu IDs, ScRuleFactory fallbacks and selection updates.  
-**Current behavior:** valid hook→executor refactor is reported as missing Selection Intent runtime.  
-**Expected behavior:** CI verifies delegation in the hook and NX Selection Intent semantics in the executor owner.  
-**Root cause:** source-location assertion was not reconciled after extracting NX effects.  
-**Impact:** final adaptive gate red; deployment gate skipped.  
-**Blast radius:** main CI only; executable tests/builds are green.  
-**Reproduction:** `b7f461bb...`, `Validate adaptive state and protocol invariants`, missing `UG_SEL_CHAINING`.  
-**Affected invariants:** 1,10,13,14.  
-**Related findings:** F-004,F-005,F-010,F-015.  
-**Affected tasks:** T-001,T-006.  
-**Recommended direction:** retain a hook delegation assertion and move NX semantic-token ownership check to `NxSelectionExecutor`; later replace source-text smoke with executable architecture tests under T-006.
+## F-016 — Selection Intent CI checked executor semantics in keyboard-hook file
+**Status:** Addressed; stronger guard in T-006 | **Severity:** Medium | **Category:** Testing/Architecture | **Confidence:** Confirmed  
+Hook delegation and `NxSelectionExecutor` NX semantics are checked in their actual owners.
 
-## F-017 — Pages workflow still publishes removed hybrid profile
-**Status:** Planned | **Severity:** High | **Category:** CI/Documentation/Migration | **Confidence:** Confirmed  
-**Evidence:** main-only `Deploy NXKeys Command Map` passed `validate-command-tree.mjs` then failed `cp config/nx2512-pro-hybrid.json`; the file was intentionally removed by the v8 migration. `docs/command-tree.html` already loads `../config/nx2512-v8-profile.json`.  
-**Current behavior:** all core/current-v8 verification can pass while the public command-map deployment remains deterministically red on `main`.  
-**Expected behavior:** Pages packages `config/nx2512-v8-profile.json` plus the independent `config/nx2512-state-machines.json`, and the published HTML resolves those same paths.  
-**Root cause:** `.github/workflows/pages.yml` retained the pre-v8 hybrid profile filename in trigger paths, copy/test commands and grep assertions.  
-**Impact:** one of the original five push workflows remains red and Pages cannot deploy.  
-**Blast radius:** static documentation publication only; runtime semantics unaffected.  
-**Reproduction:** main `2b28da717...`, run `33265565463`, step `Prepare static website`: `cp: cannot stat 'config/nx2512-pro-hybrid.json'`.  
-**Affected invariants:** 1,2,13,15.  
-**Related findings:** F-002,F-007,F-009.  
-**Affected tasks:** T-001,T-004.  
-**Recommended direction:** replace all active Pages references to the removed hybrid source with canonical `nx2512-v8-profile.json`; keep state-machine policy separate; do not restore the hybrid file.
+## F-017 — Pages workflow still published removed hybrid profile
+**Status:** Preflight PASS; main verification pending | **Severity:** High | **Category:** CI/Documentation/Migration | **Confidence:** Confirmed  
+**Evidence:** main run `33265565463` failed only at `cp config/nx2512-pro-hybrid.json`; HTML already loaded `../config/nx2512-v8-profile.json`.  
+**Fix:** Pages trigger/copy/test/grep references were changed to canonical `nx2512-v8-profile.json`, keeping `nx2512-state-machines.json` separate.  
+**Verification:** full branch `ci` on `73a5fed49ef1eeb7880979ee24e7b5539dcbb2df` PASS.  
+**Remaining proof:** main-only Pages build/deploy after non-force integration.  
+**Affected tasks:** T-001,T-004.
 
 # 7. Risk Register
 
 | Risk | P | Impact | Mitigation |
 |---|---:|---:|---|
-| another stale late-stage gate appears | High | Medium | fail → finding → reconcile; no blind skip |
+| another main-only stale gate appears | Medium | Medium | fail → finding → reconcile; no blind skip |
 | alias projection broadens semantics | Medium | High | raw uniqueness + projection fidelity |
 | source-text CI drifts after refactor | High | Medium | T-006 executable architecture tests |
 | restored HFSM differs in live NX | Medium | High | explicit live-NX checklist |
@@ -185,7 +168,7 @@ Evidence: project builds/publishes while file is physically absent; old gate dem
 
 # 8. Pareto Improvements
 
-1. Finish green/fail-fast current-v8 baseline.
+1. Finish all-five-workflow green main baseline.
 2. Keep raw profile and runtime compatibility projection contracts separate.
 3. Make the living plan executable.
 4. Replace source-location checks with executable architecture contracts.
@@ -216,12 +199,12 @@ T-003 + T-005 + T-008 ─ T-009 measured hardening ─ T-010 convergence audit
 
 ## T-001 — Reconcile v8 migration fallout and restore trustworthy baseline
 **Status:** VERIFYING | **Priority:** P0 | **Type:** FIX | **Leverage:** HIGH  
-**Problem:** core/current-v8 preflight is green and was cleanly fast-forwarded to `main`, but the main-only Pages workflow exposed F-017, so the original 5-workflow baseline is not yet fully recovered.  
-**Goal:** all applicable current-v8 Actions green without semantic weakening or legacy resurrection.  
-**Scope:** HFSM policy/package, obsolete workflows, validators, source-boundary checks, orphan gitlink, raw/projection contracts, nullable fix, HUD check, F-015/F-016 ownership reconciliation, F-017 Pages v8 publication, plan.  
+**Problem:** four core/current-v8 workflows are green on `main`; F-017 Pages fix is green in preflight but Pages is main-only.  
+**Goal:** all five applicable main workflows green without semantic weakening or legacy resurrection.  
+**Scope:** HFSM policy/package, obsolete workflows, validators, ownership checks, orphan gitlink, raw/projection contracts, nullable fix, HUD check, F-015/F-016 reconciliation, F-017 Pages v8 publication, plan.  
 **Non-goals:** new features/UX, schema bump, broad refactor, alias deletion, mutation threshold, live-NX redesign.  
-**Implementation:** preserve verified `2b28da717...`; on `audit/t001-pages-f017-20260829`, replace stale Pages hybrid-profile references with canonical v8 profile references, verify branch CI/docs and static-path contract, then fast-forward the resulting minimal commit to current `main` with no force. Re-run all five main workflows; close T-001 only when all applicable workflows pass.  
-**Acceptance:** all current workflows PASS on one tree; deployment executes; raw 439 IDs unique; alias projection fidelity PASS; no diagnostic artifacts; clean checkout; main rechecked before push.  
+**Implementation:** verify this post-F-017 plan-only tree; recheck current `main`; create one clean commit whose parent is current main and whose tree equals verified F-017 branch tree; `force=false`; then verify all workflows on the new main SHA.  
+**Acceptance:** all five current workflows PASS on one main tree; Pages build/deploy succeeds; raw 439 IDs unique; alias projection fidelity PASS; no diagnostic artifacts; clean checkout.  
 **Dependencies:** none. **Blocks:** T-002..T-010. **Risk:** Medium. **Rollback:** normal revert only.
 
 ## T-002 — Enforce MASTER_PLAN structure as executable gate
@@ -290,18 +273,18 @@ Preserve HMAC, replay guard, permissions, context/source-process binding and bou
 
 # 18. Rejected Decisions
 
-- Restore K3–K5/full-command-map to green CI — rejected: dual source of truth.
+- Restore K3–K5/full-command-map/hybrid profile to green CI — rejected: dual source of truth.
 - Skip failing validators — rejected.
 - Add fake capability lock — rejected.
 - Delete secondary aliases/edit raw IDs to satisfy projected uniqueness — rejected.
 - Re-add dummy `Compile Remove` for deleted `ConfigModels.cs` — rejected.
-- Put NX Selection Intent literals back into keyboard hook merely to satisfy CI — rejected: violates ownership.
+- Put NX Selection Intent literals back into keyboard hook merely to satisfy CI — rejected.
 - Force/force-with-lease `main` — rejected.
 - Treat NXOpen stubs as live NX proof — rejected.
 
 # 19. Completed Tasks
 
-None. `T-001` remains VERIFYING until a completely green preflight is reconciled, one equivalent logical commit is non-force pushed onto current `main`, and main verification succeeds.
+None. `T-001` remains VERIFYING until the F-017 fix is non-force integrated and all five workflows pass on one `main` SHA.
 
 # 20. Iteration Log
 
@@ -312,19 +295,19 @@ T-001; addressed F-001..F-006; discovered F-009..F-012. Restored HFSM policy/pac
 T-001; addressed F-009..F-012; discovered F-013,F-014. Reconciled signing ownership, capability validator, nullable contract and retired Sketch legacy gate. `a5f9a718...`: strict Protocol/BridgeCore + DFA PASS; identity/Desktop stale checks exposed. Result: FAIL → reconciled.
 
 ## Iteration 1 — Wave C
-T-001; addressed F-013,F-014; discovered F-015. Added raw uniqueness + projection-fidelity regression, HUD contract fix, removed diagnostics. `d08b8b25...`: Documentation/Desktop UI/Runtime hardening PASS; `ci` reached obsolete ConfigModels assertion after all executable checks. Result: FAIL → Wave D.
+T-001; addressed F-013,F-014; discovered F-015. Added raw uniqueness + projection-fidelity regression, HUD contract fix, removed diagnostics. `d08b8b25...`: Documentation/Desktop UI/Runtime hardening PASS; `ci` reached obsolete ConfigModels assertion. Result: FAIL → Wave D.
 
 ## Iteration 1 — Wave D
-T-001; addressed F-015; discovered F-016. Replaced dummy csproj-exclusion requirement with fail-if-legacy-file-exists. `b7f461bb...`: validators, DFA/HFSM, HotkeyStudio, NxEskd 55+27, HotkeyStudio/ControlCenter build+publish, NXOpen stubs and CommandBridge compile PASS; adaptive gate then failed because Selection Intent NX semantics were searched in keyboard-hook owner. Result: FAIL → reconciled; Wave E selected.
+T-001; addressed F-015; discovered F-016. `b7f461bb...`: all executable stages through CommandBridge PASS; stale Selection Intent owner check failed. Result: FAIL → reconciled.
 
 ## Iteration 1 — Wave E
-T-001; addressed F-016. `SelectionIntentHotkeys` delegation and `NxSelectionExecutor` semantic ownership are checked separately; production runtime unchanged. `709fa114e4fa03ab82f86caf02cd1bdc4a893491`: full `ci` PASS, including adaptive and deployment invariants plus artifacts. Result: PASS → plan reconciliation and clean main integration selected.
+T-001; addressed F-016. `709fa114e4fa03ab82f86caf02cd1bdc4a893491`: full `ci` PASS including adaptive/deployment/artifacts. Result: PASS.
 
-## Iteration 1 — Pre-main reconciliation
-T-001; no new finding. This commit changes only `MASTER_PLAN.md` to record the verified Wave E evidence. It must pass current Documentation/CI before its tree is used for the clean one-commit fast-forward onto `main`. Result: VERIFYING.
+## Iteration 1 — Clean main integration
+Verified tree was condensed to one commit `2b28da717d4325b767c240851d487ae7717a3cb0` with parent `2359e85...`, then non-force fast-forwarded. On that main SHA `ci`, Documentation, Desktop UI and Runtime hardening PASS; Pages exposed F-017. Result: 4/5 PASS → F-017 branch.
 
-## Iteration 1 — Main integration / F-017
-T-001; clean verified tree was fast-forwarded to `main` as `2b28da717d4325b767c240851d487ae7717a3cb0` with parent `2359e85...` and no audit-history merge. Main-only Pages run `33265565463` then exposed F-017: static publication still referenced removed `nx2512-pro-hybrid.json`. No runtime regression was observed; new branch `audit/t001-pages-f017-20260829` created from current main. Result: FAIL → reconciled; F-017 fix selected.
+## Iteration 1 — F-017 Pages preflight
+T-001; changed Pages trigger/copy/test/grep from removed `nx2512-pro-hybrid.json` to canonical `nx2512-v8-profile.json`, preserving independent state-machine policy. Full `ci` on `73a5fed49ef1eeb7880979ee24e7b5539dcbb2df` PASS. Production/runtime code unchanged. Result: PASS → post-verification plan reconciliation and clean main integration selected.
 
 # 21. Definition of Final Done
 
