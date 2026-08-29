@@ -9,6 +9,7 @@ on:
       - 'NX2512_HotkeyStudio/Program.cs'
       - 'NX2512_HotkeyStudio/Services/LeaderKeyEngine.cs'
       - 'NX2512_HotkeyStudio/Services/NxCommandBridgeClient.cs'
+      - 'NX2512_HotkeyStudio/Services/NxRequestSigningPolicy.cs'
       - 'NX2512_HotkeyStudio/Services/NxRuntimeService.cs'
       - 'NX2512_HotkeyStudio/Services/NxTransportReadResult.cs'
       - 'NX2512_CommandBridge/**'
@@ -24,6 +25,7 @@ on:
       - 'NX2512_HotkeyStudio/Program.cs'
       - 'NX2512_HotkeyStudio/Services/LeaderKeyEngine.cs'
       - 'NX2512_HotkeyStudio/Services/NxCommandBridgeClient.cs'
+      - 'NX2512_HotkeyStudio/Services/NxRequestSigningPolicy.cs'
       - 'NX2512_HotkeyStudio/Services/NxRuntimeService.cs'
       - 'NX2512_HotkeyStudio/Services/NxTransportReadResult.cs'
       - 'NX2512_CommandBridge/**'
@@ -52,6 +54,7 @@ jobs:
           $inbox = Get-Content .\NXKeys.BridgeCore\BridgeRequestInbox.cs -Raw
           $config = Get-Content .\NX2512_HotkeyStudio\Models\ConfigRuntimeV5.cs -Raw
           $client = Get-Content .\NX2512_HotkeyStudio\Services\NxCommandBridgeClient.cs -Raw
+          $signingPolicy = Get-Content .\NX2512_HotkeyStudio\Services\NxRequestSigningPolicy.cs -Raw
           $transportReadResult = Get-Content .\NX2512_HotkeyStudio\Services\NxTransportReadResult.cs -Raw
           $runtime = Get-Content .\NX2512_HotkeyStudio\Services\NxRuntimeService.cs -Raw
           $leader = Get-Content .\NX2512_HotkeyStudio\Services\LeaderKeyEngine.cs -Raw
@@ -102,11 +105,21 @@ jobs:
           foreach ($required in @(
             'ReadContextDetailed',
             'ReadResultDetailed',
-            'PrepareAuthenticatedRequest',
-            'NxRequestAuthenticator.Sign'
+            'policy.PrepareAuthenticated',
+            'transport.WriteRequest'
           )) {
             if ($client -notmatch [regex]::Escape($required)) {
-              throw "Missing client transport invariant: $required"
+              throw "Missing client orchestration invariant: $required"
+            }
+          }
+          foreach ($required in @(
+            'PrepareAuthenticated',
+            'NxBridgeSecurityEnvironment.TryRead',
+            'NxBridgePermissionSet.FromProfileFile',
+            'NxRequestAuthenticator.Sign'
+          )) {
+            if ($signingPolicy -notmatch [regex]::Escape($required)) {
+              throw "Missing signing-policy invariant: $required"
             }
           }
           foreach ($required in @('NxTransportReadStatus', 'NxTransportReadResult', 'IsSuccess')) {

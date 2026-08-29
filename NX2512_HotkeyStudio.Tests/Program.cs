@@ -110,9 +110,11 @@ internal static class Program
         Config embedded = Config.LoadEmbedded();
         Assert(embedded != null && embedded.Operations.Count > 0, "Embedded canonical v8 profile must be available.");
 
-        // 3. Capability lock file exists and matches
-        string lockFile = FindRepositoryFile(Path.Combine("config", "nx2512-capability-route-lock.json"));
-        Assert(File.Exists(lockFile), "Capability-and-route lock file must exist.");
+        // 3. The canonical v8 profile is the capability/route source of truth.
+        Assert(embedded.Operations.All(op => !string.IsNullOrWhiteSpace(op.OperationID)),
+            "Every canonical v8 operation must have a stable operation_id.");
+        Assert(embedded.Operations.Select(op => op.OperationID).Distinct(StringComparer.OrdinalIgnoreCase).Count() == embedded.Operations.Count,
+            "Canonical v8 operation_id values must be unique.");
 
         // 4. Destructive policies in permissions
         string profilePath = FindRepositoryProfileFile();

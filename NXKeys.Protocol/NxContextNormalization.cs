@@ -18,7 +18,7 @@ namespace NXKeys.Protocol
 
             // v8-translated modules carry a "v8_" prefix; resolve them to the
             // canonical NX module name so context validation passes.
-            string v8Resolved = NormalizeV8Module(value);
+            string? v8Resolved = NormalizeV8Module(value);
             if (v8Resolved != null) return v8Resolved;
 
             switch (value)
@@ -45,7 +45,7 @@ namespace NXKeys.Protocol
             return normalized == "selection_object" || normalized == "inspect_view" || normalized == "reuse";
         }
 
-        private static string NormalizeV8Module(string moduleId)
+        private static string? NormalizeV8Module(string moduleId)
         {
             string id = (moduleId ?? string.Empty).Trim().ToLowerInvariant();
             if (!id.StartsWith("v8_", StringComparison.Ordinal)) return null;
