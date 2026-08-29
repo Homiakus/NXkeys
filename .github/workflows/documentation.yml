@@ -41,6 +41,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Validate living master plan
+        run: node .\scripts\validate-master-plan.mjs --self-test
+
       - name: Validate current command tree
         run: node .\scripts\validate-command-tree.mjs
 
