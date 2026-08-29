@@ -185,16 +185,11 @@ function runSelfTests(inputText) {
     'heading:# 7. Risk Register',
   );
 
-  const duplicateFinding = duplicateSecondId(
-    sectionBody(validText, '# 6. Findings Registry', '# 7. Risk Register'),
-    'F',
-  );
+  const findings = sectionBody(validText, '# 6. Findings Registry', '# 7. Risk Register');
+  const duplicateFinding = duplicateSecondId(findings, 'F');
   requireFailure(
     'duplicate-finding-id',
-    validText.replace(
-      sectionBody(validText, '# 6. Findings Registry', '# 7. Risk Register'),
-      duplicateFinding.mutated,
-    ),
+    validText.replace(findings, duplicateFinding.mutated),
     `finding-id:duplicate:${duplicateFinding.first}`,
   );
 
@@ -208,9 +203,10 @@ function runSelfTests(inputText) {
 
   const taskStatusMatch = tasks.match(/\*\*Status:\*\*\s*([A-Z_]+)/);
   if (!taskStatusMatch) throw new Error('self-test:need-task-status');
+  const invalidTasks = tasks.replace(taskStatusMatch[0], '**Status:** UNKNOWN');
   requireFailure(
     'invalid-task-status',
-    validText.replace(taskStatusMatch[0], '**Status:** UNKNOWN'),
+    validText.replace(tasks, invalidTasks),
     'invalid-status:UNKNOWN',
   );
 
