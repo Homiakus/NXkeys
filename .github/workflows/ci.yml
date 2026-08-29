@@ -163,7 +163,8 @@ jobs:
           $machine = Get-Content .\NXKeys.StateMachines\LeaderStateMachines.cs -Raw
           $protocol = Get-Content .\NXKeys.Protocol\NxProtocol.cs -Raw
           $bridge = Get-Content .\NX2512_CommandBridge\Program.cs -Raw
-          $selectionIntent = Get-Content .\NX2512_CommandBridge\SelectionIntentHotkeys.cs -Raw
+          $selectionHotkeys = Get-Content .\NX2512_CommandBridge\SelectionIntentHotkeys.cs -Raw
+          $selectionExecutor = Get-Content .\NX2512_CommandBridge\NxSelectionExecutor.cs -Raw
           $v8Profile = Get-Content .\config\nx2512-v8-profile.json -Raw
           $statePolicy = Get-Content .\config\nx2512-state-machines.json -Raw
 
@@ -187,8 +188,11 @@ jobs:
           foreach ($required in @('ProcessingDirectory','RecoverInterruptedRequests','ValidateExpectedContext','interrupted_unknown')) {
             if ($bridge -notmatch $required) { throw "Bridge reliability element is missing: $required" }
           }
+          foreach ($required in @('MapVkToIntent','NxSelectionExecutor.TryApplyIntent(intent)')) {
+            if ($selectionHotkeys -notmatch [regex]::Escape($required)) { throw "Selection Intent hook delegation is missing: $required" }
+          }
           foreach ($required in @('UG_SEL_CHAINING','UG_SC_INFERRED_CURVE_SELECTION','CreateRuleCurveTangent','CreateRuleEdgeTangent','CreateRuleFaceTangent','RequestSelections')) {
-            if ($selectionIntent -notmatch [regex]::Escape($required)) { throw "Selection Intent runtime element is missing: $required" }
+            if ($selectionExecutor -notmatch [regex]::Escape($required)) { throw "Selection Intent executor element is missing: $required" }
           }
           if ($v8Profile -notmatch '"schema_version"\s*:\s*8') { throw 'Canonical v8 profile must use schema version 8.' }
           if ($statePolicy -notmatch '"schema_version"\s*:\s*1') { throw 'State-machine policy must use schema version 1.' }
