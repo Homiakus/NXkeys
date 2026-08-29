@@ -14,8 +14,10 @@
 - Original baseline `main`: `2359e85c02313f4c6227a5e9a38ef62e9b9c043f`; 5/5 push workflows были red.
 - Clean core/current-v8 baseline был non-force fast-forwarded в `main` как `2b28da717d4325b767c240851d487ae7717a3cb0`; на нём `ci`, Documentation, Desktop UI и Runtime hardening полностью PASS.
 - F-017 исправил stale Pages path `nx2512-pro-hybrid.json` → canonical `nx2512-v8-profile.json`; full branch `ci` PASS, затем fix был non-force интегрирован в `main` как `6e1882bd8f6b61d0f67d194f96df55c245ee700f`.
-- Main Pages run `33265975692` подтвердил, что v8/profile copy теперь проходит, но выявил F-018: workflow требует `grep` ссылки на `nx2512-state-machines.json` из `command-tree.html`, хотя HTML этот runtime policy не потребляет.
+- Main Pages run `33265975692` подтвердил, что v8/profile copy проходит, но выявил F-018: false HTML dependency assertion для независимого `nx2512-state-machines.json`.
 - F-018 preflight branch: `audit/t001-pages-f018-20260829`, основана ровно на `6e1882bd8...`.
+- F-018 implementation head `80ba07548c4400d9d75add068611d2390b86794d` полностью PASS по full `ci`: validators, DFA/HFSM, HotkeyStudio, NxEskd 55+27, desktop build/publish, NXOpen stubs, CommandBridge compile, adaptive/deployment invariants и artifacts.
+- F-018 delta сохраняет state-policy copy + `test -s`, сохраняет HTML check canonical v8 profile и удаляет только ложный state-policy HTML grep; runtime semantics не меняются.
 - Live NX 2512 — отдельный внешний verification layer; stubs не считаются live-NX proof.
 
 # 3. Architecture Map
@@ -45,7 +47,7 @@ Pages ownership: `docs/command-tree.html` consumes canonical v8 command-map data
 
 | Check | Original main | Current evidence |
 |---|---|---|
-| Push workflows | 5/5 FAIL | core 4/5 PASS; Pages narrowed to F-018 |
+| Push workflows | 5/5 FAIL | core 4/5 PASS; Pages F-018 fix preflight PASS |
 | Current Node validators | stale/masked | PASS |
 | Raw v8 identity | not explicit | PASS: 439/439 unique |
 | DFA/HFSM | FAIL missing policy | PASS |
@@ -56,7 +58,7 @@ Pages ownership: `docs/command-tree.html` consumes canonical v8 command-map data
 | NXOpen stubs + CommandBridge compile | blocked | PASS |
 | Adaptive / deployment invariants | blocked | PASS |
 | Pages profile copy | FAIL legacy hybrid path | PASS after F-017 |
-| Pages HTML dependency check | not reached | FAIL F-018 false state-policy link assumption |
+| Pages HTML dependency contract | FAIL false state-policy grep | F-018 implementation/full CI PASS; main Pages proof pending |
 | Live NX | NOT RUN | external requirement |
 | Mutation / performance baselines | absent / unknown | T-007 / T-009 |
 
@@ -86,8 +88,7 @@ Pages ownership: `docs/command-tree.html` consumes canonical v8 command-map data
 Original `2359e85...` had 5/5 red workflows. Core/current-v8 baseline is green; final Pages proof remains before T-001 closure.
 
 ## F-002 — Active CI depended on removed K3–K5/full-command-map assets
-**Status:** Addressed by T-001; cleanup continues in T-004 | **Severity:** High | **Category:** CI/Migration | **Confidence:** Confirmed  
-Obsolete active workflows retired rather than restoring a second source of truth.
+**Status:** Addressed by T-001; cleanup continues in T-004 | **Severity:** High | **Category:** CI/Migration | **Confidence:** Confirmed
 
 ## F-003 — Independent state-machine policy was accidentally removed
 **Status:** Addressed by T-001 | **Severity:** High | **Category:** Correctness/Packaging | **Confidence:** Confirmed  
@@ -137,20 +138,15 @@ Raw = 439 unique IDs; projected runtime = 500 rows / 439 semantic IDs.
 
 ## F-017 — Pages workflow still published removed hybrid profile
 **Status:** Addressed; main advanced past failing copy | **Severity:** High | **Category:** CI/Documentation/Migration | **Confidence:** Confirmed  
-Main `6e1882bd...` copies canonical `nx2512-v8-profile.json` successfully. No hybrid profile was restored.
+Main `6e1882bd...` copies canonical `nx2512-v8-profile.json` successfully. No hybrid profile restored.
 
-## F-018 — Pages requires HTML reference to independent state-machine policy
-**Status:** Planned | **Severity:** Medium | **Category:** CI/Documentation Contract | **Confidence:** Confirmed  
-**Evidence:** main run `33265975692` passes `validate-command-tree.mjs`, copies `command-tree.html`, `nx2512-v8-profile.json` and `nx2512-state-machines.json`, then exits 1 after the two grep checks. Repository HTML contains the v8-profile fetch but no `nx2512-state-machines.json` reference.  
-**Current behavior:** a co-published independent runtime policy is incorrectly treated as a browser-page dependency.  
-**Expected behavior:** workflow verifies state-policy artifact existence (`test -s`) but only greps the canonical v8 profile reference actually consumed by HTML.  
-**Root cause:** F-017 fix preserved an older assumption that both packaged JSON files must be referenced by the static page.  
-**Impact:** Pages build remains red although all required files are successfully copied.  
-**Blast radius:** static documentation publication only; runtime semantics unaffected.  
-**Affected invariants:** 1,6,13,14,16.  
-**Related findings:** F-003,F-007,F-017.  
-**Affected tasks:** T-001,T-004,T-006.  
-**Recommended direction:** keep `test -s _site/config/nx2512-state-machines.json`; remove only the false HTML grep. Do not add a fake HTML fetch merely to satisfy CI.
+## F-018 — Pages required HTML reference to independent state-machine policy
+**Status:** Preflight PASS; main verification pending | **Severity:** Medium | **Category:** CI/Documentation Contract | **Confidence:** Confirmed  
+**Evidence:** main run `33265975692` passes validator and copies all required files, then exits 1 at the HTML grep contract; `command-tree.html` contains the v8-profile fetch but no state-policy reference.  
+**Fix:** retain `cp` and `test -s` for `nx2512-state-machines.json`; remove only the false HTML grep.  
+**Verification:** full branch `ci` on `80ba07548c4400d9d75add068611d2390b86794d` PASS.  
+**Remaining proof:** main-only Pages build/deploy after clean non-force integration.  
+**Affected tasks:** T-001,T-004,T-006.
 
 # 7. Risk Register
 
@@ -165,7 +161,7 @@ Main `6e1882bd...` copies canonical `nx2512-v8-profile.json` successfully. No hy
 
 # 8. Pareto Improvements
 
-1. Finish all-five-workflow green main baseline.
+1. Finish green Pages proof on main.
 2. Keep raw profile and runtime compatibility projection contracts separate.
 3. Make the living plan executable.
 4. Replace source-location checks with executable architecture contracts.
@@ -196,11 +192,11 @@ T-003 + T-005 + T-008 ─ T-009 measured hardening ─ T-010 convergence audit
 
 ## T-001 — Reconcile v8 migration fallout and restore trustworthy baseline
 **Status:** VERIFYING | **Priority:** P0 | **Type:** FIX | **Leverage:** HIGH  
-**Problem:** four core/current-v8 workflows are green; Pages is narrowed to F-018 after F-017 moved packaging to canonical v8 assets.  
+**Problem:** core/current-v8 baseline is green; Pages is narrowed to F-018, whose implementation is now full-CI green in preflight but main-only build/deploy proof remains.  
 **Goal:** all applicable main workflows green without semantic weakening or legacy resurrection.  
 **Scope:** HFSM policy/package, obsolete workflows, validators, ownership checks, orphan gitlink, raw/projection contracts, nullable fix, HUD check, F-015/F-016 reconciliation, F-017/F-018 Pages publication, plan.  
 **Non-goals:** new features/UX, schema bump, broad refactor, alias deletion, mutation threshold, live-NX redesign.  
-**Implementation:** on `audit/t001-pages-f018-20260829`, remove only the false state-policy HTML grep while preserving file copy/existence test and canonical v8 HTML check; full preflight; reconciliation; recheck main; clean non-force integration; main Pages build/deploy verification plus applicable CI/docs.  
+**Implementation:** verify this reconciliation tree; recheck current main; create one clean commit with parent=current main and tree=verified F-018 state; `force=false`; verify Pages build+deploy and applicable `ci`/Documentation on the resulting main SHA.  
 **Acceptance:** Pages build/deploy PASS on main; all applicable current workflows green; raw 439 IDs unique; alias projection fidelity PASS; no diagnostic artifacts; clean checkout.  
 **Dependencies:** none. **Blocks:** T-002..T-010. **Risk:** Medium. **Rollback:** normal revert only.
 
@@ -287,28 +283,28 @@ None. `T-001` remains VERIFYING until Pages is proven green on main together wit
 # 20. Iteration Log
 
 ## Iteration 1 — Wave A
-T-001; addressed F-001..F-006; discovered F-009..F-012. Restored HFSM policy/package, current-v8 fail-fast CI, retired obsolete workflows, corrected executor/transport checks, removed orphan gitlink. Result: FAIL → reconciled.
+T-001; restored HFSM policy/package, current-v8 fail-fast CI, retired obsolete workflows, corrected executor/transport checks, removed orphan gitlink. Result: FAIL → deeper findings reconciled.
 
 ## Iteration 1 — Wave B
-T-001; addressed F-009..F-012; discovered F-013,F-014. Reconciled signing ownership, capability validator, nullable contract and retired Sketch legacy gate. Result: FAIL → reconciled.
+T-001; signing/capability/nullable/legacy workflow reconciliation. Result: FAIL → F-013/F-014 reconciled.
 
 ## Iteration 1 — Wave C
-T-001; addressed F-013,F-014; discovered F-015. Raw uniqueness/projection fidelity + HUD contract fixed. Result: FAIL on deeper stale gate → reconciled.
+T-001; raw uniqueness/projection fidelity + HUD contract. Result: FAIL → F-015 reconciled.
 
 ## Iteration 1 — Wave D
-T-001; addressed F-015; discovered F-016. Result: all executable stages through CommandBridge PASS; stale Selection Intent owner check failed → reconciled.
+T-001; removed dead ConfigModels exclusion assumption. Result: FAIL → F-016 reconciled.
 
 ## Iteration 1 — Wave E
-T-001; addressed F-016. `709fa114...`: full `ci` PASS including adaptive/deployment/artifacts. Result: PASS.
+T-001; Selection Intent ownership reconciliation. `709fa114...`: full `ci` PASS including adaptive/deployment/artifacts. Result: PASS.
 
-## Iteration 1 — Clean main integration
+## Iteration 1 — Clean core main integration
 Verified core tree condensed to `2b28da717...`; main `ci`, Documentation, Desktop UI and Runtime hardening PASS; Pages exposed F-017. Result: 4/5 PASS.
 
 ## Iteration 1 — F-017 Pages path migration
-Changed removed hybrid path to canonical v8. Full branch `ci` PASS; clean main commit `6e1882bd...` advanced Pages past all copy/existence checks but exposed F-018 false HTML dependency assertion. Result: FAIL → reconciled.
+Removed hybrid path dependency. Full branch `ci` PASS; main `6e1882bd...` advanced Pages past copy checks and exposed F-018. Result: FAIL → reconciled.
 
 ## Iteration 1 — F-018 Pages dependency contract
-Selected minimal change: retain state-policy copy + `test -s`, retain v8 HTML grep, remove only state-policy HTML grep. Production/runtime semantics unchanged. Result: IMPLEMENTATION PENDING.
+Retained state-policy packaging/existence check and removed only false HTML grep. Full branch `ci` on `80ba07548c4400d9d75add068611d2390b86794d` PASS. Production/runtime semantics unchanged. Result: PASS → plan reconciliation and clean main integration selected.
 
 # 21. Definition of Final Done
 
