@@ -15,9 +15,9 @@
 - Clean current-v8 core baseline entered `main` as `2b28da717d4325b767c240851d487ae7717a3cb0`; `ci`, Documentation, Desktop UI и Runtime hardening PASS.
 - F-017 Pages path fix entered `main` as `6e1882bd8f6b61d0f67d194f96df55c245ee700f`.
 - F-018 Pages dependency-contract fix entered `main` as `8425ec3739e68782dc204e94337bb5f0f6915048`.
-- On `8425ec373...`: full `ci` run `33266648847` PASS; Documentation run `33266648784` PASS; Pages run `33266648791` passes validator + static website preparation, then fails only at `actions/configure-pages@v6` because repository Pages is not enabled/configured for GitHub Actions.
-- T-002 entered `main` cleanly as `cf7ac6e1bfb999f81f8372f6dcff3de066e31f33`; post-push Documentation `33267289638` PASS and full `ci` `33267289639` PASS. The living-plan contract is now enforced by `scripts/validate-master-plan.mjs` using `checkout@v7`, `setup-node@v7` and Node 24.
-- T-003 is the next selected governance task.
+- On `8425ec373...`: Pages run `33266648791` passes validator + static website preparation, then fails only at `actions/configure-pages@v6` because repository Pages is not enabled/configured for GitHub Actions.
+- T-002 is formally closed on `main` `efc5836fac6f7228ecee01d312d805523b596fca`, tree `01c3a3d5e44dfbc9c60ccd00cc3558d38b087260`; post-push Documentation `33267519645` PASS and full `ci` `33267519676` PASS.
+- T-003 preflight branch: `audit/t003-verified-baseline-20260829`; selected design is a deterministic historical snapshot whose evidence entries carry their own `subject_commit_sha`, evidence kind and environment class rather than pretending every workflow ran on the latest SHA.
 - Live NX 2512 remains an external verification layer; NXOpen stubs are compile-contract evidence only.
 
 # 3. Architecture Map
@@ -39,24 +39,24 @@ NX2512_CommandBridge
 NXOpen / NX UI / NxEskd capabilities
 ```
 
-Pages ownership: `docs/command-tree.html` consumes canonical v8 command-map data. `nx2512-state-machines.json` may be co-published but is not an HTML dependency unless the page explicitly consumes it.
+Verification ownership: `MASTER_PLAN.md` describes intent/state; `verification/baseline.json` records immutable evidence snapshots; validators enforce structure but do not invent freshness or live-NX claims.
 
 # 4. Baseline
 
 | Check | Original main | Current evidence |
 |---|---|---|
-| Core/current-v8 CI | red/blocked | PASS on `cf7ac6e1...` |
-| Documentation | red/blocked | PASS on `cf7ac6e1...` with executable plan gate |
-| Desktop UI | red | PASS on verified current-v8 tree |
-| Runtime hardening | red | PASS on verified current-v8 tree |
+| Core/current-v8 CI | red/blocked | PASS on `efc5836f...`, run `33267519676` |
+| Documentation | red/blocked | PASS on `efc5836f...`, run `33267519645` |
+| Desktop UI | red | PASS on verified ancestor `2b28da717...`, run `33265565482` |
+| Runtime hardening | red | PASS on verified ancestor `2b28da717...`, run `33265565481` |
 | Raw v8 identity | not explicit | PASS: 439/439 unique |
 | Alias projection fidelity | conflated | PASS: 500 rows / 439 semantic IDs |
 | DFA/HFSM | missing policy | PASS |
 | NxEskd Core / Configurator | blocked | PASS 55/55 + 27/27 |
 | Desktop build/publish | blocked | PASS |
-| NXOpen stubs + CommandBridge compile | blocked | PASS |
-| Adaptive/deployment invariants | blocked | PASS |
-| Pages static package | red legacy assertions | PASS on `8425ec373...` |
+| NXOpen stubs + CommandBridge compile | blocked | PASS in current full `ci` |
+| Adaptive/deployment invariants | blocked | PASS in current full `ci` |
+| Pages static package | red legacy assertions | PASS step on `8425ec373...`, run `33266648791` |
 | Pages configure/deploy | not reached | BLOCKED_EXTERNAL: F-019 |
 | Live NX | NOT RUN | external requirement |
 | Mutation/performance baselines | absent | T-007 / T-009 |
@@ -81,6 +81,7 @@ Pages ownership: `docs/command-tree.html` consumes canonical v8 command-map data
 16. Pages asserts HTML dependencies only for files actually consumed by the page.
 17. External infrastructure blockers remain explicit; they are never converted to `continue-on-error`, skipped gates or fake PASS states.
 18. Living-plan structure and controlled vocabularies are executable CI contracts, including negative self-tests.
+19. Machine-readable verification records are immutable historical snapshots: every evidence item identifies its subject commit and proof class; no manifest may imply live-NX or same-SHA verification that did not occur.
 
 # 6. Findings Registry
 
@@ -148,17 +149,17 @@ Pages ownership: `docs/command-tree.html` consumes canonical v8 command-map data
 
 ## F-020 — Documentation gate pinned deprecated Node-backed actions
 **Status:** Addressed by T-002 | **Severity:** Low | **Category:** CI/Maintenance | **Confidence:** Confirmed
-**Evidence:** Windows runner warned that `checkout@v4`/`setup-node@v4` targeted deprecated Node 20. T-002 moved the workflow to `checkout@v7`, `setup-node@v7` and Node 24; main Documentation run `33267289638` PASS.
+**Evidence:** T-002 moved Documentation to `checkout@v7`, `setup-node@v7` and Node 24; post-closure main run `33267519645` PASS.
 
 # 7. Risk Register
 
 | Risk | P | Impact | Mitigation |
 |---|---:|---:|---|
 | Pages remains unavailable until one-time repo setting | High | Medium | F-019 explicit external unblock; no masking |
+| evidence snapshot accidentally overclaims freshness | Medium | High | per-evidence subject SHA/kind/scope + strict validator |
 | source-text CI drifts after refactor | High | Medium | T-006 executable architecture tests |
 | alias projection broadens semantics | Medium | High | raw uniqueness + projection fidelity |
-| restored HFSM differs in live NX | Medium | High | live-NX checklist |
-| NXOpen stubs differ from NX 2512 | Medium | High | never treat stubs as live proof |
+| NXOpen stubs differ from NX 2512 | Medium | High | separate stub/live evidence classes |
 | mutation suite noisy/slow | Medium | Medium | targeted pure projects first |
 
 # 8. Pareto Improvements
@@ -173,7 +174,7 @@ Pages ownership: `docs/command-tree.html` consumes canonical v8 command-map data
 
 ```text
 T-001 code baseline verified ─┬─ T-002 plan gate DONE
-                              ├─ T-003 baseline manifest
+                              ├─ T-003 baseline manifest IN_PROGRESS
                               ├─ T-004 legacy cleanup
                               ├─ T-006 architecture tests ─ T-005 boundary adoption
                               └─ T-007 mutation ─ T-008 edge-space
@@ -183,7 +184,7 @@ T-003 + T-005 + T-008 ─ T-009 measured hardening ─ T-010 convergence audit
 
 # 10. Implementation Phases
 
-- Phase 0: T-001..T-003 — recover trust/governance; T-002 done, F-019 is an explicit external T-001 sub-blocker, T-003 selected.
+- Phase 0: T-001..T-003 — recover trust/governance; T-002 done, F-019 is an explicit external T-001 sub-blocker, T-003 in progress.
 - Phase 1: T-004 — delete migration debt.
 - Phase 2: T-006 → T-005 — protect and finish semantic boundaries.
 - Phase 3: T-007..T-008 — test-of-tests and multidimensional edge coverage.
@@ -200,12 +201,14 @@ T-003 + T-005 + T-008 ─ T-009 measured hardening ─ T-010 convergence audit
 
 ## T-002 — Enforce MASTER_PLAN structure as executable gate
 **Status:** DONE | **Priority:** P1 | **Type:** HARDEN | **Leverage:** HIGH
-**Implementation:** `scripts/validate-master-plan.mjs` validates 21 required headings, heading order, unique F/T IDs, finding severity/confidence, task status/priority/type/leverage vocabularies, and non-empty iteration history. `--self-test` rejects missing heading, duplicate finding ID, duplicate task ID, invalid task status and missing iteration entry. Parser normalizes CRLF/LF; mutations are section-scoped. Documentation uses current Node-backed actions and Node 24.
-**Evidence:** clean main commit `cf7ac6e1bfb999f81f8372f6dcff3de066e31f33`; post-push Documentation `33267289638` PASS and full `ci` `33267289639` PASS through NXOpen/adaptive/deployment/artifacts.
+**Implementation:** executable living-plan validator with negative self-tests, CRLF/LF normalization and current Node-backed actions.
+**Evidence:** formal closure main `efc5836fac6f7228ecee01d312d805523b596fca`; Documentation `33267519645` PASS and full `ci` `33267519676` PASS.
 
 ## T-003 — Capture machine-readable verified baseline
-**Status:** READY | **Priority:** P1 | **Type:** HARDEN | **Leverage:** HIGH
-Create deterministic JSON manifest of verified commit/tree, workflow/job evidence, environment classes and explicit external blockers. NXOpen stubs and live NX must be separate evidence types. Add fail-fast validator.
+**Status:** IN_PROGRESS | **Priority:** P1 | **Type:** HARDEN | **Leverage:** HIGH
+**Design:** add `verification/baseline.json` schema 1 as a deterministic historical snapshot. Baseline identifies a verified main commit/tree. Each evidence item has a unique ID, evidence kind, result, `subject_commit_sha`, environment class and precise workflow/run/job/step coordinates where applicable. Historical Desktop/Runtime evidence remains attached to its actual ancestor SHA. Pages static preparation is recorded as a successful workflow step rather than falsely marking the failed Pages workflow green. F-019 is an explicit external blocker. NXOpen stub compile and live NX 2512 are separate claim-boundary evidence classes.
+**Validator:** pure Node, fail-fast, no network dependency; exact repository/schema/branch, SHA formats, unique evidence IDs, enums, required coordinates, external blocker linkage, required core evidence and stub-vs-live claim boundary. `--self-test` must reject malformed SHA, duplicate evidence ID, blocked evidence without finding, missing required evidence and a false live-NX PASS.
+**Acceptance:** manifest + validator + Documentation integration PASS; full `ci` PASS; no runtime code change; clean non-force main integration.
 
 ## T-004 — Delete retired K3–K5 and migration debt
 **Status:** TODO | **Priority:** P1 | **Type:** REMOVE | **Leverage:** HIGH
@@ -271,12 +274,13 @@ Preserve HMAC, replay guard, permissions, context/source-process binding and bou
 - Re-add dummy `Compile Remove` for deleted files — rejected.
 - Put NX Selection Intent literals back into keyboard hook merely to satisfy CI — rejected.
 - `configure-pages enablement:true` with built-in `GITHUB_TOKEN` — rejected: documented incapable token.
+- Make the baseline manifest self-referential to the commit containing itself — rejected: non-deterministic circular provenance.
+- Collapse NXOpen stubs and live NX into one `verified` flag — rejected: materially different proof classes.
 - Force/force-with-lease `main` — rejected.
-- Treat NXOpen stubs as live NX proof — rejected.
 
 # 19. Completed Tasks
 
-- T-002 — executable living-plan contract; clean main `cf7ac6e1bfb999f81f8372f6dcff3de066e31f33`; Documentation and full `ci` PASS.
+- T-002 — executable living-plan contract; formal closure main `efc5836fac6f7228ecee01d312d805523b596fca`; Documentation and full `ci` PASS.
 - T-001 remains code-verified but externally blocked by F-019.
 
 # 20. Iteration Log
@@ -285,13 +289,16 @@ Preserve HMAC, replay guard, permissions, context/source-process binding and bou
 T-001 restored independent HFSM policy, removed obsolete workflows/orphan gitlink, reconciled ownership-sensitive gates, separated raw identity from alias projection, fixed nullable/HUD/contracts, and reached full core `ci` PASS. Verified core tree entered main as `2b28da717...`.
 
 ## Iteration 1 — Pages F-017/F-018
-F-017 replaced removed hybrid profile with canonical v8 assets. F-018 removed the false HTML dependency on state-policy while preserving policy packaging/existence checks. Main `8425ec373...` now passes Pages static preparation; next failure moved to repository-level Pages configuration.
+F-017 replaced removed hybrid profile with canonical v8 assets. F-018 removed the false HTML dependency on state-policy while preserving policy packaging/existence checks. Main `8425ec373...` passes Pages static preparation; next failure moved to repository-level Pages configuration.
 
 ## Iteration 1 — F-019 external boundary
 Main run `33266648791` proves code-side Pages package PASS and repository Pages setup missing. No code workaround can honestly satisfy this with current token/tool permissions. T-001 marked BLOCKED only for external deployment closure; governance work continues.
 
 ## Iteration 2 — T-002 executable plan gate
-Added pure Node plan validator and Documentation integration. First run exposed Windows CRLF sensitivity; parser normalized. A second self-test regression exposed an unscoped status mutation after T-001 changed to BLOCKED; mutation was constrained to Atomic Tasks. Documentation actions were upgraded from Node-20-backed v4 majors to current v7 majors with Node 24. Clean verified tree entered main as `cf7ac6e1bfb999f81f8372f6dcff3de066e31f33`; post-push Documentation `33267289638` PASS and full `ci` `33267289639` PASS. Result: DONE; T-003 selected.
+Added pure Node plan validator and Documentation integration; fixed CRLF parsing and section-scoped self-test mutations; upgraded Documentation actions to current Node-backed majors. Formal closure main `efc5836fac6f7228ecee01d312d805523b596fca`: Documentation `33267519645` PASS and full `ci` `33267519676` PASS. Result: DONE.
+
+## Iteration 3 — T-003 verified baseline manifest
+Selected immutable historical evidence model: baseline snapshot + per-evidence subject SHA/kind/environment; step-level Pages proof; explicit F-019 blocker; separate NXOpen-stub and live-NX claim classes. Result: IN_PROGRESS.
 
 # 21. Definition of Final Done
 
@@ -301,6 +308,7 @@ Added pure Node plan validator and Documentation integration. First run exposed 
 - external blockers separated from code defects and tracked explicitly;
 - raw canonical identity and runtime alias fidelity enforced separately;
 - architecture rules technically protected where feasible;
+- machine-readable evidence never overclaims subject SHA, environment or live-NX verification;
 - critical security/state logic mutation-tested with no unexplained high-risk survivors;
 - multidimensional critical edge space covered;
 - performance/security/reliability baselines recorded;
