@@ -13,8 +13,8 @@
 - Boundaries: HotkeyStudio → Protocol/StateMachines → BridgeCore → CommandBridge/NXOpen; ControlCenter и NxEskd — отдельные surfaces.
 - Baseline `main`: `2359e85c02313f4c6227a5e9a38ef62e9b9c043f`; 5/5 push workflows тогда были red.
 - Preflight branch: `audit/living-master-plan-bootstrap-20260829`; `main` не меняется до verified PASS.
-- Wave D head `b7f461bb6f05f6c3461122d83497f837932a6441`: validators, DFA/HFSM, HotkeyStudio, NxEskd 55+27 tests, HotkeyStudio/ControlCenter build+publish, NXOpen stubs и CommandBridge compile PASS; `ci` упал только на F-016 — stale Selection Intent source-owner assertion. Deployment gate ещё не выполнен из-за fail-fast.
-- Documentation, Desktop UI и Runtime hardening уже имеют полностью зелёные прогоны на текущем логическом дереве до Wave D-only CI edits.
+- Code-bearing Wave E head `709fa114e4fa03ab82f86caf02cd1bdc4a893491` полностью PASS в `ci`: validators, DFA/HFSM, HotkeyStudio, NxEskd 55+27 tests, HotkeyStudio/ControlCenter build+publish, NXOpen stubs, CommandBridge compile, adaptive invariants, deployment invariants и artifacts.
+- Documentation, Desktop UI и Runtime hardening также имеют полностью зелёные прогоны на том же логическом T-001 состоянии; текущая plan-only reconciliation должна быть повторно проверена перед интеграцией в `main`.
 - Live NX 2512 — отдельный внешний verification layer; stubs не считаются live-NX proof.
 
 # 3. Architecture Map
@@ -44,7 +44,7 @@ Ownership: Protocol = contracts/security/normalization; StateMachines = determin
 
 | Check | Original main | Current preflight evidence |
 |---|---|---|
-| Push workflows | 5/5 FAIL | Documentation/Desktop UI/Runtime hardening PASS; `ci` one stale late gate |
+| Push workflows | 5/5 FAIL | code-bearing Wave E: all applicable current workflows PASS |
 | Current Node validators | stale/masked | PASS |
 | Raw v8 identity | not explicit | PASS: 439/439 unique |
 | DFA/HFSM | FAIL missing policy | PASS |
@@ -55,8 +55,8 @@ Ownership: Protocol = contracts/security/normalization; StateMachines = determin
 | HotkeyStudio build/publish | blocked | PASS |
 | ControlCenter build/publish | blocked | PASS |
 | NXOpen stubs + CommandBridge compile | blocked | PASS |
-| Adaptive invariants | blocked | only F-016 source-owner assertion remains |
-| Deployment invariants | not reached | pending after F-016 |
+| Adaptive invariants | blocked | PASS after hook→executor ownership reconciliation |
+| Deployment invariants | not reached | PASS |
 | Live NX | NOT RUN | external requirement |
 | Mutation / performance baselines | absent / unknown | T-007 / T-009 |
 
@@ -200,11 +200,11 @@ T-003 + T-005 + T-008 ─ T-009 measured hardening ─ T-010 convergence audit
 
 ## T-001 — Reconcile v8 migration fallout and restore trustworthy baseline
 **Status:** VERIFYING | **Priority:** P0 | **Type:** FIX | **Leverage:** HIGH  
-**Problem:** `main` has no green trusted baseline; current preflight has only F-016 after F-015 was corrected.  
+**Problem:** `main` has no green trusted baseline; code-bearing preflight is now fully green and only plan reconciliation/main verification remain.  
 **Goal:** all applicable current-v8 Actions green without semantic weakening or legacy resurrection.  
 **Scope:** HFSM policy/package, obsolete workflows, validators, source-boundary checks, orphan gitlink, raw/projection contracts, nullable fix, HUD check, F-015/F-016 CI ownership reconciliation, plan.  
 **Non-goals:** new features/UX, schema bump, broad refactor, alias deletion, mutation threshold, live-NX redesign.  
-**Implementation:** verify `SelectionIntentHotkeys → NxSelectionExecutor` delegation and check NX Selection Intent primitives in executor; run full preflight including deployment; classify any new failure before more edits. On all-green preflight, resync `main`, self-review net diff, create one logical commit directly on current main, non-force push, verify main Actions.  
+**Implementation:** code-bearing preflight is green through deployment. Re-verify this plan-only reconciliation, resync `main`, self-review net diff, create one logical commit directly on current main, non-force push, then verify main Actions.  
 **Acceptance:** all current workflows PASS on one tree; deployment executes; raw 439 IDs unique; alias projection fidelity PASS; no diagnostic artifacts; clean checkout; main rechecked before push.  
 **Dependencies:** none. **Blocks:** T-002..T-010. **Risk:** Medium. **Rollback:** normal revert only.
 
@@ -302,7 +302,10 @@ T-001; addressed F-013,F-014; discovered F-015. Added raw uniqueness + projectio
 T-001; addressed F-015; discovered F-016. Replaced dummy csproj-exclusion requirement with fail-if-legacy-file-exists. `b7f461bb...`: validators, DFA/HFSM, HotkeyStudio, NxEskd 55+27, HotkeyStudio/ControlCenter build+publish, NXOpen stubs and CommandBridge compile PASS; adaptive gate then failed because Selection Intent NX semantics were searched in keyboard-hook owner. Result: FAIL → reconciled; Wave E selected.
 
 ## Iteration 1 — Wave E
-T-001; addresses F-016. Planned minimal change: assert `SelectionIntentHotkeys` delegates to `NxSelectionExecutor.TryApplyIntent`; inspect NX menu IDs/ScRuleFactory/`RequestSelections` in `NxSelectionExecutor`. Production runtime unchanged. Full preflight including deployment required before main integration. Result: VERIFYING.
+T-001; addressed F-016. `SelectionIntentHotkeys` delegation and `NxSelectionExecutor` semantic ownership are checked separately; production runtime unchanged. `709fa114e4fa03ab82f86caf02cd1bdc4a893491`: full `ci` PASS, including adaptive and deployment invariants plus artifacts. Result: PASS → plan reconciliation and clean main integration selected.
+
+## Iteration 1 — Pre-main reconciliation
+T-001; no new finding. This commit changes only `MASTER_PLAN.md` to record the verified Wave E evidence. It must pass current Documentation/CI before its tree is used for the clean one-commit fast-forward onto `main`. Result: VERIFYING.
 
 # 21. Definition of Final Done
 
