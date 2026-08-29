@@ -55,7 +55,6 @@ jobs:
           test -s _site/config/nx2512-v8-profile.json
           test -s _site/config/nx2512-state-machines.json
           grep -q './config/nx2512-v8-profile.json' _site/index.html
-          grep -q './config/nx2512-state-machines.json' _site/index.html
 
       - name: Configure GitHub Pages
         id: pages
