@@ -1,93 +1,85 @@
 # 1. Mission
 
-Сделать NXkeys устойчивой, проверяемой и эволюционирующей системой, где `MASTER_PLAN.md` является единственным living execution plan, а каждое существенное изменение проходит цикл `AUDIT → PLAN → SELECT → IMPLEMENT → TEST → REVIEW → RECONCILE → COMMIT → VERIFIED PUSH → COMPRESS`.
+Сделать NXkeys устойчивой, проверяемой и эволюционирующей системой, где `MASTER_PLAN.md` — единственный living execution plan, а существенные изменения проходят цикл `AUDIT → PLAN → SELECT → IMPLEMENT → TEST → REVIEW → RECONCILE → COMMIT → VERIFIED PUSH → COMPRESS`.
 
-Текущий приоритет — восстановить достоверный зелёный baseline после неполного перехода на канонический v8-профиль, не возвращая удалённый K3–K5/full-command-map контур как production dependency и не изменяя runtime semantics ради зелёного CI.
+Текущий приоритет: завершить `T-001`, восстановив полностью зелёный current-v8 baseline без возврата удалённого K3–K5/full-command-map контура и без изменения runtime semantics ради CI.
 
 # 2. Current State
 
 - C#/.NET 8, Windows x64, Siemens NX / Designcenter NX 2512.
-- Канонический source profile: `config/nx2512-v8-profile.json`, schema 8.
-- Raw v8 source содержит 439 операций с 439 уникальными `operation_id`; текущий Node validator подтверждает это до .NET runtime translation.
-- `Config` реализует `IJsonOnDeserialized`: `V8SecondaryAliasExpander` материализует `secondary_aliases` как дополнительные in-memory `OperationContract`, поэтому runtime projection содержит 500 записей, но всё ещё 439 семантических operation IDs. Это намеренная compatibility projection, а не дубликаты в raw source.
-- IPC: schema 4, HMAC authentication, replay guard, permission/context binding.
-- Boundaries: HotkeyStudio → Protocol/StateMachines → BridgeCore → CommandBridge/NXOpen; ControlCenter и NxEskd — отдельные capability/UI surfaces.
-- Baseline `main` до внедрения подхода: `2359e85c02313f4c6227a5e9a38ef62e9b9c043f`; все 5 workflow, запущенные тем push, были красными.
-- Preflight branch: `audit/living-master-plan-bootstrap-20260829`; `main` остаётся неизменным до полностью зелёного verified state.
-- Wave A `fab88e79...`: восстановила HFSM policy и вскрыла более глубокие migration blockers.
-- Wave B `a5f9a718...`: strict Protocol/BridgeCore build, source hardening и DFA/HFSM проходят; обнаружены F-013/F-014.
-- Wave C diagnostics `248b5f77...` → `cfc3950...`: доказали raw uniqueness и alias projection semantics; production profile не должен изменяться для устранения F-014.
-- Windows GitHub Actions является authoritative preflight-средой; live NX 2512 остаётся отдельным внешним verification layer.
+- Canonical source: `config/nx2512-v8-profile.json`, schema 8; 439 raw operations / 439 unique `operation_id`, 131 executable button mappings.
+- `Config : IJsonOnDeserialized` через `V8SecondaryAliasExpander` материализует `secondary_aliases` в runtime compatibility projection: 500 projected rows / 439 semantic IDs.
+- IPC schema 4: HMAC authentication, replay guard, permission/context/source-process binding.
+- Boundaries: HotkeyStudio → Protocol/StateMachines → BridgeCore → CommandBridge/NXOpen; ControlCenter и NxEskd — отдельные surfaces.
+- Baseline `main`: `2359e85c02313f4c6227a5e9a38ef62e9b9c043f`; 5/5 push workflows тогда были red.
+- Preflight branch: `audit/living-master-plan-bootstrap-20260829`; `main` не меняется до verified PASS.
+- Latest preflight implementation: `d08b8b25f45af1ffef826965b2520e34e215ea75`.
+- На `d08b8b25...`: Documentation PASS, Desktop UI PASS, Runtime hardening PASS; `ci` прошёл validators, DFA/HFSM, HotkeyStudio, NxEskd, desktop build/publish, NXOpen stubs и CommandBridge compile, но упал на F-015 — obsolete `Compile Remove="Models\\ConfigModels.cs"` source-text assertion.
+- Live NX 2512 остаётся отдельным внешним verification layer и не подменяется stubs.
 
 # 3. Architecture Map
 
 ```text
-Keyboard / CapsLock leader
+Keyboard / CapsLock
         ↓
 NX2512_HotkeyStudio
   LeaderKeyEngine / NxContextClient
+  Config(raw v8) → V8SecondaryAliasExpander → runtime projection
   NxCommandBridgeClient → NxRequestSigningPolicy
-  Config(raw v8) → V8SecondaryAliasExpander → legacy runtime projection
         ↓ authenticated file IPC
 NXKeys.Protocol ← NXKeys.StateMachines
         ↓
-NXKeys.BridgeCore (bounded admitted inbox)
+NXKeys.BridgeCore (bounded background admission)
         ↓
 NX2512_CommandBridge
-  NxContextMonitor / NxMenuCommandExecutor /
-  NxSelectionExecutor / NxInterventionGuard
+  Context / Menu / Selection / Intervention executors
         ↓
 NXOpen / NX UI / NxEskd capabilities
 ```
 
-Ownership rules:
-- `NXKeys.Protocol` — shared contracts, authentication/security and canonical context normalization.
-- `NXKeys.StateMachines` — deterministic leader/HFSM policy.
-- `NX2512_HotkeyStudio` — out-of-NX orchestration/UI/config translation.
-- `V8SecondaryAliasExpander` — in-memory compatibility projection only; it must not redefine raw canonical identity.
-- `NxRequestSigningPolicy` — request signing/admission preparation.
-- `NXKeys.BridgeCore` — bounded background inbox/security admission.
-- `NX2512_CommandBridge` — in-NX NXOpen effects.
+Ownership: Protocol = contracts/security/normalization; StateMachines = deterministic leader policy; HotkeyStudio = out-of-NX UI/orchestration/config translation; BridgeCore = admission/inbox; CommandBridge = in-NX effects; `V8SecondaryAliasExpander` = in-memory compatibility projection only.
 
 # 4. Baseline
 
-| Check | Baseline `2359e85...` | Current preflight evidence |
+| Check | Original main | Latest preflight |
 |---|---|---|
-| Push workflows | 5/5 FAIL | obsolete K3–K5 gates retired; remaining current workflows still verifying |
-| Current Node validators | stale/masked | PASS; raw v8 = 439 unique operations |
-| DFA/HFSM | FAIL missing policy | PASS after policy restoration |
-| Protocol strict build | blocked | PASS, 0 warnings/errors |
-| BridgeCore strict build | blocked | PASS, 0 warnings/errors |
-| Runtime source hardening | stale locations | source checks PASS after ownership reconciliation |
-| HotkeyStudio regressions | blocked | FAIL on stale uniqueness assertion against alias-expanded runtime projection |
-| Desktop UI | stale smoke contract | FAIL on obsolete literal `MaximumRootRows = 10` |
-| Documentation | FAIL legacy map | PASS on current v8 docs validation |
-| checkout integrity | orphan gitlink | clean after gitlink removal |
-| NxEskd / desktop / NXOpen bridge builds | downstream blocked | must run after current blockers clear |
-| live NX | NOT RUN | external NX 2512 installation required |
-| coverage | UNKNOWN | T-009 |
-| mutation score | NOT CONFIGURED | T-007 |
-| benchmarks | UNKNOWN | T-009 |
+| Push workflows | 5/5 FAIL | 3 PASS, `ci` FAIL only at F-015 |
+| Current Node validators | stale/masked | PASS |
+| Raw v8 identity | not explicitly enforced | PASS: 439 unique |
+| DFA/HFSM | FAIL missing policy | PASS |
+| HotkeyStudio regressions | blocked | PASS |
+| NxEskd Core | blocked | PASS: 55/55 |
+| NxEskd Configurator | blocked | PASS: 27/27 |
+| Protocol/BridgeCore strict build | blocked | PASS, 0 warnings/errors |
+| Desktop UI | stale smoke | PASS |
+| Runtime hardening | stale source ownership | PASS including NXOpen/Bridge contract |
+| HotkeyStudio build/publish | downstream blocked | PASS, state policy present |
+| ControlCenter build/publish | downstream blocked | PASS |
+| NXOpen stubs + CommandBridge compile | downstream blocked | PASS |
+| Adaptive invariants | blocked | FAIL only on obsolete ConfigModels exclusion assertion |
+| Deployment invariants | not reached | pending after F-015 |
+| Live NX | NOT RUN | external requirement |
+| Coverage / mutation / benchmarks | unknown / absent / unknown | T-007/T-009 |
 
-Pre-existing failures remain separated from defects introduced by this work.
+Pre-existing failures are kept separate from defects introduced by current work.
 
 # 5. System Invariants
 
 1. `main` never knowingly moves to a worse verified state.
-2. Raw v8 schema 8 is the canonical operation/profile source of truth.
+2. Raw v8 schema 8 is canonical operation/profile truth.
 3. Raw canonical `operation_id` values are non-empty and globally unique.
-4. Runtime alias projections may share the canonical `operation_id` only when they represent the same semantic operation and differ only by an explicitly declared secondary route/scope projection.
-5. `V8SecondaryAliasExpander` is an in-memory compatibility transformation; tests must distinguish raw identity from projected routes.
-6. Independent HFSM policy consumed by `LeaderBehaviorProfile` ships with runtime/tests.
+4. Runtime alias projections may repeat a canonical ID only for the same semantic operation and declared compatibility route/scope.
+5. Tests distinguish raw canonical data from post-deserialization projection.
+6. Independent HFSM policy ships with runtime/tests.
 7. Out-of-NX code never performs NXOpen effects directly.
 8. IPC admission remains authenticated, permission-bound, replay-resistant and context-bound.
-9. NX UI thread never performs unbounded queue scanning or cryptographic admission.
+9. NX UI thread performs neither unbounded inbox scanning nor cryptographic admission.
 10. Selection-filter actions flow through shared protocol to the in-NX executor boundary.
 11. Context normalization has one canonical Protocol implementation.
 12. Significant unexpected findings are recorded/reconciled before scope expands.
-13. Tests and observed behavior outrank prior roadmap assumptions.
-14. CI asserts semantic contracts, not incidental source-file locations.
-15. Deleted K3–K5 assets are not recreated merely to silence stale checks.
+13. Tests and observed behavior outrank roadmap assumptions.
+14. CI asserts semantic contracts, not incidental source text or already-deleted migration files.
+15. Deleted K3–K5/legacy assets are never recreated merely to satisfy stale checks.
 
 # 6. Findings Registry
 
@@ -96,108 +88,108 @@ Pre-existing failures remain separated from defects introduced by this work.
 **Category:** Reliability / CI  
 **Severity:** Critical  
 **Confidence:** Confirmed  
-**Evidence:** all five push workflows on baseline SHA failed.  
+**Evidence:** 5/5 baseline push workflows failed; preflight has progressively exposed blockers.  
 **Files / symbols:** `.github/workflows/*`.  
-**Current behavior:** no trustworthy regression signal.  
-**Expected behavior:** applicable current-v8 gates green.  
-**Root cause:** incomplete v8 migration plus stale automation.  
+**Current behavior:** current `main` has no trusted release signal.  
+**Expected behavior:** current-v8 gates green.  
+**Root cause:** incomplete v8 migration and stale automation.  
 **Impact:** repository-wide delivery risk.  
 **Blast radius:** all changes/releases.  
-**Reproduction:** inspect Actions on `2359e85...`.  
+**Reproduction:** Actions at `2359e85...`.  
 **Affected invariants:** 1,13.  
-**Related findings:** F-002..F-006, F-009..F-014.  
+**Related findings:** F-002..F-006,F-009..F-015.  
 **Affected tasks:** T-001.  
-**Recommended direction:** recover baseline before feature/refactor work.
+**Recommended direction:** finish baseline recovery before feature work.
 
 ## F-002 — Active CI depended on removed K3–K5/full-command-map assets
 **Status:** Planned  
 **Category:** CI / Migration  
 **Severity:** High  
 **Confidence:** Confirmed  
-**Evidence:** v8-only `config/` while old workflows referenced `full-command-map`/`nx2512-pro-*`.  
-**Files / symbols:** legacy map/runtime/sketch workflows and scripts.  
-**Current behavior:** baseline produced deterministic ENOENT/permanent-red gates.  
-**Expected behavior:** active gates validate current v8 only.  
-**Root cause:** cleanup removed assets without reconciling automation.  
-**Impact:** multiple workflows could never pass.  
-**Blast radius:** CI/docs/profile pipeline.  
+**Evidence:** obsolete workflows referenced absent `full-command-map`/`nx2512-pro-*`.  
+**Files / symbols:** legacy map/runtime workflows/scripts.  
+**Current behavior:** deterministic ENOENT in baseline.  
+**Expected behavior:** active gates validate v8 only.  
+**Root cause:** automation not reconciled with cleanup.  
+**Impact:** permanent-red gates.  
+**Blast radius:** CI/docs/profile.  
 **Reproduction:** baseline Actions.  
 **Affected invariants:** 1,2,15.  
 **Related findings:** F-007,F-009.  
 **Affected tasks:** T-001,T-004.  
-**Recommended direction:** retire obsolete active gates; delete/archive residual debt separately.
+**Recommended direction:** retire active obsolete gates; delete residual debt separately.
 
 ## F-003 — Independent state-machine policy was accidentally removed
 **Status:** Planned  
 **Category:** Correctness / Packaging  
 **Severity:** High  
 **Confidence:** Confirmed  
-**Evidence:** runtime/tests consume `nx2512-state-machines.json`; tests require `root_ms=4000`, but cleanup removed the file.  
-**Files / symbols:** `LeaderBehaviorProfile`, HotkeyStudio/StateMachines test csproj.  
-**Current behavior:** fallback timing and red tests.  
-**Expected behavior:** schema-1 behavior policy packaged independently of v8 command profile.  
-**Root cause:** two independent config contracts were conflated.  
-**Impact:** leader behavior/timing.  
+**Evidence:** runtime/tests consume `nx2512-state-machines.json`; baseline lacked it and expected `root_ms=4000`.  
+**Files / symbols:** `LeaderBehaviorProfile`, HotkeyStudio/test csproj.  
+**Current behavior:** baseline fell back to wrong timing.  
+**Expected behavior:** schema-1 policy packaged independently of command profile.  
+**Root cause:** two config contracts conflated during cleanup.  
+**Impact:** leader timing/guards.  
 **Blast radius:** runtime/package/tests.  
-**Reproduction:** baseline DFA/HFSM suite.  
+**Reproduction:** baseline DFA/HFSM.  
 **Affected invariants:** 6,13.  
 **Related findings:** F-001.  
 **Affected tasks:** T-001.  
-**Recommended direction:** restore policy only, never legacy command maps.
+**Recommended direction:** restore policy only, never legacy maps.
 
-## F-004 — Runtime hardening checked transport result in wrong source file
+## F-004 — Runtime hardening checked transport result in wrong file
 **Status:** Planned  
 **Category:** Testing / Architecture  
 **Severity:** Medium  
 **Confidence:** Confirmed  
-**Evidence:** `NxTransportReadStatus` lives in `NxTransportReadResult.cs`; old gate searched client source.  
-**Files / symbols:** `runtime-hardening.yml`.  
-**Current behavior:** valid extraction was reported as defect.  
-**Expected behavior:** semantic owner checked.  
+**Evidence:** `NxTransportReadStatus` moved to `NxTransportReadResult.cs`; old gate searched client file.  
+**Files / symbols:** runtime-hardening workflow.  
+**Current behavior:** valid extraction was red.  
+**Expected behavior:** check semantic owner.  
 **Root cause:** brittle source-text assertion.  
-**Impact:** hardening gate red.  
+**Impact:** hardening blocked.  
 **Blast radius:** runtime CI.  
 **Reproduction:** Wave A.  
 **Affected invariants:** 1,14.  
-**Related findings:** F-010,F-013.  
+**Related findings:** F-010,F-013,F-015.  
 **Affected tasks:** T-001,T-006.  
-**Recommended direction:** reconcile source gate now; replace with executable architecture test later.
+**Recommended direction:** reconcile now, executable architecture test later.
 
-## F-005 — Selection validator assumed NXOpen effect remained in `Program.cs`
+## F-005 — Selection validator assumed effect remained in `Program.cs`
 **Status:** Planned  
 **Category:** Testing / Architecture  
 **Severity:** Medium  
 **Confidence:** Confirmed  
-**Evidence:** dispatch is in `Program.ProcessClaim`; effect moved to `NxMenuCommandExecutor.ApplySelectionCommand`.  
-**Files / symbols:** `validate-command-tree.mjs`, CommandBridge.  
-**Current behavior:** false failure previously masked.  
-**Expected behavior:** dispatch/effect ownership tested separately.  
+**Evidence:** dispatch in `Program.ProcessClaim`; effect in `NxMenuCommandExecutor.ApplySelectionCommand`.  
+**Files / symbols:** command-tree validator, CommandBridge.  
+**Current behavior:** false failure.  
+**Expected behavior:** dispatch/effect boundaries checked independently.  
 **Root cause:** validator lagged refactor.  
-**Impact:** hidden contract failure.  
-**Blast radius:** command-tree gate.  
-**Reproduction:** validator before Wave A fix.  
+**Impact:** hidden red invariant.  
+**Blast radius:** command-tree CI.  
+**Reproduction:** pre-Wave-A validator.  
 **Affected invariants:** 10,14.  
 **Related findings:** F-004.  
 **Affected tasks:** T-001,T-006.  
-**Recommended direction:** follow executor boundary.
+**Recommended direction:** follow executor ownership.
 
 ## F-006 — Orphan worktree gitlink committed under `.claude`
 **Status:** Planned  
 **Category:** Repository Integrity  
 **Severity:** Medium  
 **Confidence:** Confirmed  
-**Evidence:** mode `160000` entry with no `.gitmodules`; checkout cleanup emitted submodule failure/noise.  
+**Evidence:** mode `160000` without `.gitmodules`; checkout cleanup warning/failure.  
 **Files / symbols:** `.claude/worktrees/fix-v8-contract-paths`.  
 **Current behavior:** fragile/noisy checkout.  
-**Expected behavior:** no agent-local worktree gitlink in source tree.  
+**Expected behavior:** no agent-local gitlink.  
 **Root cause:** accidental worktree metadata commit.  
 **Impact:** CI/tooling reliability.  
 **Blast radius:** every checkout.  
-**Reproduction:** baseline checkout cleanup.  
+**Reproduction:** baseline Actions cleanup.  
 **Affected invariants:** 1.  
 **Related findings:** F-001.  
 **Affected tasks:** T-001.  
-**Recommended direction:** delete gitlink; never fabricate `.gitmodules`.
+**Recommended direction:** delete gitlink, no fake submodule mapping.
 
 ## F-007 — Documentation still describes retired K3–K5 assets
 **Status:** Open  
@@ -207,45 +199,45 @@ Pre-existing failures remain separated from defects introduced by this work.
 **Evidence:** README/full-map/audit narrative references absent legacy assets.  
 **Files / symbols:** README, `FULL_COMMAND_MAP.md`, docs/audit, legacy scripts.  
 **Current behavior:** mixed current/legacy onboarding.  
-**Expected behavior:** one current v8 story with Git history for legacy.  
+**Expected behavior:** one v8 story; history stays in Git.  
 **Root cause:** cleanup debt.  
 **Impact:** maintainer confusion.  
 **Blast radius:** onboarding/tooling.  
-**Reproduction:** compare docs with repository tree.  
+**Reproduction:** docs vs tree.  
 **Affected invariants:** 2,15.  
 **Related findings:** F-002,F-009.  
 **Affected tasks:** T-004.  
-**Recommended direction:** evidence-based debt deletion pass after baseline recovery.
+**Recommended direction:** evidence-based deletion pass.
 
 ## F-008 — Critical pure logic has no mutation baseline
 **Status:** Open  
 **Category:** Test-of-tests  
 **Severity:** Medium  
 **Confidence:** Strong  
-**Evidence:** no enforced mutation tooling/score discovered.  
-**Files / symbols:** Protocol security, StateMachines, validators.  
-**Current behavior:** coverage can miss weak assertions.  
-**Expected behavior:** meaningful mutants killed for critical contracts.  
-**Root cause:** test infrastructure gap.  
+**Evidence:** no enforced mutation score/tooling.  
+**Files / symbols:** Protocol, StateMachines, validators/projection.  
+**Current behavior:** coverage may overstate confidence.  
+**Expected behavior:** meaningful mutants killed.  
+**Root cause:** infrastructure gap.  
 **Impact:** false confidence.  
-**Blast radius:** auth/state/validation logic.  
-**Reproduction:** inspect CI/tooling.  
+**Blast radius:** auth/state/validation.  
+**Reproduction:** inspect CI.  
 **Affected invariants:** 8,13.  
 **Related findings:** none.  
 **Affected tasks:** T-007.  
-**Recommended direction:** targeted Stryker.NET pilot then evidence-based threshold.
+**Recommended direction:** targeted Stryker.NET pilot.
 
-## F-009 — `Sketch intent grammar` workflow is a retired K3–K5 pipeline
+## F-009 — `Sketch intent grammar` workflow is retired K3–K5 pipeline
 **Status:** Planned  
 **Category:** CI / Migration  
 **Severity:** High  
 **Confidence:** Confirmed  
-**Evidence:** Wave A invoked legacy map compiler/validator and failed on removed map files.  
+**Evidence:** workflow invoked legacy map compiler and removed assets.  
 **Files / symbols:** `.github/workflows/sketch-intent.yml`.  
 **Current behavior:** duplicate permanent-red gate.  
-**Expected behavior:** current v8 sketch grammar covered by HotkeyStudio/current CI.  
+**Expected behavior:** sketch grammar covered by current v8 tests.  
 **Root cause:** obsolete workflow survived cleanup.  
-**Impact:** push gate red.  
+**Impact:** red pushes.  
 **Blast radius:** command/state changes.  
 **Reproduction:** Wave A.  
 **Affected invariants:** 1,2,15.  
@@ -258,109 +250,127 @@ Pre-existing failures remain separated from defects introduced by this work.
 **Category:** Testing / Architecture  
 **Severity:** Medium  
 **Confidence:** Confirmed  
-**Evidence:** client delegates `policy.PrepareAuthenticated`; HMAC/permissions live in extracted signing policy.  
+**Evidence:** facade delegates `policy.PrepareAuthenticated`; signing/HMAC live in extracted policy.  
 **Files / symbols:** client, signing policy, hardening workflow.  
-**Current behavior:** valid security boundary failed Wave A.  
-**Expected behavior:** facade and policy ownership asserted independently.  
+**Current behavior:** valid security split failed Wave A.  
+**Expected behavior:** ownership tested separately.  
 **Root cause:** stale source-location contract.  
 **Impact:** hardening blocked.  
-**Blast radius:** runtime security CI.  
-**Reproduction:** Wave A hardening.  
+**Blast radius:** security CI.  
+**Reproduction:** Wave A.  
 **Affected invariants:** 8,14.  
-**Related findings:** F-004,F-013.  
+**Related findings:** F-004,F-013,F-015.  
 **Affected tasks:** T-001,T-006.  
-**Recommended direction:** reconcile now; replace with executable architecture test later.
+**Recommended direction:** reconcile now, architecture test later.
 
-## F-011 — Capability-lock test and validator disagreed about lock optionality
+## F-011 — Capability-lock test and validator disagreed about optionality
 **Status:** Planned  
 **Category:** Testing / Contract  
 **Severity:** Medium  
 **Confidence:** Confirmed  
-**Evidence:** validator allowed absent lock while C# regression required file existence.  
-**Files / symbols:** `validate-capability-route-lock.mjs`, HotkeyStudio tests.  
+**Evidence:** JS allowed absent lock while C# demanded file existence.  
+**Files / symbols:** capability validator, HotkeyStudio tests.  
 **Current behavior:** deleted auxiliary file blocked suite.  
-**Expected behavior:** raw canonical v8 is source of truth; optional derived lock must match exactly if present.  
+**Expected behavior:** raw v8 is truth; optional lock exact-matches if present.  
 **Root cause:** stale test plus weak optional-lock validation.  
-**Impact:** main CI blocked.  
-**Blast radius:** profile tests.  
-**Reproduction:** Wave A main CI.  
+**Impact:** profile suite blocked.  
+**Blast radius:** main CI.  
+**Reproduction:** Wave A.  
 **Affected invariants:** 2,3,13,15.  
 **Related findings:** F-014.  
 **Affected tasks:** T-001,T-006.  
-**Recommended direction:** validate raw canonical profile directly; exact-compare optional lock.
+**Recommended direction:** validate canonical profile directly.
 
 ## F-012 — Strict Protocol build exposed nullable contract mismatch
 **Status:** Planned  
 **Category:** Correctness / Static analysis  
 **Severity:** Medium  
 **Confidence:** Confirmed  
-**Evidence:** nullable-enabled Protocol helper returned `null` from non-nullable `string`; strict Wave B build passes after annotation repair.  
+**Evidence:** nullable-enabled helper returned null through non-nullable signature; strict preflight exposed it.  
 **Files / symbols:** `NxContextNormalization.NormalizeV8Module`.  
-**Current behavior:** baseline warning would fail `-warnaserror`.  
-**Expected behavior:** explicit nullable contract.  
+**Current behavior:** warning becomes `-warnaserror` failure.  
+**Expected behavior:** explicit nullable return.  
 **Root cause:** annotation mismatch.  
-**Impact:** strict-build blocker.  
+**Impact:** strict build blocker.  
 **Blast radius:** Protocol.  
-**Reproduction:** strict build before Wave B.  
+**Reproduction:** Wave A→B.  
 **Affected invariants:** 1,11,13.  
 **Related findings:** none.  
 **Affected tasks:** T-001.  
 **Recommended direction:** behavior-preserving nullable annotation.
 
-## F-013 — Desktop UI gate hardcodes obsolete 10-row HUD contract
+## F-013 — Desktop UI gate hardcoded obsolete 10-row HUD contract
 **Status:** Planned  
 **Category:** Testing / UI Contract  
 **Severity:** Medium  
 **Confidence:** Confirmed  
-**Evidence:** Desktop UI expects literal `MaximumRootRows = 10`; actual code defines `PrimarySuggestionLimit = 8` and `MaximumRootRows = PrimarySuggestionLimit`; executable regression also expects 8.  
-**Files / symbols:** `.github/workflows/desktop-ui.yml`, `LeaderHudForm.PrimarySuggestionLimit`.  
-**Current behavior:** valid current compact HUD fails before tests.  
-**Expected behavior:** smoke check follows tested public contract or is replaced by executable test.  
-**Root cause:** UI constant changed without workflow reconciliation.  
-**Impact:** Desktop UI permanently red.  
-**Blast radius:** UI workflow.  
-**Reproduction:** Wave B Desktop UI.  
+**Evidence:** gate expected `MaximumRootRows = 10`; code/test contract is `PrimarySuggestionLimit = 8`, `MaximumRootRows = PrimarySuggestionLimit`.  
+**Files / symbols:** desktop workflow, `LeaderHudForm`.  
+**Current behavior:** valid compact HUD failed smoke check.  
+**Expected behavior:** gate follows current public contract.  
+**Root cause:** workflow not reconciled with UI change.  
+**Impact:** Desktop UI red.  
+**Blast radius:** UI CI.  
+**Reproduction:** Wave B.  
 **Affected invariants:** 1,13,14.  
-**Related findings:** F-004,F-010.  
+**Related findings:** F-004,F-010,F-015.  
 **Affected tasks:** T-001,T-006.  
-**Recommended direction:** reconcile smoke check to `PrimarySuggestionLimit = 8` plus alias constant; migrate to executable UI/architecture test under T-006.
+**Recommended direction:** current smoke now; executable UI contract later.
 
-## F-014 — C# identity regression confuses canonical operations with alias-expanded runtime projections
+## F-014 — C# identity regression confused raw operations with alias projections
 **Status:** Planned  
 **Category:** Testing / Data Contract  
 **Severity:** Medium  
 **Confidence:** Confirmed  
-**Evidence:** raw Node validator reports 439/439 unique canonical operations; `Config : IJsonOnDeserialized` invokes `ExpandSecondaryAliasesForLegacyRuntime()`, cloning declared `secondary_aliases` into additional `OperationContract` routes; after callback the in-memory projection is 500 records / 439 semantic IDs. Diagnostics show collision groups are route families such as W/M, Q/I and R/P and preserve adapter/name semantics.  
-**Files / symbols:** `V8SecondaryAliasExpander`, `OperationContract.OperationID`, HotkeyStudio `VerifyBehavioralGuardsAndLimits`, `validate-capability-route-lock.mjs`.  
-**Current behavior:** a C# regression asserts global uniqueness on the alias-expanded compatibility projection and therefore rejects intended behavior.  
-**Expected behavior:** raw profile uniqueness is enforced before projection; runtime projection tests assert every duplicate ID is a faithful alias projection of one canonical operation, not an unrelated semantic collision.  
-**Root cause:** test used the post-deserialization compatibility model as if it were the raw canonical data model.  
-**Impact:** false-red HotkeyStudio/main/hardening workflows; changing raw profile to satisfy it would incorrectly delete supported aliases.  
-**Blast radius:** CI/test contract; no evidence of raw-profile corruption.  
-**Reproduction:** Node validator → 439 unique; `JsonSerializer.Deserialize<Config>` → callback-expanded 500/439.  
-**Affected invariants:** 2,3,4,5,13.  
+**Evidence:** raw validator = 439/439 unique; `IJsonOnDeserialized` intentionally expands secondary aliases to 500 rows/439 semantic IDs.  
+**Files / symbols:** `V8SecondaryAliasExpander`, HotkeyStudio tests, capability validator.  
+**Current behavior:** stale C# uniqueness assertion rejected intended projection.  
+**Expected behavior:** raw uniqueness + projection semantic fidelity checked separately.  
+**Root cause:** test asserted canonical invariant at post-projection model stage.  
+**Impact:** false-red tests; naive fix would delete valid aliases.  
+**Blast radius:** profile/CI.  
+**Reproduction:** Wave C diagnostics.  
+**Affected invariants:** 2–5,13.  
 **Related findings:** F-011.  
 **Affected tasks:** T-001,T-006.  
-**Recommended direction:** keep raw uniqueness validator; replace the false C# uniqueness assertion with projection-integrity assertions; remove temporary diagnostics after regression is characterized.
+**Recommended direction:** preserve raw profile; projection-integrity regression.
+
+## F-015 — Adaptive CI requires exclusion for an already-deleted `ConfigModels.cs`
+**Status:** Planned  
+**Category:** Testing / Migration debt  
+**Severity:** Medium  
+**Confidence:** Confirmed  
+**Evidence:** latest `ci` reached adaptive invariants after every executable suite/build passed, then required literal `Compile Remove="Models\\ConfigModels.cs"`; `NX2512_HotkeyStudio/Models/ConfigModels.cs` is absent and current csproj builds/publishes successfully without an exclusion entry.  
+**Files / symbols:** `.github/workflows/ci.yml`, `NX2512_HotkeyStudio.csproj`, absent `Models/ConfigModels.cs`.  
+**Current behavior:** cleanup-complete project fails because CI demands obsolete migration scaffolding.  
+**Expected behavior:** assert legacy file remains absent, not that an exclusion for it remains forever.  
+**Root cause:** debt-deletion step removed source file but did not reconcile source-text gate.  
+**Impact:** final current `ci` remains red after all prior executable checks pass.  
+**Blast radius:** main CI; deployment check is skipped downstream.  
+**Reproduction:** `d08b8b25...`, adaptive step 18.  
+**Affected invariants:** 1,13,14,15.  
+**Related findings:** F-004,F-010,F-013.  
+**Affected tasks:** T-001,T-004,T-006.  
+**Recommended direction:** replace literal Compile Remove assertion with fail-if-legacy-file-exists; never re-add dummy csproj exclusion.
 
 # 7. Risk Register
 
-| Risk | Probability | Impact | Mitigation |
+| Risk | P | Impact | Mitigation |
 |---|---:|---:|---|
-| further blockers appear as CI progresses | High | High | wave → classify → Finding → reconcile |
-| alias projection accidentally changes semantic adapter/scope | Medium | High | projection-integrity regression + raw uniqueness validator |
-| source-text checks drift after refactor | High | Medium | T-006 executable architecture tests |
-| restored HFSM differs from live UX | Medium | High | executable tests + live NX checklist |
-| NXOpen stubs diverge from NX 2512 | Medium | High | never claim live behavior from stub CI |
-| mutation suite becomes noisy/slow | Medium | Medium | critical pure projects first |
+| another stale late-stage gate appears | High | Medium | fail → Finding → reconcile; no blind skips |
+| alias projection broadens semantics | Medium | High | raw uniqueness + projection fingerprint tests |
+| source-text CI drifts after refactor | High | Medium | T-006 executable architecture tests |
+| restored HFSM differs in live NX | Medium | High | live-NX checklist |
+| NXOpen stubs differ from NX 2512 | Medium | High | explicit stub/live distinction |
+| mutation suite is noisy/slow | Medium | Medium | targeted pure projects first |
 
 # 8. Pareto Improvements
 
-1. Recover green/fail-fast current-v8 baseline without weakening semantics.
-2. Separate canonical raw profile contracts from runtime compatibility projections in tests.
-3. Make living plan structure executable.
-4. Replace brittle source-text gates with executable architecture tests.
-5. Delete legacy K3–K5 migration debt and mutation-test critical pure logic.
+1. Finish green/fail-fast current-v8 baseline.
+2. Keep raw profile and runtime compatibility projection contracts separate.
+3. Make `MASTER_PLAN.md` executable.
+4. Replace source-text migration checks with executable architecture/absence contracts.
+5. Delete remaining legacy debt and mutation-test critical pure logic.
 
 # 9. Dependency DAG
 
@@ -369,19 +379,19 @@ T-001 baseline recovery
  ├─ T-002 plan gate
  ├─ T-003 verified baseline artifact
  ├─ T-004 legacy debt deletion
- ├─ T-006 architecture/projection tests ─ T-005 remaining boundary migration
- └─ T-007 mutation pilot ─ T-008 multidimensional edge coverage
-T-003 + T-005 + T-008 ─ T-009 measured hardening ─ T-010 re-audit/convergence
+ ├─ T-006 architecture/projection tests ─ T-005 boundary migration
+ └─ T-007 mutation pilot ─ T-008 edge-space coverage
+T-003 + T-005 + T-008 ─ T-009 measured hardening ─ T-010 convergence audit
 ```
 
 # 10. Implementation Phases
 
 - Phase 0: T-001..T-003 — recover trust/governance.
-- Phase 1: T-004 — delete migration debt.
-- Phase 2: T-006 → T-005 — stabilize semantic boundaries.
-- Phase 3: T-007..T-008 — test-of-tests/edge space.
-- Phase 4: T-009 — measurable performance/security/reliability.
-- Phase 5: T-010 — full re-audit and delta loop.
+- Phase 1: T-004 — debt deletion.
+- Phase 2: T-006 → T-005 — semantic boundaries.
+- Phase 3: T-007..T-008 — test-of-tests/edge coverage.
+- Phase 4: T-009 — measured security/performance/reliability.
+- Phase 5: T-010 — re-audit/delta convergence.
 
 # 11. Atomic Tasks
 
@@ -391,43 +401,43 @@ T-003 + T-005 + T-008 ─ T-009 measured hardening ─ T-010 re-audit/convergenc
 **Type:** FIX  
 **Leverage:** HIGH
 ### Problem
-`main` cannot establish a trustworthy release signal; remaining blockers are stale HUD and alias-projection test contracts.
+`main` lacks green trusted baseline; latest preflight has one stale late-stage CI assertion (F-015).
 ### Evidence
-F-001..F-006, F-009..F-014.
+F-001..F-006,F-009..F-015; `d08b8b25...` has three green workflows and `ci` failure only after all executable suites/builds pass.
 ### Goal
-All applicable current-v8 Actions green with raw canonical identity and runtime alias semantics both correctly enforced.
+All applicable current-v8 Actions green without semantic weakening or resurrected legacy assets.
 ### Scope
-HFSM policy/package; obsolete workflow retirement; fail-fast validators; executor/transport/signing/UI checks; orphan gitlink; capability contract; Protocol nullable contract; F-013 HUD smoke reconciliation; F-014 raw-vs-projection regression; remove diagnostic-only code; plan reconciliation.
+HFSM policy/package; obsolete workflows; fail-fast validators; source-boundary checks; orphan gitlink; capability/raw-projection contracts; nullable fix; HUD check; F-015 absent-legacy assertion; plan reconciliation.
 ### Non-goals
-No new feature/UX redesign, broad module refactor, raw alias deletion, schema bump, live-NX behavior redesign or mutation threshold.
+No new feature/UX redesign, schema bump, broad refactor, alias deletion, mutation threshold or live-NX redesign.
 ### Files / symbols
-current workflows/validators/tests, `V8SecondaryAliasExpander`, HotkeyStudio regression tests, `MASTER_PLAN.md`.
+Active workflows/validators/tests/config translation and `MASTER_PLAN.md`.
 ### Implementation
-Preserve raw 439-operation source. Keep Node raw uniqueness check. Replace invalid post-deserialization uniqueness assertion with projection-integrity checks. Reconcile Desktop UI smoke assertion to current 8-item contract. Remove `OperationIdentityDiagnostics.cs`. Run full preflight; every newly exposed substantive failure triggers a Finding before scope expansion. After full green preflight, recreate one logical verified iteration commit on current `main` and push non-force.
+Replace F-015 literal csproj-exclusion requirement with an absence check for `Models/ConfigModels.cs`; run full preflight; classify any new substantive failure before scope expansion. On all-green preflight, resync remote `main`, self-review diff, recreate one logical verified tree on current main, non-force push.
 ### Invariants
 1–15.
 ### Compatibility constraints
-No restored K3–K5 production dependency; IPC/security semantics preserved; declared secondary aliases preserved.
+No K3–K5 resurrection; IPC/security/alias semantics preserved.
 ### Edge cases
-raw vs projected identity; global Manage aliases re-scoped to Modeling; canonical-path alias equality; duplicate route dedupe; missing/stale policy; source refactors; native exit masking; strict nullable builds.
+Raw vs projected identity, missing policy, deleted migration files, source moves, native exit masking, strict nullable builds, downstream deployment invariants.
 ### Tests
-Node raw validators; projection-integrity regression; DFA/HFSM; HotkeyStudio; NxEskd; strict Protocol/BridgeCore; desktop build/publish; NXOpen stubs/bridge contract; Documentation/Desktop/Hardening Actions.
+All active Actions: Node validators, DFA/HFSM, HotkeyStudio, NxEskd, strict builds, desktop publish, NXOpen stubs/bridge, adaptive/deployment invariants.
 ### Mutation tests
-Deferred to T-007; absence explicitly recorded.
+Not available yet; T-007.
 ### Benchmarks
-N/A for migration recovery.
+N/A for migration repair.
 ### Acceptance criteria
-Every applicable preflight workflow PASS; raw profile remains 439 unique operation IDs; alias projections are proven faithful; no diagnostic-only file remains; no legacy ENOENT; clean checkout; state policy shipped; all downstream tests/builds execute; remote `main` re-synced and final diff reviewed.
+All applicable preflight workflows PASS; deployment step executes; raw 439 IDs remain unique; alias projection fidelity passes; no diagnostic-only artifacts; clean checkout; remote main reconciled before push.
 ### Verification commands
-Commands encoded in active Actions plus current validators.
+Encoded in active workflows plus validators.
 ### Dependencies
 None.
 ### Blocks
 T-002..T-010.
 ### Risk
-Medium: deeper downstream failures may appear after current blockers clear.
+Medium: one more late stale gate may appear.
 ### Rollback
-Normal revert only; never force push or restore stale assets.
+Normal revert only; no force push.
 ### Estimated effort
 Medium, iterative.
 
@@ -439,33 +449,33 @@ Medium, iterative.
 ### Problem
 Living plan can structurally drift.
 ### Evidence
-No validator before this effort.
+No plan validator exists.
 ### Goal
-Machine-check required sections, unique IDs and vocabularies.
+Reject missing sections, duplicate IDs and invalid vocabularies.
 ### Scope
 Pure Node validator + negative self-tests + CI.
 ### Non-goals
-No automated semantic truth judgment.
+No automatic semantic truth judgment.
 ### Files / symbols
 `MASTER_PLAN.md`, `scripts/validate-master-plan.mjs`, CI.
 ### Implementation
-Required headings; unique F/T IDs; valid Finding/Task vocabularies; iteration-log presence; in-memory negative fixtures.
+Required headings; unique F/T IDs; status/priority/type/leverage vocabularies; iteration-log presence; in-memory invalid fixtures.
 ### Invariants
 12,13.
 ### Compatibility constraints
-No npm dependencies; Windows/Linux Node.
+No npm dependency; Windows/Linux Node.
 ### Edge cases
-Duplicate IDs, missing metadata, malformed log.
+Duplicate IDs, malformed metadata, missing log.
 ### Tests
-Positive current plan + negative fixtures.
+Current plan + deliberate negative fixtures.
 ### Mutation tests
 Later if useful.
 ### Benchmarks
 Sub-second target.
 ### Acceptance criteria
-Malformed plan rejected; current plan accepted.
+Malformed plan fails; current plan passes.
 ### Verification commands
-`node scripts/validate-master-plan.mjs --self-test` and normal invocation.
+`node scripts/validate-master-plan.mjs --self-test`; `node scripts/validate-master-plan.mjs`.
 ### Dependencies
 T-001.
 ### Blocks
@@ -473,29 +483,29 @@ None.
 ### Risk
 Low.
 ### Rollback
-Remove gate only if parser itself is proven defective.
+Remove gate only if parser is proven defective.
 ### Estimated effort
 Small.
 
-## T-003 — Capture machine-readable verified baseline
+## T-003 — Capture a machine-readable verified baseline
 **Status:** TODO  
 **Priority:** P1  
 **Type:** HARDEN  
 **Leverage:** HIGH
 ### Problem
-Verification evidence is scattered in Actions logs.
+Evidence is scattered in Actions logs.
 ### Evidence
-Initial/wave audit required manual correlation.
+Initial audit required manual correlation.
 ### Goal
-Version check inventory, environment limits and pass/fail classification.
+Versioned check inventory, environment limits and classification.
 ### Scope
-Repository-known checks; no secrets; distinguish stubs/live NX.
+Repository-known checks; distinguish stubs/live NX; no secrets.
 ### Non-goals
-No telemetry service.
+No external telemetry.
 ### Files / symbols
 `docs/audit/verification-baseline.*`, helper.
 ### Implementation
-Deterministic manifest with last verified state and environment classification.
+Deterministic manifest with verified SHA/checks/environment class.
 ### Invariants
 1,13.
 ### Compatibility constraints
@@ -509,7 +519,7 @@ N/A.
 ### Benchmarks
 N/A.
 ### Acceptance criteria
-Introduced vs pre-existing failures become obvious.
+Introduced/pre-existing failures are quickly distinguishable.
 ### Verification commands
 CI helper.
 ### Dependencies
@@ -523,41 +533,41 @@ Plan baseline remains fallback.
 ### Estimated effort
 Small.
 
-## T-004 — Delete retired K3–K5 documentation/tooling debt
+## T-004 — Delete retired K3–K5 and migration debt
 **Status:** TODO  
 **Priority:** P1  
 **Type:** REMOVE  
 **Leverage:** HIGH
 ### Problem
-Retired pipeline remains referenced in docs/scripts.
+Legacy docs/scripts/assertions outlive removed assets.
 ### Evidence
-F-002,F-007,F-009.
+F-002,F-007,F-009,F-015.
 ### Goal
-One unambiguous current v8 source-of-truth story.
+One unambiguous v8 story and no eternal migration scaffolding.
 ### Scope
-Usage-search legacy compilers/validators/docs; classify/delete/archive.
+Usage-search legacy compilers/validators/docs/source-text exclusions; classify/delete/archive.
 ### Non-goals
 Retain helpers still used by v8.
 ### Files / symbols
-README/full map/docs/audit/legacy scripts.
+README/full-map/docs/audit/legacy scripts/workflow assertions.
 ### Implementation
-Usage search → classify → delete/update → verify.
+Usage search → classify → delete/update → full verification.
 ### Invariants
-2,15.
+2,14,15.
 ### Compatibility constraints
-No unproven runtime deletions.
+No unproven runtime deletion.
 ### Edge cases
-Shared helpers.
+Shared helpers/history-only docs.
 ### Tests
-Current docs/command/profile suites.
+Current docs/command/profile CI.
 ### Mutation tests
 N/A.
 ### Benchmarks
 N/A.
 ### Acceptance criteria
-Active docs/workflows do not require absent legacy assets.
+Active docs/workflows require no absent legacy asset/scaffolding.
 ### Verification commands
-Repository search + CI.
+Search + CI.
 ### Dependencies
 T-001.
 ### Blocks
@@ -575,13 +585,13 @@ Medium.
 **Type:** IMPROVE  
 **Leverage:** HIGH
 ### Problem
-Refactor status lists unresolved executor/selection/intervention boundaries.
+Refactor status lists unresolved boundaries.
 ### Evidence
 `docs/REFACTOR_STATUS.md`.
 ### Goal
 Complete one behavior-preserving boundary per atomic subtask.
 ### Scope
-Characterize → boundary/adapter → dual compatibility → migrate → verify → delete legacy.
+Characterize → introduce boundary → dual compatibility → migrate → verify → remove legacy.
 ### Non-goals
 No silent behavior/API transition.
 ### Files / symbols
@@ -591,19 +601,19 @@ ModuleContracts/executors/LeaderKeyEngine/claim path.
 ### Compatibility constraints
 IPC/live NX behavior preserved.
 ### Edge cases
-Modal/stale context/selection/cancellation/process boundary.
+Modal state, stale context, selection, cancellation, process boundary.
 ### Tests
 Contract/architecture/live checklist when required.
 ### Mutation tests
 Pure decisions after T-007.
 ### Benchmarks
-Dispatch baseline where behavior-sensitive.
+Dispatch baseline where needed.
 ### Acceptance criteria
-Explicit boundary, migrated callers, old path deleted after verification.
+Explicit boundary, migrated callers, legacy deleted after verification.
 ### Verification commands
 CI + live checklist.
 ### Dependencies
-T-001,T-006 where applicable.
+T-001,T-006 as applicable.
 ### Blocks
 T-010.
 ### Risk
@@ -611,7 +621,7 @@ High.
 ### Rollback
 Compatibility adapter until verified.
 ### Estimated effort
-Large; split further before implementation.
+Large; split before execution.
 
 ## T-006 — Replace brittle source-text checks with executable architecture/projection tests
 **Status:** TODO  
@@ -619,33 +629,33 @@ Large; split further before implementation.
 **Type:** HARDEN  
 **Leverage:** HIGH
 ### Problem
-F-004,F-005,F-010,F-013,F-014 show that tests can drift from semantic ownership/model stage.
+F-004,F-005,F-010,F-013,F-014,F-015 show semantic drift in textual gates.
 ### Evidence
-Preflight waves and alias-expansion diagnostics.
+Preflight waves.
 ### Goal
-Assert semantic ownership, dependencies, raw contracts and compatibility projections.
+Assert ownership/data stage/absence contracts rather than incidental text.
 ### Scope
-Protocol/BridgeCore/CommandBridge/HotkeyStudio/UI boundaries plus raw-v8/projection boundary.
+Protocol/BridgeCore/CommandBridge/HotkeyStudio/UI plus raw-v8/projection boundary.
 ### Non-goals
-Remove no smoke gate before equivalent executable detection exists.
-### Files / symbols
-Test projects/workflows/contracts/`V8SecondaryAliasExpander`.
-### Implementation
-Compile/reflection/behavior tests plus deliberate negative test-of-tests fixtures.
-### Invariants
-2–5,7–10,14.
-### Compatibility constraints
 No production behavior change.
+### Files / symbols
+Test projects/workflows/contracts.
+### Implementation
+Compile/reflection/behavior tests and negative fixtures; retain smoke only until equivalent executable detection exists.
+### Invariants
+2–5,7–10,14,15.
+### Compatibility constraints
+NXOpen stubs remain compile-only evidence.
 ### Edge cases
-Internal types, conditional NXOpen/stubs, alias scope projections.
+Internal types, conditional refs, aliases, physically deleted legacy files.
 ### Tests
-Negative boundary/model-stage violations must fail.
+Deliberate boundary violations must fail.
 ### Mutation tests
-T-007 where pure.
+T-007 for pure logic.
 ### Benchmarks
 N/A.
 ### Acceptance criteria
-Valid file moves/alias projections pass; true semantic boundary violations fail.
+Valid refactor/deletion passes; real boundary regression fails.
 ### Verification commands
 Targeted tests + CI.
 ### Dependencies
@@ -655,7 +665,7 @@ T-005.
 ### Risk
 Medium.
 ### Rollback
-Retain old smoke until replacement proven.
+Keep old smoke until replacement proven.
 ### Estimated effort
 Medium.
 
@@ -669,15 +679,15 @@ F-008.
 ### Evidence
 No measured mutation baseline.
 ### Goal
-Measure test ability to detect auth/state/validator/projection faults.
+Measure auth/state/validator/projection test strength.
 ### Scope
 Protocol/StateMachines first; pure config projection if stable.
 ### Non-goals
 No blind NX UI/NXOpen mutation.
 ### Files / symbols
-Security/normalization/state/validators/projection logic.
+Security/normalization/state/validators/projection.
 ### Implementation
-Stryker.NET pilot; classify survivors; informational before threshold.
+Stryker.NET pilot; classify equivalent/surviving mutants; informational before threshold.
 ### Invariants
 4,5,8,13.
 ### Compatibility constraints
@@ -687,13 +697,13 @@ Equivalent mutants/time-sensitive tests.
 ### Tests
 Mutation run + survivor review.
 ### Mutation tests
-This task establishes them.
+Established here.
 ### Benchmarks
-Mutation job duration.
+Mutation duration.
 ### Acceptance criteria
-Measured score; no unexplained high-risk survivors.
+Measured score; no unexplained high-risk survivor.
 ### Verification commands
-Recorded after tool discovery.
+Recorded after tool setup.
 ### Dependencies
 T-001.
 ### Blocks
@@ -713,21 +723,21 @@ Medium.
 ### Problem
 Critical contracts span input × state × concurrency × timing × failure × permissions × configuration × external state.
 ### Evidence
-IPC/HFSM/security/config architecture.
+IPC/HFSM/config architecture.
 ### Goal
 Pairwise + high-risk N-wise + property/fuzz/metamorphic coverage.
 ### Scope
-Protocol auth/replay, inbox, HFSM, raw/profile projection, context guards.
+Auth/replay, inbox, HFSM, raw/projection, context guards.
 ### Non-goals
 No brute-force live NX UI.
 ### Files / symbols
-Critical test projects.
+Critical tests.
 ### Implementation
-Dimension matrix → pairwise → N-wise → reproducible fuzz/property cases.
+Dimension matrix → pairwise → high-risk N-wise → reproducible fuzz/property cases.
 ### Invariants
 2–10,13.
 ### Compatibility constraints
-Deterministic seeds/reproduction.
+Deterministic seeds/repro.
 ### Edge cases
 Clock skew, reorder/duplicate, corrupt JSON, stale revision, permission mismatch, alias collision, modal/cancel.
 ### Tests
@@ -737,7 +747,7 @@ Survivors guide missing observables.
 ### Benchmarks
 Stress duration/allocations.
 ### Acceptance criteria
-Documented matrix and executable high-risk cases.
+Documented matrix + executable high-risk coverage.
 ### Verification commands
 Targeted suites.
 ### Dependencies
@@ -747,7 +757,7 @@ T-009.
 ### Risk
 Medium.
 ### Rollback
-Retain deterministic core if fuzz harness flakes.
+Retain deterministic core if fuzz flakes.
 ### Estimated effort
 Medium-large.
 
@@ -757,19 +767,19 @@ Medium-large.
 **Type:** HARDEN  
 **Leverage:** MEDIUM
 ### Problem
-Coverage/mutation/performance/dependency/flaky baselines are incomplete.
+Coverage/mutation/performance/dependency/flaky baselines incomplete.
 ### Evidence
 Section 4.
 ### Goal
 Quantify release-relevant regressions.
 ### Scope
-Pure hot paths, dependency/security scans, flaky observation.
+Pure hot paths, scans, flaky observation, warnings inventory.
 ### Non-goals
-No live-NX performance claims from stubs.
+No live-NX performance claim from stubs.
 ### Files / symbols
 CI/benchmark/test projects.
 ### Implementation
-Measure first; conservative thresholds only after data.
+Measure first, thresholds after data.
 ### Invariants
 1,8,13.
 ### Compatibility constraints
@@ -783,7 +793,7 @@ Consume T-007.
 ### Benchmarks
 Established here.
 ### Acceptance criteria
-Versioned baselines/targets.
+Versioned measurable baselines/targets.
 ### Verification commands
 Baseline manifest.
 ### Dependencies
@@ -793,7 +803,7 @@ T-010.
 ### Risk
 Medium.
 ### Rollback
-Unstable threshold becomes informational; measurement retained.
+Unstable threshold becomes informational, measurement retained.
 ### Estimated effort
 Medium.
 
@@ -807,15 +817,15 @@ Initial audit cannot prove post-change convergence.
 ### Evidence
 Master protocol.
 ### Goal
-Repeat full architecture/correctness/security/concurrency/reliability/API/data/testing/mutation/performance/CI/docs/dependency audit until no fundamental delta.
+Repeat architecture/correctness/security/concurrency/reliability/API/data/testing/mutation/performance/CI/docs/dependency audit until no fundamental delta.
 ### Scope
 Whole repository.
 ### Non-goals
-No cosmetic expansion without findings.
+No cosmetic expansion without finding.
 ### Files / symbols
 All.
 ### Implementation
-Re-audit → findings → atomic deltas → verified iterations → repeat.
+Re-audit → findings → atomic delta tasks → verified iterations → repeat.
 ### Invariants
 All.
 ### Compatibility constraints
@@ -827,7 +837,7 @@ All established gates + live checklist.
 ### Mutation tests
 Critical suites.
 ### Benchmarks
-All baselines.
+All established baselines.
 ### Acceptance criteria
 Section 21.
 ### Verification commands
@@ -845,54 +855,55 @@ Variable.
 
 # 12. Testing Strategy
 
-Characterization precedes behavior change. Raw config contracts are tested before `IJsonOnDeserialized` compatibility projection; projected runtime behavior is tested separately. Pure contracts get unit/property tests; Windows desktop/CommandBridge get integration/build checks; NXOpen stubs prove compile compatibility only; live NX remains explicit release evidence. Negative security tests are first class. Native command failures propagate immediately. Preflight branch is the verification sandbox; `main` is not.
+Characterization precedes behavior change. Raw config contracts are tested before `IJsonOnDeserialized` projection; projected behavior separately. Pure contracts use unit/property tests; Windows desktop/CommandBridge use integration/build checks; NXOpen stubs prove compile compatibility only; live NX is explicit separate evidence. Negative security tests are first class. Native command errors propagate immediately. Preflight branch is verification sandbox; `main` is not.
 
 # 13. Mutation Testing Strategy
 
-Not configured initially. T-007 establishes measurement before threshold. Priority: HMAC/auth/replay → context guards → state transitions → raw/profile validators → alias projection → normalization → inbox. Survived mutants trigger observable-contract analysis, not coverage inflation.
+Not configured initially. T-007 measures before gating. Priority: HMAC/auth/replay → context guards → state transitions → raw/profile validators → alias projection → normalization → inbox. Surviving mutants trigger observable-contract analysis, not coverage inflation.
 
 # 14. Performance Baselines
 
-Unknown initially. Candidate measurements: leader transition latency/allocations, normalization/parsing, alias projection cost, inbox admission throughput/bounded poll cost, profile load/validation, desktop cold-start/publish size. No live-NX latency claim from CI.
+Unknown initially. Candidates: leader transition latency/allocations, normalization/parsing, alias projection, inbox admission/bounded poll, profile load/validation, desktop cold start/publish size. No live-NX latency claim from CI.
 
 # 15. Security Hardening
 
-Preserve HMAC, replay guard, explicit permissions, context/source-process constraints and bounded inbox. Raw identity uniqueness and alias projection fidelity are separate contracts; projected duplicate IDs must not broaden adapter/permission semantics. Add dependency/code scanning and mutation-resistant negative tests later. Never weaken validation to green CI.
+Preserve HMAC, replay guard, permissions, context/source-process binding and bounded inbox. Raw identity and alias-projection fidelity are separate contracts; aliases must not broaden adapter/security semantics. Add dependency/code scans and mutation-resistant negative tests later. Never weaken validation to green CI.
 
 # 16. Migration Strategy
 
-Use `characterization → introduce boundary → dual compatibility → migrate callers → verify → remove legacy`. The v8 cleanup is an incomplete migration: restore only independent HFSM policy; do not resurrect K3–K5 sources. `secondary_aliases` remain canonical raw metadata and may be expanded in memory for legacy runtime compatibility. Optional generated locks are strictly derived from raw canonical v8.
+`characterization → introduce boundary → dual compatibility → migrate callers → verify → remove legacy`. Removal is complete only when obsolete files *and* their exclusion/scaffolding assertions are deleted. v8 cleanup restores only independent HFSM policy, never K3–K5 command-map sources. Optional locks derive strictly from raw v8.
 
 # 17. Deferred Work
 
-- Live NX verification requiring NX 2512 installation.
+- Live NX 2512 verification requiring installed NX.
 - Mutation/performance thresholds until measured.
 - Cosmetic UI work unrelated to findings.
-- Broad refactors until T-001 is green.
+- Broad refactor until T-001 green.
+- Non-blocking compiler/analyzer warning cleanup to be inventoried under T-009 unless upgraded by new evidence.
 
 # 18. Rejected Decisions
 
-- Restore deleted K3–K5/full-command-map merely to green CI — rejected.
+- Restore K3–K5/full-command-map to green CI — rejected: dual source of truth.
 - Skip failing validators — rejected.
-- Add fake capability lock only to satisfy existence — rejected.
-- Edit raw v8 IDs/remove secondary aliases to satisfy the stale post-deserialization uniqueness assertion — rejected; diagnostics prove raw IDs are already unique and aliases are intentional.
-- Treat post-`IJsonOnDeserialized` `Operations.Count` as canonical source cardinality — rejected.
+- Add fake capability lock — rejected.
+- Delete secondary aliases/edit raw IDs to satisfy post-projection uniqueness — rejected.
+- Re-add `Compile Remove="Models\\ConfigModels.cs"` after `ConfigModels.cs` was physically deleted — rejected: preserves meaningless migration scaffolding.
 - Force/force-with-lease `main` — rejected.
 - Treat NXOpen stubs as live NX proof — rejected.
 
 # 19. Completed Tasks
 
-None. T-001 remains `VERIFYING`; all preflight commits are diagnostic/verification history until a completely green current-v8 state is reconciled and pushed to `main`.
+None. `T-001` remains VERIFYING until a completely green preflight is reconciled, equivalent logical state is non-force pushed to current `main`, and main verification succeeds.
 
 # 20. Iteration Log
 
 ## Iteration 1 — Wave A
 **Task:** T-001  
 **Findings addressed:** F-001..F-006  
-**Unexpected findings:** F-009,F-010,F-011,F-012  
-**Changes:** plan bootstrap; HFSM policy/package; v8/fail-fast CI; retire two obsolete workflows; selection/transport checks; orphan gitlink removal.  
-**Tests:** `fab88e79...`: Documentation PASS; current validators PASS; DFA/HFSM PASS; hardening/signing FAIL; Sketch legacy FAIL; Hotkey suite capability-lock FAIL.  
-**Plan changes:** added F-009..F-012.  
+**Unexpected findings:** F-009..F-012  
+**Changes:** plan bootstrap; HFSM policy/package; current-v8 fail-fast CI; obsolete workflow retirement; executor/transport checks; orphan gitlink removal.  
+**Tests:** `fab88e79...`: docs/current validators/DFA PASS; deeper signing/legacy/capability blockers exposed.  
+**Plan changes:** F-009..F-012 added.  
 **Commit:** `fab88e79c3a98f0eeb30ba496fc0a834cbae337a`  
 **Push:** audit branch only.  
 **Result:** FAIL → reconciled.
@@ -901,36 +912,47 @@ None. T-001 remains `VERIFYING`; all preflight commits are diagnostic/verificati
 **Task:** T-001  
 **Findings addressed:** F-009..F-012  
 **Unexpected findings:** F-013,F-014  
-**Changes:** retired Sketch workflow; signing ownership checks; canonical capability validator/optional-lock strictness; nullable Protocol contract.  
-**Tests:** `a5f9a718...`: current validator PASS; runtime source hardening PASS; strict Protocol/BridgeCore PASS; DFA/HFSM PASS; HotkeyStudio FAIL on identity assertion; Desktop UI FAIL on obsolete 10-row smoke assertion.  
-**Plan changes:** added F-013/F-014.  
+**Changes:** retire Sketch legacy gate; signing ownership; capability validator; nullable contract.  
+**Tests:** `a5f9a718...`: strict Protocol/BridgeCore and DFA PASS; Hotkey identity/Desktop UI stale checks exposed.  
+**Plan changes:** F-013,F-014 added.  
 **Commit:** `a5f9a718fce9dd2db9fdcd3ced56770b4f025378`  
 **Push:** audit branch only.  
 **Result:** FAIL → reconciled.
 
-## Iteration 1 — Wave C diagnostics
+## Iteration 1 — Wave C
 **Task:** T-001  
-**Findings addressed:** F-014  
-**Unexpected findings:** none; F-014 root cause materially revised by evidence.  
-**Changes:** strengthened raw validator diagnostics; added temporary C# identity instrumentation; compared raw source and post-deserialization model.  
-**Tests:** Node validator repeatedly reports 439 unique raw operations / 131 executable. C# diagnostics report 500 projected rows / 439 IDs after `JsonSerializer.Deserialize<Config>`. Inspection proves `V8SecondaryAliasExpander : IJsonOnDeserialized` intentionally clones `secondary_aliases` into compatibility routes.  
-**Plan changes:** F-014 reclassified from High data-model defect to Medium test/data-contract defect; raw-profile edits rejected; T-001 now targets projection-integrity regression.  
-**Commits:** `248b5f77...`, `8d099265...`, `98080045...`, `cfc3950f...` plus this planning reconciliation.  
+**Findings addressed:** F-013,F-014  
+**Unexpected findings:** F-015  
+**Changes:** raw uniqueness + projection-fidelity test; HUD contract reconciliation; diagnostic code removed.  
+**Tests:** `d08b8b25...`: Documentation PASS; Desktop UI PASS; Runtime hardening PASS; `ci` passes validators, DFA/HFSM, HotkeyStudio, 55 NxEskd Core + 27 Configurator tests, desktop build/publish, ControlCenter, NXOpen stubs and CommandBridge compile, then FAILs only at obsolete ConfigModels exclusion assertion.  
+**Plan changes:** F-014 root cause finalized; F-015 added; T-001 scope extended only to stale final adaptive gate.  
+**Commit:** `d08b8b25f45af1ffef826965b2520e34e215ea75`  
 **Push:** audit branch only.  
-**Result:** DIAGNOSIS PASS → implementation next.
+**Result:** FAIL → Wave D selected.
+
+## Iteration 1 — Wave D
+**Task:** T-001  
+**Findings addressed:** F-015  
+**Unexpected findings:** none yet.  
+**Changes:** planned: replace legacy csproj exclusion marker with absence invariant.  
+**Tests:** pending full preflight.  
+**Plan changes:** this reconciliation records F-015 before implementation.  
+**Commit:** pending.  
+**Push:** audit branch only until PASS.  
+**Result:** VERIFYING.
 
 # 21. Definition of Final Done
 
 - no known Critical/High findings;
-- all P0/P1 DONE or evidence-backed rejected/deferred;
+- all P0/P1 DONE or evidence-backed REJECTED/DEFERRED;
 - applicable CI consistently green with no masked native failures;
-- raw canonical operation identity unique/enforced and runtime alias projection fidelity tested separately;
+- raw canonical identity and runtime alias fidelity enforced separately;
 - important architecture rules technically protected where feasible;
 - critical security/state logic mutation-tested with no unexplained high-risk survivors;
 - multidimensional critical edge space covered;
 - performance/security/reliability baselines recorded and acceptable;
 - no unexplained flaky tests;
-- docs match current v8 code and do not require absent production assets;
+- docs match current v8 code and no active gate depends on absent legacy assets/scaffolding;
 - live-NX-only claims have explicit verification records;
 - repeat audit finds no fundamental delta;
 - `MASTER_PLAN.md`, code/tests and last verified `main` SHA agree.
