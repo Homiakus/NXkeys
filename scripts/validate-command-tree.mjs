@@ -60,6 +60,7 @@ try {
   const projectSource = text("NX2512_HotkeyStudio/NX2512_HotkeyStudio.csproj");
   const protocolSource = text("NXKeys.Protocol/NxProtocol.cs");
   const bridgeSource = text("NX2512_CommandBridge/Program.cs");
+  const executorSource = text("NX2512_CommandBridge/NxMenuCommandExecutor.cs");
   const runtimeSource = text("NX2512_HotkeyStudio/Models/ConfigRuntimeV5.cs");
   const html = text("docs/command-tree.html");
   const readme = text("README.md");
@@ -101,7 +102,6 @@ try {
         fail(`${binding.shortcut} must target ${requiredShortcuts.get(shortcut)}, got ${binding.command?.id}.`);
     }
 
-    // Validate the normalized v7 model rather than the raw bootstrap snapshot.
     ensureUniversalSupport(profile.modules ?? []);
     modules = (profile.modules ?? []).filter(item => item && item.enabled !== false);
     if (modules.length !== 14) fail(`Expected 14 enabled modules, got ${modules.length}.`);
@@ -176,19 +176,26 @@ try {
   }
 
   if (!protocolSource.includes("selection_filter")) fail("Protocol request must carry selection_filter.");
-  const hasSelectionDispatch = bridgeSource.includes("set_selection_filter") ||
-    bridgeSource.includes("NxProtocolActions.SetSelectionFilter");
-  if (!hasSelectionDispatch || !bridgeSource.includes("SetEnabledGlobalFilterMembers"))
-    fail("CommandBridge must implement direct NXOpen selection filter actions.");
+  const hasSelectionDispatch = bridgeSource.includes("NxProtocolActions.SetSelectionFilter") &&
+    bridgeSource.includes("executor.ApplySelectionCommand");
+  if (!hasSelectionDispatch || !executorSource.includes("SetEnabledGlobalFilterMembers"))
+    fail("CommandBridge must dispatch selection-filter actions to the NXOpen executor boundary.");
   if (!runtimeSource.includes("SelectionIntent") || !runtimeSource.includes("AddAlias(command, command.InputKey)"))
     fail("Runtime config must preserve short aliases and infer selection intent.");
 
   if (policy) {
-    const policyKeys = Object.keys(policy.commands ?? {}).map(normalize);
-    const allGeneratedKeys = new Set([...generatedSequences].map(value => value.split("|")[1]));
-    for (const key of policyKeys) if (!allGeneratedKeys.has(key)) fail(`Policy references unknown mnemonic sequence: ${key}.`);
+    if (policy.schema_version !== 1) fail(`state-machine policy schema_version must be 1, got ${policy.schema_version}.`);
+    if (!(Number(policy.timeouts?.root_ms) > 0) || !(Number(policy.timeouts?.prefix_ms) > 0))
+      fail("State-machine policy must declare positive root/prefix timeouts.");
+    if (profile) {
+      const policyKeys = Object.keys(policy.commands ?? {}).map(normalize);
+      const allGeneratedKeys = new Set([...generatedSequences].map(value => value.split("|")[1]));
+      for (const key of policyKeys) if (!allGeneratedKeys.has(key)) fail(`Policy references unknown mnemonic sequence: ${key}.`);
+    }
     if (policy.adaptive_module?.enabled !== true || policy.adaptive_module?.scope !== "active_module")
       fail("Policy must enable active_module scope.");
+  } else {
+    fail("Declarative state-machine policy config/nx2512-state-machines.json is required.");
   }
 
   const applicationFiles = [
@@ -221,7 +228,7 @@ try {
     fail("Root README lacks current adaptive input documentation.");
   if (!docsReadme.includes("command-tree.html")) fail("docs/README.md must link to the command map.");
 
-  if (!failed) console.log(`[mnemonic-profile] OK: ${bindings.length} basic shortcuts, ${modules.length} modules, ${commandCount} commands, ${knownPaths.size} exact mnemonic mappings, schema v6 runtime.`);
+  if (!failed) console.log(`[mnemonic-profile] OK: v8 schema, state policy, ${knownPaths.size} exact mnemonic mappings and current NXOpen executor boundary.`);
 } catch (error) {
   fail(error?.stack || error?.message || String(error));
 }

@@ -56,7 +56,7 @@ jobs:
               throw "Missing profile draft invariant: $required"
             }
           }
-          foreach ($required in @('MaximumRootRows = 10', 'reduceMotion', 'NxKeysTheme')) {
+          foreach ($required in @('PrimarySuggestionLimit = 8', 'MaximumRootRows = PrimarySuggestionLimit', 'reduceMotion', 'NxKeysTheme')) {
             if ($hud -notmatch [regex]::Escape($required)) {
               throw "Missing compact HUD invariant: $required"
             }

@@ -9,11 +9,13 @@ on:
       - 'NX2512_HotkeyStudio/Program.cs'
       - 'NX2512_HotkeyStudio/Services/LeaderKeyEngine.cs'
       - 'NX2512_HotkeyStudio/Services/NxCommandBridgeClient.cs'
+      - 'NX2512_HotkeyStudio/Services/NxRequestSigningPolicy.cs'
       - 'NX2512_HotkeyStudio/Services/NxRuntimeService.cs'
       - 'NX2512_HotkeyStudio/Services/NxTransportReadResult.cs'
       - 'NX2512_CommandBridge/**'
       - 'NX2512_HotkeyStudio.Tests/**'
       - 'NXKeys.StateMachines.Tests/**'
+      - 'config/nx2512-state-machines.json'
       - '.github/workflows/runtime-hardening.yml'
   pull_request:
     paths:
@@ -23,12 +25,15 @@ on:
       - 'NX2512_HotkeyStudio/Program.cs'
       - 'NX2512_HotkeyStudio/Services/LeaderKeyEngine.cs'
       - 'NX2512_HotkeyStudio/Services/NxCommandBridgeClient.cs'
+      - 'NX2512_HotkeyStudio/Services/NxRequestSigningPolicy.cs'
       - 'NX2512_HotkeyStudio/Services/NxRuntimeService.cs'
       - 'NX2512_HotkeyStudio/Services/NxTransportReadResult.cs'
       - 'NX2512_CommandBridge/**'
       - 'NX2512_HotkeyStudio.Tests/**'
       - 'NXKeys.StateMachines.Tests/**'
+      - 'config/nx2512-state-machines.json'
       - '.github/workflows/runtime-hardening.yml'
+  workflow_dispatch:
 
 jobs:
   verify:
@@ -49,6 +54,8 @@ jobs:
           $inbox = Get-Content .\NXKeys.BridgeCore\BridgeRequestInbox.cs -Raw
           $config = Get-Content .\NX2512_HotkeyStudio\Models\ConfigRuntimeV5.cs -Raw
           $client = Get-Content .\NX2512_HotkeyStudio\Services\NxCommandBridgeClient.cs -Raw
+          $signingPolicy = Get-Content .\NX2512_HotkeyStudio\Services\NxRequestSigningPolicy.cs -Raw
+          $transportReadResult = Get-Content .\NX2512_HotkeyStudio\Services\NxTransportReadResult.cs -Raw
           $runtime = Get-Content .\NX2512_HotkeyStudio\Services\NxRuntimeService.cs -Raw
           $leader = Get-Content .\NX2512_HotkeyStudio\Services\LeaderKeyEngine.cs -Raw
           $desktop = Get-Content .\NX2512_HotkeyStudio\Program.cs -Raw
@@ -98,12 +105,26 @@ jobs:
           foreach ($required in @(
             'ReadContextDetailed',
             'ReadResultDetailed',
-            'NxTransportReadStatus',
-            'PrepareAuthenticatedRequest',
-            'NxRequestAuthenticator.Sign'
+            'policy.PrepareAuthenticated',
+            'transport.WriteRequest'
           )) {
             if ($client -notmatch [regex]::Escape($required)) {
-              throw "Missing client transport invariant: $required"
+              throw "Missing client orchestration invariant: $required"
+            }
+          }
+          foreach ($required in @(
+            'PrepareAuthenticated',
+            'NxBridgeSecurityEnvironment.TryRead',
+            'NxBridgePermissionSet.FromProfileFile',
+            'NxRequestAuthenticator.Sign'
+          )) {
+            if ($signingPolicy -notmatch [regex]::Escape($required)) {
+              throw "Missing signing-policy invariant: $required"
+            }
+          }
+          foreach ($required in @('NxTransportReadStatus', 'NxTransportReadResult', 'IsSuccess')) {
+            if ($transportReadResult -notmatch [regex]::Escape($required)) {
+              throw "Missing transport read-result invariant: $required"
             }
           }
           foreach ($required in @(

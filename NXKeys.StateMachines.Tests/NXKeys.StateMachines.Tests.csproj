@@ -15,7 +15,7 @@
     <Compile Include="..\NXKeys.StateMachines\LeaderStateMachines.cs" Link="StateMachines\LeaderStateMachines.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\config\nx2512-v8-profile.json" Link="nx2512-v8-profile.json">
+    <Content Include="..\config\nx2512-state-machines.json" Link="nx2512-state-machines.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

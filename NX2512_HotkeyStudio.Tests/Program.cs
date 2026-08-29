@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using NX2512_HotkeyStudio.Models;
 using NX2512_HotkeyStudio.Services;
 using NX2512_HotkeyStudio.UI;
@@ -106,16 +107,56 @@ internal static class Program
         // 1. HUD PrimarySuggestionLimit = 8
         Assert(LeaderHudForm.PrimarySuggestionLimit == 8, "PrimarySuggestionLimit must equal 8.");
 
-        // 2. Profile source and embedded canonical profile
+        // 2. Profile source and embedded runtime projection
         Config embedded = Config.LoadEmbedded();
-        Assert(embedded != null && embedded.Operations.Count > 0, "Embedded canonical v8 profile must be available.");
+        Assert(embedded != null && embedded.Operations.Count > 0, "Embedded v8 profile projection must be available.");
 
-        // 3. Capability lock file exists and matches
-        string lockFile = FindRepositoryFile(Path.Combine("config", "nx2512-capability-route-lock.json"));
-        Assert(File.Exists(lockFile), "Capability-and-route lock file must exist.");
+        // 3. Raw canonical identity and alias-expanded projection are separate contracts.
+        string profilePath = FindRepositoryProfileFile();
+        string rawJson = File.ReadAllText(profilePath);
+        using (JsonDocument document = JsonDocument.Parse(rawJson, new JsonDocumentOptions
+        {
+            AllowTrailingCommas = true,
+            CommentHandling = JsonCommentHandling.Skip
+        }))
+        {
+            Assert(document.RootElement.TryGetProperty("operations", out JsonElement operationsElement) &&
+                   operationsElement.ValueKind == JsonValueKind.Array,
+                "Canonical v8 profile must contain an operations array.");
+
+            List<string> rawOperationIds = operationsElement.EnumerateArray()
+                .Select(operation => operation.TryGetProperty("operation_id", out JsonElement idElement) &&
+                                     idElement.ValueKind == JsonValueKind.String
+                    ? idElement.GetString() ?? string.Empty
+                    : string.Empty)
+                .ToList();
+
+            Assert(rawOperationIds.All(id => !string.IsNullOrWhiteSpace(id)),
+                "Every raw canonical v8 operation must have a non-empty operation_id.");
+            Assert(rawOperationIds.Distinct(StringComparer.OrdinalIgnoreCase).Count() == rawOperationIds.Count,
+                "Raw canonical v8 operation_id values must be unique before alias projection.");
+
+            var rawIdSet = new HashSet<string>(rawOperationIds, StringComparer.OrdinalIgnoreCase);
+            List<string> projectedIds = embedded.Operations.Select(operation => operation.OperationID ?? string.Empty).ToList();
+            Assert(projectedIds.All(id => !string.IsNullOrWhiteSpace(id)),
+                "Every runtime projection must retain its canonical operation_id.");
+            Assert(projectedIds.Distinct(StringComparer.OrdinalIgnoreCase).Count() == rawIdSet.Count,
+                "Alias projection must not create or remove semantic operation identities.");
+            Assert(projectedIds.All(rawIdSet.Contains),
+                "Alias projection must not introduce operation_id values absent from the raw canonical profile.");
+
+            foreach (IGrouping<string, OperationContract> group in embedded.Operations
+                         .GroupBy(operation => operation.OperationID ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+                         .Where(group => group.Count() > 1))
+            {
+                Assert(group.Select(OperationSemanticFingerprint)
+                        .Distinct(StringComparer.Ordinal)
+                        .Count() == 1,
+                    "Secondary-alias projections must preserve command/adapter semantics for operation_id: " + group.Key);
+            }
+        }
 
         // 4. Destructive policies in permissions
-        string profilePath = FindRepositoryProfileFile();
         var permissions = NXKeys.Protocol.NxBridgePermissionSet.FromProfileFile(profilePath);
         var removeComp = permissions.Permissions.FirstOrDefault(p => p.CommandId == "UG_ASSEMBLIES_REMOVE_COMPONENT");
         Assert(removeComp != null && removeComp.Destructive && removeComp.ConfirmationRequired,
@@ -129,6 +170,31 @@ internal static class Program
         {
             Assert(!perm.CommandId.Contains("."), "Bridge ExecuteCommand allowlist must not contain unmapped operation_ids: " + perm.CommandId);
         }
+    }
+
+    private static string OperationSemanticFingerprint(OperationContract operation)
+    {
+        OperationAdapter adapter = operation?.Adapter ?? new OperationAdapter();
+        OperationAvailability availability = operation?.Availability ?? new OperationAvailability();
+        return string.Join("\u001f", new[]
+        {
+            operation?.CommandName ?? string.Empty,
+            operation?.Action ?? string.Empty,
+            (operation?.Enabled ?? false).ToString(),
+            operation?.Risk ?? string.Empty,
+            (operation?.ConfirmationRequired ?? false).ToString(),
+            (operation?.RequiresSelection ?? false).ToString(),
+            (operation?.MinimumSelectionCount ?? 0).ToString(),
+            string.Join(",", operation?.SelectionTypes ?? new List<string>()),
+            operation?.UnavailableReason ?? string.Empty,
+            operation?.TargetApplicationId ?? string.Empty,
+            operation?.SelectionFilter ?? string.Empty,
+            adapter.Kind ?? string.Empty,
+            adapter.Value ?? string.Empty,
+            adapter.Status ?? string.Empty,
+            availability.RequiresWorkPart.ToString(),
+            availability.BlockedInTextInput.ToString()
+        });
     }
 
     private static void VerifyDocumentationGenerator()
