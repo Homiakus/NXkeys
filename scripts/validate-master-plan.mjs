@@ -163,6 +163,15 @@ function requireFailure(name, candidate, expectedFragment) {
   }
 }
 
+function duplicateSecondId(text, prefix) {
+  const matches = [...text.matchAll(new RegExp(`^## (${prefix}-\\d{3})\\s+—`, 'gm'))];
+  if (matches.length < 2) throw new Error(`self-test:need-two-${prefix}-ids`);
+  return {
+    first: matches[0][1],
+    mutated: text.replace(`## ${matches[1][1]} —`, `## ${matches[0][1]} —`),
+  };
+}
+
 function runSelfTests(inputText) {
   const validText = normalizeNewlines(inputText);
   const baselineErrors = validateMasterPlan(validText);
@@ -176,18 +185,32 @@ function runSelfTests(inputText) {
     'heading:# 7. Risk Register',
   );
 
-  const firstFinding = validText.match(/^## (F-\d{3})\s+—/m)?.[1];
-  const secondFinding = [...validText.matchAll(/^## (F-\d{3})\s+—/gm)][1]?.[1];
-  if (!firstFinding || !secondFinding) throw new Error('self-test:need-two-findings');
+  const duplicateFinding = duplicateSecondId(
+    sectionBody(validText, '# 6. Findings Registry', '# 7. Risk Register'),
+    'F',
+  );
   requireFailure(
     'duplicate-finding-id',
-    validText.replace(`## ${secondFinding} —`, `## ${firstFinding} —`),
-    `finding-id:duplicate:${firstFinding}`,
+    validText.replace(
+      sectionBody(validText, '# 6. Findings Registry', '# 7. Risk Register'),
+      duplicateFinding.mutated,
+    ),
+    `finding-id:duplicate:${duplicateFinding.first}`,
   );
 
+  const tasks = sectionBody(validText, '# 11. Atomic Tasks', '# 12. Testing Strategy');
+  const duplicateTask = duplicateSecondId(tasks, 'T');
+  requireFailure(
+    'duplicate-task-id',
+    validText.replace(tasks, duplicateTask.mutated),
+    `task-id:duplicate:${duplicateTask.first}`,
+  );
+
+  const taskStatusMatch = tasks.match(/\*\*Status:\*\*\s*([A-Z_]+)/);
+  if (!taskStatusMatch) throw new Error('self-test:need-task-status');
   requireFailure(
     'invalid-task-status',
-    validText.replace('**Status:** VERIFYING', '**Status:** UNKNOWN'),
+    validText.replace(taskStatusMatch[0], '**Status:** UNKNOWN'),
     'invalid-status:UNKNOWN',
   );
 
