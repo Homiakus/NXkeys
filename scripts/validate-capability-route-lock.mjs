@@ -22,10 +22,11 @@ if (!profile.operations || !Array.isArray(profile.operations)) {
 const generate = process.argv.includes('--generate');
 
 const compiledCapabilities = [];
-for (const op of profile.operations) {
+for (const [index, op] of profile.operations.entries()) {
   const opId = op.operation_id || '';
   const kind = op.adapter?.kind || '';
-  const buttonId = kind === 'button_id' ? (op.adapter?.value || '') : '';
+  const adapterValue = op.adapter?.value || '';
+  const buttonId = kind === 'button_id' ? adapterValue : '';
   const apps = op.availability?.applications || ['global'];
   const appScope = apps[0] || 'global';
   const action = op.action || (buttonId ? 'execute_command' : 'local_behavior');
@@ -39,10 +40,13 @@ for (const op of profile.operations) {
   const workspaceKey = op.paths?.workspace_key || '';
 
   compiledCapabilities.push({
+    source_index: index,
     operation_id: opId,
     command_name: op.command_name || '',
     application_scope: appScope,
     action,
+    adapter_kind: kind,
+    adapter_value: adapterValue,
     button_id: buttonId,
     risk,
     confirmation_required: confirm,
@@ -56,29 +60,53 @@ for (const op of profile.operations) {
   });
 }
 
-compiledCapabilities.sort((a, b) => a.operation_id.localeCompare(b.operation_id));
-
 if (compiledCapabilities.some(capability => !capability.operation_id)) {
   fail('Every canonical v8 capability must have a non-empty operation_id.');
 }
-const uniqueOperationIds = new Set(compiledCapabilities.map(capability => capability.operation_id.toLowerCase()));
-if (uniqueOperationIds.size !== compiledCapabilities.length) {
-  fail('Canonical v8 capability operation_id values must be unique.');
+
+const groupsByOperationId = new Map();
+for (const capability of compiledCapabilities) {
+  const key = capability.operation_id.toLowerCase();
+  if (!groupsByOperationId.has(key)) groupsByOperationId.set(key, []);
+  groupsByOperationId.get(key).push(capability);
 }
+const duplicateGroups = [...groupsByOperationId.values()].filter(group => group.length > 1);
+if (duplicateGroups.length > 0) {
+  console.error(`[capability-route-lock] Found ${duplicateGroups.length} duplicate operation_id group(s):`);
+  for (const group of duplicateGroups.sort((a, b) => a[0].operation_id.localeCompare(b[0].operation_id))) {
+    console.error(`[capability-route-lock] DUPLICATE ${group[0].operation_id} x${group.length}`);
+    for (const capability of group) {
+      console.error(JSON.stringify({
+        source_index: capability.source_index,
+        operation_id: capability.operation_id,
+        command_name: capability.command_name,
+        application_scope: capability.application_scope,
+        action: capability.action,
+        adapter_kind: capability.adapter_kind,
+        adapter_value: capability.adapter_value,
+        routes: capability.routes
+      }));
+    }
+  }
+  fail('Canonical v8 capability operation_id values must be unique until an explicit composite identity contract is defined end-to-end.');
+}
+
+compiledCapabilities.sort((a, b) => a.operation_id.localeCompare(b.operation_id));
+const canonicalCapabilities = compiledCapabilities.map(({ source_index, adapter_kind, adapter_value, ...capability }) => capability);
 
 const lockData = {
   schema_version: 1,
   profile_name: profile.profile?.name || 'NX Adaptive Modules 2512.6000 v8',
-  total_operations: compiledCapabilities.length,
-  executable_button_count: compiledCapabilities.filter(c => c.button_id).length,
-  capabilities: compiledCapabilities
+  total_operations: canonicalCapabilities.length,
+  executable_button_count: canonicalCapabilities.filter(c => c.button_id).length,
+  capabilities: canonicalCapabilities
 };
 
 if (generate) {
   fs.writeFileSync(lockPath, JSON.stringify(lockData, null, 2) + '\n', 'utf8');
-  console.log(`[capability-route-lock] Generated optional lock file with ${compiledCapabilities.length} capabilities (${lockData.executable_button_count} executable).`);
+  console.log(`[capability-route-lock] Generated optional lock file with ${canonicalCapabilities.length} capabilities (${lockData.executable_button_count} executable).`);
 } else if (!fs.existsSync(lockPath)) {
-  console.log(`[capability-route-lock] OK: canonical v8 profile contains ${compiledCapabilities.length} unique operations (${lockData.executable_button_count} executable); optional lock file is absent.`);
+  console.log(`[capability-route-lock] OK: canonical v8 profile contains ${canonicalCapabilities.length} unique operations (${lockData.executable_button_count} executable); optional lock file is absent.`);
 } else {
   const existingLock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
   if (existingLock.total_operations !== lockData.total_operations) {
