@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "docs/command-tree.html"
-      - "config/nx2512-pro-hybrid.json"
+      - "config/nx2512-v8-profile.json"
       - "config/nx2512-state-machines.json"
       - "scripts/validate-command-tree.mjs"
       - ".github/workflows/pages.yml"
@@ -42,7 +42,7 @@ jobs:
           mkdir -p _site/config
 
           cp docs/command-tree.html _site/index.html
-          cp config/nx2512-pro-hybrid.json _site/config/
+          cp config/nx2512-v8-profile.json _site/config/
           cp config/nx2512-state-machines.json _site/config/
 
           # command-tree.html is stored under docs/ in the repository, but is
@@ -52,9 +52,9 @@ jobs:
           touch _site/.nojekyll
 
           test -s _site/index.html
-          test -s _site/config/nx2512-pro-hybrid.json
+          test -s _site/config/nx2512-v8-profile.json
           test -s _site/config/nx2512-state-machines.json
-          grep -q './config/nx2512-pro-hybrid.json' _site/index.html
+          grep -q './config/nx2512-v8-profile.json' _site/index.html
           grep -q './config/nx2512-state-machines.json' _site/index.html
 
       - name: Configure GitHub Pages
