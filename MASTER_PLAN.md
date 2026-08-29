@@ -16,8 +16,8 @@
 - F-017 Pages path fix entered `main` as `6e1882bd8f6b61d0f67d194f96df55c245ee700f`.
 - F-018 Pages dependency-contract fix entered `main` as `8425ec3739e68782dc204e94337bb5f0f6915048`.
 - On `8425ec373...`: full `ci` run `33266648847` PASS; Documentation run `33266648784` PASS; Pages run `33266648791` passes validator + static website preparation, then fails only at `actions/configure-pages@v6` because repository Pages is not enabled/configured for GitHub Actions.
-- T-002 preflight branch: `audit/t002-master-plan-gate-20260829`; implementation head `98a187a48b175407d9ecd28751e637fcaee97b28` has Documentation run `33267035550` PASS and full `ci` run `33267035511` PASS. Documentation uses `checkout@v7`, `setup-node@v7`, Node 24 and the executable plan validator with negative self-tests.
-- T-003 is the next selected governance task after clean T-002 integration.
+- T-002 entered `main` cleanly as `cf7ac6e1bfb999f81f8372f6dcff3de066e31f33`; post-push Documentation `33267289638` PASS and full `ci` `33267289639` PASS. The living-plan contract is now enforced by `scripts/validate-master-plan.mjs` using `checkout@v7`, `setup-node@v7` and Node 24.
+- T-003 is the next selected governance task.
 - Live NX 2512 remains an external verification layer; NXOpen stubs are compile-contract evidence only.
 
 # 3. Architecture Map
@@ -45,8 +45,8 @@ Pages ownership: `docs/command-tree.html` consumes canonical v8 command-map data
 
 | Check | Original main | Current evidence |
 |---|---|---|
-| Core/current-v8 CI | red/blocked | PASS on `8425ec373...`; T-002 preflight full CI PASS |
-| Documentation | red/blocked | PASS on `8425ec373...`; T-002 Node24/v7 gate PASS |
+| Core/current-v8 CI | red/blocked | PASS on `cf7ac6e1...` |
+| Documentation | red/blocked | PASS on `cf7ac6e1...` with executable plan gate |
 | Desktop UI | red | PASS on verified current-v8 tree |
 | Runtime hardening | red | PASS on verified current-v8 tree |
 | Raw v8 identity | not explicit | PASS: 439/439 unique |
@@ -148,7 +148,7 @@ Pages ownership: `docs/command-tree.html` consumes canonical v8 command-map data
 
 ## F-020 — Documentation gate pinned deprecated Node-backed actions
 **Status:** Addressed by T-002 | **Severity:** Low | **Category:** CI/Maintenance | **Confidence:** Confirmed
-**Evidence:** Windows runner warned that `checkout@v4`/`setup-node@v4` targeted deprecated Node 20. T-002 moved the workflow to `checkout@v7`, `setup-node@v7` and Node 24; Documentation run `33267035550` PASS.
+**Evidence:** Windows runner warned that `checkout@v4`/`setup-node@v4` targeted deprecated Node 20. T-002 moved the workflow to `checkout@v7`, `setup-node@v7` and Node 24; main Documentation run `33267289638` PASS.
 
 # 7. Risk Register
 
@@ -163,16 +163,16 @@ Pages ownership: `docs/command-tree.html` consumes canonical v8 command-map data
 
 # 8. Pareto Improvements
 
-1. Make the living plan executable and machine-verifiable.
-2. Capture a machine-readable verification baseline with explicit evidence classes.
-3. Remove residual K3–K5 migration debt.
-4. Replace source-location smoke with executable architecture contracts.
-5. Mutation-test and edge-test critical pure logic before broader refactors.
+1. Capture a machine-readable verification baseline with explicit evidence classes.
+2. Remove residual K3–K5 migration debt.
+3. Replace source-location smoke with executable architecture contracts.
+4. Mutation-test critical pure logic.
+5. Expand multidimensional edge coverage before broader refactors.
 
 # 9. Dependency DAG
 
 ```text
-T-001 code baseline verified ─┬─ T-002 plan gate
+T-001 code baseline verified ─┬─ T-002 plan gate DONE
                               ├─ T-003 baseline manifest
                               ├─ T-004 legacy cleanup
                               ├─ T-006 architecture tests ─ T-005 boundary adoption
@@ -183,7 +183,7 @@ T-003 + T-005 + T-008 ─ T-009 measured hardening ─ T-010 convergence audit
 
 # 10. Implementation Phases
 
-- Phase 0: T-001..T-003 — recover trust/governance; F-019 is an explicit external sub-blocker.
+- Phase 0: T-001..T-003 — recover trust/governance; T-002 done, F-019 is an explicit external T-001 sub-blocker, T-003 selected.
 - Phase 1: T-004 — delete migration debt.
 - Phase 2: T-006 → T-005 — protect and finish semantic boundaries.
 - Phase 3: T-007..T-008 — test-of-tests and multidimensional edge coverage.
@@ -199,10 +199,9 @@ T-003 + T-005 + T-008 ─ T-009 measured hardening ─ T-010 convergence audit
 **Blocks:** no governance-only work; F-019 still blocks full deployment closure.
 
 ## T-002 — Enforce MASTER_PLAN structure as executable gate
-**Status:** VERIFYING | **Priority:** P1 | **Type:** HARDEN | **Leverage:** HIGH
-**Implementation:** `scripts/validate-master-plan.mjs` validates 21 required headings, heading order, unique F/T IDs, finding severity/confidence, task status/priority/type/leverage vocabularies, and non-empty iteration history. `--self-test` proves rejection of missing heading, duplicate finding ID, duplicate task ID, invalid task status and missing iteration entry. Documentation workflow runs it fail-fast. Parser normalizes CRLF/LF; negative mutations are section-scoped.
-**Evidence:** implementation head `98a187a48b175407d9ecd28751e637fcaee97b28`: Documentation `33267035550` PASS on `checkout@v7` + `setup-node@v7` + Node 24; full `ci` `33267035511` PASS through NXOpen/adaptive/deployment/artifacts.
-**Remaining:** verify this plan-only reconciliation tree, then create one clean non-force main commit and reverify applicable workflows.
+**Status:** DONE | **Priority:** P1 | **Type:** HARDEN | **Leverage:** HIGH
+**Implementation:** `scripts/validate-master-plan.mjs` validates 21 required headings, heading order, unique F/T IDs, finding severity/confidence, task status/priority/type/leverage vocabularies, and non-empty iteration history. `--self-test` rejects missing heading, duplicate finding ID, duplicate task ID, invalid task status and missing iteration entry. Parser normalizes CRLF/LF; mutations are section-scoped. Documentation uses current Node-backed actions and Node 24.
+**Evidence:** clean main commit `cf7ac6e1bfb999f81f8372f6dcff3de066e31f33`; post-push Documentation `33267289638` PASS and full `ci` `33267289639` PASS through NXOpen/adaptive/deployment/artifacts.
 
 ## T-003 — Capture machine-readable verified baseline
 **Status:** READY | **Priority:** P1 | **Type:** HARDEN | **Leverage:** HIGH
@@ -277,7 +276,8 @@ Preserve HMAC, replay guard, permissions, context/source-process binding and bou
 
 # 19. Completed Tasks
 
-No task is fully closed yet. T-001 is code-verified but externally blocked by F-019; T-002 has green preflight and awaits clean main integration.
+- T-002 — executable living-plan contract; clean main `cf7ac6e1bfb999f81f8372f6dcff3de066e31f33`; Documentation and full `ci` PASS.
+- T-001 remains code-verified but externally blocked by F-019.
 
 # 20. Iteration Log
 
@@ -291,7 +291,7 @@ F-017 replaced removed hybrid profile with canonical v8 assets. F-018 removed th
 Main run `33266648791` proves code-side Pages package PASS and repository Pages setup missing. No code workaround can honestly satisfy this with current token/tool permissions. T-001 marked BLOCKED only for external deployment closure; governance work continues.
 
 ## Iteration 2 — T-002 executable plan gate
-Added pure Node plan validator and Documentation integration. First run exposed Windows CRLF sensitivity; parser normalized. A second self-test regression exposed an unscoped status mutation after T-001 changed to BLOCKED; mutation was constrained to Atomic Tasks. Documentation actions were upgraded from Node-20-backed v4 majors to current v7 majors with Node 24. Implementation head `98a187a48b175407d9ecd28751e637fcaee97b28`: Documentation `33267035550` PASS and full `ci` `33267035511` PASS. Result: PASS → plan reconciliation and clean main integration selected.
+Added pure Node plan validator and Documentation integration. First run exposed Windows CRLF sensitivity; parser normalized. A second self-test regression exposed an unscoped status mutation after T-001 changed to BLOCKED; mutation was constrained to Atomic Tasks. Documentation actions were upgraded from Node-20-backed v4 majors to current v7 majors with Node 24. Clean verified tree entered main as `cf7ac6e1bfb999f81f8372f6dcff3de066e31f33`; post-push Documentation `33267289638` PASS and full `ci` `33267289639` PASS. Result: DONE; T-003 selected.
 
 # 21. Definition of Final Done
 
