@@ -12,7 +12,9 @@
 - IPC schema 4: HMAC authentication, replay guard, permission/context/source-process binding.
 - Boundaries: HotkeyStudio → Protocol/StateMachines → BridgeCore → CommandBridge/NXOpen; ControlCenter и NxEskd — отдельные surfaces.
 - Baseline `main`: `2359e85c02313f4c6227a5e9a38ef62e9b9c043f`; 5/5 push workflows тогда были red.
-- Preflight branch: `audit/living-master-plan-bootstrap-20260829`; `main` не меняется до verified PASS.
+- Primary preflight branch: `audit/living-master-plan-bootstrap-20260829`.
+- Clean T-001 baseline tree was fast-forwarded to `main` as `2b28da717d4325b767c240851d487ae7717a3cb0` after green preflight; four current-v8/core workflows are being reverified, but the main-only Pages workflow exposed F-017.
+- F-017 preflight branch: `audit/t001-pages-f017-20260829`, based exactly on `2b28da717...`.
 - Code-bearing Wave E head `709fa114e4fa03ab82f86caf02cd1bdc4a893491` полностью PASS в `ci`: validators, DFA/HFSM, HotkeyStudio, NxEskd 55+27 tests, HotkeyStudio/ControlCenter build+publish, NXOpen stubs, CommandBridge compile, adaptive invariants, deployment invariants и artifacts.
 - Documentation, Desktop UI и Runtime hardening также имеют полностью зелёные прогоны на том же логическом T-001 состоянии; текущая plan-only reconciliation должна быть повторно проверена перед интеграцией в `main`.
 - Live NX 2512 — отдельный внешний verification layer; stubs не считаются live-NX proof.
@@ -44,7 +46,7 @@ Ownership: Protocol = contracts/security/normalization; StateMachines = determin
 
 | Check | Original main | Current preflight evidence |
 |---|---|---|
-| Push workflows | 5/5 FAIL | code-bearing Wave E: all applicable current workflows PASS |
+| Push workflows | 5/5 FAIL | preflight core/current-v8 PASS; main-only Pages exposed F-017 |
 | Current Node validators | stale/masked | PASS |
 | Raw v8 identity | not explicit | PASS: 439/439 unique |
 | DFA/HFSM | FAIL missing policy | PASS |
@@ -156,6 +158,20 @@ Evidence: project builds/publishes while file is physically absent; old gate dem
 **Affected tasks:** T-001,T-006.  
 **Recommended direction:** retain a hook delegation assertion and move NX semantic-token ownership check to `NxSelectionExecutor`; later replace source-text smoke with executable architecture tests under T-006.
 
+## F-017 — Pages workflow still publishes removed hybrid profile
+**Status:** Planned | **Severity:** High | **Category:** CI/Documentation/Migration | **Confidence:** Confirmed  
+**Evidence:** main-only `Deploy NXKeys Command Map` passed `validate-command-tree.mjs` then failed `cp config/nx2512-pro-hybrid.json`; the file was intentionally removed by the v8 migration. `docs/command-tree.html` already loads `../config/nx2512-v8-profile.json`.  
+**Current behavior:** all core/current-v8 verification can pass while the public command-map deployment remains deterministically red on `main`.  
+**Expected behavior:** Pages packages `config/nx2512-v8-profile.json` plus the independent `config/nx2512-state-machines.json`, and the published HTML resolves those same paths.  
+**Root cause:** `.github/workflows/pages.yml` retained the pre-v8 hybrid profile filename in trigger paths, copy/test commands and grep assertions.  
+**Impact:** one of the original five push workflows remains red and Pages cannot deploy.  
+**Blast radius:** static documentation publication only; runtime semantics unaffected.  
+**Reproduction:** main `2b28da717...`, run `33265565463`, step `Prepare static website`: `cp: cannot stat 'config/nx2512-pro-hybrid.json'`.  
+**Affected invariants:** 1,2,13,15.  
+**Related findings:** F-002,F-007,F-009.  
+**Affected tasks:** T-001,T-004.  
+**Recommended direction:** replace all active Pages references to the removed hybrid source with canonical `nx2512-v8-profile.json`; keep state-machine policy separate; do not restore the hybrid file.
+
 # 7. Risk Register
 
 | Risk | P | Impact | Mitigation |
@@ -200,11 +216,11 @@ T-003 + T-005 + T-008 ─ T-009 measured hardening ─ T-010 convergence audit
 
 ## T-001 — Reconcile v8 migration fallout and restore trustworthy baseline
 **Status:** VERIFYING | **Priority:** P0 | **Type:** FIX | **Leverage:** HIGH  
-**Problem:** `main` has no green trusted baseline; code-bearing preflight is now fully green and only plan reconciliation/main verification remain.  
+**Problem:** core/current-v8 preflight is green and was cleanly fast-forwarded to `main`, but the main-only Pages workflow exposed F-017, so the original 5-workflow baseline is not yet fully recovered.  
 **Goal:** all applicable current-v8 Actions green without semantic weakening or legacy resurrection.  
-**Scope:** HFSM policy/package, obsolete workflows, validators, source-boundary checks, orphan gitlink, raw/projection contracts, nullable fix, HUD check, F-015/F-016 CI ownership reconciliation, plan.  
+**Scope:** HFSM policy/package, obsolete workflows, validators, source-boundary checks, orphan gitlink, raw/projection contracts, nullable fix, HUD check, F-015/F-016 ownership reconciliation, F-017 Pages v8 publication, plan.  
 **Non-goals:** new features/UX, schema bump, broad refactor, alias deletion, mutation threshold, live-NX redesign.  
-**Implementation:** code-bearing preflight is green through deployment. Re-verify this plan-only reconciliation, resync `main`, self-review net diff, create one logical commit directly on current main, non-force push, then verify main Actions.  
+**Implementation:** preserve verified `2b28da717...`; on `audit/t001-pages-f017-20260829`, replace stale Pages hybrid-profile references with canonical v8 profile references, verify branch CI/docs and static-path contract, then fast-forward the resulting minimal commit to current `main` with no force. Re-run all five main workflows; close T-001 only when all applicable workflows pass.  
 **Acceptance:** all current workflows PASS on one tree; deployment executes; raw 439 IDs unique; alias projection fidelity PASS; no diagnostic artifacts; clean checkout; main rechecked before push.  
 **Dependencies:** none. **Blocks:** T-002..T-010. **Risk:** Medium. **Rollback:** normal revert only.
 
@@ -226,7 +242,7 @@ For each boundary: characterize → introduce interface → compatibility → mi
 
 ## T-006 — Replace brittle source-text checks with executable architecture/projection tests
 **Status:** TODO | **Priority:** P1 | **Type:** HARDEN | **Leverage:** HIGH  
-F-004,F-005,F-010,F-013..F-016 demonstrate drift. Replace location-sensitive smoke with compile/reflection/behavior/negative-fixture contracts for Protocol, BridgeCore, CommandBridge, HotkeyStudio/UI and raw-v8/projection ownership. NXOpen stubs remain compile-only evidence. Depends: T-001; blocks T-005.
+F-004,F-005,F-010,F-013..F-017 demonstrate drift. Replace location-sensitive smoke with compile/reflection/behavior/negative-fixture contracts for Protocol, BridgeCore, CommandBridge, HotkeyStudio/UI and raw-v8/projection ownership. NXOpen stubs remain compile-only evidence. Depends: T-001; blocks T-005.
 
 ## T-007 — Mutation-test critical pure logic
 **Status:** TODO | **Priority:** P2 | **Type:** HARDEN | **Leverage:** HIGH  
@@ -306,6 +322,9 @@ T-001; addressed F-016. `SelectionIntentHotkeys` delegation and `NxSelectionExec
 
 ## Iteration 1 — Pre-main reconciliation
 T-001; no new finding. This commit changes only `MASTER_PLAN.md` to record the verified Wave E evidence. It must pass current Documentation/CI before its tree is used for the clean one-commit fast-forward onto `main`. Result: VERIFYING.
+
+## Iteration 1 — Main integration / F-017
+T-001; clean verified tree was fast-forwarded to `main` as `2b28da717d4325b767c240851d487ae7717a3cb0` with parent `2359e85...` and no audit-history merge. Main-only Pages run `33265565463` then exposed F-017: static publication still referenced removed `nx2512-pro-hybrid.json`. No runtime regression was observed; new branch `audit/t001-pages-f017-20260829` created from current main. Result: FAIL → reconciled; F-017 fix selected.
 
 # 21. Definition of Final Done
 
