@@ -42,8 +42,12 @@ const LEVERAGE = new Set(['HIGH', 'MEDIUM', 'LOW']);
 const SEVERITIES = new Set(['Critical', 'High', 'Medium', 'Low']);
 const CONFIDENCE = new Set(['Confirmed', 'Strong', 'Tentative']);
 
+function normalizeNewlines(text) {
+  return text.replace(/\r\n?/g, '\n');
+}
+
 function countExactLine(text, line) {
-  return text.split(/\r?\n/).filter((candidate) => candidate.trimEnd() === line).length;
+  return text.split('\n').filter((candidate) => candidate.trimEnd() === line).length;
 }
 
 function sectionBody(text, heading, nextHeading) {
@@ -95,7 +99,8 @@ function metadataValue(body, label) {
   return match?.[1]?.trim() ?? null;
 }
 
-export function validateMasterPlan(text) {
+export function validateMasterPlan(inputText) {
+  const text = normalizeNewlines(inputText);
   const errors = [];
 
   for (const heading of REQUIRED_HEADINGS) {
@@ -158,7 +163,8 @@ function requireFailure(name, candidate, expectedFragment) {
   }
 }
 
-function runSelfTests(validText) {
+function runSelfTests(inputText) {
+  const validText = normalizeNewlines(inputText);
   const baselineErrors = validateMasterPlan(validText);
   if (baselineErrors.length > 0) {
     throw new Error(`self-test:baseline-invalid:${baselineErrors.join(',')}`);
